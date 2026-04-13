@@ -34,9 +34,11 @@ export function HowItWorks() {
           How it works
         </p>
         <h2 className="text-[clamp(30px,3.5vw,46px)] font-extrabold tracking-[-1.5px] leading-[1.08] text-navy mb-16 max-w-[520px]">
-          Three steps.
-          <br />A <span className="font-light italic text-sky">lifetime</span> of
-          letters.
+          It&rsquo;s Simple.
+          <br />
+          Capture{" "}
+          <span className="font-light italic text-sky">emotions</span> as they
+          happen.
         </h2>
 
         <div className="grid gap-4 lg:gap-6 lg:grid-cols-3">
