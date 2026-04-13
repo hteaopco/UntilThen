@@ -51,7 +51,7 @@ function LetterCard({
 export function Hero() {
   return (
     <section id="top" className="bg-white">
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-[120px] lg:pt-[120px] pb-20 lg:pb-20 grid lg:grid-cols-2 gap-20 items-center min-h-[100vh] lg:min-h-[100vh]">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-[120px] pb-20 grid lg:grid-cols-2 gap-20 items-center lg:min-h-[100vh]">
         <div className="relative z-[2]">
           <div className="hero-tag inline-flex items-center gap-2 text-xs font-bold tracking-[0.12em] uppercase text-sky bg-sky-tint px-[14px] py-1.5 rounded-md mb-6">
             <span aria-hidden="true">✦</span>
@@ -71,19 +71,13 @@ export function Hero() {
             you choose.
           </p>
 
-          <div className="hero-actions flex flex-wrap items-center gap-3">
+          <div className="hero-actions">
             <a
               href="#cta"
-              className="bg-navy text-white px-7 py-3.5 rounded-lg text-[15px] font-bold tracking-[0.01em] hover:bg-navy-mid hover:-translate-y-0.5 transition-all"
+              className="inline-block bg-navy text-white px-7 py-3.5 rounded-lg text-[15px] font-bold tracking-[0.01em] hover:bg-navy-mid hover:-translate-y-0.5 transition-all"
               style={{ boxShadow: "0 4px 16px rgba(15,31,61,0.2)" }}
             >
               Join the waitlist →
-            </a>
-            <a
-              href="#how"
-              className="text-sm font-medium text-ink-mid hover:text-navy transition-colors px-3 py-3.5"
-            >
-              See how it works ↓
             </a>
           </div>
         </div>
