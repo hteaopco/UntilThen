@@ -354,13 +354,27 @@ export function NewEntryForm({
                 </label>
                 {useCustomDate && (
                   <input
-                    type="date"
+                    // Start as a text input so the "Select date"
+                    // placeholder is visible when empty (native
+                    // date inputs don't honour `placeholder` in
+                    // iOS Safari). Flip to a real date input on
+                    // focus so the picker opens normally.
+                    type={customDate ? "date" : "text"}
+                    placeholder="Select date"
                     value={customDate}
                     onChange={(e) => setCustomDate(e.target.value)}
+                    onFocus={(e) => {
+                      e.currentTarget.type = "date";
+                    }}
+                    onBlur={(e) => {
+                      if (!e.currentTarget.value) {
+                        e.currentTarget.type = "text";
+                      }
+                    }}
                     min={new Date(Date.now() + 24 * 60 * 60 * 1000)
                       .toISOString()
                       .split("T")[0]}
-                    className="ml-6 px-3 py-2 border border-navy/15 rounded-lg text-sm text-navy bg-white outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+                    className="ml-6 px-3 py-2 border border-navy/15 rounded-lg text-sm text-navy bg-white outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 placeholder-ink-light"
                   />
                 )}
               </div>

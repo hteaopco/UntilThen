@@ -188,13 +188,22 @@ export function CreateCollectionModal({
               </label>
               {dateMode === "custom" && (
                 <input
-                  type="date"
+                  type={customDate ? "date" : "text"}
+                  placeholder="Select date"
                   value={customDate}
                   onChange={(e) => setCustomDate(e.target.value)}
+                  onFocus={(e) => {
+                    e.currentTarget.type = "date";
+                  }}
+                  onBlur={(e) => {
+                    if (!e.currentTarget.value) {
+                      e.currentTarget.type = "text";
+                    }
+                  }}
                   min={new Date(Date.now() + 24 * 60 * 60 * 1000)
                     .toISOString()
                     .split("T")[0]}
-                  className="ml-6 px-3 py-2 border border-navy/15 rounded-lg text-sm text-navy outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+                  className="ml-6 px-3 py-2 border border-navy/15 rounded-lg text-sm text-navy outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 placeholder-ink-light"
                 />
               )}
             </div>
