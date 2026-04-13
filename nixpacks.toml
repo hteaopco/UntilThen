@@ -9,4 +9,4 @@ cmds = ["npm ci --prefer-offline --no-audit"]
 cmds = ["npm run build"]
 
 [start]
-cmd = "npx prisma migrate deploy && npm run start"
+cmd = "sh -c 'if [ -n \"$DATABASE_URL\" ]; then npx prisma migrate deploy; fi && npm run start'"

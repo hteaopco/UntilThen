@@ -1,16 +1,8 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 
+// Liveness probe: must not depend on external services.
 export async function GET() {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    return NextResponse.json({ status: "ok", db: "up" });
-  } catch (err) {
-    return NextResponse.json(
-      { status: "degraded", db: "down", error: (err as Error).message },
-      { status: 503 },
-    );
-  }
+  return NextResponse.json({ status: "ok" });
 }
