@@ -41,6 +41,16 @@ html {
   100% { transform: translateY(580px) rotate(640deg); opacity: 0; }
 }
 
+@keyframes vaultIdle {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes vaultSpin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(720deg); }
+}
+
 .hero-tag      { opacity: 0; animation: fadeUp 0.5s 0.10s ease forwards; }
 .hero-headline { opacity: 0; animation: fadeUp 0.6s 0.18s ease forwards; }
 .hero-sub      { opacity: 0; animation: fadeUp 0.6s 0.26s ease forwards; }
@@ -57,10 +67,25 @@ html {
   animation-iteration-count: infinite;
 }
 
+/* Vault combination dial. The SVG <g> needs transform-box: fill-box so
+   the transform-origin is relative to the group's own bounds (the
+   dial's center), not the outer <svg>. */
+.animate-vaultIdle {
+  animation: vaultIdle 40s linear infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+.animate-vaultSpin {
+  animation: vaultSpin 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-tag, .hero-headline, .hero-sub, .hero-actions, .hero-right,
   .animate-float1, .animate-float2, .animate-float3, .animate-blink,
-  .animate-confettiFall {
+  .animate-confettiFall,
+  .animate-vaultIdle, .animate-vaultSpin {
     animation: none !important;
     opacity: 1 !important;
   }

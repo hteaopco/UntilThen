@@ -105,8 +105,15 @@ export async function POST(req: Request) {
           parentId: user.id,
         },
       });
+      // Default the vault's reveal date to the child's 18th birthday.
+      // Parents can change this later from the dashboard.
+      const defaultRevealDate = new Date(childDob);
+      defaultRevealDate.setFullYear(defaultRevealDate.getFullYear() + 18);
       await tx.vault.create({
-        data: { childId: child.id },
+        data: {
+          childId: child.id,
+          revealDate: defaultRevealDate,
+        },
       });
     });
 
