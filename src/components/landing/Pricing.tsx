@@ -197,7 +197,7 @@ export function Pricing() {
           </p>
           <h2 className="text-[clamp(28px,3.5vw,44px)] font-extrabold tracking-[-1.5px] text-navy leading-[1.08]">
             A <span className="font-light italic text-sky">lifetime</span> of
-            letters,
+            moments,
             <br />
             less than a coffee a month.
           </h2>
