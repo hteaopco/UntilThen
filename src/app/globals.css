@@ -2,32 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  color-scheme: light;
+}
+
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 5rem;
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
+  from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes quillFloat {
-  0%, 100% { transform: translateY(-50%) rotate(-2deg); }
-  50%      { transform: translateY(-53%) rotate(0deg); }
+@keyframes float1 {
+  0%, 100% { transform: rotate(-1.5deg) translateY(0); }
+  50%      { transform: rotate(-1.5deg) translateY(-10px); }
 }
-
-@keyframes cardFloatA {
-  0%, 100% { transform: rotate(-2deg) translateY(0); }
-  50%      { transform: rotate(-2deg) translateY(-10px); }
+@keyframes float2 {
+  0%, 100% { transform: rotate(1.2deg) translateY(0); }
+  50%      { transform: rotate(1.2deg) translateY(-7px); }
 }
-@keyframes cardFloatB {
-  0%, 100% { transform: rotate(1.5deg) translateY(0); }
-  50%      { transform: rotate(1.5deg) translateY(-8px); }
-}
-@keyframes cardFloatC {
-  0%, 100% { transform: rotate(-1deg) translateY(0); }
-  50%      { transform: rotate(-1deg) translateY(-12px); }
+@keyframes float3 {
+  0%, 100% { transform: rotate(-0.8deg) translateY(0); }
+  50%      { transform: rotate(-0.8deg) translateY(-12px); }
 }
 
 @keyframes blink {
@@ -35,20 +34,20 @@ html {
   50%, 100% { opacity: 0; }
 }
 
-.animate-fadeUp       { opacity: 0; animation: fadeUp 0.7s ease-out forwards; }
-.animate-quillFloat   { animation: quillFloat 8s ease-in-out infinite; }
-.animate-cardFloatA   { animation: cardFloatA 6s ease-in-out infinite; }
-.animate-cardFloatB   { animation: cardFloatB 7s ease-in-out infinite; }
-.animate-cardFloatC   { animation: cardFloatC 8s ease-in-out infinite; }
-.animate-blink        { animation: blink 1.1s step-end infinite; }
+.hero-tag      { opacity: 0; animation: fadeUp 0.5s 0.10s ease forwards; }
+.hero-headline { opacity: 0; animation: fadeUp 0.6s 0.18s ease forwards; }
+.hero-sub      { opacity: 0; animation: fadeUp 0.6s 0.26s ease forwards; }
+.hero-actions  { opacity: 0; animation: fadeUp 0.6s 0.34s ease forwards; }
+.hero-right    { opacity: 0; animation: fadeUp 0.8s 0.50s ease forwards; }
+
+.animate-float1 { animation: float1 6s ease-in-out infinite; }
+.animate-float2 { animation: float2 7s ease-in-out infinite; }
+.animate-float3 { animation: float3 8s ease-in-out infinite; }
+.animate-blink  { animation: blink 1.1s infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-fadeUp,
-  .animate-quillFloat,
-  .animate-cardFloatA,
-  .animate-cardFloatB,
-  .animate-cardFloatC,
-  .animate-blink {
+  .hero-tag, .hero-headline, .hero-sub, .hero-actions, .hero-right,
+  .animate-float1, .animate-float2, .animate-float3, .animate-blink {
     animation: none !important;
     opacity: 1 !important;
   }

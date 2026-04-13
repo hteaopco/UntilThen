@@ -1,5 +1,6 @@
 // Prisma schema for UntilThen
-// Add models here as features are defined.
+// Phase 1: just the waitlist. Phase 2 models (User/Child/Vault/Entry)
+// land when we start the app proper.
 
 generator client {
   provider = "prisma-client-js"
@@ -10,11 +11,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Placeholder model — replace/extend once features are defined.
-model Countdown {
+model Waitlist {
   id        String   @id @default(cuid())
-  title     String
-  targetAt  DateTime
+  email     String   @unique
+  name      String?
+  source    String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }

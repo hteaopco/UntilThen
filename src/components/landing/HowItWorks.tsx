@@ -1,62 +1,59 @@
 function Step({
-  n,
+  num,
   emoji,
   title,
   body,
 }: {
-  n: string;
+  num: string;
   emoji: string;
   title: string;
   body: string;
 }) {
   return (
-    <div className="group relative bg-mist hover:bg-sand transition-colors rounded-2xl p-8 lg:p-10 overflow-hidden">
+    <div className="group relative overflow-hidden rounded-2xl border border-navy/[0.08] bg-[#f8fafc] hover:bg-sky-tint hover:border-sky/20 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,31,61,0.08)] transition-all px-8 py-9">
       <div
         aria-hidden="true"
-        className="absolute -top-6 -right-2 text-[140px] font-extrabold text-ink/[0.05] leading-none pointer-events-none select-none"
+        className="text-[64px] font-extrabold text-navy opacity-[0.05] leading-none -mb-[18px] tracking-[-3px]"
       >
-        {n}
+        {num}
       </div>
-      <div className="relative">
-        <div className="text-[11px] uppercase tracking-[0.25em] text-rust font-semibold">
-          Step {n}
-        </div>
-        <div className="mt-5 text-3xl">{emoji}</div>
-        <h3 className="mt-5 text-xl font-semibold text-ink">{title}</h3>
-        <p className="mt-3 text-ink/60 leading-relaxed">{body}</p>
-      </div>
+      <span className="text-2xl block mb-3.5">{emoji}</span>
+      <h3 className="text-[17px] font-bold text-navy mb-2 tracking-[-0.3px]">
+        {title}
+      </h3>
+      <p className="text-sm leading-[1.75] text-ink-mid">{body}</p>
     </div>
   );
 }
 
 export function HowItWorks() {
   return (
-    <section id="how" className="py-24 lg:py-32">
-      <div className="mx-auto max-w-6xl px-6">
-        <p className="text-[11px] uppercase tracking-[0.25em] text-rust font-semibold">
+    <section id="how" className="bg-white">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-16 lg:py-24">
+        <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-sky mb-3.5">
           How it works
         </p>
-        <h2 className="mt-4 text-4xl lg:text-5xl font-extrabold text-ink tracking-[-0.02em] max-w-2xl leading-[1.1]">
-          Three steps. A{" "}
-          <span className="font-light italic text-rust">lifetime</span> of
+        <h2 className="text-[clamp(30px,3.5vw,46px)] font-extrabold tracking-[-1.5px] leading-[1.08] text-navy mb-16 max-w-[520px]">
+          Three steps.
+          <br />A <span className="font-light italic text-sky">lifetime</span> of
           letters.
         </h2>
 
-        <div className="mt-16 grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-4 lg:gap-6 lg:grid-cols-3">
           <Step
-            n="01"
+            num="01"
             emoji="✍️"
             title="Write, record, or upload"
-            body="Write a letter in our quiet editor, record a voice note, or upload a photo with a caption. Each entry takes minutes — and lasts forever."
+            body="Write a letter, record a voice note, or upload a photo with a caption. Each entry takes minutes — and lasts a lifetime."
           />
           <Step
-            n="02"
+            num="02"
             emoji="🔒"
             title="Set a reveal age or date"
-            body="Every entry is sealed until a milestone you choose — their 13th birthday, graduation, when they fall in love. Only you decide when it opens."
+            body="Every entry is sealed until a milestone you choose — their 13th birthday, graduation, or the day they fall in love."
           />
           <Step
-            n="03"
+            num="03"
             emoji="🎁"
             title="The vault unlocks"
             body="On reveal day, your child opens a vault of letters from across their entire childhood — each one a gift from a past version of you."

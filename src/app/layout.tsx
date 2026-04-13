@@ -1,18 +1,25 @@
-import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
 
-const jakarta = Plus_Jakarta_Sans({
+const dmSans = DM_Sans({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  variable: "--font-jakarta",
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-dm-sans",
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  colorScheme: "light",
+};
+
 export const metadata: Metadata = {
-  title: "UntilThen — Letters sealed in time",
+  title: "untilThen — Letters from the past, opened in the future",
   description:
-    "Write letters, record voice notes, and seal memories in a vault your child unlocks when they're ready.",
+    "A time capsule diary for parents. Write letters, record voice notes, and seal memories your child unlocks when they're ready.",
+  other: {
+    "supported-color-schemes": "light",
+  },
 };
 
 export default function RootLayout({
@@ -21,8 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={jakarta.variable}>
-      <body className="font-sans bg-cream text-ink antialiased">{children}</body>
+    <html lang="en" className={dmSans.variable}>
+      <body className="font-sans bg-white text-navy antialiased">{children}</body>
     </html>
   );
 }

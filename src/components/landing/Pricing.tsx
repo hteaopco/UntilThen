@@ -1,59 +1,89 @@
 function Plan({
+  tag,
   name,
   price,
-  sub,
+  per,
   features,
   cta,
+  ctaStyle,
   featured = false,
 }: {
+  tag: string;
   name: string;
   price: string;
-  sub: string;
+  per: string;
   features: string[];
   cta: string;
+  ctaStyle: "navy" | "white" | "outline";
   featured?: boolean;
 }) {
+  const ctaClasses = {
+    navy: "bg-navy text-white hover:bg-navy-mid",
+    white: "bg-white text-navy hover:bg-sky-tint",
+    outline:
+      "border-[1.5px] border-navy/[0.08] text-ink-mid hover:border-navy hover:text-navy",
+  }[ctaStyle];
+
   return (
     <div
-      className={`relative rounded-2xl p-8 border flex flex-col ${
+      className={`rounded-2xl p-9 transition-all ${
         featured
-          ? "bg-rust border-rust text-cream lg:-my-2 lg:scale-[1.02] shadow-[0_30px_60px_-20px_rgba(192,90,58,0.5)]"
-          : "bg-cream/[0.03] border-cream/10 text-cream"
+          ? "bg-navy border border-navy"
+          : "bg-white border border-navy/[0.08] hover:shadow-[0_8px_24px_rgba(15,31,61,0.08)]"
       }`}
     >
-      {featured && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-cream text-ink text-[10px] uppercase tracking-[0.25em] font-semibold px-3 py-1 rounded-full">
-          Most popular
-        </div>
-      )}
-      <div className="text-xs uppercase tracking-[0.25em] font-semibold opacity-80">
+      <span
+        className={`block text-[10px] font-bold tracking-[0.14em] uppercase mb-4 ${
+          featured ? "text-sky-light" : "text-sky"
+        }`}
+      >
+        {tag}
+      </span>
+      <div
+        className={`text-xl font-extrabold tracking-[-0.5px] ${
+          featured ? "text-white" : "text-navy"
+        }`}
+      >
         {name}
       </div>
-      <div className="mt-5 flex items-baseline gap-1">
-        <span className="text-4xl font-extrabold tracking-[-0.02em]">{price}</span>
-        <span className="text-sm opacity-70">{sub}</span>
+      <div
+        className={`text-5xl font-extrabold tracking-[-2px] leading-none mt-4 mb-1 ${
+          featured ? "text-white" : "text-navy"
+        }`}
+      >
+        <sub className="text-xl tracking-normal align-baseline">$</sub>
+        {price}
       </div>
-      <ul className="mt-8 space-y-3 text-sm flex-1">
+      <div
+        className={`text-xs italic mb-6 ${
+          featured ? "text-white/40" : "text-ink-light"
+        }`}
+      >
+        {per}
+      </div>
+      <ul className="flex flex-col gap-2.5 mb-7">
         {features.map((f) => (
-          <li key={f} className="flex items-start gap-3">
+          <li
+            key={f}
+            className={`text-[13px] leading-[1.4] flex items-start gap-2 ${
+              featured ? "text-white/75" : "text-ink-mid"
+            }`}
+          >
             <span
-              className={`mt-[7px] inline-block w-1.5 h-1.5 rounded-full ${
-                featured ? "bg-cream" : "bg-warm"
+              aria-hidden="true"
+              className={`text-[9px] mt-[3px] shrink-0 ${
+                featured ? "text-gold-light" : "text-gold"
               }`}
-            />
-            <span className={featured ? "text-cream/95" : "text-cream/80"}>
-              {f}
+            >
+              ✦
             </span>
+            <span>{f}</span>
           </li>
         ))}
       </ul>
       <a
         href="#cta"
-        className={`mt-8 block text-center py-3 rounded-full text-sm font-medium transition ${
-          featured
-            ? "bg-cream text-ink hover:opacity-90"
-            : "border border-cream/30 text-cream hover:bg-cream/5"
-        }`}
+        className={`block text-center py-3 px-5 rounded-lg text-[13px] font-bold tracking-[0.01em] transition-all ${ctaClasses}`}
       >
         {cta}
       </a>
@@ -63,48 +93,56 @@ function Plan({
 
 export function Pricing() {
   return (
-    <section id="pricing" className="bg-dark text-cream py-24 lg:py-32">
-      <div className="mx-auto max-w-6xl px-6">
-        <p className="text-[11px] uppercase tracking-[0.25em] text-warm font-semibold">
-          Pricing
-        </p>
-        <h2 className="mt-4 text-4xl lg:text-5xl font-extrabold tracking-[-0.02em] max-w-3xl leading-[1.1]">
-          A <span className="font-light italic text-warm">lifetime</span> of
-          letters, for less than a coffee a month.
-        </h2>
+    <section id="pricing" className="bg-white">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-16 lg:py-24">
+        <div className="mb-14">
+          <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-sky mb-2.5">
+            Pricing
+          </p>
+          <h2 className="text-[clamp(28px,3.5vw,44px)] font-extrabold tracking-[-1.5px] text-navy leading-[1.08]">
+            A <span className="font-light italic text-sky">lifetime</span> of letters,
+            <br />
+            less than a coffee a month.
+          </h2>
+        </div>
 
-        <div className="mt-20 grid gap-6 lg:grid-cols-3 lg:items-stretch">
+        <div className="grid gap-4 lg:gap-5 lg:grid-cols-3">
           <Plan
+            tag="Free forever"
             name="Seed"
-            price="$0"
-            sub="/month · Free forever"
+            price="0"
+            per="always free"
             features={[
               "Up to 10 entries",
-              "Text letters & photo uploads",
+              "Text letters & photos",
               "One child vault",
               "Reveal date logic",
             ]}
             cta="Get started free"
+            ctaStyle="outline"
           />
           <Plan
             featured
+            tag="Most popular"
             name="Family"
-            price="$5"
-            sub="/month · $40/year"
+            price="5"
+            per="per month · $40/year"
             features={[
               "Unlimited entries",
               "Voice notes & video",
               "Up to 3 child vaults",
               "Multi-contributor invites",
               "Smart prompts & reminders",
-              "Print keepsake book at unlock",
+              "Print keepsake book",
             ]}
             cta="Start your vault"
+            ctaStyle="white"
           />
           <Plan
+            tag="Give as a gift"
             name="Gift"
-            price="$40"
-            sub="/year · Give as a gift"
+            price="40"
+            per="one year · for grandparents"
             features={[
               "Full Family plan, gifted",
               "Beautiful gift email",
@@ -112,6 +150,7 @@ export function Pricing() {
               "Auto-cancels or renews",
             ]}
             cta="Give the gift"
+            ctaStyle="outline"
           />
         </div>
       </div>

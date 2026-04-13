@@ -1,30 +1,21 @@
-import { QuillSvg } from "@/components/ui/QuillSvg";
-
-function Stat({ big, label }: { big: string; label: string }) {
-  return (
-    <div>
-      <div className="text-4xl font-extrabold text-ink tracking-[-0.02em]">{big}</div>
-      <div className="mt-2 text-xs text-ink/55 leading-relaxed max-w-[160px]">
-        {label}
-      </div>
-    </div>
-  );
-}
-
 function LetterCard({
+  width,
   top,
   left,
   zIndex,
   floatClass,
+  bg,
   to,
   title,
   preview,
   lock,
 }: {
+  width: number;
   top: number;
   left: number;
   zIndex: number;
   floatClass: string;
+  bg: string;
   to: string;
   title: string;
   preview: string;
@@ -32,24 +23,25 @@ function LetterCard({
 }) {
   return (
     <div
-      className={`absolute w-[340px] bg-white rounded-xl border border-ink/[0.05] p-6 ${floatClass}`}
+      className={`absolute rounded-2xl border border-navy/[0.08] px-[26px] py-6 ${bg} ${floatClass}`}
       style={{
+        width,
         top,
         left,
         zIndex,
         boxShadow:
-          "0 30px 60px -20px rgba(28,21,16,0.2), 0 10px 24px -12px rgba(28,21,16,0.12)",
+          "0 4px 24px rgba(15,31,61,0.08), 0 1px 4px rgba(15,31,61,0.04)",
       }}
     >
-      <div className="text-[11px] uppercase tracking-[0.25em] text-rust font-semibold">
+      <div className="text-[10px] uppercase tracking-[0.1em] text-sky font-bold mb-1.5">
         {to}
       </div>
-      <h3 className="mt-3 text-lg font-semibold text-ink leading-snug">
+      <h3 className="text-sm font-bold text-navy leading-[1.3] mb-1.5">
         {title}
       </h3>
-      <p className="mt-3 text-sm text-ink/55 leading-relaxed">{preview}</p>
-      <div className="mt-5 pt-4 border-t border-ink/[0.06] text-[11px] text-ink/45 flex items-center gap-2">
-        <span className="inline-block w-1.5 h-1.5 rounded-full bg-rust/70" />
+      <p className="text-xs text-ink-light leading-[1.6]">{preview}</p>
+      <div className="mt-3.5 pt-3 border-t border-navy/[0.08] flex items-center gap-1.5 text-[10px] uppercase tracking-[0.08em] font-bold text-gold">
+        <span className="inline-block w-[5px] h-[5px] rounded-full bg-gold" />
         {lock}
       </div>
     </div>
@@ -58,110 +50,80 @@ function LetterCard({
 
 export function Hero() {
   return (
-    <section
-      id="top"
-      className="relative pt-32 pb-24 lg:pt-40 lg:pb-32 overflow-hidden"
-    >
-      <div
-        className="pointer-events-none hidden lg:block absolute right-[-120px] top-1/2 z-0 animate-quillFloat"
-        aria-hidden="true"
-      >
-        <QuillSvg width={480} height={680} color="#1c1510" opacity={0.07} />
-      </div>
+    <section id="top" className="bg-white">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-[120px] lg:pt-[120px] pb-20 lg:pb-20 grid lg:grid-cols-2 gap-20 items-center min-h-[100vh] lg:min-h-[100vh]">
+        <div className="relative z-[2]">
+          <div className="hero-tag inline-flex items-center gap-2 text-xs font-bold tracking-[0.12em] uppercase text-sky bg-sky-tint px-[14px] py-1.5 rounded-md mb-6">
+            <span aria-hidden="true">✦</span>
+            Now taking early access
+          </div>
 
-      <div className="relative mx-auto max-w-6xl px-6 grid lg:grid-cols-2 gap-16 items-center z-10">
-        <div className="flex flex-col gap-7">
-          <p
-            className="animate-fadeUp text-[11px] uppercase tracking-[0.25em] text-rust font-semibold flex items-center gap-3"
-            style={{ animationDelay: "0.1s" }}
-          >
-            <span className="w-8 h-px bg-rust/60" />
-            Letters sealed in time
-          </p>
-
-          <h1
-            className="animate-fadeUp text-[48px] leading-[1.05] md:text-[64px] lg:text-[80px] font-extrabold text-ink tracking-[-0.03em]"
-            style={{ animationDelay: "0.2s" }}
-          >
-            Write to who they&rsquo;ll{" "}
-            <span className="font-light italic text-rust">become.</span>
+          <h1 className="hero-headline text-[clamp(40px,5vw,64px)] font-extrabold leading-[1.05] tracking-[-2px] text-navy mb-5">
+            Write to who
+            <br />
+            they&rsquo;ll{" "}
+            <span className="font-light italic text-sky">become.</span>
           </h1>
 
-          <p
-            className="animate-fadeUp text-lg text-ink/55 max-w-xl leading-relaxed"
-            style={{ animationDelay: "0.3s" }}
-          >
-            Seal letters, voice notes & memories in a vault your child unlocks
-            when they&rsquo;re ready — on their 13th birthday, their 18th, or
-            the day they fall in love.
+          <p className="hero-sub text-[17px] font-normal leading-[1.7] text-ink-mid max-w-[440px] mb-10">
+            Seal letters, voice notes and memories in a vault your child unlocks
+            when they&rsquo;re ready — on their 18th birthday, or any milestone
+            you choose.
           </p>
 
-          <div
-            className="animate-fadeUp flex flex-wrap items-center gap-6"
-            style={{ animationDelay: "0.4s" }}
-          >
+          <div className="hero-actions flex flex-wrap items-center gap-3">
             <a
               href="#cta"
-              className="bg-rust text-cream px-7 py-3.5 rounded-full font-medium hover:opacity-90 transition-opacity"
+              className="bg-navy text-white px-7 py-3.5 rounded-lg text-[15px] font-bold tracking-[0.01em] hover:bg-navy-mid hover:-translate-y-0.5 transition-all"
+              style={{ boxShadow: "0 4px 16px rgba(15,31,61,0.2)" }}
             >
-              Begin your first letter →
+              Join the waitlist →
             </a>
             <a
               href="#how"
-              className="text-ink/70 hover:text-ink underline underline-offset-4 decoration-ink/20"
+              className="text-sm font-medium text-ink-mid hover:text-navy transition-colors px-3 py-3.5"
             >
               See how it works ↓
             </a>
           </div>
-
-          <div
-            className="animate-fadeUp h-px bg-ink/10 mt-4"
-            style={{ animationDelay: "0.5s" }}
-          />
-
-          <div
-            className="animate-fadeUp grid grid-cols-3 gap-6"
-            style={{ animationDelay: "0.55s" }}
-          >
-            <Stat big="18" label="years of letters, opened at once" />
-            <Stat big="∞" label="entries on paid plans" />
-            <Stat big="1" label="unforgettable reveal moment" />
-          </div>
         </div>
 
-        <div
-          className="relative h-[560px] hidden lg:block animate-fadeUp"
-          style={{ animationDelay: "0.5s" }}
-        >
+        <div className="hero-right relative h-[480px] hidden lg:block">
           <LetterCard
-            zIndex={1}
-            top={140}
-            left={100}
-            floatClass="animate-cardFloatC"
-            to="Always"
-            title="The day we brought you home"
-            preview="📷 47 photos · with a letter"
-            lock="Sealed"
+            width={300}
+            top={0}
+            left={20}
+            zIndex={3}
+            floatClass="animate-float1"
+            bg="bg-white"
+            to="To Ellie, age 18"
+            title="The night before your first day of school"
+            preview="You picked the backpack with tiny stars. I watched you pack it three times…"
+            lock="Unlocks Sept 2038"
           />
           <LetterCard
+            width={280}
+            top={130}
+            left={0}
             zIndex={2}
-            top={70}
-            left={50}
-            floatClass="animate-cardFloatB"
+            floatClass="animate-float2"
+            bg="bg-sky-tint"
             to="For when you fall in love"
             title="A voice note from Dad"
             preview="🎙 2:34 · recorded on a rainy Sunday"
             lock="Sealed"
           />
           <LetterCard
-            zIndex={3}
-            top={0}
-            left={0}
-            floatClass="animate-cardFloatA"
-            to="To Ellie, age 18"
-            title="The night before your first day of school"
-            preview="You picked the backpack with tiny stars on it…"
-            lock="Unlocks Sept 2038"
+            width={260}
+            top={250}
+            left={50}
+            zIndex={1}
+            floatClass="animate-float3"
+            bg="bg-gold-tint"
+            to="Always"
+            title="The day we brought you home"
+            preview="📷 47 photos · with a letter"
+            lock="Sealed"
           />
         </div>
       </div>

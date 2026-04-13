@@ -1,4 +1,4 @@
-type Variant = "dark" | "light";
+type Variant = "dark" | "light" | "footer";
 
 interface Props {
   variant?: Variant;
@@ -7,46 +7,48 @@ interface Props {
   className?: string;
 }
 
+// Logo wordmark — pure SVG, no image files.
+// The <rect> covers the native i-dot of "until" so the gold heart can sit
+// in its place. Its fill must match the surface colour behind the logo.
 export function LogoSvg({
   variant = "dark",
-  width = 180,
-  height = 36,
+  width = 148,
+  height = 26,
   className,
 }: Props) {
-  const untilColor = variant === "dark" ? "#1c1510" : "#fdf8f2";
-  const accent = "#c05a3a";
+  const isDark = variant === "dark";
+  const untilFill = isDark ? "#0f1f3d" : "#ffffff";
+  const untilOpacity = isDark ? 1 : 0.6;
+  const rectFill = isDark ? "#ffffff" : "#0f1f3d";
+
   return (
     <svg
       width={width}
       height={height}
-      viewBox="0 0 300 56"
+      viewBox="0 0 320 56"
       fill="none"
       className={className}
-      aria-label="UntilThen"
+      aria-label="untilThen"
     >
       <text
-        x="0"
-        y="42"
-        fontFamily="'Plus Jakarta Sans', sans-serif"
-        fontSize="42"
+        y="44"
+        fontFamily="'DM Sans', sans-serif"
+        fontSize="44"
         fontWeight="800"
-        fill={untilColor}
-        letterSpacing="-2"
-      >
-        until
-      </text>
-      <circle cx="178" cy="32" r="4" fill={accent} opacity="0.8" />
-      <text
-        x="190"
-        y="42"
-        fontFamily="'Plus Jakarta Sans', sans-serif"
-        fontSize="42"
-        fontWeight="300"
-        fill={accent}
         letterSpacing="-1"
       >
-        then
+        <tspan fill={untilFill} fillOpacity={untilOpacity}>
+          until
+        </tspan>
+        <tspan fill="#4a9edd">Then</tspan>
       </text>
+      {/* Cover the native i-dot with the surface colour */}
+      <rect x="119" y="0" width="16" height="11" fill={rectFill} />
+      {/* Gold heart sits in place of the dot */}
+      <path
+        d="M 127 10 C 127 7, 130 5, 133 7.5 C 136 5, 139 7, 139 10 C 139 14, 133 18, 133 18 C 133 18, 127 14, 127 10 Z"
+        fill="#c9a84c"
+      />
     </svg>
   );
 }
