@@ -1,0 +1,20 @@
+// Prisma schema for UntilThen
+// Add models here as features are defined.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Placeholder model — replace/extend once features are defined.
+model Countdown {
+  id        String   @id @default(cuid())
+  title     String
+  targetAt  DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
