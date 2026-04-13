@@ -6,7 +6,7 @@ const TARGET = "untilThen.";
 const UNTIL_LENGTH = 5; // "until"
 
 // Timings
-const BLINK_WAIT_MS = 2200; // ~2 cursor blinks before typing starts
+const BLINK_WAIT_MS = 1100; // 1 cursor blink cycle before typing starts
 const CHAR_INTERVAL_MS = 110;
 const PAUSE_AFTER_PERIOD_MS = 280; // beat after typing "."
 const PAUSE_AFTER_BACKSPACE_MS = 280; // beat after deleting "."
