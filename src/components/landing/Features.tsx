@@ -95,7 +95,7 @@ function SimpleFeature({
     <div
       className={`rounded-2xl border transition-all ${
         primary
-          ? "bg-[#f5f8fc] border-amber/20 p-10 lg:p-11 hover:border-amber/35 hover:shadow-[0_10px_30px_rgba(196,122,58,0.12)] shadow-[0_2px_18px_rgba(196,122,58,0.06)]"
+          ? "bg-amber-tint border-amber/20 p-10 lg:p-11 hover:border-amber/35 hover:shadow-[0_10px_30px_rgba(196,122,58,0.12)] shadow-[0_2px_18px_rgba(196,122,58,0.06)]"
           : "bg-white border-navy/[0.08] p-9 hover:border-amber/25 hover:shadow-[0_8px_24px_rgba(15,31,61,0.06)]"
       }`}
     >

@@ -77,14 +77,21 @@ function Plan({
   const gift = variant === "gift";
 
   const cardClasses = featured
-    ? "border-amber-dark bg-amber shadow-[0_10px_30px_-10px_rgba(196,122,58,0.35)] hover:bg-amber-dark transition-colors"
+    ? "border-amber/40 shadow-[0_12px_32px_-10px_rgba(196,122,58,0.3)]"
     : gift
       ? "bg-[#fdf6e8] border-gold/25 shadow-[0_10px_30px_-10px_rgba(201,168,76,0.22)]"
       : "bg-white border-navy/[0.08] hover:shadow-[0_8px_24px_rgba(15,31,61,0.08)]";
 
-  // Amber-filled featured card is flat (no gradient) so the warm palette
-  // reads cleanly; gift card keeps its ivory tone.
-  const cardStyle = undefined;
+  // Featured plan uses a soft top-lit amber gradient so the card has
+  // depth and warmth instead of reading as a flat block of colour.
+  // The lighter tone up top catches the eye; the deeper amber settles
+  // the bottom so the white CTA sits on a richer, anchor-y surface.
+  const cardStyle = featured
+    ? {
+        background:
+          "linear-gradient(180deg, #e09a5a 0%, #c47a3a 55%, #a85e28 100%)",
+      }
+    : undefined;
 
   const tagColor = featured
     ? "text-white/85"
