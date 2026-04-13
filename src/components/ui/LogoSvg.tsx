@@ -25,7 +25,7 @@ export function LogoSvg({
     <svg
       width={width}
       height={height}
-      viewBox="0 0 320 56"
+      viewBox="0 0 232 56"
       fill="none"
       className={className}
       aria-label="untilThen"

@@ -4,7 +4,7 @@ export function CtaSection() {
   return (
     <section id="cta" className="bg-white">
       <div className="mx-auto max-w-[560px] px-6 lg:px-14 py-20 lg:py-28 text-center">
-        <h2 className="text-[clamp(34px,5vw,58px)] font-extrabold tracking-[-2px] leading-[1.05] text-navy mb-4">
+        <h2 className="text-[clamp(22px,5.5vw,52px)] font-extrabold tracking-[-0.03em] leading-[1.05] text-navy mb-4 whitespace-nowrap">
           They&rsquo;ll read this{" "}
           <span className="font-light italic text-sky">one day.</span>
         </h2>
