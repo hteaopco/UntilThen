@@ -44,9 +44,9 @@ export function LogoSvg({
       </text>
       {/* Cover the native i-dot with the surface colour */}
       <rect x="119" y="0" width="16" height="11" fill={rectFill} />
-      {/* Gold heart sits in place of the dot */}
+      {/* Gold heart — sits above the gap between "h" and "e" in "Then" */}
       <path
-        d="M 127 10 C 127 7, 130 5, 133 7.5 C 136 5, 139 7, 139 10 C 139 14, 133 18, 133 18 C 133 18, 127 14, 127 10 Z"
+        d="M 166 10 C 166 7, 169 5, 172 7.5 C 175 5, 178 7, 178 10 C 178 14, 172 18, 172 18 C 172 18, 166 14, 166 10 Z"
         fill="#c9a84c"
       />
     </svg>
