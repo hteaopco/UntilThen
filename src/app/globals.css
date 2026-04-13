@@ -210,29 +210,38 @@ html {
   z-index: 3;
 }
 
-/* Minute ticks — fine, subtle, 60 of them spaced every 6°. */
+/* 60 ticks arranged on a single radial. Centred with negative
+   margins (not translate(-50%,-50%)) so the `rotate() translateY()`
+   chain pushes each tick out along the rotated Y axis — no
+   transform-origin gymnastics needed. Ticks sit inside the face,
+   just shy of the inner edge of the gold bezel. */
 .time-vault__tick {
   position: absolute;
   left: 50%;
   top: 50%;
   width: 1.5px;
-  height: 5px;
+  height: 6px;
+  margin-left: -0.75px;
+  margin-top: -3px;
   transform:
-    translate(-50%, -50%)
     rotate(calc(var(--i) * 6deg))
-    translateY(-120px);
-  transform-origin: center 120px;
+    translateY(-108px);
   border-radius: 9999px;
-  background: rgba(198, 161, 91, 0.38);
+  background: rgba(214, 184, 116, 0.5);
 }
 
 /* Every 5th tick is a prominent gold hour mark — the 12 watch
-   positions. Thicker, taller, more opaque gold. */
+   positions. Thicker, taller, with a soft gold glow. */
 .time-vault__tick:nth-child(5n + 1) {
   width: 3px;
-  height: 14px;
+  height: 13px;
+  margin-left: -1.5px;
+  margin-top: -6.5px;
+  transform:
+    rotate(calc(var(--i) * 6deg))
+    translateY(-104px);
   background: linear-gradient(180deg, #e2c47a 0%, var(--vault-gold) 100%);
-  box-shadow: 0 0 6px rgba(198, 161, 91, 0.4);
+  box-shadow: 0 0 6px rgba(198, 161, 91, 0.45);
 }
 
 .time-vault__face {
