@@ -142,7 +142,7 @@ export function Features() {
               <h3 className="text-[19px] font-bold text-white mb-2.5 tracking-[-0.3px] leading-[1.2]">
                 A letter editor built for emotion, not productivity.
               </h3>
-              <p className="text-sm leading-[1.75] text-white/72 font-light">
+              <p className="text-sm leading-[1.75] text-white/75 font-light">
                 No clutter, no distractions. A quiet space to write freely —
                 with rich text, photo inserts, and an AI prompt when
                 you&rsquo;re stuck.
