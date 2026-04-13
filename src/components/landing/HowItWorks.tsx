@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-// ── Thin-line icons: 36px, 1.25 stroke, rounded joins, SF Symbols-ish ──
+// ── Thin-line icons (identical attrs for visual consistency) ──
 
 function PencilIcon() {
   return (
@@ -62,10 +62,25 @@ function GiftIcon() {
   );
 }
 
-// ── Delight moments ──
+// ── Shared icon glow — same size/opacity on every card for cohesion ──
+
+function IconGlow() {
+  return (
+    <div
+      aria-hidden="true"
+      className="absolute -inset-4 rounded-full pointer-events-none"
+      style={{
+        background:
+          "radial-gradient(circle, rgba(201,168,76,0.18) 0%, transparent 62%)",
+      }}
+    />
+  );
+}
+
+// ── Delights ──
 
 function HandwrittenUnderline() {
-  // Thinner, less perfect — organic control points so it doesn't read as a CSS sine wave.
+  // Thinner, organic — reads as a real mark, not a sine wave.
   return (
     <svg
       width="160"
@@ -73,7 +88,6 @@ function HandwrittenUnderline() {
       viewBox="0 0 160 10"
       fill="none"
       aria-hidden="true"
-      className="mt-1.5 -ml-0.5"
     >
       <path
         d="M3 5.4 C 14 4.8, 27 6.4, 42 5.1 C 58 3.6, 74 6.7, 90 5 C 104 3.4, 120 6.2, 136 5.3 C 146 4.8, 152 5.6, 157 5.1"
@@ -87,21 +101,9 @@ function HandwrittenUnderline() {
   );
 }
 
-function LockGlow() {
-  return (
-    <div
-      aria-hidden="true"
-      className="absolute -inset-5 rounded-full pointer-events-none"
-      style={{
-        background:
-          "radial-gradient(circle, rgba(201,168,76,0.26) 0%, transparent 65%)",
-      }}
-    />
-  );
-}
-
-function ConfettiBurst() {
-  // Cleaner, fewer dots. Soft gold halo behind them sells "moment".
+function ConfettiDots() {
+  // Four intentional pinpricks around the gift. The halo is shared
+  // via IconGlow; these just add the "something just happened" sparkle.
   const dots: Array<{
     top: number;
     left: number;
@@ -109,21 +111,13 @@ function ConfettiBurst() {
     color: string;
     opacity: number;
   }> = [
-    { top: 2, left: 22, size: 3, color: "#c9a84c", opacity: 0.75 },
-    { top: 14, left: 50, size: 2, color: "#4a9edd", opacity: 0.6 },
-    { top: 40, left: 46, size: 3, color: "#c9a84c", opacity: 0.55 },
-    { top: 42, left: 6, size: 2, color: "#4a9edd", opacity: 0.55 },
-    { top: 20, left: -6, size: 3, color: "#c9a84c", opacity: 0.6 },
+    { top: 2, left: 30, size: 3, color: "#c9a84c", opacity: 0.75 },
+    { top: 16, left: 56, size: 2, color: "#4a9edd", opacity: 0.6 },
+    { top: 40, left: -4, size: 3, color: "#c9a84c", opacity: 0.6 },
+    { top: 42, left: 50, size: 2, color: "#4a9edd", opacity: 0.55 },
   ];
   return (
-    <div aria-hidden="true" className="absolute -inset-4 pointer-events-none">
-      <div
-        className="absolute inset-0 rounded-full"
-        style={{
-          background:
-            "radial-gradient(circle, rgba(201,168,76,0.22) 0%, transparent 62%)",
-        }}
-      />
+    <div aria-hidden="true" className="absolute -inset-5 pointer-events-none">
       {dots.map((d, i) => (
         <span
           key={i}
@@ -142,6 +136,21 @@ function ConfettiBurst() {
   );
 }
 
+// ── Reveal-only brightness lift ──
+
+function RevealBrightness() {
+  return (
+    <div
+      aria-hidden="true"
+      className="absolute inset-0 pointer-events-none"
+      style={{
+        background:
+          "radial-gradient(ellipse 100% 60% at 50% 0%, rgba(255,255,255,0.55) 0%, transparent 55%)",
+      }}
+    />
+  );
+}
+
 // ── Card ──
 
 type StepProps = {
@@ -151,8 +160,11 @@ type StepProps = {
   bg: string;
   hoverBg: string;
   icon: ReactNode;
-  iconDelight?: ReactNode;
+  iconExtra?: ReactNode;
   titleDelight?: ReactNode;
+  overlay?: ReactNode;
+  extraShadow?: boolean;
+  borderStrong?: boolean;
 };
 
 function Step({
@@ -162,25 +174,35 @@ function Step({
   bg,
   hoverBg,
   icon,
-  iconDelight,
+  iconExtra,
   titleDelight,
+  overlay,
+  extraShadow,
+  borderStrong,
 }: StepProps) {
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl border border-navy/[0.08] ${bg} ${hoverBg} hover:border-sky/20 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,31,61,0.08)] transition-all px-8 pt-7 pb-8`}
+      className={`group relative overflow-hidden rounded-2xl border ${
+        borderStrong ? "border-navy/[0.1]" : "border-navy/[0.08]"
+      } ${bg} ${hoverBg} hover:border-sky/20 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,31,61,0.08)] transition-all px-8 pt-7 pb-8 ${
+        extraShadow ? "shadow-[0_2px_18px_rgba(74,158,221,0.06)]" : ""
+      }`}
     >
-      <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-navy/40 mb-5">
+      {overlay}
+      <p className="relative text-[10px] uppercase tracking-[0.22em] font-medium text-navy/30 mb-5">
         {label}
       </p>
-      <div className="relative w-fit mb-3 text-navy">
-        {iconDelight}
+      <div className="relative w-12 h-12 flex items-center justify-center mb-4 text-navy">
+        <IconGlow />
+        {iconExtra}
         <div className="relative">{icon}</div>
       </div>
-      <h3 className="text-[18px] font-bold text-navy tracking-[-0.3px] leading-tight">
+      <h3 className="relative text-[18px] font-bold text-navy tracking-[-0.3px] leading-tight">
         {title}
       </h3>
-      {titleDelight}
-      <p className="mt-2 text-sm leading-[1.75] text-ink-mid">{body}</p>
+      {/* Fixed-height slot so all cards share identical title -> body rhythm */}
+      <div className="relative mt-1 h-[18px] -ml-0.5">{titleDelight}</div>
+      <p className="relative mt-3 text-sm leading-[1.75] text-ink-mid">{body}</p>
     </div>
   );
 }
@@ -202,8 +224,8 @@ export function HowItWorks() {
         <div className="grid gap-5 lg:gap-8 lg:grid-cols-3">
           <Step
             label="Create"
-            bg="bg-[#fdfbf5]"
-            hoverBg="hover:bg-[#f9f4e6]"
+            bg="bg-[#f6f1ea]"
+            hoverBg="hover:bg-[#efe7db]"
             icon={<PencilIcon />}
             titleDelight={<HandwrittenUnderline />}
             title="Leave something behind"
@@ -211,19 +233,21 @@ export function HowItWorks() {
           />
           <Step
             label="Seal"
-            bg="bg-[#f4f7f5]"
-            hoverBg="hover:bg-[#eaf1ed]"
+            bg="bg-[#eef4f1]"
+            hoverBg="hover:bg-[#e2ebe6]"
             icon={<LockIcon />}
-            iconDelight={<LockGlow />}
             title="Not for today"
             body="Every entry is sealed until a milestone you choose — their 13th birthday, graduation, or the day they fall in love."
           />
           <Step
             label="Reveal"
-            bg="bg-[#eef4fa]"
-            hoverBg="hover:bg-[#e2ecf7]"
+            bg="bg-[#f2f6fb]"
+            hoverBg="hover:bg-[#e6eef7]"
             icon={<GiftIcon />}
-            iconDelight={<ConfettiBurst />}
+            iconExtra={<ConfettiDots />}
+            overlay={<RevealBrightness />}
+            extraShadow
+            borderStrong
             title={"A moment they\u2019ll never forget"}
             body="On reveal day, your child opens a vault of letters from across their entire childhood — each one a gift from a past version of you."
           />
