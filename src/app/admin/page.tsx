@@ -1,7 +1,7 @@
 import Link from "next/link";
 
+import { AdminHeader } from "@/app/admin/AdminHeader";
 import { DeleteEntryButton } from "@/app/admin/DeleteEntryButton";
-import { SignOutButton } from "@/app/admin/SignOutButton";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -52,9 +52,6 @@ function pct(part: number, total: number): string {
   return `${Math.round((part / total) * 100)}%`;
 }
 
-// Render the signup datetime in Central Time. Automatically picks CST
-// or CDT based on the calendar date (handled by Intl with the
-// America/Chicago zone).
 function formatDateCST(d: Date): string {
   return d.toLocaleDateString("en-US", {
     timeZone: "America/Chicago",
@@ -65,8 +62,6 @@ function formatDateCST(d: Date): string {
 }
 
 function formatTimeCST(d: Date): string {
-  // Compute the short zone name (CST / CDT) for this specific date so the
-  // label is correct year-round.
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone: "America/Chicago",
     timeZoneName: "short",
@@ -88,13 +83,8 @@ export default async function AdminPage() {
   if (!data.ok) {
     return (
       <main className="min-h-screen bg-white">
-        <div className="mx-auto max-w-4xl px-6 py-10">
-          <div className="flex items-center justify-between mb-10">
-            <h1 className="text-2xl font-extrabold text-navy tracking-[-0.5px]">
-              untilThen Admin
-            </h1>
-            <SignOutButton />
-          </div>
+        <div className="mx-auto max-w-5xl px-6 py-10">
+          <AdminHeader />
           <div className="rounded-lg border border-red-200 bg-red-50 p-5">
             <p className="text-sm font-bold text-red-700 mb-1">
               Database not reachable
@@ -134,12 +124,9 @@ export default async function AdminPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      <div className="mx-auto max-w-4xl px-6 py-10">
-        <div className="flex items-center justify-between mb-10 gap-4 flex-wrap">
-          <h1 className="text-2xl font-extrabold text-navy tracking-[-0.5px]">
-            untilThen Admin
-          </h1>
-          <div className="flex items-center gap-4">
+      <div className="mx-auto max-w-5xl px-6 py-10">
+        <AdminHeader
+          actions={
             <Link
               href="/api/admin/export"
               prefetch={false}
@@ -147,9 +134,8 @@ export default async function AdminPage() {
             >
               Export CSV
             </Link>
-            <SignOutButton />
-          </div>
-        </div>
+          }
+        />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           <Stat label="Total signups" value={total} />

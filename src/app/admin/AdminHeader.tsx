@@ -1,0 +1,53 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+import { SignOutButton } from "@/app/admin/SignOutButton";
+
+const TABS: Array<{ href: string; label: string }> = [
+  { href: "/admin", label: "Waitlist" },
+  { href: "/admin/users", label: "Users" },
+];
+
+export function AdminHeader({ actions }: { actions?: React.ReactNode }) {
+  const pathname = usePathname();
+  return (
+    <div className="mb-8">
+      <div className="flex items-center justify-between gap-4 flex-wrap mb-5">
+        <h1 className="text-2xl font-extrabold text-navy tracking-[-0.5px]">
+          untilThen Admin
+        </h1>
+        <div className="flex items-center gap-4">
+          {actions}
+          <SignOutButton />
+        </div>
+      </div>
+      <nav
+        aria-label="Admin sections"
+        className="flex items-center gap-1 border-b border-navy/10"
+      >
+        {TABS.map((tab) => {
+          const active =
+            tab.href === "/admin"
+              ? pathname === "/admin"
+              : pathname.startsWith(tab.href);
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              prefetch={false}
+              className={`px-4 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${
+                active
+                  ? "text-navy border-navy"
+                  : "text-ink-mid border-transparent hover:text-navy"
+              }`}
+            >
+              {tab.label}
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
