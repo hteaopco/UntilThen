@@ -116,18 +116,6 @@ export function Features() {
   return (
     <section id="features" className="bg-cream">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-16 lg:py-24">
-        <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-3.5">
-          Features
-        </p>
-        <h2 className="text-[clamp(30px,3.5vw,46px)] font-extrabold tracking-[-1.5px] leading-[1.08] text-navy mb-16 max-w-[520px]">
-          Everything you need to
-          <br />
-          write{" "}
-          <span className="font-light italic text-amber tracking-[0.04em]">
-            across time.
-          </span>
-        </h2>
-
         <div className="grid gap-4 lg:gap-5 lg:grid-cols-2">
           {/* Featured: dark gradient, full width */}
           <div
