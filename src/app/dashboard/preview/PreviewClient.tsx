@@ -1,9 +1,11 @@
 "use client";
 
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { VaultDoor } from "@/components/dashboard/VaultDoor";
+import { EntryTypeBadge } from "@/components/ui/EntryTypeBadge";
 import {
   MediaDisplay,
   type MediaItem,
@@ -46,13 +48,6 @@ function formatLong(iso: string): string {
     year: "numeric",
   });
 }
-
-const TYPE_LABELS: Record<PreviewEntry["type"], { label: string; icon: string }> = {
-  TEXT: { label: "Letter", icon: "✍️" },
-  PHOTO: { label: "Photo", icon: "📷" },
-  VOICE: { label: "Voice note", icon: "🎙" },
-  VIDEO: { label: "Video", icon: "🎥" },
-};
 
 export function PreviewClient({
   childFirstName,
@@ -112,7 +107,7 @@ export function PreviewClient({
               onClick={() => setOpenCollection(null)}
               className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
             >
-              <span aria-hidden="true">←</span>
+              <ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />
               <span>Back to vault</span>
             </button>
           ) : (
@@ -121,7 +116,7 @@ export function PreviewClient({
               prefetch={false}
               className="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
             >
-              <span aria-hidden="true">←</span>
+              <ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />
               <span>Back to dashboard</span>
             </Link>
           )}
@@ -286,15 +281,10 @@ function EntryCard({
         transitionDelay: revealed ? `${delay}ms` : "0ms",
       }}
     >
-      <div className="flex items-center gap-3 mb-3">
-        <span aria-hidden="true" className="text-base">
-          {TYPE_LABELS[entry.type].icon}
-        </span>
-        <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-amber">
-          {TYPE_LABELS[entry.type].label}
-        </span>
+      <div className="flex items-center gap-3 mb-3 flex-wrap">
+        <EntryTypeBadge type={entry.type} />
         <span className="text-[11px] text-ink-light">
-          · Sealed {formatShort(entry.createdAt)}
+          Sealed {formatShort(entry.createdAt)}
         </span>
       </div>
       {entry.title && (
@@ -367,18 +357,13 @@ function CollectionReader({
             {collection.entries.map((entry, i) => (
               <li key={entry.id}>
                 <div className="rounded-2xl bg-[#fdfbf5] text-navy px-7 py-7 lg:px-9 lg:py-9 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]">
-                  <div className="flex items-center gap-3 mb-3">
+                  <div className="flex items-center gap-3 mb-3 flex-wrap">
                     <span className="w-7 h-7 rounded-full bg-amber text-white text-xs font-bold flex items-center justify-center">
                       {i + 1}
                     </span>
-                    <span aria-hidden="true" className="text-base">
-                      {TYPE_LABELS[entry.type].icon}
-                    </span>
-                    <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-amber">
-                      {TYPE_LABELS[entry.type].label}
-                    </span>
+                    <EntryTypeBadge type={entry.type} />
                     <span className="text-[11px] text-ink-light">
-                      · Sealed {formatShort(entry.createdAt)}
+                      Sealed {formatShort(entry.createdAt)}
                     </span>
                   </div>
                   {entry.title && (

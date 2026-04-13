@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -74,7 +75,7 @@ export default async function BlogPostPage({
             prefetch={false}
             className="inline-flex items-center gap-2 text-sm text-ink-mid hover:text-amber transition-colors mb-8"
           >
-            <span aria-hidden="true">←</span>
+            <ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />
             <span>Back to blog</span>
           </Link>
 

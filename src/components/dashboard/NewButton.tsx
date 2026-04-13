@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown, Library, Pencil, Plus } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
@@ -45,10 +46,14 @@ export function NewButton({
           aria-expanded={open}
           className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors inline-flex items-center gap-2"
         >
-          + New
-          <span aria-hidden="true" className="text-xs opacity-80">
-            ▾
-          </span>
+          <Plus size={16} strokeWidth={2} aria-hidden="true" />
+          New
+          <ChevronDown
+            size={14}
+            strokeWidth={2}
+            aria-hidden="true"
+            className={`opacity-80 transition-transform ${open ? "rotate-180" : ""}`}
+          />
         </button>
         {open && (
           <div
@@ -59,11 +64,14 @@ export function NewButton({
               href="/dashboard/new"
               prefetch={false}
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-navy hover:bg-[#f8fafc] transition-colors"
+              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-navy hover:bg-amber-tint transition-colors"
             >
-              <span aria-hidden="true" className="text-base">
-                ✍️
-              </span>
+              <Pencil
+                size={16}
+                strokeWidth={1.5}
+                className="text-amber"
+                aria-hidden="true"
+              />
               New entry
             </Link>
             <button
@@ -72,11 +80,14 @@ export function NewButton({
                 setOpen(false);
                 setShowCollectionModal(true);
               }}
-              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-navy hover:bg-[#f8fafc] transition-colors text-left border-t border-navy/[0.06]"
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-navy hover:bg-amber-tint transition-colors text-left border-t border-navy/[0.06]"
             >
-              <span aria-hidden="true" className="text-base">
-                📚
-              </span>
+              <Library
+                size={16}
+                strokeWidth={1.5}
+                className="text-amber"
+                aria-hidden="true"
+              />
               New collection
             </button>
           </div>

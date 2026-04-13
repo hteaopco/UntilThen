@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertCircle, ArrowLeft, Check, Eye } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -216,7 +217,7 @@ export function NewEntryForm({
             }
             className="flex items-center gap-2 text-sm text-ink-mid hover:text-navy transition-colors"
           >
-            <span aria-hidden="true">←</span>
+            <ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />
             <span>Back</span>
           </Link>
           <LogoSvg variant="dark" width={110} height={22} />
@@ -403,9 +404,10 @@ export function NewEntryForm({
             type="button"
             onClick={handleProofRead}
             disabled={!hasContent() || navigating}
-            className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-50"
           >
-            {navigating ? "Opening…" : "Proof Read →"}
+            <Eye size={16} strokeWidth={1.5} aria-hidden="true" />
+            {navigating ? "Opening…" : "Proof Read"}
           </button>
         </div>
       </footer>
@@ -418,26 +420,16 @@ function SaveBadge({ state }: { state: SaveState }) {
   if (state === "saved")
     return (
       <span className="inline-flex items-center gap-1.5 text-sage font-medium">
-        <svg
-          width="12"
-          height="12"
-          viewBox="0 0 14 14"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            d="M3 7.5 L6 10 L11 4"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-          Auto-saved
+        <Check size={14} strokeWidth={2} aria-hidden="true" />
+        Auto-saved
       </span>
     );
   if (state === "error")
-    return <span className="text-red-600">⚠ Save failed</span>;
+    return (
+      <span className="inline-flex items-center gap-1.5 text-red-600">
+        <AlertCircle size={14} strokeWidth={1.75} aria-hidden="true" />
+        Save failed
+      </span>
+    );
   return <span className="text-ink-light/70">Not saved yet</span>;
 }

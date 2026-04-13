@@ -1,5 +1,6 @@
 "use client";
 
+import { Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
@@ -98,9 +99,10 @@ export function SealMomentActions({
                   type="button"
                   onClick={confirm}
                   disabled={busy}
-                  className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
+                  className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
                 >
-                  {busy ? "Sealing…" : "Seal Moment →"}
+                  <Lock size={16} strokeWidth={1.5} aria-hidden="true" />
+                  {busy ? "Sealing…" : "Seal Moment"}
                 </button>
               </div>
             </div>
@@ -115,8 +117,9 @@ export function SealMomentActions({
         type="button"
         onClick={() => (isSealed ? confirm() : setOpen(true))}
         disabled={busy}
-        className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
+        className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
       >
+        <Lock size={16} strokeWidth={1.5} aria-hidden="true" />
         {busy ? "Saving…" : buttonLabel}
       </button>
       {modal}

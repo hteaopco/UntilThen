@@ -1,5 +1,15 @@
 "use client";
 
+import {
+  BookOpen,
+  Eye,
+  Heart,
+  User,
+  UserMinus,
+  UserPlus,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -14,11 +24,14 @@ export type ContributorRow = {
   requiresApproval: boolean;
 };
 
-const ROLE_LABEL: Record<ContributorRow["role"], string> = {
-  FAMILY: "Family",
-  FRIEND: "Friend",
-  TEACHER: "Teacher",
-  OTHER: "Other",
+const ROLE_CONFIG: Record<
+  ContributorRow["role"],
+  { label: string; icon: LucideIcon }
+> = {
+  FAMILY: { label: "Family", icon: Heart },
+  FRIEND: { label: "Friend", icon: Users },
+  TEACHER: { label: "Teacher", icon: BookOpen },
+  OTHER: { label: "Other", icon: User },
 };
 
 const STATUS_CLASS: Record<ContributorRow["status"], string> = {
@@ -64,9 +77,10 @@ export function ContributorsSection({
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            className="text-[11px] uppercase tracking-[0.08em] font-bold text-amber hover:text-navy transition-colors"
+            className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] font-bold text-amber hover:text-navy transition-colors"
           >
-            + Invite someone
+            <UserPlus size={14} strokeWidth={1.75} aria-hidden="true" />
+            Invite someone
           </button>
         </div>
 
@@ -79,57 +93,83 @@ export function ContributorsSection({
             <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className="mt-4 bg-amber text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
+              className="mt-4 inline-flex items-center gap-2 bg-amber text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
+              <UserPlus size={16} strokeWidth={1.5} aria-hidden="true" />
               Invite your first contributor
             </button>
           </div>
         ) : (
           <ul className="space-y-2">
-            {contributors.map((c) => (
-              <li
-                key={c.id}
-                className="rounded-xl border border-navy/[0.08] bg-white px-5 py-3 flex items-center gap-3"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-navy">
-                      {c.name ?? c.email}
-                    </span>
-                    <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-light">
-                      {ROLE_LABEL[c.role]}
-                    </span>
-                    <span
-                      className={`text-[10px] uppercase tracking-[0.12em] font-bold px-2 py-0.5 rounded ${
-                        STATUS_CLASS[c.status]
-                      }`}
-                    >
-                      {c.status.toLowerCase()}
-                    </span>
-                    {c.requiresApproval && (
-                      <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-amber bg-amber-tint px-2 py-0.5 rounded">
-                        👁 Review
+            {contributors.map((c) => {
+              const RoleIcon = ROLE_CONFIG[c.role].icon;
+              return (
+                <li
+                  key={c.id}
+                  className="rounded-xl border border-navy/[0.08] bg-white px-5 py-3 flex items-center gap-3"
+                >
+                  <div
+                    aria-hidden="true"
+                    className="shrink-0 w-9 h-9 rounded-full bg-amber-tint text-amber flex items-center justify-center"
+                  >
+                    <User size={16} strokeWidth={1.5} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-semibold text-navy">
+                        {c.name ?? c.email}
                       </span>
+                      <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] font-bold text-ink-light">
+                        <RoleIcon
+                          width={12}
+                          height={12}
+                          strokeWidth={1.75}
+                          aria-hidden="true"
+                        />
+                        {ROLE_CONFIG[c.role].label}
+                      </span>
+                      <span
+                        className={`text-[10px] uppercase tracking-[0.12em] font-bold px-2 py-0.5 rounded ${
+                          STATUS_CLASS[c.status]
+                        }`}
+                      >
+                        {c.status.toLowerCase()}
+                      </span>
+                      {c.requiresApproval && (
+                        <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] font-bold text-amber bg-amber-tint px-2 py-0.5 rounded">
+                          <Eye
+                            size={12}
+                            strokeWidth={1.75}
+                            aria-hidden="true"
+                          />
+                          Review
+                        </span>
+                      )}
+                    </div>
+                    {c.name && (
+                      <div className="text-xs text-ink-light mt-0.5 truncate">
+                        {c.email}
+                      </div>
                     )}
                   </div>
-                  {c.name && (
-                    <div className="text-xs text-ink-light mt-0.5 truncate">
-                      {c.email}
-                    </div>
+                  {c.status !== "REVOKED" && (
+                    <button
+                      type="button"
+                      onClick={() => revoke(c)}
+                      disabled={removing === c.id}
+                      className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] font-bold text-ink-light hover:text-red-600 transition-colors disabled:opacity-50"
+                    >
+                      <UserMinus
+                        size={14}
+                        strokeWidth={1.5}
+                        aria-hidden="true"
+                      />
+                      {removing === c.id ? "…" : "Revoke"}
+                    </button>
                   )}
-                </div>
-                {c.status !== "REVOKED" && (
-                  <button
-                    type="button"
-                    onClick={() => revoke(c)}
-                    disabled={removing === c.id}
-                    className="text-[11px] uppercase tracking-[0.08em] font-bold text-ink-light hover:text-red-600 transition-colors disabled:opacity-50"
-                  >
-                    {removing === c.id ? "…" : "Revoke"}
-                  </button>
-                )}
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

@@ -1,8 +1,10 @@
 "use client";
 
+import { Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { VaultDoor } from "@/components/dashboard/VaultDoor";
+import { EntryTypeBadge } from "@/components/ui/EntryTypeBadge";
 
 type LockedEntry = {
   id: string;
@@ -14,13 +16,6 @@ type LockedCollection = {
   id: string;
   coverEmoji: string | null;
   entryCount: number;
-};
-
-const TYPE_LABELS: Record<LockedEntry["type"], string> = {
-  TEXT: "LETTER",
-  PHOTO: "PHOTO",
-  VOICE: "VOICE NOTE",
-  VIDEO: "VIDEO",
 };
 
 function getTimeLeft(revealDate: Date) {
@@ -145,9 +140,12 @@ export function LockedVaultView({
               <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-light">
                 {c.entryCount.toLocaleString()} entries
               </span>
-              <span aria-hidden="true" className="text-ink-light">
-                🔒
-              </span>
+              <Lock
+                size={16}
+                strokeWidth={1.5}
+                className="text-gold"
+                aria-hidden="true"
+              />
             </li>
           ))}
           {entries.map((e) => (
@@ -155,14 +153,18 @@ export function LockedVaultView({
               key={e.id}
               className="flex items-center gap-3 bg-white rounded-xl border border-navy/[0.06] px-5 py-4"
             >
-              <span aria-hidden="true" className="text-ink-light">
-                🔒
-              </span>
+              <Lock
+                size={16}
+                strokeWidth={1.5}
+                className="text-gold shrink-0"
+                aria-hidden="true"
+              />
               <span className="flex-1 text-[15px] text-ink-mid italic">
                 A memory sealed for you
               </span>
-              <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-light">
-                {TYPE_LABELS[e.type]} · from {e.author}
+              <span className="inline-flex items-center gap-2 text-[10px] uppercase tracking-[0.12em] font-bold text-ink-light">
+                <EntryTypeBadge type={e.type} />
+                <span className="hidden sm:inline">· from {e.author}</span>
               </span>
             </li>
           ))}

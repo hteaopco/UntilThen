@@ -1,5 +1,6 @@
 "use client";
 
+import { Eye, Gift } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
@@ -111,7 +112,7 @@ export function VaultHero({
               prefetch={false}
               className="inline-flex items-center gap-2 bg-white border border-navy/15 text-navy px-4 py-2.5 rounded-lg text-sm font-bold hover:border-navy transition-colors"
             >
-              <span aria-hidden="true">👁</span>
+              <Eye size={16} strokeWidth={1.5} aria-hidden="true" />
               View {childFirstName}&rsquo;s vault
             </Link>
             <Link
@@ -119,7 +120,7 @@ export function VaultHero({
               prefetch={false}
               className="inline-flex items-center gap-2 bg-amber text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
-              <span aria-hidden="true">🎁</span>
+              <Gift size={16} strokeWidth={1.5} aria-hidden="true" />
               See what {childFirstName} sees
             </Link>
           </div>

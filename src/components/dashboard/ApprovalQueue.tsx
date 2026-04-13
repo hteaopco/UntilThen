@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, Clock, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -39,8 +40,8 @@ export function ApprovalQueue({ entries }: { entries: PendingEntry[] }) {
             className="rounded-xl border border-gold/40 bg-gold-tint px-5 py-4 flex items-center gap-3"
           >
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.12em] font-bold text-navy mb-1">
-                <span>👁</span>
+              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] font-bold text-navy mb-1">
+                <Clock size={12} strokeWidth={1.75} aria-hidden="true" />
                 <span>{e.contributorName}</span>
                 <span className="text-ink-light">· {e.type}</span>
               </div>
@@ -52,16 +53,18 @@ export function ApprovalQueue({ entries }: { entries: PendingEntry[] }) {
               type="button"
               onClick={() => decide(e.id, "approve")}
               disabled={busy === e.id}
-              className="bg-amber text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 bg-amber text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
             >
+              <Check size={14} strokeWidth={2} aria-hidden="true" />
               {busy === e.id ? "…" : "Approve"}
             </button>
             <button
               type="button"
               onClick={() => decide(e.id, "reject")}
               disabled={busy === e.id}
-              className="border border-navy/15 text-navy px-3 py-1.5 rounded-lg text-xs font-bold hover:border-navy transition-colors disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 border border-navy/15 text-navy px-3 py-1.5 rounded-lg text-xs font-bold hover:border-navy transition-colors disabled:opacity-60"
             >
+              <X size={14} strokeWidth={1.75} aria-hidden="true" />
               Reject
             </button>
           </li>

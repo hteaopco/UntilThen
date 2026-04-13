@@ -1,5 +1,6 @@
 "use client";
 
+import { Mail, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
@@ -69,10 +70,10 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             onClick={onClose}
-            className="text-xl leading-none text-ink-mid hover:text-navy"
+            className="text-ink-mid hover:text-navy"
             aria-label="Close"
           >
-            ×
+            <X size={20} strokeWidth={1.75} aria-hidden="true" />
           </button>
         </div>
 
@@ -175,9 +176,10 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
           <button
             type="submit"
             disabled={saving || !email.trim()}
-            className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark disabled:opacity-60"
+            className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark disabled:opacity-60"
           >
-            {saving ? "Sending…" : "Send invitation →"}
+            <Mail size={16} strokeWidth={1.5} aria-hidden="true" />
+            {saving ? "Sending…" : "Send invitation"}
           </button>
         </div>
       </form>

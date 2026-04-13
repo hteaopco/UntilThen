@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Camera, FileAudio, Mic, Video, X } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 export type Attachment = {
   key: string;
@@ -201,7 +202,8 @@ export function MediaAttachments({
 
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <FilePickerButton
-          label="📷 Add photo"
+          icon={<Camera size={16} strokeWidth={1.5} aria-hidden="true" />}
+          label="Add photo"
           accept="image/*"
           multiple
           onChange={(files) => handleFiles("photo", files)}
@@ -211,18 +213,21 @@ export function MediaAttachments({
           type="button"
           onClick={() => setRecorderOpen(true)}
           disabled={uploading}
-          className="px-4 py-2 rounded-lg border border-navy/15 text-sm font-semibold text-navy bg-white hover:border-navy transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-navy/15 text-sm font-semibold text-navy bg-white hover:border-navy transition-colors disabled:opacity-50"
         >
-          🎙 Record voice
+          <Mic size={16} strokeWidth={1.5} aria-hidden="true" />
+          Record voice
         </button>
         <FilePickerButton
-          label="📁 Voice file"
+          icon={<FileAudio size={16} strokeWidth={1.5} aria-hidden="true" />}
+          label="Voice file"
           accept="audio/*"
           onChange={(files) => handleFiles("voice", files)}
           disabled={uploading}
         />
         <FilePickerButton
-          label="🎥 Add video"
+          icon={<Video size={16} strokeWidth={1.5} aria-hidden="true" />}
+          label="Add video"
           accept="video/*"
           onChange={(files) => handleFiles("video", files)}
           disabled={uploading}
@@ -259,9 +264,9 @@ export function MediaAttachments({
                 type="button"
                 onClick={() => removeAttachment(att, i)}
                 aria-label={`Remove ${att.name}`}
-                className="text-ink-light hover:text-red-600 text-lg leading-none px-2"
+                className="text-ink-light hover:text-red-600 px-2"
               >
-                ×
+                <X size={18} strokeWidth={1.75} aria-hidden="true" />
               </button>
             </li>
           ))}
@@ -300,19 +305,21 @@ function AttachmentThumb({ att }: { att: Attachment }) {
     );
   }
   return (
-    <div className="w-12 h-12 rounded-lg bg-amber-tint flex items-center justify-center text-lg">
-      🎙
+    <div className="w-12 h-12 rounded-lg bg-amber-tint flex items-center justify-center text-amber">
+      <Mic size={20} strokeWidth={1.5} aria-hidden="true" />
     </div>
   );
 }
 
 function FilePickerButton({
+  icon,
   label,
   accept,
   multiple,
   onChange,
   disabled,
 }: {
+  icon: ReactNode;
   label: string;
   accept: string;
   multiple?: boolean;
@@ -326,8 +333,9 @@ function FilePickerButton({
         type="button"
         onClick={() => ref.current?.click()}
         disabled={disabled}
-        className="px-4 py-2 rounded-lg border border-navy/15 text-sm font-semibold text-navy bg-white hover:border-navy transition-colors disabled:opacity-50"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-navy/15 text-sm font-semibold text-navy bg-white hover:border-navy transition-colors disabled:opacity-50"
       >
+        {icon}
         {label}
       </button>
       <input

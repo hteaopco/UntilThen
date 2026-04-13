@@ -15,10 +15,12 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { ArrowLeft, GripVertical, Lock, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { EntryTypeBadge } from "@/components/ui/EntryTypeBadge";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 
 export type CollectionEntryRow = {
@@ -27,16 +29,6 @@ export type CollectionEntryRow = {
   title: string | null;
   body: string | null;
   createdAt: string;
-};
-
-const TYPE_LABELS: Record<
-  CollectionEntryRow["type"],
-  { label: string; icon: string }
-> = {
-  TEXT: { label: "Letter", icon: "✍️" },
-  PHOTO: { label: "Photo", icon: "📷" },
-  VOICE: { label: "Voice", icon: "🎙" },
-  VIDEO: { label: "Video", icon: "🎥" },
 };
 
 function formatShort(iso: string): string {
@@ -175,7 +167,7 @@ export function CollectionDetail({
             href="/dashboard"
             className="inline-flex items-center gap-2 text-sm text-ink-mid hover:text-navy transition-colors"
           >
-            <span aria-hidden="true">←</span>
+            <ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />
             <span>Back to Dashboard</span>
           </Link>
           <LogoSvg variant="dark" width={110} height={22} />
@@ -196,7 +188,8 @@ export function CollectionDetail({
                 {title}
               </h1>
               {isSealed && (
-                <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-gold bg-gold-tint px-2 py-1 rounded">
+                <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.14em] font-bold text-gold bg-gold-tint px-2 py-1 rounded">
+                  <Lock size={12} strokeWidth={1.75} aria-hidden="true" />
                   Sealed
                 </span>
               )}
@@ -219,17 +212,19 @@ export function CollectionDetail({
         <div className="flex items-center gap-3 flex-wrap mt-8">
           <Link
             href={`/dashboard/new?collectionId=${collectionId}`}
-            className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
+            className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
           >
-            + Add entry
+            <PlusCircle size={16} strokeWidth={1.5} aria-hidden="true" />
+            Add entry
           </Link>
           {!isSealed && entries.length > 0 && (
             <button
               type="button"
               onClick={handleSeal}
               disabled={sealing}
-              className="bg-gold text-navy px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-gold-light transition-colors disabled:opacity-60"
+              className="inline-flex items-center gap-2 bg-gold text-navy px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-gold-light transition-colors disabled:opacity-60"
             >
+              <Lock size={16} strokeWidth={1.5} aria-hidden="true" />
               {sealing ? "Sealing…" : "Seal collection"}
             </button>
           )}
@@ -332,8 +327,6 @@ function SortableEntryRow({
     zIndex: isDragging ? 10 : undefined,
   };
 
-  const { label, icon } = TYPE_LABELS[entry.type];
-
   return (
     <li
       ref={setNodeRef}
@@ -351,31 +344,16 @@ function SortableEntryRow({
         aria-label="Drag to reorder"
         className="shrink-0 mt-1 w-6 h-6 flex items-center justify-center text-ink-light hover:text-navy cursor-grab active:cursor-grabbing touch-none"
       >
-        <svg width="12" height="16" viewBox="0 0 12 16" fill="none" aria-hidden="true">
-          <circle cx="3" cy="3" r="1.3" fill="currentColor" />
-          <circle cx="9" cy="3" r="1.3" fill="currentColor" />
-          <circle cx="3" cy="8" r="1.3" fill="currentColor" />
-          <circle cx="9" cy="8" r="1.3" fill="currentColor" />
-          <circle cx="3" cy="13" r="1.3" fill="currentColor" />
-          <circle cx="9" cy="13" r="1.3" fill="currentColor" />
-        </svg>
+        <GripVertical size={16} strokeWidth={1.5} aria-hidden="true" />
       </button>
       <div className="shrink-0 w-8 text-center text-[13px] font-bold text-ink-light tabular-nums mt-0.5">
         {index}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <span
-            aria-hidden="true"
-            className="text-sm"
-          >
-            {icon}
-          </span>
-          <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-amber">
-            {label}
-          </span>
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <EntryTypeBadge type={entry.type} />
           <span className="text-[11px] text-ink-light">
-            · Sealed {formatShort(entry.createdAt)}
+            Sealed {formatShort(entry.createdAt)}
           </span>
         </div>
         {entry.title && (

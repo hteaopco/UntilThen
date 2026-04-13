@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -90,7 +91,7 @@ export default async function ProofReadPage({
             href={`/dashboard/entry/${entry.id}/edit`}
             className="flex items-center gap-2 text-sm text-ink-mid hover:text-navy transition-colors"
           >
-            <span aria-hidden="true">←</span>
+            <ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />
             <span>Return to Edit</span>
           </Link>
           <p className="text-[11px] uppercase tracking-[0.14em] text-gold font-bold">
@@ -140,9 +141,10 @@ export default async function ProofReadPage({
           <Link
             href={`/dashboard/entry/${entry.id}/edit`}
             prefetch={false}
-            className="text-sm font-semibold text-ink-mid hover:text-navy transition-colors px-2 py-2"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-ink-mid hover:text-navy transition-colors px-2 py-2"
           >
-            ← Return to Edit
+            <ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />
+            Return to Edit
           </Link>
           <SealMomentActions
             entryId={entry.id}

@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -74,9 +75,10 @@ export default async function ChildViewPage({
         <Link
           href="/dashboard"
           prefetch={false}
-          className="text-xs font-bold tracking-[0.12em] uppercase text-ink-light hover:text-navy transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-bold tracking-[0.12em] uppercase text-ink-light hover:text-navy transition-colors"
         >
-          ← Parent dashboard
+          <ArrowLeft size={14} strokeWidth={1.75} aria-hidden="true" />
+          Parent dashboard
         </Link>
         <p className="text-[10px] uppercase tracking-[0.16em] text-ink-light font-bold">
           Preview of child view

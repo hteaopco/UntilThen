@@ -1,5 +1,6 @@
 "use client";
 
+import { Camera, Mic, Video, type LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 export type MediaItem = {
@@ -7,12 +8,16 @@ export type MediaItem = {
   kind: "photo" | "voice" | "video";
 };
 
-type Tab = { kind: MediaItem["kind"]; label: string; icon: string };
+type Tab = {
+  kind: MediaItem["kind"];
+  label: string;
+  icon: LucideIcon;
+};
 
 const ALL_TABS: Tab[] = [
-  { kind: "photo", label: "Photos", icon: "📷" },
-  { kind: "video", label: "Video", icon: "🎥" },
-  { kind: "voice", label: "Voice", icon: "🎙" },
+  { kind: "photo", label: "Photos", icon: Camera },
+  { kind: "video", label: "Video", icon: Video },
+  { kind: "voice", label: "Voice", icon: Mic },
 ];
 
 export function MediaDisplay({ items }: { items: MediaItem[] }) {
@@ -55,6 +60,7 @@ export function MediaDisplay({ items }: { items: MediaItem[] }) {
         {available.map((tab) => {
           const count = grouped[tab.kind].length;
           const isActive = tab.kind === active;
+          const Icon = tab.icon;
           return (
             <button
               key={tab.kind}
@@ -67,7 +73,7 @@ export function MediaDisplay({ items }: { items: MediaItem[] }) {
                   : "bg-white border border-navy/15 text-ink-mid hover:border-navy hover:text-navy"
               }`}
             >
-              <span aria-hidden="true">{tab.icon}</span>
+              <Icon size={14} strokeWidth={1.75} aria-hidden="true" />
               <span>{tab.label}</span>
               {count > 1 && (
                 <span

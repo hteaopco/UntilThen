@@ -1,5 +1,6 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -42,8 +43,9 @@ export function DeleteEntryButton({
       type="button"
       onClick={onClick}
       disabled={loading}
-      className="inline-flex items-center px-3 py-1.5 rounded-full border border-navy/15 text-[11px] font-bold uppercase tracking-[0.06em] text-ink-light hover:border-red-600 hover:text-red-600 hover:bg-white transition-colors disabled:opacity-50"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-navy/15 text-[11px] font-bold uppercase tracking-[0.06em] text-ink-light hover:border-red-600 hover:text-red-600 hover:bg-white transition-colors disabled:opacity-50"
     >
+      <Trash2 size={14} strokeWidth={1.5} aria-hidden="true" />
       {loading ? "…" : "Delete"}
     </button>
   );

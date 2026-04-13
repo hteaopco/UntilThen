@@ -1,19 +1,27 @@
+import {
+  Bold,
+  Camera,
+  Italic,
+  Lightbulb,
+  Lock,
+  Mic,
+  Sparkles,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+
 function MockBtn({
   children,
-  italic,
   ariaLabel,
 }: {
   children: React.ReactNode;
-  italic?: boolean;
   ariaLabel?: string;
 }) {
   return (
     <button
       type="button"
       aria-label={ariaLabel}
-      className={`w-[26px] h-[26px] bg-white rounded-md flex items-center justify-center text-[11px] font-bold text-ink-mid border border-navy/[0.08] ${
-        italic ? "italic" : ""
-      }`}
+      className="w-[26px] h-[26px] bg-white rounded-md flex items-center justify-center text-ink-mid border border-navy/[0.08]"
     >
       {children}
     </button>
@@ -22,16 +30,22 @@ function MockBtn({
 
 function MockEditor() {
   // Heavier shadow + subtle light ring so the editor reads as a floating
-  // "product moment" against the dark navy section.
+  // "product moment" against the dark warm-slate section.
   return (
-    <div
-      className="bg-white rounded-xl p-5 ring-1 ring-white/10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45),0_4px_12px_-4px_rgba(0,0,0,0.25)]"
-    >
+    <div className="bg-white rounded-xl p-5 ring-1 ring-white/10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45),0_4px_12px_-4px_rgba(0,0,0,0.25)]">
       <div className="flex gap-1.5 mb-3 pb-3 border-b border-navy/[0.08]">
-        <MockBtn>B</MockBtn>
-        <MockBtn italic>I</MockBtn>
-        <MockBtn ariaLabel="Add photo">📷</MockBtn>
-        <MockBtn ariaLabel="Record voice note">🎙</MockBtn>
+        <MockBtn ariaLabel="Bold">
+          <Bold size={12} strokeWidth={1.75} />
+        </MockBtn>
+        <MockBtn ariaLabel="Italic">
+          <Italic size={12} strokeWidth={1.75} />
+        </MockBtn>
+        <MockBtn ariaLabel="Add photo">
+          <Camera size={12} strokeWidth={1.75} />
+        </MockBtn>
+        <MockBtn ariaLabel="Record voice note">
+          <Mic size={12} strokeWidth={1.75} />
+        </MockBtn>
       </div>
       <div className="text-[13px] leading-[1.8] text-ink-mid">
         Dear Ellie,
@@ -45,15 +59,16 @@ function MockEditor() {
         />
       </div>
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-navy/[0.08]">
-        <div className="text-[11px] font-bold text-gold flex items-center gap-1">
-          <span aria-hidden="true">🔒</span>
+        <div className="text-[11px] font-bold text-gold flex items-center gap-1.5">
+          <Lock size={12} strokeWidth={1.75} aria-hidden="true" />
           Unlocks age 18
         </div>
         <button
           type="button"
-          className="bg-amber text-white text-[11px] font-bold px-3.5 py-1.5 rounded-md hover:bg-amber-dark transition-colors"
+          className="inline-flex items-center gap-1.5 bg-amber text-white text-[11px] font-bold px-3.5 py-1.5 rounded-md hover:bg-amber-dark transition-colors"
         >
-          Seal →
+          <Lock size={12} strokeWidth={1.75} aria-hidden="true" />
+          Seal
         </button>
       </div>
     </div>
@@ -70,9 +85,7 @@ function FeatureBadge({
   return (
     <span
       className={`inline-block text-[10px] font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-md mb-3.5 ${
-        dark
-          ? "bg-amber/20 text-amber-light"
-          : "bg-amber-tint text-amber"
+        dark ? "bg-amber/20 text-amber-light" : "bg-amber-tint text-amber"
       }`}
     >
       {children}
@@ -81,11 +94,13 @@ function FeatureBadge({
 }
 
 function SimpleFeature({
+  icon: Icon,
   badge,
   title,
   body,
   primary = false,
 }: {
+  icon: LucideIcon;
   badge: string;
   title: string;
   body: string;
@@ -99,6 +114,13 @@ function SimpleFeature({
           : "bg-white border-navy/[0.08] p-9 hover:border-amber/25 hover:shadow-[0_8px_24px_rgba(15,31,61,0.06)]"
       }`}
     >
+      <div
+        className={`inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5 ${
+          primary ? "bg-white text-amber" : "bg-amber-tint text-amber"
+        }`}
+      >
+        <Icon size={24} strokeWidth={1.5} aria-hidden="true" />
+      </div>
       <FeatureBadge>{badge}</FeatureBadge>
       <h3
         className={`font-bold text-navy mb-2.5 tracking-[-0.3px] leading-[1.2] ${
@@ -140,22 +162,26 @@ export function Features() {
           </div>
 
           <SimpleFeature
+            icon={Mic}
             badge="Voice Notes"
             title="Some things are better heard than read."
             body="Record a voice note directly in the app. Your child won't just read your words — they'll hear your actual voice from across the years."
           />
           <SimpleFeature
+            icon={Users}
             badge="Multi-Contributor"
             title="A whole life, from more than just you."
             body="Build a vault that holds a whole village of love. Each contributor writes privately — every voice in your child's life, in one place."
           />
           <SimpleFeature
+            icon={Lightbulb}
             badge="Smart Prompts"
             title="Never stare at a blank page."
             body="Weekly prompts nudge you to write. Milestone reminders make sure no birthday passes unwritten."
           />
           <SimpleFeature
             primary
+            icon={Sparkles}
             badge="The Reveal"
             title="Entries unlock one by one, like gifts."
             body="On the reveal date your child's vault opens — letters arriving in sequence. Each entry a discovery."

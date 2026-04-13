@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 
 export type AccordionItem = {
@@ -86,22 +87,13 @@ function AccordionRow({
 
 function Chevron({ open }: { open: boolean }) {
   return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
+    <ChevronDown
+      size={20}
+      strokeWidth={1.75}
       aria-hidden="true"
-      className="shrink-0 transition-transform duration-[250ms] ease-out"
-      style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
-    >
-      <path
-        d="M5 7.5L10 12.5L15 7.5"
-        stroke="#c47a3a"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
+      className={`shrink-0 text-amber transition-transform duration-[250ms] ease-out ${
+        open ? "rotate-180" : ""
+      }`}
+    />
   );
 }

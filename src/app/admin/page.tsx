@@ -1,3 +1,4 @@
+import { Download } from "lucide-react";
 import Link from "next/link";
 
 import { AdminHeader } from "@/app/admin/AdminHeader";
@@ -130,8 +131,9 @@ export default async function AdminPage() {
             <Link
               href="/api/admin/export"
               prefetch={false}
-              className="bg-amber text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
+              className="inline-flex items-center gap-2 bg-amber text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
+              <Download size={16} strokeWidth={1.5} aria-hidden="true" />
               Export CSV
             </Link>
           }

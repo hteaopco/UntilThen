@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeft, Eye } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -60,7 +61,7 @@ export function ContributorEntryForm({
             href={`/contribute/${vaultId}`}
             className="flex items-center gap-2 text-sm text-ink-mid hover:text-navy transition-colors"
           >
-            <span aria-hidden="true">←</span>
+            <ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />
             <span>Back</span>
           </Link>
           <LogoSvg variant="dark" width={110} height={22} />
@@ -81,10 +82,17 @@ export function ContributorEntryForm({
         </p>
 
         {requiresApproval && (
-          <div className="rounded-xl border border-gold/40 bg-gold-tint px-4 py-3 text-sm text-navy mb-6">
-            <span aria-hidden="true">👁</span>{" "}
-            {childFirstName}&rsquo;s parent will review this before it&rsquo;s
-            added to the vault.
+          <div className="inline-flex items-start gap-2 rounded-xl border border-gold/40 bg-gold-tint px-4 py-3 text-sm text-navy mb-6">
+            <Eye
+              size={16}
+              strokeWidth={1.5}
+              className="text-gold mt-0.5 shrink-0"
+              aria-hidden="true"
+            />
+            <span>
+              {childFirstName}&rsquo;s parent will review this before
+              it&rsquo;s added to the vault.
+            </span>
           </div>
         )}
 

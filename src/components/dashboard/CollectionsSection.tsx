@@ -1,3 +1,4 @@
+import { Lock, PlusCircle } from "lucide-react";
 import Link from "next/link";
 
 export type CollectionRow = {
@@ -72,7 +73,8 @@ function CollectionCard({
               {collection.title}
             </Link>
             {collection.isSealed && (
-              <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-gold bg-gold-tint px-2 py-0.5 rounded">
+              <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] font-bold text-gold bg-gold-tint px-2 py-0.5 rounded">
+                <Lock size={11} strokeWidth={1.75} aria-hidden="true" />
                 Sealed
               </span>
             )}
@@ -92,9 +94,10 @@ function CollectionCard({
           <Link
             href={`/dashboard/new?collectionId=${collection.id}`}
             prefetch={false}
-            className="text-[11px] uppercase tracking-[0.08em] font-bold text-amber hover:text-navy transition-colors whitespace-nowrap"
+            className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.08em] font-bold text-amber hover:text-navy transition-colors whitespace-nowrap"
           >
-            + Add entry
+            <PlusCircle size={14} strokeWidth={1.5} aria-hidden="true" />
+            Add entry
           </Link>
           <Link
             href={`/dashboard/collection/${collection.id}`}

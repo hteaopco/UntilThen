@@ -1,6 +1,8 @@
+import { Eye, Mail, Pencil } from "lucide-react";
 import Link from "next/link";
 
 import { DeleteEntryButton } from "@/components/dashboard/DeleteEntryButton";
+import { EntryTypeBadge } from "@/components/ui/EntryTypeBadge";
 
 export type EntryRow = {
   id: string;
@@ -17,46 +19,6 @@ function formatShort(iso: string): string {
     day: "numeric",
     year: "numeric",
   });
-}
-
-function PencilIcon() {
-  return (
-    <svg
-      width="11"
-      height="11"
-      viewBox="0 0 16 16"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      <path
-        d="M11.5 2.5 L13.5 4.5 L5 13 L2.5 13.5 L3 11 L11.5 2.5 Z"
-        stroke="currentColor"
-        strokeWidth="1.4"
-        strokeLinejoin="round"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function TypePill({ type }: { type: EntryRow["type"] }) {
-  const labels: Record<
-    EntryRow["type"],
-    { label: string; icon: React.ReactNode }
-  > = {
-    TEXT: { label: "Moment", icon: <PencilIcon /> },
-    PHOTO: { label: "Photo", icon: <span aria-hidden="true">📷</span> },
-    VOICE: { label: "Voice", icon: <span aria-hidden="true">🎙</span> },
-    VIDEO: { label: "Video", icon: <span aria-hidden="true">🎥</span> },
-  };
-  const { label, icon } = labels[type];
-  return (
-    <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] font-bold text-amber bg-amber-tint px-2 py-0.5 rounded">
-      {icon}
-      {label}
-    </span>
-  );
 }
 
 function preview(body: string | null, max = 180): string {
@@ -79,8 +41,11 @@ export function EntryList({
   if (entries.length === 0) {
     return (
       <div className="rounded-2xl border border-navy/[0.08] bg-warm-surface px-8 py-14 text-center">
-        <div aria-hidden="true" className="text-4xl mb-3">
-          ✉️
+        <div
+          aria-hidden="true"
+          className="mb-3 inline-flex items-center justify-center w-14 h-14 rounded-full bg-amber-tint text-amber"
+        >
+          <Mail size={24} strokeWidth={1.5} />
         </div>
         <p className="text-lg font-semibold text-navy mb-1">
           Nothing sealed yet.
@@ -115,7 +80,7 @@ export function EntryList({
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-3 mb-1.5">
-                  <TypePill type={e.type} />
+                  <EntryTypeBadge type={e.type} />
                   <span className="text-[11px] text-ink-light">
                     Sealed {formatShort(e.createdAt)}
                   </span>
@@ -146,16 +111,18 @@ export function EntryList({
               <Link
                 href={`/dashboard/entry/${e.id}/preview`}
                 prefetch={false}
-                className="inline-flex items-center px-3 py-1.5 rounded-full border border-navy/15 text-ink-mid hover:border-navy hover:text-navy hover:bg-white transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-navy/15 text-ink-mid hover:border-navy hover:text-navy hover:bg-white transition-colors"
               >
+                <Eye size={14} strokeWidth={1.5} aria-hidden="true" />
                 View
               </Link>
               {!unlocked && (
                 <Link
                   href={`/dashboard/entry/${e.id}/edit`}
                   prefetch={false}
-                  className="inline-flex items-center px-3 py-1.5 rounded-full border border-navy/15 text-ink-mid hover:border-navy hover:text-navy hover:bg-white transition-colors"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-navy/15 text-ink-mid hover:border-navy hover:text-navy hover:bg-white transition-colors"
                 >
+                  <Pencil size={14} strokeWidth={1.5} aria-hidden="true" />
                   Edit
                 </Link>
               )}

@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -85,10 +86,10 @@ export function CreateCollectionModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-ink-mid hover:text-navy transition-colors text-xl leading-none"
+            className="text-ink-mid hover:text-navy transition-colors"
             aria-label="Close"
           >
-            ×
+            <X size={20} strokeWidth={1.75} aria-hidden="true" />
           </button>
         </div>
 
