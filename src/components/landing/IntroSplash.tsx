@@ -10,7 +10,7 @@ const BLINK_WAIT_MS = 2200; // ~2 cursor blinks before typing starts
 const CHAR_INTERVAL_MS = 110;
 const PAUSE_AFTER_PERIOD_MS = 280; // beat after typing "."
 const PAUSE_AFTER_BACKSPACE_MS = 280; // beat after deleting "."
-const HOLD_AFTER_MS = 2000; // hold after comma lands
+const HOLD_AFTER_MS = 1250; // hold after comma lands
 const FADE_MS = 550;
 
 type Phase =
