@@ -6,12 +6,12 @@ const TARGET = "untilThen.";
 const UNTIL_LENGTH = 5; // "until"
 
 // Timings
-const BLINK_WAIT_MS = 1100; // 1 cursor blink cycle before typing starts
-const CHAR_INTERVAL_MS = 110;
-const PAUSE_AFTER_PERIOD_MS = 280; // beat after typing "."
-const PAUSE_AFTER_BACKSPACE_MS = 280; // beat after deleting "."
-const HOLD_AFTER_MS = 1250; // hold after comma lands
-const FADE_MS = 550;
+const BLINK_WAIT_MS = 1300; // initial cursor blink before typing starts
+const CHAR_INTERVAL_MS = 155; // per-character typing cadence (slower)
+const PAUSE_AFTER_PERIOD_MS = 720; // longer beat after typing "."
+const PAUSE_AFTER_BACKSPACE_MS = 540; // pause to let the erasure land
+const HOLD_AFTER_MS = 1700; // hold after comma lands before fading
+const FADE_MS = 600;
 
 type Phase =
   | "waiting"
