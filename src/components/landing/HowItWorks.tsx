@@ -1,16 +1,16 @@
 import type { ReactNode } from "react";
 
-// ── Thin-line icons (SF Symbols-ish, 1.5px stroke, rounded joins) ──
+// ── Thin-line icons: 36px, 1.25 stroke, rounded joins, SF Symbols-ish ──
 
 function PencilIcon() {
   return (
     <svg
-      width="32"
-      height="32"
+      width="36"
+      height="36"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="1.25"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -24,12 +24,12 @@ function PencilIcon() {
 function LockIcon() {
   return (
     <svg
-      width="32"
-      height="32"
+      width="36"
+      height="36"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="1.25"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -43,12 +43,12 @@ function LockIcon() {
 function GiftIcon() {
   return (
     <svg
-      width="32"
-      height="32"
+      width="36"
+      height="36"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.5"
+      strokeWidth="1.25"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -62,47 +62,46 @@ function GiftIcon() {
   );
 }
 
-// ── Delight moments (subtle, implied — nothing animated) ──
+// ── Delight moments ──
 
 function HandwrittenUnderline() {
-  // Faint gold squiggle under the title — feels like a hand-drawn mark.
+  // Thinner, less perfect — organic control points so it doesn't read as a CSS sine wave.
   return (
     <svg
-      width="150"
+      width="160"
       height="10"
-      viewBox="0 0 150 10"
+      viewBox="0 0 160 10"
       fill="none"
       aria-hidden="true"
-      className="mt-1"
+      className="mt-1.5 -ml-0.5"
     >
       <path
-        d="M3 5 C 20 2, 40 8, 55 4 C 72 1, 92 8, 108 4 C 124 1, 140 7, 147 5"
+        d="M3 5.4 C 14 4.8, 27 6.4, 42 5.1 C 58 3.6, 74 6.7, 90 5 C 104 3.4, 120 6.2, 136 5.3 C 146 4.8, 152 5.6, 157 5.1"
         stroke="#c9a84c"
-        strokeWidth="1.5"
+        strokeWidth="1.1"
         strokeLinecap="round"
         fill="none"
-        opacity="0.5"
+        opacity="0.55"
       />
     </svg>
   );
 }
 
 function LockGlow() {
-  // Soft gold halo behind the lock icon.
   return (
     <div
       aria-hidden="true"
       className="absolute -inset-5 rounded-full pointer-events-none"
       style={{
         background:
-          "radial-gradient(circle, rgba(201,168,76,0.28) 0%, transparent 65%)",
+          "radial-gradient(circle, rgba(201,168,76,0.26) 0%, transparent 65%)",
       }}
     />
   );
 }
 
 function ConfettiBurst() {
-  // Soft radial burst + a handful of gold/sky pinpricks behind the gift.
+  // Cleaner, fewer dots. Soft gold halo behind them sells "moment".
   const dots: Array<{
     top: number;
     left: number;
@@ -110,12 +109,11 @@ function ConfettiBurst() {
     color: string;
     opacity: number;
   }> = [
-    { top: 6, left: 14, size: 3, color: "#c9a84c", opacity: 0.7 },
-    { top: 12, left: 46, size: 2, color: "#4a9edd", opacity: 0.65 },
-    { top: 30, left: 50, size: 3, color: "#c9a84c", opacity: 0.55 },
-    { top: 42, left: 18, size: 2, color: "#4a9edd", opacity: 0.5 },
-    { top: 34, left: 0, size: 3, color: "#c9a84c", opacity: 0.6 },
-    { top: 16, left: -4, size: 2, color: "#4a9edd", opacity: 0.55 },
+    { top: 2, left: 22, size: 3, color: "#c9a84c", opacity: 0.75 },
+    { top: 14, left: 50, size: 2, color: "#4a9edd", opacity: 0.6 },
+    { top: 40, left: 46, size: 3, color: "#c9a84c", opacity: 0.55 },
+    { top: 42, left: 6, size: 2, color: "#4a9edd", opacity: 0.55 },
+    { top: 20, left: -6, size: 3, color: "#c9a84c", opacity: 0.6 },
   ];
   return (
     <div aria-hidden="true" className="absolute -inset-4 pointer-events-none">
@@ -123,7 +121,7 @@ function ConfettiBurst() {
         className="absolute inset-0 rounded-full"
         style={{
           background:
-            "radial-gradient(circle, rgba(201,168,76,0.15) 0%, transparent 60%)",
+            "radial-gradient(circle, rgba(201,168,76,0.22) 0%, transparent 62%)",
         }}
       />
       {dots.map((d, i) => (
@@ -147,7 +145,7 @@ function ConfettiBurst() {
 // ── Card ──
 
 type StepProps = {
-  tag: string;
+  label: string;
   title: string;
   body: string;
   bg: string;
@@ -158,7 +156,7 @@ type StepProps = {
 };
 
 function Step({
-  tag,
+  label,
   title,
   body,
   bg,
@@ -169,12 +167,12 @@ function Step({
 }: StepProps) {
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl border border-navy/[0.08] ${bg} ${hoverBg} hover:border-sky/20 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,31,61,0.08)] transition-all px-8 py-9`}
+      className={`group relative overflow-hidden rounded-2xl border border-navy/[0.08] ${bg} ${hoverBg} hover:border-sky/20 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,31,61,0.08)] transition-all px-8 pt-7 pb-8`}
     >
-      <p className="text-[11px] font-bold tracking-[0.12em] uppercase text-sky mb-5">
-        {tag}
+      <p className="text-[10px] uppercase tracking-[0.2em] font-semibold text-navy/40 mb-5">
+        {label}
       </p>
-      <div className="relative w-fit mb-5 text-navy">
+      <div className="relative w-fit mb-3 text-navy">
         {iconDelight}
         <div className="relative">{icon}</div>
       </div>
@@ -201,9 +199,9 @@ export function HowItWorks() {
           happen.
         </h2>
 
-        <div className="grid gap-4 lg:gap-6 lg:grid-cols-3">
+        <div className="grid gap-5 lg:gap-8 lg:grid-cols-3">
           <Step
-            tag="Step 1"
+            label="Create"
             bg="bg-[#fdfbf5]"
             hoverBg="hover:bg-[#f9f4e6]"
             icon={<PencilIcon />}
@@ -212,7 +210,7 @@ export function HowItWorks() {
             body="Write a letter, record a voice note, or upload a photo with a caption. Each entry takes minutes — and lasts a lifetime."
           />
           <Step
-            tag="Step 2"
+            label="Seal"
             bg="bg-[#f4f7f5]"
             hoverBg="hover:bg-[#eaf1ed]"
             icon={<LockIcon />}
@@ -221,9 +219,9 @@ export function HowItWorks() {
             body="Every entry is sealed until a milestone you choose — their 13th birthday, graduation, or the day they fall in love."
           />
           <Step
-            tag="Step 3"
-            bg="bg-[#f1f5fa]"
-            hoverBg="hover:bg-[#e6eff7]"
+            label="Reveal"
+            bg="bg-[#eef4fa]"
+            hoverBg="hover:bg-[#e2ecf7]"
             icon={<GiftIcon />}
             iconDelight={<ConfettiBurst />}
             title={"A moment they\u2019ll never forget"}
