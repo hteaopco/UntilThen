@@ -115,18 +115,20 @@ html {
 
 .time-vault-stage__bloom {
   position: absolute;
-  inset: -24px;
+  inset: -40px;
   border-radius: 9999px;
   background: radial-gradient(
     circle,
-    rgba(255, 255, 255, 0.34) 0%,
-    rgba(255, 255, 255, 0.16) 30%,
-    rgba(255, 255, 255, 0) 70%
+    rgba(214, 184, 116, 0.42) 0%,
+    rgba(214, 184, 116, 0.22) 28%,
+    rgba(214, 184, 116, 0.08) 48%,
+    rgba(214, 184, 116, 0) 72%
   );
-  opacity: 0;
-  transform: scale(0.95);
+  opacity: 0.75;
+  transform: scale(1);
   transition: opacity 700ms ease, transform 900ms ease;
   pointer-events: none;
+  filter: blur(2px);
 }
 
 .time-vault-stage[data-state="unlocking"] .time-vault-stage__bloom,
@@ -145,18 +147,18 @@ html {
 .time-vault__glow {
   position: absolute;
   inset: 50%;
-  width: 92%;
-  height: 92%;
+  width: 110%;
+  height: 110%;
   transform: translate(-50%, -50%);
   border-radius: 9999px;
   background: radial-gradient(
     circle,
-    var(--vault-glow-strong) 0%,
-    var(--vault-glow) 35%,
-    rgba(214, 184, 116, 0.04) 60%,
-    rgba(214, 184, 116, 0) 78%
+    rgba(214, 184, 116, 0.38) 0%,
+    rgba(214, 184, 116, 0.2) 40%,
+    rgba(214, 184, 116, 0.06) 65%,
+    rgba(214, 184, 116, 0) 82%
   );
-  filter: blur(20px);
+  filter: blur(22px);
   z-index: 0;
   pointer-events: none;
 }
@@ -169,6 +171,8 @@ html {
   z-index: 1;
 }
 
+/* Outer bezel — cream with a gold undertone so the ring reads
+   like a polished brass case rather than a plain plate. */
 .time-vault__outer::before {
   content: "";
   position: absolute;
@@ -176,21 +180,27 @@ html {
   border-radius: 9999px;
   background: linear-gradient(
     145deg,
-    rgba(255, 255, 255, 0.82),
-    rgba(233, 224, 212, 0.7)
+    #fbf3e5 0%,
+    #f1e3c7 50%,
+    #e2cf9e 100%
   );
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.75),
-    0 10px 30px rgba(30, 42, 68, 0.08);
+    inset 0 2px 0 rgba(255, 255, 255, 0.85),
+    inset 0 -2px 4px rgba(133, 98, 40, 0.18),
+    0 14px 34px rgba(30, 42, 68, 0.1);
 }
 
+/* Inner gold bezel ring — sits just inside the outer cream bezel. */
 .time-vault__outer::after {
   content: "";
   position: absolute;
-  inset: 10px;
+  inset: 14px;
   border-radius: 9999px;
-  border: 1px solid rgba(30, 42, 68, 0.16);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  border: 1.5px solid rgba(198, 161, 91, 0.65);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 0 0 3px rgba(243, 230, 203, 0.9),
+    inset 0 0 0 4px rgba(198, 161, 91, 0.35);
 }
 
 .time-vault__tick-ring {
@@ -200,25 +210,29 @@ html {
   z-index: 3;
 }
 
+/* Minute ticks — fine, subtle, 60 of them spaced every 6°. */
 .time-vault__tick {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 2px;
-  height: 14px;
+  width: 1.5px;
+  height: 5px;
   transform:
     translate(-50%, -50%)
-    rotate(calc(var(--i) * 15deg))
-    translateY(-126px);
-  transform-origin: center 126px;
+    rotate(calc(var(--i) * 6deg))
+    translateY(-120px);
+  transform-origin: center 120px;
   border-radius: 9999px;
-  background: var(--vault-gold-soft);
+  background: rgba(198, 161, 91, 0.38);
 }
 
-/* Every other tick is taller and more opaque — clock-face cadence. */
-.time-vault__tick:nth-child(2n) {
-  height: 18px;
-  background: rgba(198, 161, 91, 0.62);
+/* Every 5th tick is a prominent gold hour mark — the 12 watch
+   positions. Thicker, taller, more opaque gold. */
+.time-vault__tick:nth-child(5n + 1) {
+  width: 3px;
+  height: 14px;
+  background: linear-gradient(180deg, #e2c47a 0%, var(--vault-gold) 100%);
+  box-shadow: 0 0 6px rgba(198, 161, 91, 0.4);
 }
 
 .time-vault__face {
@@ -239,19 +253,25 @@ html {
     inset 0 -18px 30px rgba(10, 18, 36, 0.25);
 }
 
+/* Subtle gold concentric rings across the navy face —
+   reads as an engraved bezel pattern on a watch. */
 .time-vault__rings {
   position: absolute;
   inset: 0;
   border-radius: 9999px;
   background: radial-gradient(
     circle,
-    transparent 0 22%,
-    rgba(255, 255, 255, 0.06) 22.5% 23%,
-    transparent 23.5% 36%,
-    rgba(255, 255, 255, 0.045) 36.5% 37%,
-    transparent 37.5% 52%,
-    rgba(255, 255, 255, 0.035) 52.5% 53%,
-    transparent 53.5% 100%
+    transparent 0 16%,
+    rgba(214, 184, 116, 0.32) 16.1% 16.6%,
+    transparent 16.7% 28%,
+    rgba(214, 184, 116, 0.22) 28.1% 28.5%,
+    transparent 28.6% 40%,
+    rgba(214, 184, 116, 0.16) 40.1% 40.5%,
+    transparent 40.6% 52%,
+    rgba(214, 184, 116, 0.14) 52.1% 52.5%,
+    transparent 52.6% 65%,
+    rgba(214, 184, 116, 0.1) 65.1% 65.5%,
+    transparent 65.6% 100%
   );
   pointer-events: none;
 }
@@ -272,56 +292,69 @@ html {
   box-shadow: 0 0 10px rgba(198, 161, 91, 0.18);
 }
 
+/* Hour hand — short, tapered to a fine point. */
 .time-vault__hand--hour {
-  width: 6px;
-  height: 64px;
-  margin-left: -3px;
-  margin-top: -64px;
-  clip-path: polygon(50% 0%, 85% 12%, 70% 100%, 30% 100%, 15% 12%);
+  width: 8px;
+  height: 62px;
+  margin-left: -4px;
+  margin-top: -62px;
+  clip-path: polygon(50% 0%, 72% 18%, 60% 92%, 50% 100%, 40% 92%, 28% 18%);
   transform: rotate(-85deg);
 }
 
+/* Minute hand — longer, same taper silhouette. */
 .time-vault__hand--minute {
-  width: 5px;
-  height: 88px;
-  margin-left: -2.5px;
-  margin-top: -88px;
-  clip-path: polygon(50% 0%, 82% 10%, 68% 100%, 32% 100%, 18% 10%);
+  width: 6px;
+  height: 94px;
+  margin-left: -3px;
+  margin-top: -94px;
+  clip-path: polygon(50% 0%, 70% 14%, 58% 94%, 50% 100%, 42% 94%, 30% 14%);
   transform: rotate(42deg);
 }
 
+/* Second hand — thin, subtle. */
 .time-vault__hand--second {
   width: 3px;
-  height: 72px;
+  height: 78px;
   margin-left: -1.5px;
-  margin-top: -72px;
-  clip-path: polygon(50% 0%, 75% 10%, 62% 100%, 38% 100%, 25% 10%);
+  margin-top: -78px;
+  clip-path: polygon(50% 0%, 66% 10%, 56% 96%, 50% 100%, 44% 96%, 34% 10%);
   transform: rotate(172deg);
-  opacity: 0.88;
+  opacity: 0.82;
 }
 
+/* Centre medallion — gold ring cap with the brand heart inside.
+   Reads as the "crown jewel" of the watch face. */
 .time-vault__hub {
   position: absolute;
   left: 50%;
   top: 50%;
   z-index: 5;
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
   transform: translate(-50%, -50%);
   border-radius: 9999px;
   display: grid;
   place-items: center;
   color: var(--vault-gold);
   background: radial-gradient(
-    circle at 50% 45%,
-    #25385e 0%,
-    #1b2b49 68%,
-    #12203a 100%
+    circle at 50% 40%,
+    #2f456f 0%,
+    #1c2c4c 62%,
+    #121f3a 100%
   );
-  border: 1px solid rgba(198, 161, 91, 0.72);
+  border: 2px solid var(--vault-gold);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 0 16px rgba(198, 161, 91, 0.12);
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 0 1px rgba(226, 196, 122, 0.35),
+    0 0 14px rgba(198, 161, 91, 0.35);
+}
+
+.time-vault__hub svg {
+  width: 18px;
+  height: 18px;
+  fill: var(--vault-gold);
+  stroke: var(--vault-gold);
 }
 
 /* ── States ── */

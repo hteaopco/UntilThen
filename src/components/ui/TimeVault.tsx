@@ -30,9 +30,10 @@ export function TimeVault({
         <div className="time-vault__glow" />
 
         <div className="time-vault__outer">
-          {/* 24 clock-face tick marks */}
+          {/* 60 tick marks — every 5th is a prominent gold hour
+              mark, the rest are fine minute ticks. */}
           <div className="time-vault__tick-ring">
-            {Array.from({ length: 24 }).map((_, i) => (
+            {Array.from({ length: 60 }).map((_, i) => (
               <span
                 key={i}
                 className="time-vault__tick"
@@ -51,19 +52,16 @@ export function TimeVault({
               <span className="time-vault__hand time-vault__hand--second" />
             </div>
 
-            {/* Centre hub + heart */}
+            {/* Centre medallion + filled heart. */}
             <div className="time-vault__hub">
               <svg
                 viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.9"
+                strokeWidth="1.5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="h-5 w-5"
                 aria-hidden="true"
               >
-                <path d="M12 20s-6.5-3.9-6.5-9A4 4 0 0 1 12 8a4 4 0 0 1 6.5 3c0 5.1-6.5 9-6.5 9Z" />
+                <path d="M12 21s-7.5-4.5-7.5-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 7.5 3.5C19.5 16.5 12 21 12 21Z" />
               </svg>
             </div>
           </div>
