@@ -4,6 +4,12 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { VaultDoor } from "@/components/dashboard/VaultDoor";
+import {
+  MediaDisplay,
+  type MediaItem,
+} from "@/components/editor/MediaDisplay";
+
+export type PreviewMedia = MediaItem;
 
 export type PreviewEntry = {
   id: string;
@@ -11,6 +17,7 @@ export type PreviewEntry = {
   title: string | null;
   body: string | null;
   createdAt: string;
+  media: PreviewMedia[];
 };
 
 export type PreviewCollection = {
@@ -296,10 +303,12 @@ function EntryCard({
         </h2>
       )}
       {entry.body && (
-        <div className="text-[16px] leading-[1.75] text-ink-mid whitespace-pre-line">
-          {entry.body}
-        </div>
+        <div
+          className="tiptap-editor text-[16px] leading-[1.75] text-ink-mid"
+          dangerouslySetInnerHTML={{ __html: entry.body }}
+        />
       )}
+      <MediaDisplay items={entry.media} />
       <div className="mt-6 pt-4 border-t border-navy/[0.06] text-[11px] uppercase tracking-[0.14em] font-bold text-gold">
         — {parentFirstName}
       </div>
@@ -378,10 +387,12 @@ function CollectionReader({
                     </h2>
                   )}
                   {entry.body && (
-                    <div className="text-[16px] leading-[1.75] text-ink-mid whitespace-pre-line">
-                      {entry.body}
-                    </div>
+                    <div
+                      className="tiptap-editor text-[16px] leading-[1.75] text-ink-mid"
+                      dangerouslySetInnerHTML={{ __html: entry.body }}
+                    />
                   )}
+                  <MediaDisplay items={entry.media} />
                   <div className="mt-6 pt-4 border-t border-navy/[0.06] text-[11px] uppercase tracking-[0.14em] font-bold text-gold">
                     — {parentFirstName}
                   </div>
