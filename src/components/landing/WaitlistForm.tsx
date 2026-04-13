@@ -50,8 +50,7 @@ export function WaitlistForm() {
     <div>
       <form
         onSubmit={handleSubmit}
-        className="flex max-w-[420px] mx-auto rounded-[10px] overflow-hidden border border-navy/[0.08]"
-        style={{ boxShadow: "0 4px 20px rgba(15,31,61,0.12)" }}
+        className="flex max-w-[420px] mx-auto rounded-[10px] overflow-hidden border border-navy/[0.08] shadow-[0_4px_20px_rgba(15,31,61,0.12)] hover:shadow-[0_10px_32px_rgba(74,158,221,0.22)] focus-within:shadow-[0_10px_32px_rgba(74,158,221,0.28)] transition-shadow"
       >
         <input
           type="email"

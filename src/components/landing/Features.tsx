@@ -21,8 +21,12 @@ function MockBtn({
 }
 
 function MockEditor() {
+  // Heavier shadow + subtle light ring so the editor reads as a floating
+  // "product moment" against the dark navy section.
   return (
-    <div className="bg-white rounded-xl p-5 border border-navy/[0.08] shadow-[0_4px_20px_rgba(15,31,61,0.1)]">
+    <div
+      className="bg-white rounded-xl p-5 ring-1 ring-white/10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45),0_4px_12px_-4px_rgba(0,0,0,0.25)]"
+    >
       <div className="flex gap-1.5 mb-3 pb-3 border-b border-navy/[0.08]">
         <MockBtn>B</MockBtn>
         <MockBtn italic>I</MockBtn>
@@ -56,11 +60,19 @@ function MockEditor() {
   );
 }
 
-function FeatureBadge({ children, dark }: { children: React.ReactNode; dark?: boolean }) {
+function FeatureBadge({
+  children,
+  dark,
+}: {
+  children: React.ReactNode;
+  dark?: boolean;
+}) {
   return (
     <span
-      className={`inline-block text-[10px] font-bold tracking-[0.12em] uppercase text-sky px-2.5 py-1 rounded-md mb-3.5 ${
-        dark ? "bg-sky/15" : "bg-sky-tint"
+      className={`inline-block text-[10px] font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-md mb-3.5 ${
+        dark
+          ? "bg-sky/20 text-sky-light"
+          : "bg-sky-tint text-[#1e6aa8]"
       }`}
     >
       {children}
@@ -72,15 +84,27 @@ function SimpleFeature({
   badge,
   title,
   body,
+  primary = false,
 }: {
   badge: string;
   title: string;
   body: string;
+  primary?: boolean;
 }) {
   return (
-    <div className="bg-white p-9 rounded-2xl border border-navy/[0.08] hover:border-sky/25 hover:shadow-[0_8px_24px_rgba(15,31,61,0.06)] transition-all">
+    <div
+      className={`rounded-2xl border transition-all ${
+        primary
+          ? "bg-[#f5f8fc] border-sky/20 p-10 lg:p-11 hover:border-sky/35 hover:shadow-[0_10px_30px_rgba(74,158,221,0.12)] shadow-[0_2px_18px_rgba(74,158,221,0.06)]"
+          : "bg-white border-navy/[0.08] p-9 hover:border-sky/25 hover:shadow-[0_8px_24px_rgba(15,31,61,0.06)]"
+      }`}
+    >
       <FeatureBadge>{badge}</FeatureBadge>
-      <h3 className="text-[19px] font-bold text-navy mb-2.5 tracking-[-0.3px] leading-[1.2]">
+      <h3
+        className={`font-bold text-navy mb-2.5 tracking-[-0.3px] leading-[1.2] ${
+          primary ? "text-[21px]" : "text-[19px]"
+        }`}
+      >
         {title}
       </h3>
       <p className="text-sm leading-[1.75] text-ink-mid">{body}</p>
@@ -99,18 +123,26 @@ export function Features() {
           Everything you need to
           <br />
           write{" "}
-          <span className="font-light italic text-sky">across time.</span>
+          <span className="font-light italic text-sky tracking-[0.04em]">
+            across time.
+          </span>
         </h2>
 
         <div className="grid gap-4 lg:gap-5 lg:grid-cols-2">
-          {/* Featured: navy bg, full width */}
-          <div className="lg:col-span-2 bg-navy p-9 rounded-2xl border border-navy grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {/* Featured: dark gradient, full width */}
+          <div
+            className="lg:col-span-2 rounded-2xl border border-white/5 p-9 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center"
+            style={{
+              background:
+                "linear-gradient(180deg, #1e3560 0%, #0f1f3d 75%)",
+            }}
+          >
             <div>
               <FeatureBadge dark>Writing Experience</FeatureBadge>
               <h3 className="text-[19px] font-bold text-white mb-2.5 tracking-[-0.3px] leading-[1.2]">
                 A letter editor built for emotion, not productivity.
               </h3>
-              <p className="text-sm leading-[1.75] text-white/55 font-light">
+              <p className="text-sm leading-[1.75] text-white/72 font-light">
                 No clutter, no distractions. A quiet space to write freely —
                 with rich text, photo inserts, and an AI prompt when
                 you&rsquo;re stuck.
@@ -126,7 +158,7 @@ export function Features() {
           />
           <SimpleFeature
             badge="Multi-Contributor"
-            title="Invite grandparents, godparents & family."
+            title="A whole life, from more than just you."
             body="Build a vault that holds a whole village of love. Each contributor writes privately — every voice in your child's life, in one place."
           />
           <SimpleFeature
@@ -135,6 +167,7 @@ export function Features() {
             body="Weekly prompts nudge you to write. Milestone reminders make sure no birthday passes unwritten."
           />
           <SimpleFeature
+            primary
             badge="The Reveal"
             title="Entries unlock one by one, like gifts."
             body="On the reveal date your child's vault opens — letters arriving in sequence. Each entry a discovery."
