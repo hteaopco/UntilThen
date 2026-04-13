@@ -88,7 +88,7 @@ export default async function DashboardPage() {
   // whose requiresApproval is true).
   const [contributorRecords, pendingEntries] = await Promise.all([
     prisma.contributor.findMany({
-      where: { vaultId: vault.id },
+      where: { vaultId: vault.id, status: { not: "REVOKED" } },
       orderBy: { createdAt: "desc" },
     }),
     prisma.entry.findMany({

@@ -37,7 +37,8 @@ function TypePill({ type }: { type: EntryRow["type"] }) {
 
 function preview(body: string | null, max = 180): string {
   if (!body) return "";
-  const clean = body.replace(/\s+/g, " ").trim();
+  // Strip Tiptap HTML tags for the preview text.
+  const clean = body.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
   if (clean.length <= max) return clean;
   return clean.slice(0, max).trimEnd() + "…";
 }
@@ -73,10 +74,15 @@ export function EntryList({
     );
   }
 
+  const now = Date.now();
+
   return (
     <ul className="space-y-3">
       {entries.map((e) => {
-        const unlockDate = e.revealDate ?? revealDate;
+        const unlockIso = e.revealDate ?? revealDate;
+        const unlocked = unlockIso
+          ? new Date(unlockIso).getTime() <= now
+          : false;
         return (
           <li
             key={e.id}
@@ -104,12 +110,32 @@ export function EntryList({
               <div className="flex items-center gap-4 shrink-0">
                 <div className="text-right">
                   <div className="text-[10px] uppercase tracking-[0.08em] font-bold text-gold">
-                    Unlocks
+                    {unlocked ? "Unlocked" : "Unlocks"}
                   </div>
                   <div className="text-xs text-ink-mid">
-                    {unlockDate ? formatShort(unlockDate) : "Not set"}
+                    {unlockIso ? formatShort(unlockIso) : "Not set"}
                   </div>
                 </div>
+              </div>
+            </div>
+            <div className="mt-4 pt-3 border-t border-navy/[0.06] flex items-center gap-5 text-[11px] uppercase tracking-[0.06em] font-bold">
+              <Link
+                href={`/dashboard/entry/${e.id}/preview`}
+                prefetch={false}
+                className="text-ink-mid hover:text-navy transition-colors"
+              >
+                View
+              </Link>
+              {!unlocked && (
+                <Link
+                  href={`/dashboard/entry/${e.id}/edit`}
+                  prefetch={false}
+                  className="text-ink-mid hover:text-navy transition-colors"
+                >
+                  Edit
+                </Link>
+              )}
+              <div className="ml-auto">
                 <DeleteEntryButton id={e.id} title={e.title ?? "this entry"} />
               </div>
             </div>

@@ -2,6 +2,8 @@ import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { SealMomentActions } from "./SealMomentActions";
+
 export const metadata = {
   title: "Proof read — untilThen",
 };
@@ -12,6 +14,14 @@ export const runtime = "nodejs";
 function formatShort(d: Date): string {
   return d.toLocaleDateString("en-US", {
     month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatLong(d: Date): string {
+  return d.toLocaleDateString("en-US", {
+    month: "long",
     day: "numeric",
     year: "numeric",
   });
@@ -31,6 +41,12 @@ export default async function ProofReadPage({
   const { prisma } = await import("@/lib/prisma");
   const user = await prisma.user.findUnique({
     where: { clerkId: userId },
+    include: {
+      children: {
+        include: { vault: true },
+        orderBy: { createdAt: "asc" },
+      },
+    },
   });
   if (!user) redirect("/onboarding");
 
@@ -44,14 +60,19 @@ export default async function ProofReadPage({
   if (!entry) redirect("/dashboard");
   if (entry.authorId !== user.id) redirect("/dashboard");
 
-  const unlockDate = entry.revealDate ?? entry.collection?.revealDate ?? null;
+  const vault = user.children[0]?.vault ?? null;
+
+  const unlockDate =
+    entry.revealDate ?? entry.collection?.revealDate ?? vault?.revealDate ?? null;
+
+  const childFirstName = user.children[0]?.firstName ?? "them";
 
   return (
     <main className="min-h-screen bg-[#fdfbf5]">
       <header className="sticky top-0 z-40 bg-[#fdfbf5]/90 backdrop-blur-md border-b border-navy/[0.06]">
         <div className="mx-auto max-w-[720px] px-6 py-4 flex items-center justify-between gap-4">
           <Link
-            href="/dashboard/new"
+            href={`/dashboard/entry/${entry.id}/edit`}
             className="flex items-center gap-2 text-sm text-ink-mid hover:text-navy transition-colors"
           >
             <span aria-hidden="true">←</span>
@@ -61,14 +82,12 @@ export default async function ProofReadPage({
             Preview
           </p>
           <span className="text-xs text-ink-light hidden sm:inline">
-            How {entry.author.firstName}
-            {entry.author.lastName ? ` ${entry.author.lastName[0]}.` : ""} will
-            appear
+            How {childFirstName} will see this
           </span>
         </div>
       </header>
 
-      <article className="mx-auto max-w-[680px] px-6 pt-12 pb-16">
+      <article className="mx-auto max-w-[720px] px-6 pt-10 pb-28">
         <div className="rounded-2xl bg-white border border-navy/[0.06] px-8 py-10 lg:px-12 lg:py-14 shadow-[0_20px_50px_-30px_rgba(15,31,61,0.25)]">
           {entry.title && (
             <h1 className="text-[32px] lg:text-[40px] font-extrabold tracking-[-0.6px] leading-[1.1] text-navy mb-6">
@@ -98,22 +117,26 @@ export default async function ProofReadPage({
             )}
           </div>
         </div>
+      </article>
 
-        <div className="mt-6 flex items-center justify-center gap-3">
+      <footer className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-navy/[0.08]">
+        <div className="mx-auto max-w-[720px] px-6 py-3 flex items-center justify-between gap-3">
           <Link
-            href="/dashboard/new"
-            className="inline-block text-sm font-semibold text-ink-mid hover:text-navy transition-colors px-4 py-2"
+            href={`/dashboard/entry/${entry.id}/edit`}
+            prefetch={false}
+            className="text-sm font-semibold text-ink-mid hover:text-navy transition-colors px-2 py-2"
           >
             ← Return to Edit
           </Link>
-          <Link
-            href="/dashboard"
-            className="inline-block bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
-          >
-            Back to dashboard
-          </Link>
+          <SealMomentActions
+            entryId={entry.id}
+            entryTitle={entry.title ?? "Untitled"}
+            childFirstName={childFirstName}
+            unlockLabel={unlockDate ? formatLong(unlockDate) : "the vault reveal date"}
+            isSealed={entry.isSealed}
+          />
         </div>
-      </article>
+      </footer>
     </main>
   );
 }
