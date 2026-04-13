@@ -6,6 +6,8 @@ import {
   type CollectionOption,
   type InitialEntry,
 } from "@/app/dashboard/new/NewEntryForm";
+import type { Attachment } from "@/components/editor/MediaAttachments";
+import { r2IsConfigured, signGetUrl, type MediaKind } from "@/lib/r2";
 
 export const metadata = {
   title: "Edit a moment — untilThen",
@@ -55,7 +57,6 @@ export default async function EditEntryPage({
   if (!entry) redirect("/dashboard");
   if (entry.authorId !== user.id) redirect("/dashboard");
 
-  // If the reveal date has passed, lock the entry from further edits.
   const unlockDate =
     entry.revealDate ??
     entry.collection?.revealDate ??
@@ -72,6 +73,19 @@ export default async function EditEntryPage({
     revealDate: c.revealDate?.toISOString() ?? null,
   }));
 
+  // Hydrate existing media with presigned GET urls so the editor can
+  // render thumbnails / preview audio for what's already attached.
+  const attachments: Attachment[] = r2IsConfigured()
+    ? await Promise.all(
+        entry.mediaUrls.map(async (key, i): Promise<Attachment> => {
+          const kind = (entry.mediaTypes[i] ?? "photo") as MediaKind;
+          const viewUrl = await signGetUrl(key);
+          const name = key.split("/").pop() ?? "attachment";
+          return { key, kind, viewUrl, name };
+        }),
+      )
+    : [];
+
   const initialEntry: InitialEntry = {
     id: entry.id,
     title: entry.title,
@@ -80,6 +94,7 @@ export default async function EditEntryPage({
     customRevealDate: entry.revealDate
       ? entry.revealDate.toISOString().split("T")[0] ?? null
       : null,
+    attachments,
   };
 
   return (

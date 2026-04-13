@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { LogoSvg } from "@/components/ui/LogoSvg";
+import {
+  MediaAttachments,
+  type Attachment,
+} from "@/components/editor/MediaAttachments";
 import { TiptapEditor, getReadingStats } from "@/components/editor/TiptapEditor";
 
 export type CollectionOption = {
@@ -20,6 +24,7 @@ export type InitialEntry = {
   body: string | null;
   collectionId: string | null;
   customRevealDate: string | null; // per-entry override, or null if using vault/collection default
+  attachments?: Attachment[];
 };
 
 type SaveState = "idle" | "saving" | "saved" | "error";
@@ -254,6 +259,15 @@ export function NewEntryForm({
               if (hasContent()) save();
             }}
             placeholder={`Dear ${childFirstName},`}
+          />
+        </div>
+
+        {/* Attachments card */}
+        <div className="mt-6 rounded-2xl bg-white border border-navy/[0.08] px-7 py-6">
+          <MediaAttachments
+            entryId={entryId}
+            initial={initialEntry?.attachments ?? []}
+            ensureEntry={save}
           />
         </div>
 

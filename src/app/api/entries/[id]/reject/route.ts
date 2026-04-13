@@ -24,7 +24,10 @@ export async function POST(
 
     const entry = await prisma.entry.findUnique({
       where: { id },
-      include: { vault: { include: { child: true } } },
+      include: {
+        contributor: true,
+        vault: { include: { child: true } },
+      },
     });
     if (!entry)
       return NextResponse.json({ error: "Entry not found." }, { status: 404 });
@@ -35,6 +38,23 @@ export async function POST(
       where: { id },
       data: { approvalStatus: "REJECTED" },
     });
+
+    if (entry.contributor) {
+      try {
+        const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
+        const { sendEntryRejected } = await import("@/lib/emails");
+        await sendEntryRejected({
+          contributorEmail: entry.contributor.email,
+          contributorName: entry.contributor.name ?? entry.contributor.email,
+          childFirstName: entry.vault.child.firstName,
+          entryTitle: entry.title ?? "Your entry",
+          contributorDashboardUrl: `${base}/contribute/${entry.vaultId}`,
+        });
+      } catch (err) {
+        console.error("[entries reject] notify error:", err);
+      }
+    }
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[entries reject] error:", err);

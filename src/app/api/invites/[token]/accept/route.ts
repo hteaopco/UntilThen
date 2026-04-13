@@ -71,6 +71,28 @@ export async function POST(
       },
     });
 
+    // Let the parent know the invite landed. Best-effort — we don't
+    // want email failures to break the accept flow.
+    try {
+      const parent = await prisma.user.findFirst({
+        where: { clerkId: contributor.invitedBy },
+      });
+      const child = await prisma.child.findUnique({
+        where: { id: contributor.vault.childId },
+      });
+      if (parent && child) {
+        const { sendInviteAccepted } = await import("@/lib/emails");
+        await sendInviteAccepted({
+          parentEmail: "", // Clerk email lookup is overkill for the TEMP routing setup
+          parentFirstName: parent.firstName,
+          contributorName: contributor.name ?? firstName ?? "Someone",
+          childFirstName: child.firstName,
+        });
+      }
+    } catch (err) {
+      console.error("[invites/accept] notify error:", err);
+    }
+
     return NextResponse.json({ success: true, vaultId: contributor.vaultId });
   } catch (err) {
     console.error("[invites/accept] error:", err);

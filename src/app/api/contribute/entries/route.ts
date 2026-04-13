@@ -70,6 +70,33 @@ export async function POST(req: Request) {
         approvalStatus,
       },
     });
+
+    // Notify the parent when a contributor sealed something that
+    // needs review. Best-effort.
+    if (isSealed && approvalStatus === "PENDING_REVIEW") {
+      try {
+        const child = await prisma.child.findUnique({
+          where: { id: (await prisma.vault.findUnique({ where: { id: vaultId } }))?.childId ?? "" },
+        });
+        if (child) {
+          const parent = await prisma.user.findUnique({
+            where: { id: child.parentId },
+          });
+          if (parent) {
+            const { sendEntryNeedsReview } = await import("@/lib/emails");
+            await sendEntryNeedsReview({
+              parentEmail: "",
+              contributorName: contributor.name ?? contributor.email,
+              childFirstName: child.firstName,
+              entryTitle: title || "Untitled",
+            });
+          }
+        }
+      } catch (err) {
+        console.error("[contribute/entries] notify error:", err);
+      }
+    }
+
     return NextResponse.json({ success: true, id: entry.id });
   } catch (err) {
     console.error("[contribute/entries POST] error:", err);

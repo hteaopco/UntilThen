@@ -2,6 +2,12 @@ import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import {
+  MediaDisplay,
+  type MediaItem,
+} from "@/components/editor/MediaDisplay";
+import { r2IsConfigured, signGetUrl } from "@/lib/r2";
+
 import { SealMomentActions } from "./SealMomentActions";
 
 export const metadata = {
@@ -67,6 +73,15 @@ export default async function ProofReadPage({
 
   const childFirstName = user.children[0]?.firstName ?? "them";
 
+  const media: MediaItem[] = r2IsConfigured()
+    ? await Promise.all(
+        entry.mediaUrls.map(async (key, i): Promise<MediaItem> => ({
+          url: await signGetUrl(key),
+          kind: (entry.mediaTypes[i] ?? "photo") as MediaItem["kind"],
+        })),
+      )
+    : [];
+
   return (
     <main className="min-h-screen bg-[#fdfbf5]">
       <header className="sticky top-0 z-40 bg-[#fdfbf5]/90 backdrop-blur-md border-b border-navy/[0.06]">
@@ -102,6 +117,7 @@ export default async function ProofReadPage({
           ) : (
             <p className="text-ink-light italic">No body yet.</p>
           )}
+          <MediaDisplay items={media} />
           <div className="mt-10 pt-6 border-t border-navy/[0.06] flex items-center justify-between gap-4 flex-wrap text-sm text-ink-mid">
             <div>
               — Written by{" "}
