@@ -296,40 +296,46 @@ html {
   left: 50%;
   top: 50%;
   transform-origin: bottom center;
-  border-radius: 9999px;
-  background: linear-gradient(180deg, #d8b56c 0%, var(--vault-gold) 100%);
-  box-shadow: 0 0 10px rgba(198, 161, 91, 0.18);
+  /* Negative margins pin the hand's bottom-center exactly to the
+     clock centre (50%, 50%) so the bottom-center transform-origin
+     rotates around the true centre of the face. */
+  background: linear-gradient(
+    to bottom,
+    #e1c27a 0%,
+    #c6a15b 40%,
+    #b8924a 100%
+  );
+  box-shadow: 0 0 6px rgba(198, 161, 91, 0.15);
 }
 
-/* Hour hand — short, tapered to a fine point. */
+/* Hour hand — short, thicker, tapered. Points at 10 for 10:10. */
 .time-vault__hand--hour {
-  width: 8px;
-  height: 62px;
-  margin-left: -4px;
-  margin-top: -62px;
-  clip-path: polygon(50% 0%, 72% 18%, 60% 92%, 50% 100%, 40% 92%, 28% 18%);
-  transform: rotate(-85deg);
-}
-
-/* Minute hand — longer, same taper silhouette. */
-.time-vault__hand--minute {
   width: 6px;
-  height: 94px;
+  height: 64px;
   margin-left: -3px;
-  margin-top: -94px;
-  clip-path: polygon(50% 0%, 70% 14%, 58% 94%, 50% 100%, 42% 94%, 30% 14%);
-  transform: rotate(42deg);
+  margin-top: -64px;
+  clip-path: polygon(50% 0%, 85% 12%, 70% 100%, 30% 100%, 15% 12%);
+  transform: rotate(-60deg);
 }
 
-/* Second hand — thin, subtle. */
+/* Minute hand — longer, thinner, same taper silhouette. */
+.time-vault__hand--minute {
+  width: 4px;
+  height: 90px;
+  margin-left: -2px;
+  margin-top: -90px;
+  clip-path: polygon(50% 0%, 80% 10%, 65% 100%, 35% 100%, 20% 10%);
+  transform: rotate(30deg);
+}
+
+/* Second hand — thin bar, subtle, points straight down. */
 .time-vault__hand--second {
-  width: 3px;
-  height: 78px;
-  margin-left: -1.5px;
-  margin-top: -78px;
-  clip-path: polygon(50% 0%, 66% 10%, 56% 96%, 50% 100%, 44% 96%, 34% 10%);
-  transform: rotate(172deg);
-  opacity: 0.82;
+  width: 2px;
+  height: 75px;
+  margin-left: -1px;
+  margin-top: -75px;
+  transform: rotate(180deg);
+  opacity: 0.5;
 }
 
 /* Centre medallion — gold ring cap with the brand heart inside.
