@@ -33,10 +33,9 @@ export function HowItWorks() {
         <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-sky mb-3.5">
           How it works
         </p>
-        <h2 className="text-[clamp(30px,3.5vw,46px)] font-extrabold tracking-[-1.5px] leading-[1.08] text-navy mb-16 max-w-[520px]">
-          It&rsquo;s Simple.
+        <h2 className="text-[clamp(26px,3.5vw,46px)] font-extrabold tracking-[-1.5px] leading-[1.08] text-navy mb-16 max-w-[560px]">
+          It&rsquo;s Simple. Capture
           <br />
-          Capture{" "}
           <span className="font-light italic text-sky">emotions</span> as they
           happen.
         </h2>
