@@ -2,6 +2,14 @@
 
 import { useEffect, useState } from "react";
 
+// Key is deliberately namespaced so it can't collide with other
+// sessionStorage users. sessionStorage (not localStorage) so the
+// splash plays once per browser tab/session — if the user returns
+// to the landing page via the back button in the same session the
+// intro won't replay, but a fresh tab still gets the first-run
+// experience.
+const SESSION_KEY = "untilthen:intro-shown";
+
 const TARGET = "untilThen.";
 const UNTIL_LENGTH = 5; // "until"
 
@@ -28,12 +36,32 @@ export function IntroSplash() {
   const [text, setText] = useState("");
   const [phase, setPhase] = useState<Phase>("waiting");
 
-  // Respect reduced motion — skip the whole intro.
+  // Skip the intro entirely if (a) reduced motion is requested, or
+  // (b) we've already played it in this session.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) setPhase("hidden");
+    let alreadyShown = false;
+    try {
+      alreadyShown = window.sessionStorage.getItem(SESSION_KEY) === "1";
+    } catch {
+      // sessionStorage can throw in private-mode / disabled-storage
+      // contexts. Fall through and just play the intro normally.
+    }
+    if (reduce || alreadyShown) setPhase("hidden");
   }, []);
+
+  // Remember that the intro has played for this session the moment
+  // we transition into fade — so back-nav returns land straight on
+  // the landing page without replaying it.
+  useEffect(() => {
+    if (phase !== "fading" && phase !== "hidden") return;
+    try {
+      window.sessionStorage.setItem(SESSION_KEY, "1");
+    } catch {
+      // ignore — not being able to persist is not fatal.
+    }
+  }, [phase]);
 
   useEffect(() => {
     if (phase === "waiting") {

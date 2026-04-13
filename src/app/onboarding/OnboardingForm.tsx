@@ -129,7 +129,15 @@ export function OnboardingForm() {
           onChange={(e) => setChildDateOfBirth(e.target.value)}
           max={new Date().toISOString().split("T")[0]}
           disabled={loading}
-          className="w-full px-4 py-[13px] text-[15px] text-navy bg-white border-[1.5px] border-navy/[0.12] rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 disabled:opacity-50 mb-6"
+          // Explicit box-sizing + -webkit-appearance:none stops iOS
+          // Safari from adding invisible internal padding that makes
+          // the date field render wider than the text inputs above.
+          style={{
+            WebkitAppearance: "none",
+            appearance: "none",
+            boxSizing: "border-box",
+          }}
+          className="block w-full min-h-[50px] px-4 py-[13px] text-[15px] text-navy bg-white border-[1.5px] border-navy/[0.12] rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 disabled:opacity-50 mb-6"
         />
 
         <button

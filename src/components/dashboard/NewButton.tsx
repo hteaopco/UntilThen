@@ -53,7 +53,7 @@ export function NewButton({
         {open && (
           <div
             role="menu"
-            className="absolute top-11 right-0 min-w-[220px] rounded-xl bg-white border border-navy/[0.08] shadow-[0_4px_24px_rgba(15,31,61,0.12)] overflow-hidden z-40"
+            className="absolute top-11 left-0 lg:left-auto lg:right-0 min-w-[220px] rounded-xl bg-white border border-navy/[0.08] shadow-[0_4px_24px_rgba(15,31,61,0.12)] overflow-hidden z-40"
           >
             <Link
               href="/dashboard/new"
