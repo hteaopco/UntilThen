@@ -26,6 +26,9 @@ function LetterCard({
       className={`absolute rounded-2xl border border-navy/[0.08] px-[26px] py-6 ${bg} ${floatClass}`}
       style={{
         width,
+        // Prevent the card from overflowing a narrow viewport — shrinks
+        // to fit the hero-right column when it's tighter than `width`.
+        maxWidth: `calc(100% - ${left}px)`,
         top,
         left,
         zIndex,
@@ -50,8 +53,8 @@ function LetterCard({
 
 export function Hero() {
   return (
-    <section id="top" className="bg-white">
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-[120px] pb-20 grid lg:grid-cols-2 gap-20 items-center lg:min-h-[100vh]">
+    <section id="top" className="bg-white overflow-hidden">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-[120px] pb-20 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center lg:min-h-[100vh]">
         <div className="relative z-[2]">
           <div className="hero-tag inline-flex items-center gap-2 text-xs font-bold tracking-[0.12em] uppercase text-sky bg-sky-tint px-[14px] py-1.5 rounded-md mb-6">
             <span aria-hidden="true">✦</span>
@@ -82,7 +85,7 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="hero-right relative h-[480px] hidden lg:block">
+        <div className="hero-right relative h-[460px] lg:h-[480px] w-full">
           <LetterCard
             width={300}
             top={0}
