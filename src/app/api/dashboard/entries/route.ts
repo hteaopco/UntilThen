@@ -10,6 +10,7 @@ interface Body {
   body?: string;
   type?: string;
   revealDate?: string | null;
+  collectionId?: string | null;
 }
 
 const VALID_TYPES: EntryType[] = ["TEXT", "PHOTO", "VOICE", "VIDEO"];
@@ -61,6 +62,11 @@ export async function POST(req: Request) {
     revealDate = parsed;
   }
 
+  const collectionId =
+    typeof body.collectionId === "string" && body.collectionId.trim()
+      ? body.collectionId.trim()
+      : null;
+
   try {
     const { prisma } = await import("@/lib/prisma");
     const user = await prisma.user.findUnique({
@@ -80,6 +86,26 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No vault yet." }, { status: 404 });
     }
 
+    // If collectionId was provided, verify ownership + clear per-entry
+    // reveal date (the collection controls it).
+    let orderIndex: number | null = null;
+    if (collectionId) {
+      const collection = await prisma.collection.findUnique({
+        where: { id: collectionId },
+        include: {
+          _count: { select: { entries: true } },
+        },
+      });
+      if (!collection || collection.authorId !== user.id || collection.vaultId !== vault.id) {
+        return NextResponse.json(
+          { error: "Collection not found." },
+          { status: 404 },
+        );
+      }
+      revealDate = null;
+      orderIndex = collection._count.entries; // append to the end
+    }
+
     const entry = await prisma.entry.create({
       data: {
         vaultId: vault.id,
@@ -88,6 +114,8 @@ export async function POST(req: Request) {
         title: title || null,
         body: bodyText,
         revealDate,
+        collectionId,
+        orderIndex,
       },
     });
 

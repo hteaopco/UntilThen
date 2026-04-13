@@ -1,9 +1,14 @@
 import { auth } from "@clerk/nextjs/server";
-import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { Avatar } from "@/components/ui/Avatar";
+import {
+  CollectionsSection,
+  type CollectionRow,
+} from "@/components/dashboard/CollectionsSection";
 import { EntryList, type EntryRow } from "@/components/dashboard/EntryList";
+import { NewButton } from "@/components/dashboard/NewButton";
 import { VaultHero } from "@/components/dashboard/VaultHero";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 
@@ -31,8 +36,15 @@ export default async function DashboardPage() {
           vault: {
             include: {
               entries: {
+                where: { collectionId: null },
                 orderBy: { createdAt: "desc" },
                 take: 50,
+              },
+              collections: {
+                include: {
+                  _count: { select: { entries: true } },
+                },
+                orderBy: { createdAt: "desc" },
               },
             },
           },
@@ -47,6 +59,9 @@ export default async function DashboardPage() {
   if (!child || !child.vault) redirect("/onboarding");
 
   const vault = child.vault;
+  const vaultRevealDate = vault.revealDate?.toISOString() ?? null;
+
+  // Standalone entries (not in a collection).
   const entries: EntryRow[] = vault.entries.map((e) => ({
     id: e.id,
     type: e.type,
@@ -56,6 +71,20 @@ export default async function DashboardPage() {
     revealDate: e.revealDate?.toISOString() ?? null,
   }));
 
+  const collections: CollectionRow[] = vault.collections.map((c) => ({
+    id: c.id,
+    title: c.title,
+    description: c.description,
+    coverEmoji: c.coverEmoji,
+    revealDate: c.revealDate?.toISOString() ?? null,
+    isSealed: c.isSealed,
+    entryCount: c._count.entries,
+  }));
+
+  const totalSealed =
+    entries.length +
+    collections.reduce((acc, c) => acc + c.entryCount, 0);
+
   return (
     <main className="min-h-screen bg-white">
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-navy/[0.06]">
@@ -63,20 +92,20 @@ export default async function DashboardPage() {
           <Link href="/dashboard" className="flex items-center" aria-label="Your vault">
             <LogoSvg variant="dark" width={130} height={26} />
           </Link>
-          <UserButton afterSignOutUrl="/" />
+          <Avatar />
         </div>
       </header>
 
       <section className="mx-auto max-w-[980px] px-6 lg:px-10 pt-8 lg:pt-10">
         <VaultHero
           childFirstName={child.firstName}
-          revealDate={vault.revealDate?.toISOString() ?? null}
-          entryCount={entries.length}
+          revealDate={vaultRevealDate}
+          entryCount={totalSealed}
         />
       </section>
 
       <section className="mx-auto max-w-[980px] px-6 lg:px-10 pt-10 lg:pt-14 pb-24">
-        <div className="flex items-center justify-between gap-4 flex-wrap mb-6">
+        <div className="flex items-center justify-between gap-4 flex-wrap mb-8">
           <div>
             <h2 className="text-xl lg:text-2xl font-bold text-navy tracking-[-0.3px]">
               Sealed entries
@@ -85,17 +114,23 @@ export default async function DashboardPage() {
               Your child will open these on reveal day.
             </p>
           </div>
-          <Link
-            href="/dashboard/new"
-            className="bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
-          >
-            + New entry
-          </Link>
+          <NewButton vaultRevealDate={vaultRevealDate} />
         </div>
+
+        <CollectionsSection
+          collections={collections}
+          vaultRevealDate={vaultRevealDate}
+        />
+
+        {collections.length > 0 && (
+          <div className="text-[11px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-4">
+            Entries · {entries.length}
+          </div>
+        )}
         <EntryList
           entries={entries}
           childFirstName={child.firstName}
-          revealDate={vault.revealDate?.toISOString() ?? null}
+          revealDate={vaultRevealDate}
         />
       </section>
     </main>

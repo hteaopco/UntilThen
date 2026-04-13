@@ -1,6 +1,4 @@
 // Prisma schema for untilThen
-// Phase 1: waitlist.
-// Phase 2: auth + vault models (User / Child / Vault / Entry).
 
 generator client {
   provider = "prisma-client-js"
@@ -48,8 +46,9 @@ model User {
   role      Role     @default(PARENT)
   createdAt DateTime @default(now())
 
-  children Child[]
-  entries  Entry[]
+  children    Child[]
+  entries     Entry[]
+  collections Collection[]
 }
 
 model Child {
@@ -71,24 +70,50 @@ model Vault {
   unlockedAt DateTime?
   createdAt  DateTime  @default(now())
 
-  child   Child   @relation(fields: [childId], references: [id])
+  child       Child        @relation(fields: [childId], references: [id])
+  entries     Entry[]
+  collections Collection[]
+}
+
+model Collection {
+  id          String    @id @default(cuid())
+  vaultId     String
+  authorId    String
+  title       String
+  description String?
+  coverEmoji  String?
+  revealDate  DateTime?
+  isSealed    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  unlockedAt  DateTime?
+
+  vault   Vault   @relation(fields: [vaultId], references: [id])
+  author  User    @relation(fields: [authorId], references: [id])
   entries Entry[]
+
+  @@index([vaultId])
 }
 
 model Entry {
-  id         String    @id @default(cuid())
-  vaultId    String
-  authorId   String
-  type       EntryType @default(TEXT)
-  title      String?
-  body       String?
-  mediaUrl   String?
-  tag        String?
-  revealDate DateTime?
-  isPrivate  Boolean   @default(false)
-  createdAt  DateTime  @default(now())
-  unlockedAt DateTime?
+  id           String      @id @default(cuid())
+  vaultId      String
+  authorId     String
+  collectionId String?
+  orderIndex   Int?
+  type         EntryType   @default(TEXT)
+  title        String?
+  body         String?
+  mediaUrl     String?
+  tag          String?
+  revealDate   DateTime?
+  isPrivate    Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  unlockedAt   DateTime?
 
-  vault  Vault @relation(fields: [vaultId], references: [id])
-  author User  @relation(fields: [authorId], references: [id])
+  vault      Vault       @relation(fields: [vaultId], references: [id])
+  author     User        @relation(fields: [authorId], references: [id])
+  collection Collection? @relation(fields: [collectionId], references: [id])
+
+  @@index([collectionId])
 }
