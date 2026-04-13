@@ -52,20 +52,34 @@ function pct(part: number, total: number): string {
   return `${Math.round((part / total) * 100)}%`;
 }
 
-function formatDate(d: Date): string {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  if (d >= today) {
-    return d.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-    });
-  }
+// Render the signup datetime in Central Time. Automatically picks CST
+// or CDT based on the calendar date (handled by Intl with the
+// America/Chicago zone).
+function formatDateCST(d: Date): string {
   return d.toLocaleDateString("en-US", {
+    timeZone: "America/Chicago",
     month: "short",
     day: "numeric",
-    year: d.getFullYear() === now.getFullYear() ? undefined : "numeric",
+    year: "numeric",
   });
+}
+
+function formatTimeCST(d: Date): string {
+  // Compute the short zone name (CST / CDT) for this specific date so the
+  // label is correct year-round.
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Chicago",
+    timeZoneName: "short",
+  }).formatToParts(d);
+  const zone =
+    parts.find((p) => p.type === "timeZoneName")?.value ?? "CT";
+  const time = d.toLocaleTimeString("en-US", {
+    timeZone: "America/Chicago",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+  return `${time} ${zone}`;
 }
 
 export default async function AdminPage() {
@@ -180,14 +194,15 @@ export default async function AdminPage() {
                     <th className="py-2 pr-4 font-bold">Email</th>
                     <th className="py-2 pr-4 font-bold">Children</th>
                     <th className="py-2 pr-4 font-bold">Source</th>
-                    <th className="py-2 pr-4 font-bold">When</th>
+                    <th className="py-2 pr-4 font-bold">Date</th>
+                    <th className="py-2 pr-4 font-bold">Time</th>
                     <th className="py-2 font-bold text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {entries.slice(0, 50).map((e) => (
                     <tr key={e.id} className="border-b border-navy/[0.06]">
-                      <td className="py-2.5 pr-4 text-navy">
+                      <td className="py-2.5 pr-4 text-navy whitespace-nowrap">
                         {e.firstName} {e.lastName}
                       </td>
                       <td className="py-2.5 pr-4 text-ink-mid">{e.email}</td>
@@ -197,8 +212,11 @@ export default async function AdminPage() {
                       <td className="py-2.5 pr-4 text-ink-mid">
                         {e.hearAboutUs ?? "—"}
                       </td>
-                      <td className="py-2.5 pr-4 text-ink-mid">
-                        {formatDate(e.createdAt)}
+                      <td className="py-2.5 pr-4 text-ink-mid whitespace-nowrap">
+                        {formatDateCST(e.createdAt)}
+                      </td>
+                      <td className="py-2.5 pr-4 text-ink-mid whitespace-nowrap">
+                        {formatTimeCST(e.createdAt)}
                       </td>
                       <td className="py-2.5 text-right">
                         <DeleteEntryButton

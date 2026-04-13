@@ -1,4 +1,5 @@
 import { LogoSvg } from "@/components/ui/LogoSvg";
+import Link from "next/link";
 
 export function Nav() {
   return (
@@ -7,40 +8,65 @@ export function Nav() {
       style={{ WebkitBackdropFilter: "blur(16px)" }}
     >
       <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-5 flex items-center justify-between">
-        <a href="#top" aria-label="untilThen home" className="flex items-center">
+        <Link href="/" aria-label="untilThen home" className="flex items-center">
           <LogoSvg variant="dark" />
-        </a>
+        </Link>
         <ul className="hidden lg:flex items-center gap-8 text-sm text-ink-mid">
           <li>
-            <a href="#how" className="hover:text-navy transition-colors font-medium">
+            <Link
+              href="/#how"
+              className="hover:text-navy transition-colors font-medium"
+            >
               How it works
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="#features" className="hover:text-navy transition-colors font-medium">
+            <Link
+              href="/#features"
+              className="hover:text-navy transition-colors font-medium"
+            >
               Features
-            </a>
+            </Link>
           </li>
           <li>
-            <a href="#pricing" className="hover:text-navy transition-colors font-medium">
+            <Link
+              href="/#pricing"
+              className="hover:text-navy transition-colors font-medium"
+            >
               Pricing
-            </a>
+            </Link>
           </li>
           <li>
-            <a
-              href="#cta"
+            <Link
+              href="/faq"
+              className="hover:text-navy transition-colors font-medium"
+            >
+              FAQ
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/#cta"
               className="bg-navy text-white px-[22px] py-2.5 rounded-lg text-[13px] font-bold tracking-[0.01em] hover:bg-navy-mid hover:-translate-y-px transition-all"
             >
               Join waitlist
-            </a>
+            </Link>
           </li>
         </ul>
-        <a
-          href="#cta"
-          className="lg:hidden bg-navy text-white px-4 py-1.5 rounded-lg text-sm font-bold"
-        >
-          Join waitlist
-        </a>
+        <div className="lg:hidden flex items-center gap-4">
+          <Link
+            href="/faq"
+            className="text-sm text-ink-mid hover:text-navy transition-colors font-medium"
+          >
+            FAQ
+          </Link>
+          <Link
+            href="/#cta"
+            className="bg-navy text-white px-4 py-1.5 rounded-lg text-sm font-bold"
+          >
+            Join waitlist
+          </Link>
+        </div>
       </div>
     </nav>
   );

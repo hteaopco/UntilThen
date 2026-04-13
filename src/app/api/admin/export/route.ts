@@ -13,6 +13,29 @@ function csvCell(value: unknown): string {
   return str;
 }
 
+// Format a timestamp as "Apr 13, 2026 3:56 PM CST" in America/Chicago.
+// Intl handles CST vs CDT automatically based on the date.
+function formatSignedUpCST(d: Date): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Chicago",
+    timeZoneName: "short",
+  }).formatToParts(d);
+  const zone = parts.find((p) => p.type === "timeZoneName")?.value ?? "CT";
+  const date = d.toLocaleDateString("en-US", {
+    timeZone: "America/Chicago",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  const time = d.toLocaleTimeString("en-US", {
+    timeZone: "America/Chicago",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+  return `${date} ${time} ${zone}`;
+}
+
 export async function GET(req: NextRequest) {
   // Middleware already guards /admin/** but API routes aren't under /admin,
   // so re-check auth here.
@@ -35,7 +58,7 @@ export async function GET(req: NextRequest) {
     });
 
     const header =
-      "First Name,Last Name,Email,Phone,Date of Birth,Children,Source,Signed Up";
+      "First Name,Last Name,Email,Phone,Date of Birth,Children,Source,Signed Up (CT)";
     const rows = entries.map((e) =>
       [
         csvCell(e.firstName),
@@ -45,7 +68,7 @@ export async function GET(req: NextRequest) {
         csvCell(e.dateOfBirth ? e.dateOfBirth.toISOString().split("T")[0] : ""),
         csvCell(e.numChildren),
         csvCell(e.hearAboutUs ?? ""),
-        csvCell(e.createdAt.toISOString()),
+        csvCell(formatSignedUpCST(e.createdAt)),
       ].join(","),
     );
     const csv = [header, ...rows].join("\n");

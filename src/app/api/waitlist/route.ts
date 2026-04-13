@@ -127,7 +127,7 @@ export async function POST(req: Request) {
         // owner's email. Route all test traffic to jett@evolamco.com;
         // restore `to: email` once the domain is verified.
         to: "jett@evolamco.com",
-        subject: `[test] You're on the list — for ${email}`,
+        subject: `You're on the list, ${firstName}.`,
         html: `
 <div style="font-family: 'DM Sans', -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 24px; color: #0f1f3d;">
   <h1 style="font-size: 28px; font-weight: 800; color: #0f1f3d; margin: 0 0 12px; letter-spacing: -0.5px;">

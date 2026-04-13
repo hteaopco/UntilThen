@@ -15,9 +15,21 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "untilThen — Letters from the past, opened in the future",
+  title: "untilThen — Moments from the past, opened in the future",
   description:
-    "A time capsule diary for parents. Write letters, record voice notes, and seal memories your child unlocks when they're ready.",
+    "A time capsule diary for parents. Write moments, record voice notes, and seal memories your child unlocks when they're ready.",
+  openGraph: {
+    title: "untilThen — Moments from the past, opened in the future",
+    description:
+      "A time capsule diary for parents. Write moments, record voice notes, and seal memories your child unlocks when they're ready.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "untilThen — Moments from the past, opened in the future",
+    description:
+      "A time capsule diary for parents. Write moments, record voice notes, and seal memories your child unlocks when they're ready.",
+  },
   other: {
     "supported-color-schemes": "light",
   },

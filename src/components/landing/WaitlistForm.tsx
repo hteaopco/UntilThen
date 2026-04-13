@@ -72,8 +72,7 @@ export function WaitlistForm() {
     e.preventDefault();
     setTopError(null);
 
-    // Tapping "Join waitlist" before expansion should just open the form
-    // rather than try to submit with only an email.
+    // First submission from the collapsed state just opens the form.
     if (!expanded) {
       triggerExpand();
       return;
@@ -133,35 +132,70 @@ export function WaitlistForm() {
     return <SuccessCard name={success.name} email={success.email} />;
   }
 
+  // NOTE: there's exactly ONE email input that stays mounted across
+  // collapsed <-> expanded. We only change its wrapper's className and
+  // toggle the neighbouring "Join waitlist" button, so the browser
+  // preserves focus on first tap (no second click required).
   return (
     <form onSubmit={handleSubmit} className="mx-auto max-w-[520px] text-left">
-      {/* Collapsed pill: email + "Join waitlist" button on one line */}
-      {!expanded && (
-        <div className="flex max-w-[520px] mx-auto rounded-[10px] overflow-hidden border border-navy/[0.08] shadow-[0_4px_20px_rgba(15,31,61,0.12)] hover:shadow-[0_10px_32px_rgba(74,158,221,0.22)] focus-within:shadow-[0_10px_32px_rgba(74,158,221,0.28)] transition-shadow">
-          <input
-            type="email"
-            required
-            value={email}
-            onFocus={triggerExpand}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              triggerExpand();
-            }}
-            placeholder="your@email.com"
-            aria-label="Email address"
-            autoComplete="email"
-            className="flex-1 px-5 py-[15px] text-sm font-normal bg-white text-navy placeholder-ink-light outline-none"
-          />
+      {/* Email label — only visible when expanded */}
+      <div
+        className="overflow-hidden transition-[max-height,opacity,margin] duration-200 ease-out"
+        style={{
+          maxHeight: expanded ? "28px" : "0",
+          opacity: expanded ? 1 : 0,
+          marginBottom: expanded ? "8px" : "0",
+        }}
+      >
+        <Label required>Email address</Label>
+      </div>
+
+      {/* The email row — collapsed looks like a pill (input + button),
+          expanded is just a bordered input. */}
+      <div
+        className={
+          expanded
+            ? ""
+            : "flex rounded-[10px] overflow-hidden border border-navy/[0.08] shadow-[0_4px_20px_rgba(15,31,61,0.12)] hover:shadow-[0_10px_32px_rgba(74,158,221,0.22)] focus-within:shadow-[0_10px_32px_rgba(74,158,221,0.28)] transition-shadow"
+        }
+      >
+        <input
+          type="email"
+          required
+          value={email}
+          onFocus={triggerExpand}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            triggerExpand();
+          }}
+          placeholder="your@email.com"
+          aria-label="Email address"
+          autoComplete="email"
+          disabled={status === "loading"}
+          className={
+            expanded
+              ? `w-full min-h-[44px] px-4 rounded-lg border text-sm text-navy bg-white placeholder-ink-light focus:outline-none focus:ring-2 focus:ring-sky/20 disabled:opacity-50 ${
+                  fieldErrors.email
+                    ? "border-red-500 focus:border-red-500"
+                    : "border-navy/15 focus:border-sky"
+                }`
+              : "flex-1 px-5 py-[15px] text-sm font-normal bg-white text-navy placeholder-ink-light outline-none disabled:opacity-50"
+          }
+        />
+        {!expanded && (
           <button
             type="submit"
             className="bg-navy text-white px-[22px] py-[15px] text-[13px] font-bold whitespace-nowrap hover:bg-navy-mid transition-colors"
           >
             Join waitlist →
           </button>
-        </div>
+        )}
+      </div>
+      {expanded && fieldErrors.email && (
+        <FieldError>{fieldErrors.email}</FieldError>
       )}
 
-      {/* Expanded form */}
+      {/* Extra fields */}
       <div
         aria-hidden={!expanded}
         className="overflow-hidden transition-[max-height,opacity] duration-300 ease-out"
@@ -170,19 +204,7 @@ export function WaitlistForm() {
           opacity: expanded ? 1 : 0,
         }}
       >
-        <div className="pt-1 space-y-5">
-          <Field
-            label="Email address"
-            required
-            type="email"
-            value={email}
-            onChange={setEmail}
-            placeholder="your@email.com"
-            autoComplete="email"
-            error={fieldErrors.email}
-            disabled={status === "loading"}
-          />
-
+        <div className="pt-5 space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field
               label="First name"
