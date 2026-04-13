@@ -46,10 +46,10 @@ export function Nav() {
           </li>
           <li>
             <Link
-              href="/#cta"
+              href="/sign-up"
               className="bg-navy text-white px-[22px] py-2.5 rounded-lg text-[13px] font-bold tracking-[0.01em] hover:bg-navy-mid hover:-translate-y-px transition-all"
             >
-              Join waitlist
+              Get started free
             </Link>
           </li>
         </ul>
@@ -61,10 +61,10 @@ export function Nav() {
             FAQ
           </Link>
           <Link
-            href="/#cta"
+            href="/sign-up"
             className="bg-navy text-white px-4 py-1.5 rounded-lg text-sm font-bold"
           >
-            Join waitlist
+            Get started
           </Link>
         </div>
       </div>

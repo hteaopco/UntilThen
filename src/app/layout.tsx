@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
 import { PosthogProvider } from "@/components/PosthogProvider";
@@ -41,10 +42,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={dmSans.variable}>
-      <body className="font-sans bg-white text-navy antialiased">
-        <PosthogProvider>{children}</PosthogProvider>
-      </body>
-    </html>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#0f1f3d",
+          colorText: "#0f1f3d",
+          fontFamily: "var(--font-dm-sans), DM Sans, sans-serif",
+          borderRadius: "8px",
+        },
+      }}
+    >
+      <html lang="en" className={dmSans.variable}>
+        <body className="font-sans bg-white text-navy antialiased">
+          <PosthogProvider>{children}</PosthogProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

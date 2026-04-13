@@ -1,6 +1,6 @@
 // Prisma schema for untilThen
-// Phase 1: waitlist only. Phase 2 models (User/Child/Vault/Entry) land
-// when we start the app proper.
+// Phase 1: waitlist.
+// Phase 2: auth + vault models (User / Child / Vault / Entry).
 
 generator client {
   provider = "prisma-client-js"
@@ -10,6 +10,8 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+// ── Waitlist ───────────────────────────────────────────────
 
 model Waitlist {
   id          String    @id @default(cuid())
@@ -22,4 +24,69 @@ model Waitlist {
   hearAboutUs String?
   createdAt   DateTime  @default(now())
   ipAddress   String?
+}
+
+// ── Auth + vaults ──────────────────────────────────────────
+
+enum Role {
+  PARENT
+  CHILD
+}
+
+enum EntryType {
+  TEXT
+  PHOTO
+  VOICE
+  VIDEO
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  firstName String
+  role      Role     @default(PARENT)
+  createdAt DateTime @default(now())
+
+  children Child[]
+  entries  Entry[]
+}
+
+model Child {
+  id          String    @id @default(cuid())
+  name        String
+  dateOfBirth DateTime?
+  parentId    String
+  createdAt   DateTime  @default(now())
+
+  parent User   @relation(fields: [parentId], references: [id])
+  vault  Vault?
+}
+
+model Vault {
+  id         String    @id @default(cuid())
+  childId    String    @unique
+  revealDate DateTime?
+  unlockedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  child   Child   @relation(fields: [childId], references: [id])
+  entries Entry[]
+}
+
+model Entry {
+  id         String    @id @default(cuid())
+  vaultId    String
+  authorId   String
+  type       EntryType @default(TEXT)
+  title      String?
+  body       String?
+  mediaUrl   String?
+  tag        String?
+  revealDate DateTime?
+  isPrivate  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  unlockedAt DateTime?
+
+  vault  Vault @relation(fields: [vaultId], references: [id])
+  author User  @relation(fields: [authorId], references: [id])
 }

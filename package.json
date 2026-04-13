@@ -13,6 +13,7 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@clerk/nextjs": "^5.7.0",
     "@prisma/client": "^5.22.0",
     "next": "^15.0.7",
     "posthog-js": "^1.194.0",
