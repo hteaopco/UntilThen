@@ -8,15 +8,17 @@ const UNTIL_LENGTH = 5; // "until"
 // Timings
 const BLINK_WAIT_MS = 2200; // ~2 cursor blinks before typing starts
 const CHAR_INTERVAL_MS = 110;
-const PAUSE_AFTER_PERIOD_MS = 280; // brief "wait, wrong punctuation" beat
-const HOLD_AFTER_MS = 1100; // 1 full cursor blink cycle
+const PAUSE_AFTER_PERIOD_MS = 280; // beat after typing "."
+const PAUSE_AFTER_BACKSPACE_MS = 280; // beat after deleting "."
+const HOLD_AFTER_MS = 2000; // hold after comma lands
 const FADE_MS = 550;
 
 type Phase =
   | "waiting"
   | "typing"
-  | "pausing"
+  | "pausingAfterPeriod"
   | "backspacing"
+  | "pausingAfterBackspace"
   | "retyping"
   | "holding"
   | "fading"
@@ -40,7 +42,7 @@ export function IntroSplash() {
     }
     if (phase === "typing") {
       if (text.length >= TARGET.length) {
-        setPhase("pausing");
+        setPhase("pausingAfterPeriod");
         return;
       }
       const t = setTimeout(
@@ -49,15 +51,19 @@ export function IntroSplash() {
       );
       return () => clearTimeout(t);
     }
-    if (phase === "pausing") {
+    if (phase === "pausingAfterPeriod") {
       const t = setTimeout(() => setPhase("backspacing"), PAUSE_AFTER_PERIOD_MS);
       return () => clearTimeout(t);
     }
     if (phase === "backspacing") {
       const t = setTimeout(() => {
         setText((prev) => prev.slice(0, -1));
-        setPhase("retyping");
+        setPhase("pausingAfterBackspace");
       }, CHAR_INTERVAL_MS);
+      return () => clearTimeout(t);
+    }
+    if (phase === "pausingAfterBackspace") {
+      const t = setTimeout(() => setPhase("retyping"), PAUSE_AFTER_BACKSPACE_MS);
       return () => clearTimeout(t);
     }
     if (phase === "retyping") {
@@ -83,6 +89,12 @@ export function IntroSplash() {
   const untilText = text.slice(0, untilLen);
   const thenText = text.slice(UNTIL_LENGTH);
 
+  // Pull the comma out of the "then" span so we can render it in
+  // bold Times New Roman — the serif shape makes it stand out against
+  // the extra-bold DM Sans that everything else is set in.
+  const endsWithComma = thenText.endsWith(",");
+  const thenMain = endsWithComma ? thenText.slice(0, -1) : thenText;
+
   const showCursor = phase !== "fading";
 
   return (
@@ -98,7 +110,18 @@ export function IntroSplash() {
         {/* Zero-width space anchors the baseline while text is still empty */}
         <span aria-hidden="true">&#8203;</span>
         <span className="text-navy">{untilText}</span>
-        <span className="text-sky">{thenText}</span>
+        <span className="text-sky">{thenMain}</span>
+        {endsWithComma && (
+          <span
+            className="text-sky"
+            style={{
+              fontFamily: "'Times New Roman', Times, serif",
+              fontWeight: 700,
+            }}
+          >
+            ,
+          </span>
+        )}
         {showCursor && (
           <span
             aria-hidden="true"
