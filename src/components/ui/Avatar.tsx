@@ -47,7 +47,7 @@ export function Avatar() {
         aria-expanded={open}
         aria-label="Account menu"
         disabled={!isLoaded}
-        className="w-9 h-9 rounded-full bg-navy text-white text-[13px] font-bold tracking-[0.02em] flex items-center justify-center hover:opacity-85 transition-opacity focus:outline-none focus:ring-2 focus:ring-amber/40 disabled:opacity-50"
+        className="w-9 h-9 rounded-full bg-amber text-white text-[13px] font-bold tracking-[0.02em] flex items-center justify-center hover:opacity-85 transition-opacity focus:outline-none focus:ring-2 focus:ring-amber/40 disabled:opacity-50"
       >
         {initials}
       </button>

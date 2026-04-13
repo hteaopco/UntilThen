@@ -47,7 +47,7 @@ export function InviteAccept({
           >
             <button
               type="button"
-              className="bg-navy text-white px-5 py-3 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
+              className="bg-amber text-white px-5 py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
               Create account →
             </button>
@@ -70,7 +70,7 @@ export function InviteAccept({
           <button
             type="button"
             onClick={() => router.push(`/contribute/${vaultId}`)}
-            className="bg-navy text-white px-5 py-3 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
+            className="bg-amber text-white px-5 py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
           >
             Go to your contributor dashboard →
           </button>
@@ -79,7 +79,7 @@ export function InviteAccept({
             type="button"
             onClick={accept}
             disabled={loading}
-            className="bg-navy text-white px-5 py-3 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors disabled:opacity-60"
+            className="bg-amber text-white px-5 py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
           >
             {loading ? "Accepting…" : "Accept invitation →"}
           </button>

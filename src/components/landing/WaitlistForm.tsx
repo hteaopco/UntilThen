@@ -185,7 +185,7 @@ export function WaitlistForm() {
         {!expanded && (
           <button
             type="submit"
-            className="bg-navy text-white px-[22px] py-[15px] text-[13px] font-bold whitespace-nowrap hover:bg-navy-mid transition-colors"
+            className="bg-amber text-white px-[22px] py-[15px] text-[13px] font-bold whitespace-nowrap hover:bg-amber-dark transition-colors"
           >
             Join waitlist →
           </button>
@@ -245,7 +245,7 @@ export function WaitlistForm() {
                   disabled={status === "loading"}
                   className={`flex-1 min-h-[44px] rounded-full border-2 text-sm font-bold tracking-[0.02em] transition-all ${
                     numChildren === n
-                      ? "bg-navy text-white border-navy"
+                      ? "bg-amber text-white border-amber-dark"
                       : "bg-white text-ink-mid border-navy/15 hover:border-navy/40"
                   } disabled:opacity-50`}
                 >
@@ -303,7 +303,7 @@ export function WaitlistForm() {
             <button
               type="submit"
               disabled={status === "loading"}
-              className="w-full bg-navy text-white py-3.5 rounded-lg text-sm font-bold tracking-[0.01em] hover:bg-navy-mid transition-colors disabled:opacity-60"
+              className="w-full bg-amber text-white py-3.5 rounded-lg text-sm font-bold tracking-[0.01em] hover:bg-amber-dark transition-colors disabled:opacity-60"
             >
               {status === "loading" ? "Joining…" : "Complete signup →"}
             </button>

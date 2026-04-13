@@ -219,7 +219,7 @@ export function CollectionDetail({
         <div className="flex items-center gap-3 flex-wrap mt-8">
           <Link
             href={`/dashboard/new?collectionId=${collectionId}`}
-            className="bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
+            className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
           >
             + Add entry
           </Link>
@@ -267,7 +267,7 @@ export function CollectionDetail({
             </p>
             <Link
               href={`/dashboard/new?collectionId=${collectionId}`}
-              className="inline-block bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
+              className="inline-block bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
               Add the first entry →
             </Link>

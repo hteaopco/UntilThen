@@ -135,7 +135,7 @@ export function OnboardingForm() {
         <button
           type="submit"
           disabled={!canSubmit || loading}
-          className="w-full py-3.5 bg-navy text-white text-[15px] font-bold rounded-lg hover:bg-navy-mid transition-colors disabled:bg-ink-light disabled:cursor-not-allowed"
+          className="w-full py-3.5 bg-amber text-white text-[15px] font-bold rounded-lg hover:bg-amber-dark transition-colors disabled:bg-ink-light disabled:cursor-not-allowed"
         >
           {loading ? "Setting up your vault…" : "Create my vault →"}
         </button>

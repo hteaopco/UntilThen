@@ -161,6 +161,7 @@ type StepProps = {
   hoverBg: string;
   icon: ReactNode;
   iconExtra?: ReactNode;
+  iconColor?: string;
   titleDelight?: ReactNode;
   overlay?: ReactNode;
   extraShadow?: boolean;
@@ -176,6 +177,7 @@ function Step({
   hoverBg,
   icon,
   iconExtra,
+  iconColor = "text-navy",
   titleDelight,
   overlay,
   extraShadow,
@@ -194,7 +196,7 @@ function Step({
       <p className="relative text-[10px] uppercase tracking-[0.22em] font-medium text-navy/30 mb-5">
         {label}
       </p>
-      <div className="relative w-12 h-12 flex items-center justify-center mb-4 text-navy">
+      <div className={`relative w-12 h-12 flex items-center justify-center mb-4 ${iconColor}`}>
         <IconGlow />
         {iconExtra}
         <div className="relative">{icon}</div>
@@ -245,9 +247,10 @@ export function HowItWorks() {
           />
           <Step
             label="Reveal"
-            bg="bg-[#f5f8fc]"
-            hoverBg="hover:bg-[#e9f0f8]"
+            bg="bg-amber-tint"
+            hoverBg="hover:bg-[#f8e4cf]"
             icon={<GiftIcon />}
+            iconColor="text-amber"
             iconExtra={<ConfettiDots />}
             overlay={<RevealBrightness />}
             extraShadow

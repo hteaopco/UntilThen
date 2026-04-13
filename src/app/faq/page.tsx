@@ -163,7 +163,7 @@ export default function FAQPage() {
               </a>
               <Link
                 href="/#cta"
-                className="inline-block px-6 py-3 rounded-lg text-sm font-bold bg-navy text-white hover:bg-navy-mid transition-colors"
+                className="inline-block px-6 py-3 rounded-lg text-sm font-bold bg-amber text-white hover:bg-amber-dark transition-colors"
               >
                 Join the waitlist →
               </Link>

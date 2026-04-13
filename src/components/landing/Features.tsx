@@ -51,7 +51,7 @@ function MockEditor() {
         </div>
         <button
           type="button"
-          className="bg-navy text-white text-[11px] font-bold px-3.5 py-1.5 rounded-md hover:bg-navy-mid transition-colors"
+          className="bg-amber text-white text-[11px] font-bold px-3.5 py-1.5 rounded-md hover:bg-amber-dark transition-colors"
         >
           Seal →
         </button>
@@ -72,7 +72,7 @@ function FeatureBadge({
       className={`inline-block text-[10px] font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-md mb-3.5 ${
         dark
           ? "bg-amber/20 text-amber-light"
-          : "bg-amber-tint text-[#1e6aa8]"
+          : "bg-amber-tint text-amber"
       }`}
     >
       {children}
@@ -134,7 +134,7 @@ export function Features() {
             className="lg:col-span-2 rounded-2xl border border-white/5 p-9 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center"
             style={{
               background:
-                "linear-gradient(180deg, #1e3560 0%, #0f1f3d 75%)",
+                "linear-gradient(180deg, #3a2e2a 0%, #2c2420 75%)",
             }}
           >
             <div>

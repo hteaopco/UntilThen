@@ -43,7 +43,7 @@ export function NewButton({
           onClick={() => setOpen((o) => !o)}
           aria-haspopup="menu"
           aria-expanded={open}
-          className="bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors inline-flex items-center gap-2"
+          className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors inline-flex items-center gap-2"
         >
           + New
           <span aria-hidden="true" className="text-xs opacity-80">

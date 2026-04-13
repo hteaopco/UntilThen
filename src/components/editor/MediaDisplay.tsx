@@ -63,7 +63,7 @@ export function MediaDisplay({ items }: { items: MediaItem[] }) {
               aria-pressed={isActive}
               className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-bold tracking-[0.01em] transition-colors ${
                 isActive
-                  ? "bg-navy text-white"
+                  ? "bg-amber text-white"
                   : "bg-white border border-navy/15 text-ink-mid hover:border-navy hover:text-navy"
               }`}
             >

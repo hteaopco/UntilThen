@@ -389,7 +389,7 @@ export function NewEntryForm({
             type="button"
             onClick={handleProofRead}
             disabled={!hasContent() || navigating}
-            className="bg-white border-[1.5px] border-navy text-navy px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy hover:text-white transition-colors disabled:opacity-50"
+            className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-50"
           >
             {navigating ? "Opening…" : "Proof Read →"}
           </button>

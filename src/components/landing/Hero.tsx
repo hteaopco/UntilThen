@@ -77,7 +77,7 @@ export function Hero() {
           <div className="hero-actions">
             <a
               href="#cta"
-              className="inline-block bg-navy text-white px-7 py-3.5 rounded-lg text-[15px] font-bold tracking-[0.01em] hover:bg-navy-mid hover:-translate-y-0.5 transition-all"
+              className="inline-block bg-amber text-white px-7 py-3.5 rounded-lg text-[15px] font-bold tracking-[0.01em] hover:bg-amber-dark hover:-translate-y-0.5 transition-all"
               style={{ boxShadow: "0 4px 16px rgba(15,31,61,0.2)" }}
             >
               Join the waitlist →

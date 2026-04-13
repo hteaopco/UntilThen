@@ -90,7 +90,7 @@ export function EntryList({
         </p>
         <Link
           href="/dashboard/new"
-          className="inline-block bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
+          className="inline-block bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
         >
           Write your first moment →
         </Link>

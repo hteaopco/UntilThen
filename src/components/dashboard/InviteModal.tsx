@@ -175,7 +175,7 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
           <button
             type="submit"
             disabled={saving || !email.trim()}
-            className="bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid disabled:opacity-60"
+            className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark disabled:opacity-60"
           >
             {saving ? "Sending…" : "Send invitation →"}
           </button>

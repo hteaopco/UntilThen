@@ -471,7 +471,7 @@ function EditUserModal({
           <button
             type="submit"
             disabled={saving}
-            className="bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors disabled:opacity-60"
+            className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
           >
             {saving ? "Saving…" : "Save changes"}
           </button>

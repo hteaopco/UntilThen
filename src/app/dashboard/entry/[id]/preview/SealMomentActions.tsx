@@ -98,7 +98,7 @@ export function SealMomentActions({
                   type="button"
                   onClick={confirm}
                   disabled={busy}
-                  className="bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors disabled:opacity-60"
+                  className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
                 >
                   {busy ? "Sealing…" : "Seal Moment →"}
                 </button>
@@ -115,7 +115,7 @@ export function SealMomentActions({
         type="button"
         onClick={() => (isSealed ? confirm() : setOpen(true))}
         disabled={busy}
-        className="bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors disabled:opacity-60"
+        className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
       >
         {busy ? "Saving…" : buttonLabel}
       </button>

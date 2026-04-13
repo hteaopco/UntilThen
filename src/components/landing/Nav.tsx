@@ -38,6 +38,14 @@ export function Nav() {
           </li>
           <li>
             <Link
+              href="/blog"
+              className="hover:text-navy transition-colors font-medium"
+            >
+              Blog
+            </Link>
+          </li>
+          <li>
+            <Link
               href="/faq"
               className="hover:text-navy transition-colors font-medium"
             >
@@ -47,7 +55,7 @@ export function Nav() {
           <li>
             <Link
               href="/sign-up"
-              className="bg-navy text-white px-[22px] py-2.5 rounded-lg text-[13px] font-bold tracking-[0.01em] hover:bg-navy-mid hover:-translate-y-px transition-all"
+              className="bg-amber text-white px-[22px] py-2.5 rounded-lg text-[13px] font-bold tracking-[0.01em] hover:bg-amber-dark hover:-translate-y-px transition-all"
             >
               Get started free
             </Link>
@@ -62,7 +70,7 @@ export function Nav() {
           </Link>
           <Link
             href="/sign-up"
-            className="bg-navy text-white px-4 py-1.5 rounded-lg text-sm font-bold"
+            className="bg-amber text-white px-4 py-1.5 rounded-lg text-sm font-bold"
           >
             Get started
           </Link>

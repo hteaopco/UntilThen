@@ -12,6 +12,7 @@ const config: Config = {
         amber: "#c47a3a",
         "amber-light": "#e09a5a",
         "amber-tint": "#fdf3e9",
+        "amber-dark": "#a85e28",
 
         gold: "#c9a84c",
         "gold-light": "#e2c47a",
@@ -24,6 +25,9 @@ const config: Config = {
         // Warm surfaces — replace pure white page backgrounds.
         cream: "#fdf8f2",
         "warm-surface": "#faf4ec",
+
+        // Dark warm-slate replaces cold navy for dark section / footer bgs.
+        "warm-slate": "#2c2420",
 
         "ink-mid": "#4a5568",
         "ink-light": "#8896a5",

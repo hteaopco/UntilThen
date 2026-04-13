@@ -117,7 +117,7 @@ export function VaultHero({
             <Link
               href="/dashboard/preview"
               prefetch={false}
-              className="inline-flex items-center gap-2 bg-navy text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
+              className="inline-flex items-center gap-2 bg-amber text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
               <span aria-hidden="true">🎁</span>
               See what {childFirstName} sees
@@ -199,7 +199,7 @@ function RevealDateForm({
         <button
           type="submit"
           disabled={!value || saving}
-          className="bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors disabled:opacity-50"
+          className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-50"
         >
           {saving ? "Saving…" : initialDate ? "Save" : "Set date"}
         </button>

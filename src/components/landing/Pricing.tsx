@@ -77,19 +77,17 @@ function Plan({
   const gift = variant === "gift";
 
   const cardClasses = featured
-    ? "border-navy shadow-[0_10px_30px_-10px_rgba(15,31,61,0.25)]"
+    ? "border-amber-dark bg-amber shadow-[0_10px_30px_-10px_rgba(196,122,58,0.35)] hover:bg-amber-dark transition-colors"
     : gift
       ? "bg-[#fdf6e8] border-gold/25 shadow-[0_10px_30px_-10px_rgba(201,168,76,0.22)]"
       : "bg-white border-navy/[0.08] hover:shadow-[0_8px_24px_rgba(15,31,61,0.08)]";
 
-  // Match the gradient on the Writing Experience feature card so the
-  // two "signature" dark blocks feel part of the same system.
-  const cardStyle = featured
-    ? { background: "linear-gradient(180deg, #1e3560 0%, #0f1f3d 75%)" }
-    : undefined;
+  // Amber-filled featured card is flat (no gradient) so the warm palette
+  // reads cleanly; gift card keeps its ivory tone.
+  const cardStyle = undefined;
 
   const tagColor = featured
-    ? "text-amber-light"
+    ? "text-white/85"
     : gift
       ? "text-gold"
       : "text-amber";
@@ -97,23 +95,23 @@ function Plan({
   const nameColor = featured ? "text-white" : "text-navy";
   const priceColor = featured ? "text-white" : "text-navy";
   const priceUnitColor = featured
-    ? "text-white/50"
+    ? "text-white/65"
     : gift
       ? "text-ink-mid/90"
       : "text-ink-light";
   const priceNoteColor = featured
-    ? "text-amber-light"
+    ? "text-white/70"
     : gift
       ? "text-gold"
       : "text-ink-light";
-  const featureTextColor = featured ? "text-white/80" : "text-ink-mid";
-  const featureBulletColor = featured ? "text-gold-light" : "text-gold";
+  const featureTextColor = featured ? "text-white/85" : "text-ink-mid";
+  const featureBulletColor = featured ? "text-white/70" : "text-gold";
 
   const ctaClasses = featured
-    ? "bg-white text-navy hover:bg-amber-tint"
+    ? "bg-white text-amber hover:bg-amber-tint"
     : gift
       ? "bg-gold text-navy hover:bg-gold-light"
-      : "bg-navy text-white hover:bg-navy-mid";
+      : "bg-amber text-white hover:bg-amber-dark";
 
   return (
     <div

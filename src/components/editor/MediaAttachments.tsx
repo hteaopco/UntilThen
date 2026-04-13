@@ -501,7 +501,7 @@ function VoiceRecorder({
             <button
               type="button"
               onClick={start}
-              className="bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
+              className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
               Start recording
             </button>
@@ -527,7 +527,7 @@ function VoiceRecorder({
               <button
                 type="button"
                 onClick={attach}
-                className="bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
+                className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
               >
                 Attach
               </button>

@@ -95,7 +95,7 @@ export default async function ContributePage({
         <div className="mt-6">
           <Link
             href={`/contribute/${vaultId}/new`}
-            className="inline-block bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
+            className="inline-block bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
           >
             + Add a memory
           </Link>

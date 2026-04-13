@@ -52,7 +52,7 @@ export function ApprovalQueue({ entries }: { entries: PendingEntry[] }) {
               type="button"
               onClick={() => decide(e.id, "approve")}
               disabled={busy === e.id}
-              className="bg-navy text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-navy-mid transition-colors disabled:opacity-60"
+              className="bg-amber text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
             >
               {busy === e.id ? "…" : "Approve"}
             </button>

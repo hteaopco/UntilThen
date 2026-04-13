@@ -92,7 +92,7 @@ export function PreviewClient({
     : null;
 
   return (
-    <main className="min-h-screen bg-navy text-white relative overflow-x-hidden">
+    <main className="min-h-screen bg-warm-slate text-white relative overflow-x-hidden">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute top-16 left-1/2 -translate-x-1/2 w-[420px] h-[420px]"
@@ -104,7 +104,7 @@ export function PreviewClient({
         }}
       />
 
-      <header className="relative sticky top-0 z-40 bg-navy/90 backdrop-blur-md border-b border-white/10">
+      <header className="relative sticky top-0 z-40 bg-warm-slate/90 backdrop-blur-md border-b border-white/10">
         <div className="mx-auto max-w-[900px] px-6 py-4 flex items-center justify-between">
           {currentCollection ? (
             <button
@@ -368,7 +368,7 @@ function CollectionReader({
               <li key={entry.id}>
                 <div className="rounded-2xl bg-[#fdfbf5] text-navy px-7 py-7 lg:px-9 lg:py-9 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]">
                   <div className="flex items-center gap-3 mb-3">
-                    <span className="w-7 h-7 rounded-full bg-navy text-white text-xs font-bold flex items-center justify-center">
+                    <span className="w-7 h-7 rounded-full bg-amber text-white text-xs font-bold flex items-center justify-center">
                       {i + 1}
                     </span>
                     <span aria-hidden="true" className="text-base">
