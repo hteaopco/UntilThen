@@ -56,7 +56,7 @@ export function ContributorsSection({
 
   return (
     <>
-      <div className="mb-10">
+      <div className="mt-12 pt-8 border-t border-navy/[0.06] mb-10">
         <div className="flex items-center justify-between mb-4">
           <div className="text-[11px] uppercase tracking-[0.12em] font-bold text-ink-mid">
             Contributors · {contributors.length}
@@ -64,14 +64,14 @@ export function ContributorsSection({
           <button
             type="button"
             onClick={() => setModalOpen(true)}
-            className="text-[11px] uppercase tracking-[0.08em] font-bold text-sky hover:text-navy transition-colors"
+            className="text-[11px] uppercase tracking-[0.08em] font-bold text-amber hover:text-navy transition-colors"
           >
             + Invite someone
           </button>
         </div>
 
         {contributors.length === 0 ? (
-          <div className="rounded-2xl border border-navy/[0.08] bg-[#f8fafc] px-6 py-8 text-center">
+          <div className="rounded-2xl border-2 border-dashed border-navy/15 bg-warm-surface px-6 py-8 text-center">
             <p className="text-sm text-ink-mid">
               No contributors yet. Invite grandparents, godparents, or family
               to add memories alongside you.
@@ -107,7 +107,7 @@ export function ContributorsSection({
                       {c.status.toLowerCase()}
                     </span>
                     {c.requiresApproval && (
-                      <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-sky bg-sky-tint px-2 py-0.5 rounded">
+                      <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-amber bg-amber-tint px-2 py-0.5 rounded">
                         👁 Review
                       </span>
                     )}

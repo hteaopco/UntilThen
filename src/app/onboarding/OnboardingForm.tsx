@@ -63,7 +63,7 @@ export function OnboardingForm() {
   }
 
   return (
-    <main className="min-h-screen bg-white flex flex-col items-center justify-center px-6 py-12">
+    <main className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 py-12">
       <div className="mb-10">
         <LogoSvg variant="dark" width={140} height={28} />
       </div>
@@ -87,7 +87,7 @@ export function OnboardingForm() {
             autoComplete="given-name"
             autoFocus
             disabled={loading}
-            className="w-full px-4 py-[13px] text-[15px] text-navy bg-white border-[1.5px] border-navy/[0.12] rounded-lg outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 disabled:opacity-50"
+            className="w-full px-4 py-[13px] text-[15px] text-navy bg-white border-[1.5px] border-navy/[0.12] rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 disabled:opacity-50"
           />
           <input
             type="text"
@@ -96,7 +96,7 @@ export function OnboardingForm() {
             placeholder="Last name"
             autoComplete="family-name"
             disabled={loading}
-            className="w-full px-4 py-[13px] text-[15px] text-navy bg-white border-[1.5px] border-navy/[0.12] rounded-lg outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 disabled:opacity-50"
+            className="w-full px-4 py-[13px] text-[15px] text-navy bg-white border-[1.5px] border-navy/[0.12] rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 disabled:opacity-50"
           />
         </div>
 
@@ -109,7 +109,7 @@ export function OnboardingForm() {
             onChange={(e) => setChildFirstName(e.target.value)}
             placeholder="First name"
             disabled={loading}
-            className="w-full px-4 py-[13px] text-[15px] text-navy bg-white border-[1.5px] border-navy/[0.12] rounded-lg outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 disabled:opacity-50"
+            className="w-full px-4 py-[13px] text-[15px] text-navy bg-white border-[1.5px] border-navy/[0.12] rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 disabled:opacity-50"
           />
           <input
             type="text"
@@ -117,7 +117,7 @@ export function OnboardingForm() {
             onChange={(e) => setChildLastName(e.target.value)}
             placeholder="Last name"
             disabled={loading}
-            className="w-full px-4 py-[13px] text-[15px] text-navy bg-white border-[1.5px] border-navy/[0.12] rounded-lg outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 disabled:opacity-50"
+            className="w-full px-4 py-[13px] text-[15px] text-navy bg-white border-[1.5px] border-navy/[0.12] rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 disabled:opacity-50"
           />
         </div>
 
@@ -129,7 +129,7 @@ export function OnboardingForm() {
           onChange={(e) => setChildDateOfBirth(e.target.value)}
           max={new Date().toISOString().split("T")[0]}
           disabled={loading}
-          className="w-full px-4 py-[13px] text-[15px] text-navy bg-white border-[1.5px] border-navy/[0.12] rounded-lg outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 disabled:opacity-50 mb-6"
+          className="w-full px-4 py-[13px] text-[15px] text-navy bg-white border-[1.5px] border-navy/[0.12] rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 disabled:opacity-50 mb-6"
         />
 
         <button

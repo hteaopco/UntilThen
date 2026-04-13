@@ -70,7 +70,7 @@ export function LockedVaultView({
 
   return (
     <section className="mx-auto max-w-[640px] px-6 pt-6 pb-20 text-center">
-      <p className="text-[11px] uppercase tracking-[0.16em] font-bold text-sky mb-2">
+      <p className="text-[11px] uppercase tracking-[0.16em] font-bold text-amber mb-2">
         {childFirstName.toUpperCase()}&rsquo;S VAULT
       </p>
       <h1 className="text-[40px] lg:text-[52px] font-extrabold text-navy tracking-[-1px] leading-[1.05] mb-2">

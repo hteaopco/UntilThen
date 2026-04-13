@@ -47,14 +47,14 @@ export function VaultHero({
   }, [revealDate]);
 
   return (
-    <div className="relative rounded-3xl border border-navy/[0.06] px-6 py-10 lg:px-12 lg:py-14 overflow-hidden bg-gradient-to-br from-[#f2f6fb] via-white to-[#fdf6e8]">
+    <div className="relative rounded-3xl border border-navy/[0.06] px-6 py-10 lg:px-12 lg:py-14 overflow-hidden bg-gradient-to-br from-[#fdf3e9] via-[#fdf8f2] to-[#fdf6e3]">
       <div className="relative grid gap-10 lg:gap-14 lg:grid-cols-[auto,1fr] items-center">
         <div className="flex justify-center">
           <VaultDoor state="idle" />
         </div>
 
         <div className="text-center lg:text-left">
-          <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-sky mb-3">
+          <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
             {childFirstName}&rsquo;s vault
           </p>
           <h1 className="text-[34px] lg:text-[44px] font-extrabold text-navy leading-[1.05] tracking-[-0.8px] mb-5">
@@ -85,7 +85,7 @@ export function VaultHero({
               <button
                 type="button"
                 onClick={() => setEditing(true)}
-                className="mt-3 text-sm font-medium text-sky hover:text-navy transition-colors underline underline-offset-4"
+                className="mt-3 text-sm font-medium text-amber hover:text-navy transition-colors underline underline-offset-4"
               >
                 Change reveal date
               </button>
@@ -192,7 +192,7 @@ function RevealDateForm({
           min={minDate}
           onChange={(e) => setValue(e.target.value)}
           disabled={saving}
-          className="w-full px-4 py-2.5 border border-navy/15 rounded-lg text-sm text-navy bg-white outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 disabled:opacity-50"
+          className="w-full px-4 py-2.5 border border-navy/15 rounded-lg text-sm text-navy bg-white outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 disabled:opacity-50"
         />
       </div>
       <div className="flex items-center gap-2 sm:self-end">

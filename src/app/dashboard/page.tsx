@@ -145,8 +145,8 @@ export default async function DashboardPage() {
     collections.reduce((acc, c) => acc + c.entryCount, 0);
 
   return (
-    <main className="min-h-screen bg-white">
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-navy/[0.06]">
+    <main className="min-h-screen bg-cream">
+      <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
         <div className="mx-auto max-w-[980px] px-6 lg:px-10 py-4 flex items-center justify-between">
           <Link href="/dashboard" className="flex items-center" aria-label="Your vault">
             <LogoSvg variant="dark" width={130} height={26} />
@@ -203,7 +203,7 @@ export default async function DashboardPage() {
 
 function DbMissing() {
   return (
-    <main className="min-h-screen bg-white flex items-center justify-center px-6">
+    <main className="min-h-screen bg-cream flex items-center justify-center px-6">
       <div className="max-w-md text-center">
         <h1 className="text-2xl font-extrabold text-navy mb-2 tracking-[-0.5px]">
           Database not reachable

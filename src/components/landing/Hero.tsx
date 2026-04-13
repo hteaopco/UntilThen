@@ -36,7 +36,7 @@ function LetterCard({
           "0 4px 24px rgba(15,31,61,0.08), 0 1px 4px rgba(15,31,61,0.04)",
       }}
     >
-      <div className="text-[10px] uppercase tracking-[0.1em] text-sky font-bold mb-1.5">
+      <div className="text-[10px] uppercase tracking-[0.1em] text-amber font-bold mb-1.5">
         {to}
       </div>
       <h3 className="text-sm font-bold text-navy leading-[1.3] mb-1.5">
@@ -53,10 +53,10 @@ function LetterCard({
 
 export function Hero() {
   return (
-    <section id="top" className="bg-white overflow-hidden">
+    <section id="top" className="bg-cream overflow-hidden">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-[120px] pb-20 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center lg:min-h-[100vh]">
         <div className="relative z-[2]">
-          <div className="hero-tag inline-flex items-center gap-2 text-xs font-bold tracking-[0.12em] uppercase text-sky bg-sky-tint px-[14px] py-1.5 rounded-md mb-6">
+          <div className="hero-tag inline-flex items-center gap-2 text-xs font-bold tracking-[0.12em] uppercase text-amber bg-amber-tint px-[14px] py-1.5 rounded-md mb-6">
             <span aria-hidden="true">✦</span>
             Now taking early access
           </div>
@@ -65,7 +65,7 @@ export function Hero() {
             Write to who
             <br />
             they&rsquo;ll{" "}
-            <span className="font-light italic text-sky">become.</span>
+            <span className="font-light italic text-amber">become.</span>
           </h1>
 
           <p className="hero-sub text-[17px] font-normal leading-[1.7] text-ink-mid max-w-[440px] mb-10">
@@ -104,7 +104,7 @@ export function Hero() {
             left={0}
             zIndex={2}
             floatClass="animate-float2"
-            bg="bg-sky-tint"
+            bg="bg-amber-tint"
             to="For when you fall in love"
             title="A voice note from Dad"
             preview="🎙 2:34 · recorded on a rainy Sunday"

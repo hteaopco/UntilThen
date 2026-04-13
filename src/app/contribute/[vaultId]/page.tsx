@@ -64,8 +64,8 @@ export default async function ContributePage({
   });
 
   return (
-    <main className="min-h-screen bg-white">
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-navy/[0.06]">
+    <main className="min-h-screen bg-cream">
+      <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
         <div className="mx-auto max-w-[720px] px-6 lg:px-10 py-4 flex items-center justify-between">
           <Link href="/" aria-label="untilThen home" className="flex items-center">
             <LogoSvg variant="dark" width={130} height={26} />
@@ -75,7 +75,7 @@ export default async function ContributePage({
       </header>
 
       <section className="mx-auto max-w-[720px] px-6 lg:px-10 pt-10 lg:pt-14 pb-10">
-        <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-sky mb-3">
+        <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
           Contributing to
         </p>
         <h1 className="text-[32px] lg:text-[40px] font-extrabold text-navy leading-[1.05] tracking-[-0.8px] mb-2">
@@ -121,7 +121,7 @@ export default async function ContributePage({
                   className="rounded-2xl border border-navy/[0.08] bg-white px-5 py-4 flex items-start justify-between gap-4"
                 >
                   <div className="min-w-0">
-                    <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-sky mb-1">
+                    <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-amber mb-1">
                       {e.type}
                     </div>
                     <div className="text-[15px] font-semibold text-navy truncate">

@@ -227,7 +227,7 @@ function Field({
         required={required}
         onChange={(e) => onChange(e.target.value)}
         autoFocus={autoFocus}
-        className="w-full px-3 py-2.5 text-sm text-navy bg-white border border-navy/15 rounded-lg outline-none focus:border-sky focus:ring-2 focus:ring-sky/20"
+        className="w-full px-3 py-2.5 text-sm text-navy bg-white border border-navy/15 rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
       />
     </div>
   );

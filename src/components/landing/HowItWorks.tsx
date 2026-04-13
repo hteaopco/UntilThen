@@ -112,9 +112,9 @@ function ConfettiDots() {
     opacity: number;
   }> = [
     { top: -9, left: 38, size: 3, color: "#c9a84c", opacity: 0.78 },
-    { top: 22, left: 62, size: 2, color: "#4a9edd", opacity: 0.58 },
+    { top: 22, left: 62, size: 2, color: "#c47a3a", opacity: 0.58 },
     { top: 34, left: -12, size: 3, color: "#c9a84c", opacity: 0.55 },
-    { top: 49, left: 30, size: 2, color: "#4a9edd", opacity: 0.5 },
+    { top: 49, left: 30, size: 2, color: "#c47a3a", opacity: 0.5 },
   ];
   return (
     <div aria-hidden="true" className="absolute -inset-5 pointer-events-none">
@@ -186,8 +186,8 @@ function Step({
     <div
       className={`group relative overflow-hidden rounded-2xl border ${
         borderStrong ? "border-navy/[0.1]" : "border-navy/[0.08]"
-      } ${bg} ${hoverBg} hover:border-sky/20 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,31,61,0.08)] transition-all px-8 pt-7 pb-8 ${
-        extraShadow ? "shadow-[0_2px_18px_rgba(74,158,221,0.06)]" : ""
+      } ${bg} ${hoverBg} hover:border-amber/20 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(15,31,61,0.08)] transition-all px-8 pt-7 pb-8 ${
+        extraShadow ? "shadow-[0_2px_18px_rgba(196,122,58,0.06)]" : ""
       }`}
     >
       {overlay}
@@ -213,15 +213,15 @@ function Step({
 
 export function HowItWorks() {
   return (
-    <section id="how" className="bg-white">
+    <section id="how" className="bg-cream">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-16 lg:py-24">
-        <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-sky mb-3.5">
+        <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-3.5">
           How it works
         </p>
         <h2 className="text-[clamp(26px,3.5vw,46px)] font-extrabold tracking-[-1.5px] leading-[1.08] text-navy mb-16 max-w-[560px]">
           It&rsquo;s Simple. Capture
           <br />
-          <span className="font-light italic text-sky">emotions</span> as they
+          <span className="font-light italic text-amber">emotions</span> as they
           happen.
         </h2>
 

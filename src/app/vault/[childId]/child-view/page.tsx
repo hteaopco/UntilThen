@@ -69,7 +69,7 @@ export default async function ChildViewPage({
   }));
 
   return (
-    <main className="min-h-screen bg-[#f8fdf9]">
+    <main className="min-h-screen bg-[#f5f7f0]">
       <header className="px-6 lg:px-10 py-5 flex items-center justify-between max-w-[720px] mx-auto">
         <Link
           href="/dashboard"

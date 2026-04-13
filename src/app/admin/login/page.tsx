@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
           placeholder="Password"
           required
           autoFocus
-          className="w-full min-h-[44px] px-4 rounded-lg border border-navy/15 text-navy bg-white placeholder-ink-light focus:outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 text-sm mb-3"
+          className="w-full min-h-[44px] px-4 rounded-lg border border-navy/15 text-navy bg-white placeholder-ink-light focus:outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 text-sm mb-3"
         />
         <button
           type="submit"

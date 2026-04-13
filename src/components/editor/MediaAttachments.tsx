@@ -250,7 +250,7 @@ export function MediaAttachments({
             >
               <AttachmentThumb att={att} />
               <div className="flex-1 min-w-0">
-                <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-sky">
+                <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-amber">
                   {att.kind}
                 </div>
                 <div className="text-sm text-navy truncate">{att.name}</div>
@@ -300,7 +300,7 @@ function AttachmentThumb({ att }: { att: Attachment }) {
     );
   }
   return (
-    <div className="w-12 h-12 rounded-lg bg-sky-tint flex items-center justify-center text-lg">
+    <div className="w-12 h-12 rounded-lg bg-amber-tint flex items-center justify-center text-lg">
       🎙
     </div>
   );
@@ -466,7 +466,7 @@ function VoiceRecorder({
           Up to 5 minutes. Your mic indicator will turn on while recording.
         </p>
 
-        <div className="rounded-xl bg-[#f8fafc] px-5 py-8 text-center mb-5">
+        <div className="rounded-xl bg-warm-surface px-5 py-8 text-center mb-5">
           <div className="text-4xl font-extrabold text-navy tabular-nums tracking-[-0.5px]">
             {formatDuration(duration)}
           </div>

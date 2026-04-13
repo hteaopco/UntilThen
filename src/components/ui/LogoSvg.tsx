@@ -40,7 +40,7 @@ export function LogoSvg({
         <tspan fill={untilFill} fillOpacity={untilOpacity}>
           until
         </tspan>
-        <tspan fill="#4a9edd">Then</tspan>
+        <tspan fill="#c47a3a">Then</tspan>
       </text>
       {/* Cover the native i-dot with the surface colour */}
       <rect x="119" y="0" width="16" height="11" fill={rectFill} />

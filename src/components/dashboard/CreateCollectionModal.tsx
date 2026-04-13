@@ -106,7 +106,7 @@ export function CreateCollectionModal({
                   }}
                   className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center text-xl transition-all ${
                     !customEmoji && emoji === e
-                      ? "border-navy bg-sky-tint"
+                      ? "border-navy bg-amber-tint"
                       : "border-navy/10 hover:border-navy/30"
                   }`}
                   aria-label={`Use ${e}`}
@@ -120,7 +120,7 @@ export function CreateCollectionModal({
                 onChange={(e) => setCustomEmoji(e.target.value)}
                 placeholder="or type"
                 maxLength={8}
-                className="w-24 px-3 py-2 border border-navy/15 rounded-lg text-sm text-navy outline-none focus:border-sky focus:ring-2 focus:ring-sky/20"
+                className="w-24 px-3 py-2 border border-navy/15 rounded-lg text-sm text-navy outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
               />
             </div>
           </div>
@@ -135,7 +135,7 @@ export function CreateCollectionModal({
               placeholder="Early Years Journal"
               disabled={saving}
               required
-              className="w-full px-4 py-2.5 text-sm text-navy bg-white border border-navy/15 rounded-lg outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 disabled:opacity-50"
+              className="w-full px-4 py-2.5 text-sm text-navy bg-white border border-navy/15 rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 disabled:opacity-50"
             />
           </div>
 
@@ -147,7 +147,7 @@ export function CreateCollectionModal({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Random notes from the early years"
               disabled={saving}
-              className="w-full px-4 py-2.5 text-sm text-navy bg-white border border-navy/15 rounded-lg outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 disabled:opacity-50"
+              className="w-full px-4 py-2.5 text-sm text-navy bg-white border border-navy/15 rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 disabled:opacity-50"
             />
           </div>
 
@@ -194,7 +194,7 @@ export function CreateCollectionModal({
                   min={new Date(Date.now() + 24 * 60 * 60 * 1000)
                     .toISOString()
                     .split("T")[0]}
-                  className="ml-6 px-3 py-2 border border-navy/15 rounded-lg text-sm text-navy outline-none focus:border-sky focus:ring-2 focus:ring-sky/20"
+                  className="ml-6 px-3 py-2 border border-navy/15 rounded-lg text-sm text-navy outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
                 />
               )}
             </div>

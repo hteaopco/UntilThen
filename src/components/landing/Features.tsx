@@ -41,7 +41,7 @@ function MockEditor() {
         two weeks old. I want to remember this exact weight.
         <span
           aria-hidden="true"
-          className="inline-block w-[2px] h-[14px] bg-sky align-middle ml-px animate-blink"
+          className="inline-block w-[2px] h-[14px] bg-amber align-middle ml-px animate-blink"
         />
       </div>
       <div className="flex items-center justify-between mt-3 pt-3 border-t border-navy/[0.08]">
@@ -71,8 +71,8 @@ function FeatureBadge({
     <span
       className={`inline-block text-[10px] font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-md mb-3.5 ${
         dark
-          ? "bg-sky/20 text-sky-light"
-          : "bg-sky-tint text-[#1e6aa8]"
+          ? "bg-amber/20 text-amber-light"
+          : "bg-amber-tint text-[#1e6aa8]"
       }`}
     >
       {children}
@@ -95,8 +95,8 @@ function SimpleFeature({
     <div
       className={`rounded-2xl border transition-all ${
         primary
-          ? "bg-[#f5f8fc] border-sky/20 p-10 lg:p-11 hover:border-sky/35 hover:shadow-[0_10px_30px_rgba(74,158,221,0.12)] shadow-[0_2px_18px_rgba(74,158,221,0.06)]"
-          : "bg-white border-navy/[0.08] p-9 hover:border-sky/25 hover:shadow-[0_8px_24px_rgba(15,31,61,0.06)]"
+          ? "bg-[#f5f8fc] border-amber/20 p-10 lg:p-11 hover:border-amber/35 hover:shadow-[0_10px_30px_rgba(196,122,58,0.12)] shadow-[0_2px_18px_rgba(196,122,58,0.06)]"
+          : "bg-white border-navy/[0.08] p-9 hover:border-amber/25 hover:shadow-[0_8px_24px_rgba(15,31,61,0.06)]"
       }`}
     >
       <FeatureBadge>{badge}</FeatureBadge>
@@ -114,16 +114,16 @@ function SimpleFeature({
 
 export function Features() {
   return (
-    <section id="features" className="bg-white">
+    <section id="features" className="bg-cream">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-16 lg:py-24">
-        <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-sky mb-3.5">
+        <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-3.5">
           Features
         </p>
         <h2 className="text-[clamp(30px,3.5vw,46px)] font-extrabold tracking-[-1.5px] leading-[1.08] text-navy mb-16 max-w-[520px]">
           Everything you need to
           <br />
           write{" "}
-          <span className="font-light italic text-sky tracking-[0.04em]">
+          <span className="font-light italic text-amber tracking-[0.04em]">
             across time.
           </span>
         </h2>

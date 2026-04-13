@@ -54,7 +54,7 @@ function CollectionCard({
 }) {
   const revealDate = collection.revealDate ?? vaultRevealDate;
   return (
-    <li className="relative rounded-2xl border border-navy/[0.08] bg-white px-6 py-5 hover:border-sky/25 hover:shadow-[0_8px_24px_rgba(15,31,61,0.06)] transition-all">
+    <li className="relative rounded-2xl border border-navy/[0.08] bg-white px-6 py-5 hover:border-amber/25 hover:shadow-[0_8px_24px_rgba(15,31,61,0.06)] transition-all">
       <div className="flex items-start gap-4">
         <div
           aria-hidden="true"
@@ -92,7 +92,7 @@ function CollectionCard({
           <Link
             href={`/dashboard/new?collectionId=${collection.id}`}
             prefetch={false}
-            className="text-[11px] uppercase tracking-[0.08em] font-bold text-sky hover:text-navy transition-colors whitespace-nowrap"
+            className="text-[11px] uppercase tracking-[0.08em] font-bold text-amber hover:text-navy transition-colors whitespace-nowrap"
           >
             + Add entry
           </Link>

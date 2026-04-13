@@ -131,7 +131,7 @@ export function UsersClient({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search by name, email, phone, or child…"
-            className="w-full px-4 py-2.5 pl-10 text-sm border border-navy/15 rounded-lg text-navy bg-white placeholder-ink-light focus:outline-none focus:border-sky focus:ring-2 focus:ring-sky/20"
+            className="w-full px-4 py-2.5 pl-10 text-sm border border-navy/15 rounded-lg text-navy bg-white placeholder-ink-light focus:outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
           />
           <svg
             aria-hidden="true"
@@ -382,7 +382,7 @@ function EditUserModal({
 
         <div className="px-6 py-5 space-y-5">
           <div>
-            <h3 className="text-[11px] uppercase tracking-[0.12em] font-bold text-sky mb-3">
+            <h3 className="text-[11px] uppercase tracking-[0.12em] font-bold text-amber mb-3">
               Parent
             </h3>
             <div className="grid grid-cols-2 gap-3">
@@ -410,7 +410,7 @@ function EditUserModal({
 
           {firstChild ? (
             <div>
-              <h3 className="text-[11px] uppercase tracking-[0.12em] font-bold text-sky mb-3">
+              <h3 className="text-[11px] uppercase tracking-[0.12em] font-bold text-amber mb-3">
                 Child
               </h3>
               <div className="grid grid-cols-2 gap-3 mb-3">
@@ -506,7 +506,7 @@ function LabeledInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         autoComplete={autoComplete}
-        className="w-full px-3 py-2.5 text-sm text-navy bg-white border border-navy/15 rounded-lg outline-none focus:border-sky focus:ring-2 focus:ring-sky/20"
+        className="w-full px-3 py-2.5 text-sm text-navy bg-white border border-navy/15 rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
       />
       {hint && <p className="mt-1 text-xs italic text-ink-light">{hint}</p>}
     </div>

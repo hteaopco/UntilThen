@@ -9,7 +9,7 @@ export const metadata = {
 
 export default function SignInPage() {
   return (
-    <main className="min-h-screen bg-white flex flex-col items-center justify-center px-6 py-12">
+    <main className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 py-12">
       <Link
         href="/"
         aria-label="untilThen home"

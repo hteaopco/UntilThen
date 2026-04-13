@@ -205,8 +205,8 @@ export function NewEntryForm({
   const { wordCount, readingTime } = getReadingStats(body);
 
   return (
-    <main className="min-h-screen bg-[#fdfbf5]">
-      <header className="sticky top-0 z-40 bg-[#fdfbf5]/90 backdrop-blur-md border-b border-navy/[0.06]">
+    <main className="min-h-screen bg-cream">
+      <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
         <div className="mx-auto max-w-[720px] px-6 py-4 flex items-center justify-between gap-4">
           <Link
             href={
@@ -225,7 +225,7 @@ export function NewEntryForm({
       </header>
 
       <div className="mx-auto max-w-[720px] px-6 pt-8 pb-40">
-        <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-sky mb-4">
+        <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-4">
           Writing to {childFirstName}
           {selectedCollection && (
             <>
@@ -292,7 +292,7 @@ export function NewEntryForm({
                   setUseCustomDate(false);
                 }}
                 disabled={Boolean(lockedCollectionId)}
-                className="w-full min-h-[44px] px-3 rounded-lg border border-navy/15 text-sm text-navy bg-white focus:outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="w-full min-h-[44px] px-3 rounded-lg border border-navy/15 text-sm text-navy bg-white focus:outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <option value="">None — standalone entry</option>
                 {collections.map((c) => (
@@ -360,7 +360,7 @@ export function NewEntryForm({
                     min={new Date(Date.now() + 24 * 60 * 60 * 1000)
                       .toISOString()
                       .split("T")[0]}
-                    className="ml-6 px-3 py-2 border border-navy/15 rounded-lg text-sm text-navy bg-white outline-none focus:border-sky focus:ring-2 focus:ring-sky/20"
+                    className="ml-6 px-3 py-2 border border-navy/15 rounded-lg text-sm text-navy bg-white outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
                   />
                 )}
               </div>
@@ -376,7 +376,7 @@ export function NewEntryForm({
       </div>
 
       {/* Sticky footer: proof-read is the required step before sealing */}
-      <footer className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-navy/[0.08]">
+      <footer className="fixed bottom-0 inset-x-0 z-40 bg-cream/95 backdrop-blur border-t border-navy/[0.08]">
         <div className="mx-auto max-w-[720px] px-6 py-3 flex items-center justify-between gap-4">
           <div className="text-xs text-ink-light">
             <SaveBadge state={saveState} />
@@ -389,7 +389,7 @@ export function NewEntryForm({
             type="button"
             onClick={handleProofRead}
             disabled={!hasContent() || navigating}
-            className="bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors disabled:opacity-50"
+            className="bg-white border-[1.5px] border-navy text-navy px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy hover:text-white transition-colors disabled:opacity-50"
           >
             {navigating ? "Opening…" : "Proof Read →"}
           </button>
@@ -401,7 +401,28 @@ export function NewEntryForm({
 
 function SaveBadge({ state }: { state: SaveState }) {
   if (state === "saving") return <span className="italic">Saving…</span>;
-  if (state === "saved") return <span>Auto-saved</span>;
+  if (state === "saved")
+    return (
+      <span className="inline-flex items-center gap-1.5 text-sage font-medium">
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 14 14"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            d="M3 7.5 L6 10 L11 4"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+          Auto-saved
+      </span>
+    );
   if (state === "error")
     return <span className="text-red-600">⚠ Save failed</span>;
   return <span className="text-ink-light/70">Not saved yet</span>;

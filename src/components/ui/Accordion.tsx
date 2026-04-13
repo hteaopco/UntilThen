@@ -26,7 +26,7 @@ export function Accordion({ sections }: Props) {
     <div>
       {sections.map((section, si) => (
         <div key={section.label} className={si === 0 ? "mt-10" : "mt-14"}>
-          <h2 className="text-[11px] font-bold tracking-[0.16em] uppercase text-sky mb-2">
+          <h2 className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-2">
             {section.label}
           </h2>
           <div>
@@ -97,7 +97,7 @@ function Chevron({ open }: { open: boolean }) {
     >
       <path
         d="M5 7.5L10 12.5L15 7.5"
-        stroke="#4a9edd"
+        stroke="#c47a3a"
         strokeWidth="1.75"
         strokeLinecap="round"
         strokeLinejoin="round"

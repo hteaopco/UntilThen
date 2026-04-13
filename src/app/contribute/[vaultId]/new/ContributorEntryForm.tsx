@@ -53,8 +53,8 @@ export function ContributorEntryForm({
   const { wordCount, readingTime } = getReadingStats(body);
 
   return (
-    <main className="min-h-screen bg-[#fdfbf5]">
-      <header className="sticky top-0 z-40 bg-[#fdfbf5]/90 backdrop-blur-md border-b border-navy/[0.06]">
+    <main className="min-h-screen bg-cream">
+      <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
         <div className="mx-auto max-w-[720px] px-6 py-4 flex items-center justify-between gap-4">
           <Link
             href={`/contribute/${vaultId}`}
@@ -76,7 +76,7 @@ export function ContributorEntryForm({
       </header>
 
       <div className="mx-auto max-w-[680px] px-6 pt-10 pb-40">
-        <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-sky mb-5">
+        <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-5">
           Writing to {childFirstName}
         </p>
 

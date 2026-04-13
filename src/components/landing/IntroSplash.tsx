@@ -110,10 +110,10 @@ export function IntroSplash() {
         {/* Zero-width space anchors the baseline while text is still empty */}
         <span aria-hidden="true">&#8203;</span>
         <span className="text-navy">{untilText}</span>
-        <span className="text-sky">{thenMain}</span>
+        <span className="text-amber">{thenMain}</span>
         {endsWithComma && (
           <span
-            className="text-sky"
+            className="text-amber"
             style={{
               fontFamily: "'Times New Roman', Times, serif",
               fontWeight: 700,

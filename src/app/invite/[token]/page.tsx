@@ -58,7 +58,7 @@ export default async function InvitePage({
 
   return (
     <Shell>
-      <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-sky mb-3">
+      <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
         You&rsquo;ve been invited
       </p>
       <h1 className="text-[32px] lg:text-[40px] font-extrabold text-navy tracking-[-0.8px] leading-[1.1] mb-4">
@@ -85,7 +85,7 @@ export default async function InvitePage({
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <main className="min-h-screen bg-white flex items-center justify-center px-6 py-16">
+    <main className="min-h-screen bg-cream flex items-center justify-center px-6 py-16">
       <div className="w-full max-w-[520px]">
         <Link
           href="/"

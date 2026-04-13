@@ -39,7 +39,7 @@ export function TiptapEditor({
     editorProps: {
       attributes: {
         class:
-          "tiptap-editor min-h-[320px] text-navy text-[17px] leading-[1.75] outline-none",
+          "tiptap-editor min-h-[320px] outline-none",
       },
     },
     onUpdate: ({ editor }) => {
@@ -144,10 +144,10 @@ function TbButton({
       onClick={onClick}
       aria-label={ariaLabel}
       aria-pressed={active}
-      className={`w-8 h-8 rounded-md flex items-center justify-center text-sm transition-colors ${
+      className={`w-8 h-8 rounded flex items-center justify-center text-sm transition-colors ${
         active
-          ? "bg-navy/10 text-navy"
-          : "text-ink-mid hover:bg-navy/5 hover:text-navy"
+          ? "bg-[#f0ece6] text-navy"
+          : "text-ink-mid hover:bg-[#f0ece6] hover:text-navy"
       }`}
     >
       {children}

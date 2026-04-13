@@ -11,6 +11,13 @@ html {
   scroll-padding-top: 5rem;
 }
 
+/* Warm accent focus ring for keyboard-only users. */
+*:focus-visible {
+  outline: 2px solid #c47a3a;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -42,8 +49,10 @@ html {
 }
 
 @keyframes vaultIdle {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
+  0%   { transform: rotate(0deg); }
+  30%  { transform: rotate(-8deg); }
+  70%  { transform: rotate(8deg); }
+  100% { transform: rotate(0deg); }
 }
 
 @keyframes vaultSpin {
@@ -71,7 +80,7 @@ html {
    the transform-origin is relative to the group's own bounds (the
    dial's center), not the outer <svg>. */
 .animate-vaultIdle {
-  animation: vaultIdle 40s linear infinite;
+  animation: vaultIdle 8s ease-in-out infinite;
   transform-origin: center;
   transform-box: fill-box;
 }
@@ -96,6 +105,11 @@ html {
 
 /* Tiptap editor content — match the design system without
    fighting the default ProseMirror resets. */
+.tiptap-editor {
+  color: #2c2420;
+  font-size: 17px;
+  line-height: 1.9;
+}
 .tiptap-editor p { margin: 0 0 1em; }
 .tiptap-editor p:last-child { margin-bottom: 0; }
 .tiptap-editor blockquote {

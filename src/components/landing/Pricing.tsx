@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-// A handful of gold/sky/warm pieces fall continuously behind the gift
+// A handful of gold/amber/warm pieces fall continuously behind the gift
 // card content. Deterministic layout (no Math.random) so SSR and client
 // match.
 function ConfettiOverlay() {
@@ -12,7 +12,7 @@ function ConfettiOverlay() {
     size: number;
     shape: "circle" | "square";
   };
-  const colors = ["#c9a84c", "#e2c47a", "#4a9edd", "#7ab8e8", "#e07a4a"];
+  const colors = ["#c9a84c", "#e2c47a", "#c47a3a", "#e09a5a", "#e07a4a"];
   const pieces: Piece[] = Array.from({ length: 18 }).map((_, i) => ({
     left: `${(i * 13 + 5) % 100}%`,
     delay: `${((i * 0.73) % 5).toFixed(2)}s`,
@@ -89,10 +89,10 @@ function Plan({
     : undefined;
 
   const tagColor = featured
-    ? "text-sky-light"
+    ? "text-amber-light"
     : gift
       ? "text-gold"
-      : "text-sky";
+      : "text-amber";
 
   const nameColor = featured ? "text-white" : "text-navy";
   const priceColor = featured ? "text-white" : "text-navy";
@@ -102,7 +102,7 @@ function Plan({
       ? "text-ink-mid/90"
       : "text-ink-light";
   const priceNoteColor = featured
-    ? "text-sky-light"
+    ? "text-amber-light"
     : gift
       ? "text-gold"
       : "text-ink-light";
@@ -110,7 +110,7 @@ function Plan({
   const featureBulletColor = featured ? "text-gold-light" : "text-gold";
 
   const ctaClasses = featured
-    ? "bg-white text-navy hover:bg-sky-tint"
+    ? "bg-white text-navy hover:bg-amber-tint"
     : gift
       ? "bg-gold text-navy hover:bg-gold-light"
       : "bg-navy text-white hover:bg-navy-mid";
@@ -202,14 +202,14 @@ const GIFT_FEATURES = [
 
 export function Pricing() {
   return (
-    <section id="pricing" className="bg-white">
+    <section id="pricing" className="bg-cream">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-16 lg:py-24">
         <div className="mb-12">
-          <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-sky mb-2.5">
+          <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-2.5">
             Pricing
           </p>
           <h2 className="text-[clamp(28px,3.5vw,44px)] font-extrabold tracking-[-1.5px] text-navy leading-[1.08]">
-            A <span className="font-light italic text-sky">lifetime</span> of
+            A <span className="font-light italic text-amber">lifetime</span> of
             moments,
             <br />
             less than a coffee a month.

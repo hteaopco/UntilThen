@@ -19,17 +19,41 @@ function formatShort(iso: string): string {
   });
 }
 
+function PencilIcon() {
+  return (
+    <svg
+      width="11"
+      height="11"
+      viewBox="0 0 16 16"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path
+        d="M11.5 2.5 L13.5 4.5 L5 13 L2.5 13.5 L3 11 L11.5 2.5 Z"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 function TypePill({ type }: { type: EntryRow["type"] }) {
-  const labels: Record<EntryRow["type"], { label: string; icon: string }> = {
-    TEXT: { label: "Moment", icon: "✍️" },
-    PHOTO: { label: "Photo", icon: "📷" },
-    VOICE: { label: "Voice", icon: "🎙" },
-    VIDEO: { label: "Video", icon: "🎥" },
+  const labels: Record<
+    EntryRow["type"],
+    { label: string; icon: React.ReactNode }
+  > = {
+    TEXT: { label: "Moment", icon: <PencilIcon /> },
+    PHOTO: { label: "Photo", icon: <span aria-hidden="true">📷</span> },
+    VOICE: { label: "Voice", icon: <span aria-hidden="true">🎙</span> },
+    VIDEO: { label: "Video", icon: <span aria-hidden="true">🎥</span> },
   };
   const { label, icon } = labels[type];
   return (
-    <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] font-bold text-sky bg-sky-tint px-2 py-0.5 rounded">
-      <span aria-hidden="true">{icon}</span>
+    <span className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] font-bold text-amber bg-amber-tint px-2 py-0.5 rounded">
+      {icon}
       {label}
     </span>
   );
@@ -54,7 +78,7 @@ export function EntryList({
 }) {
   if (entries.length === 0) {
     return (
-      <div className="rounded-2xl border border-navy/[0.08] bg-[#f8fafc] px-8 py-14 text-center">
+      <div className="rounded-2xl border border-navy/[0.08] bg-warm-surface px-8 py-14 text-center">
         <div aria-hidden="true" className="text-4xl mb-3">
           ✉️
         </div>
@@ -86,7 +110,7 @@ export function EntryList({
         return (
           <li
             key={e.id}
-            className="rounded-2xl border border-navy/[0.08] bg-white px-6 py-5 hover:border-sky/25 hover:shadow-[0_8px_24px_rgba(15,31,61,0.06)] transition-all"
+            className="rounded-2xl border border-navy/[0.08] bg-white px-6 py-5 hover:border-amber/25 hover:shadow-[0_8px_24px_rgba(15,31,61,0.06)] transition-all"
           >
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div className="min-w-0 flex-1">
@@ -118,11 +142,11 @@ export function EntryList({
                 </div>
               </div>
             </div>
-            <div className="mt-4 pt-3 border-t border-navy/[0.06] flex items-center gap-5 text-[11px] uppercase tracking-[0.06em] font-bold">
+            <div className="mt-4 pt-3 border-t border-navy/[0.06] flex items-center gap-2 text-[11px] uppercase tracking-[0.06em] font-bold">
               <Link
                 href={`/dashboard/entry/${e.id}/preview`}
                 prefetch={false}
-                className="text-ink-mid hover:text-navy transition-colors"
+                className="inline-flex items-center px-3 py-1.5 rounded-full border border-navy/15 text-ink-mid hover:border-navy hover:text-navy hover:bg-white transition-colors"
               >
                 View
               </Link>
@@ -130,7 +154,7 @@ export function EntryList({
                 <Link
                   href={`/dashboard/entry/${e.id}/edit`}
                   prefetch={false}
-                  className="text-ink-mid hover:text-navy transition-colors"
+                  className="inline-flex items-center px-3 py-1.5 rounded-full border border-navy/15 text-ink-mid hover:border-navy hover:text-navy hover:bg-white transition-colors"
                 >
                   Edit
                 </Link>

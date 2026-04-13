@@ -208,7 +208,7 @@ export function PreviewClient({
                         {c.coverEmoji ?? "📖"}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-[10px] uppercase tracking-[0.14em] font-bold text-sky mb-1">
+                        <div className="text-[10px] uppercase tracking-[0.14em] font-bold text-amber mb-1">
                           Journal · {c.entries.length.toLocaleString()} {c.entries.length === 1 ? "entry" : "entries"}
                         </div>
                         <h2 className="text-2xl lg:text-[28px] font-extrabold tracking-[-0.4px] leading-tight mb-2 text-navy">
@@ -219,7 +219,7 @@ export function PreviewClient({
                             &ldquo;{c.description}&rdquo;
                           </p>
                         )}
-                        <p className="mt-3 text-[13px] font-semibold text-sky">
+                        <p className="mt-3 text-[13px] font-semibold text-amber">
                           Open Journal →
                         </p>
                       </div>
@@ -290,7 +290,7 @@ function EntryCard({
         <span aria-hidden="true" className="text-base">
           {TYPE_LABELS[entry.type].icon}
         </span>
-        <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-sky">
+        <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-amber">
           {TYPE_LABELS[entry.type].label}
         </span>
         <span className="text-[11px] text-ink-light">
@@ -374,7 +374,7 @@ function CollectionReader({
                     <span aria-hidden="true" className="text-base">
                       {TYPE_LABELS[entry.type].icon}
                     </span>
-                    <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-sky">
+                    <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-amber">
                       {TYPE_LABELS[entry.type].label}
                     </span>
                     <span className="text-[11px] text-ink-light">

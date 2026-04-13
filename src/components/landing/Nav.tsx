@@ -4,7 +4,7 @@ import Link from "next/link";
 export function Nav() {
   return (
     <nav
-      className="fixed top-0 inset-x-0 z-50 bg-white/[0.96] backdrop-blur-[16px] border-b border-navy/[0.08]"
+      className="fixed top-0 inset-x-0 z-50 bg-cream/[0.96] backdrop-blur-[16px] border-b border-navy/[0.08]"
       style={{ WebkitBackdropFilter: "blur(16px)" }}
     >
       <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-5 flex items-center justify-between">

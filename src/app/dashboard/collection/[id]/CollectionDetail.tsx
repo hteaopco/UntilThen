@@ -168,8 +168,8 @@ export function CollectionDetail({
   }
 
   return (
-    <main className="min-h-screen bg-white">
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-navy/[0.06]">
+    <main className="min-h-screen bg-cream">
+      <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
         <div className="mx-auto max-w-[840px] px-6 lg:px-10 py-4 flex items-center justify-between">
           <Link
             href="/dashboard"
@@ -340,8 +340,8 @@ function SortableEntryRow({
       style={style}
       className={`rounded-2xl border bg-white px-5 py-4 flex items-start gap-4 transition-shadow ${
         isDragging
-          ? "border-sky shadow-[0_12px_32px_rgba(74,158,221,0.2)]"
-          : "border-navy/[0.08] hover:border-sky/25 hover:shadow-[0_6px_20px_rgba(15,31,61,0.06)]"
+          ? "border-amber shadow-[0_12px_32px_rgba(196,122,58,0.2)]"
+          : "border-navy/[0.08] hover:border-amber/25 hover:shadow-[0_6px_20px_rgba(15,31,61,0.06)]"
       }`}
     >
       <button
@@ -371,7 +371,7 @@ function SortableEntryRow({
           >
             {icon}
           </span>
-          <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-sky">
+          <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-amber">
             {label}
           </span>
           <span className="text-[11px] text-ink-light">

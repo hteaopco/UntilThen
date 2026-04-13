@@ -83,8 +83,8 @@ export default async function ProofReadPage({
     : [];
 
   return (
-    <main className="min-h-screen bg-[#fdfbf5]">
-      <header className="sticky top-0 z-40 bg-[#fdfbf5]/90 backdrop-blur-md border-b border-navy/[0.06]">
+    <main className="min-h-screen bg-cream">
+      <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
         <div className="mx-auto max-w-[720px] px-6 py-4 flex items-center justify-between gap-4">
           <Link
             href={`/dashboard/entry/${entry.id}/edit`}

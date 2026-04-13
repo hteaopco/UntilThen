@@ -156,7 +156,7 @@ export function WaitlistForm() {
         className={
           expanded
             ? ""
-            : "flex rounded-[10px] overflow-hidden border border-navy/[0.08] shadow-[0_4px_20px_rgba(15,31,61,0.12)] hover:shadow-[0_10px_32px_rgba(74,158,221,0.22)] focus-within:shadow-[0_10px_32px_rgba(74,158,221,0.28)] transition-shadow"
+            : "flex rounded-[10px] overflow-hidden border border-navy/[0.08] shadow-[0_4px_20px_rgba(15,31,61,0.12)] hover:shadow-[0_10px_32px_rgba(196,122,58,0.22)] focus-within:shadow-[0_10px_32px_rgba(196,122,58,0.28)] transition-shadow"
         }
       >
         <input
@@ -174,10 +174,10 @@ export function WaitlistForm() {
           disabled={status === "loading"}
           className={
             expanded
-              ? `w-full min-h-[44px] px-4 rounded-lg border text-sm text-navy bg-white placeholder-ink-light focus:outline-none focus:ring-2 focus:ring-sky/20 disabled:opacity-50 ${
+              ? `w-full min-h-[44px] px-4 rounded-lg border text-sm text-navy bg-white placeholder-ink-light focus:outline-none focus:ring-2 focus:ring-amber/20 disabled:opacity-50 ${
                   fieldErrors.email
                     ? "border-red-500 focus:border-red-500"
-                    : "border-navy/15 focus:border-sky"
+                    : "border-navy/15 focus:border-amber"
                 }`
               : "flex-1 px-5 py-[15px] text-sm font-normal bg-white text-navy placeholder-ink-light outline-none disabled:opacity-50"
           }
@@ -288,7 +288,7 @@ export function WaitlistForm() {
               value={hearAboutUs}
               onChange={(e) => setHearAboutUs(e.target.value)}
               disabled={status === "loading"}
-              className="w-full min-h-[44px] px-4 rounded-lg border border-navy/15 text-navy bg-white focus:outline-none focus:border-sky focus:ring-2 focus:ring-sky/20 text-sm disabled:opacity-50"
+              className="w-full min-h-[44px] px-4 rounded-lg border border-navy/15 text-navy bg-white focus:outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 text-sm disabled:opacity-50"
             >
               <option value="">Select one…</option>
               {HEAR_ABOUT_OPTIONS.map((o) => (
@@ -361,10 +361,10 @@ function Field({
         autoComplete={autoComplete}
         required={required}
         disabled={disabled}
-        className={`w-full min-h-[44px] px-4 rounded-lg border text-sm text-navy bg-white placeholder-ink-light focus:outline-none focus:ring-2 focus:ring-sky/20 disabled:opacity-50 ${
+        className={`w-full min-h-[44px] px-4 rounded-lg border text-sm text-navy bg-white placeholder-ink-light focus:outline-none focus:ring-2 focus:ring-amber/20 disabled:opacity-50 ${
           error
             ? "border-red-500 focus:border-red-500"
-            : "border-navy/15 focus:border-sky"
+            : "border-navy/15 focus:border-amber"
         }`}
       />
       {hint && !error && (
@@ -408,7 +408,7 @@ function FieldError({ children }: { children: React.ReactNode }) {
 function SuccessCard({ name, email }: { name: string; email: string }) {
   return (
     <div
-      className="mx-auto max-w-[520px] rounded-2xl bg-sky-tint px-8 py-10 text-center"
+      className="mx-auto max-w-[520px] rounded-2xl bg-amber-tint px-8 py-10 text-center"
       role="status"
     >
       <div className="text-4xl mb-4" aria-hidden="true">

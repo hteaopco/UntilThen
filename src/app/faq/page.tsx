@@ -122,10 +122,10 @@ export default function FAQPage() {
   return (
     <>
       <Nav />
-      <main className="min-h-screen bg-white pt-[120px] pb-20 px-6 lg:px-14">
+      <main className="min-h-screen bg-cream pt-[120px] pb-20 px-6 lg:px-14">
         <div className="mx-auto max-w-[720px]">
           {/* Header */}
-          <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-sky mb-3.5">
+          <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-3.5">
             FAQ
           </p>
           <h1 className="text-[clamp(32px,4.5vw,48px)] font-extrabold tracking-[-1.5px] text-navy leading-[1.08] mb-5">
@@ -137,7 +137,7 @@ export default function FAQPage() {
             Email us at{" "}
             <a
               href={`mailto:${SUPPORT_EMAIL}`}
-              className="text-sky hover:text-navy transition-colors font-medium"
+              className="text-amber hover:text-navy transition-colors font-medium"
             >
               {SUPPORT_EMAIL}
             </a>
