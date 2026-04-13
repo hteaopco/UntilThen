@@ -119,7 +119,10 @@ export async function POST(req: Request) {
       const { Resend } = await import("resend");
       const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
-        from: "untilThen <hello@untilthenapp.io>",
+        // TEMP: using Resend's shared sender until the untilthenapp.io
+        // domain is verified. Swap back to "hello@untilthenapp.io" once
+        // the domain is live in Resend.
+        from: "untilThen <onboarding@resend.dev>",
         to: email,
         subject: "You're on the list.",
         html: `
