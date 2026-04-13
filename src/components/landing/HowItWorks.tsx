@@ -48,7 +48,7 @@ function GiftIcon() {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.25"
+      strokeWidth="1.15"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
@@ -95,7 +95,7 @@ function HandwrittenUnderline() {
         strokeWidth="1.1"
         strokeLinecap="round"
         fill="none"
-        opacity="0.55"
+        opacity="0.4"
       />
     </svg>
   );
@@ -111,10 +111,10 @@ function ConfettiDots() {
     color: string;
     opacity: number;
   }> = [
-    { top: 2, left: 30, size: 3, color: "#c9a84c", opacity: 0.75 },
-    { top: 16, left: 56, size: 2, color: "#4a9edd", opacity: 0.6 },
-    { top: 40, left: -4, size: 3, color: "#c9a84c", opacity: 0.6 },
-    { top: 42, left: 50, size: 2, color: "#4a9edd", opacity: 0.55 },
+    { top: -9, left: 38, size: 3, color: "#c9a84c", opacity: 0.78 },
+    { top: 22, left: 62, size: 2, color: "#4a9edd", opacity: 0.58 },
+    { top: 34, left: -12, size: 3, color: "#c9a84c", opacity: 0.55 },
+    { top: 49, left: 30, size: 2, color: "#4a9edd", opacity: 0.5 },
   ];
   return (
     <div aria-hidden="true" className="absolute -inset-5 pointer-events-none">
@@ -165,6 +165,7 @@ type StepProps = {
   overlay?: ReactNode;
   extraShadow?: boolean;
   borderStrong?: boolean;
+  titleLeading?: string;
 };
 
 function Step({
@@ -179,6 +180,7 @@ function Step({
   overlay,
   extraShadow,
   borderStrong,
+  titleLeading = "leading-tight",
 }: StepProps) {
   return (
     <div
@@ -197,7 +199,9 @@ function Step({
         {iconExtra}
         <div className="relative">{icon}</div>
       </div>
-      <h3 className="relative text-[18px] font-bold text-navy tracking-[-0.3px] leading-tight">
+      <h3
+        className={`relative text-[18px] font-bold text-navy tracking-[-0.3px] ${titleLeading}`}
+      >
         {title}
       </h3>
       {/* Fixed-height slot so all cards share identical title -> body rhythm */}
@@ -241,13 +245,14 @@ export function HowItWorks() {
           />
           <Step
             label="Reveal"
-            bg="bg-[#f2f6fb]"
-            hoverBg="hover:bg-[#e6eef7]"
+            bg="bg-[#f5f8fc]"
+            hoverBg="hover:bg-[#e9f0f8]"
             icon={<GiftIcon />}
             iconExtra={<ConfettiDots />}
             overlay={<RevealBrightness />}
             extraShadow
             borderStrong
+            titleLeading="leading-[1.3]"
             title={"A moment they\u2019ll never forget"}
             body="On reveal day, your child opens a vault of letters from across their entire childhood — each one a gift from a past version of you."
           />
