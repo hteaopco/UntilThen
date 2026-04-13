@@ -1,11 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
 import { VaultDoor } from "@/components/dashboard/VaultDoor";
-
-type DoorState = "idle" | "unlocking" | "open";
 
 function daysUntil(date: Date): number {
   const ms = date.getTime() - Date.now();
@@ -35,7 +34,6 @@ export function VaultHero({
   entryCount: number;
 }) {
   const router = useRouter();
-  const [doorState, setDoorState] = useState<DoorState>("idle");
   const [editing, setEditing] = useState(revealDate === null);
   const [currentReveal, setCurrentReveal] = useState<string | null>(revealDate);
 
@@ -46,44 +44,11 @@ export function VaultHero({
     setCurrentReveal(revealDate);
   }, [revealDate]);
 
-  function preview() {
-    if (doorState !== "idle") return;
-    setDoorState("unlocking");
-    // After the dial finishes its spin, swing the door open.
-    const t1 = setTimeout(() => setDoorState("open"), 1200);
-    // Keep it open for a moment, then close.
-    const t2 = setTimeout(() => setDoorState("idle"), 4800);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }
-
   return (
     <div className="relative rounded-3xl border border-navy/[0.06] px-6 py-10 lg:px-12 lg:py-14 overflow-hidden bg-gradient-to-br from-[#f2f6fb] via-white to-[#fdf6e8]">
-      {/* Behind the door — peeks through when open */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 flex items-center justify-center lg:justify-start lg:pl-12 pointer-events-none"
-      >
-        <div
-          className={`transition-opacity duration-500 ${
-            doorState === "open" ? "opacity-100" : "opacity-0"
-          }`}
-        >
-          <div
-            className="w-[220px] h-[220px] rounded-full"
-            style={{
-              background:
-                "radial-gradient(circle, rgba(201,168,76,0.45) 0%, rgba(201,168,76,0.12) 45%, transparent 70%)",
-            }}
-          />
-        </div>
-      </div>
-
       <div className="relative grid gap-10 lg:gap-14 lg:grid-cols-[auto,1fr] items-center">
         <div className="flex justify-center">
-          <VaultDoor state={doorState} />
+          <VaultDoor state="idle" />
         </div>
 
         <div className="text-center lg:text-left">
@@ -139,21 +104,15 @@ export function VaultHero({
           )}
 
           <div className="mt-6">
-            <button
-              type="button"
-              onClick={preview}
-              disabled={doorState !== "idle"}
-              className="inline-flex items-center gap-2 text-sm font-medium text-ink-mid hover:text-navy transition-colors disabled:opacity-50"
+            <Link
+              href="/dashboard/preview"
+              prefetch={false}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-navy hover:text-navy-mid transition-colors"
             >
-              <span aria-hidden="true">
-                {doorState === "idle" ? "🔓" : "✨"}
-              </span>
-              {doorState === "idle"
-                ? "Preview reveal"
-                : doorState === "unlocking"
-                  ? "Unlocking…"
-                  : "Opening vault…"}
-            </button>
+              <span aria-hidden="true">🔓</span>
+              See what {childFirstName} will see
+              <span aria-hidden="true">→</span>
+            </Link>
           </div>
         </div>
       </div>
