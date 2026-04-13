@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { SignOutButton } from "@/app/admin/SignOutButton";
+
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -76,7 +78,7 @@ export default async function AdminPage() {
             <h1 className="text-2xl font-extrabold text-navy tracking-[-0.5px]">
               untilThen Admin
             </h1>
-            <SignOut />
+            <SignOutButton />
           </div>
           <div className="rounded-lg border border-red-200 bg-red-50 p-5">
             <p className="text-sm font-bold text-red-700 mb-1">
@@ -122,14 +124,15 @@ export default async function AdminPage() {
           <h1 className="text-2xl font-extrabold text-navy tracking-[-0.5px]">
             untilThen Admin
           </h1>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <Link
               href="/api/admin/export"
+              prefetch={false}
               className="bg-navy text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
             >
               Export CSV
             </Link>
-            <SignOut />
+            <SignOutButton />
           </div>
         </div>
 
@@ -243,30 +246,5 @@ function Row({ label, value }: { label: string; value: string }) {
       <span className="text-ink-mid">{label}</span>
       <span className="text-navy font-bold tabular-nums">{value}</span>
     </div>
-  );
-}
-
-function SignOut() {
-  return (
-    <form action="/api/admin/auth" method="post" className="inline">
-      {/* Simple client-side delete via inline form submission to /api/admin/auth
-          (DELETE is invoked from the button below via JS). Falls back to a
-          plain logout link if JS is off. */}
-      <Link
-        href="/admin/login"
-        prefetch={false}
-        className="text-sm text-ink-mid hover:text-navy transition-colors"
-        onClick={(e) => {
-          e.preventDefault();
-          fetch("/api/admin/auth", { method: "DELETE" })
-            .catch(() => null)
-            .finally(() => {
-              window.location.href = "/admin/login";
-            });
-        }}
-      >
-        Sign out
-      </Link>
-    </form>
   );
 }
