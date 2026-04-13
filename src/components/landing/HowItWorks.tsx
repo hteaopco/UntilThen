@@ -254,7 +254,7 @@ export function HowItWorks() {
             borderStrong
             titleLeading="leading-[1.3]"
             title={"A moment they\u2019ll never forget"}
-            body="On reveal day, your child opens a vault of letters from across their entire childhood — each one a gift from a past version of you."
+            body="On reveal day, your child opens their vault of moments, letters and videos — each one a gift from a past version of you."
           />
         </div>
       </div>
