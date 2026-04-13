@@ -2,20 +2,28 @@
 
 import { useEffect, useState } from "react";
 
-const TEXT = "untilThen.";
+const TARGET = "untilThen.";
 const UNTIL_LENGTH = 5; // "until"
 
 // Timings
-const BLINK_WAIT_MS = 2200; // ~2 full blink cycles before typing starts
+const BLINK_WAIT_MS = 2200; // ~2 cursor blinks before typing starts
 const CHAR_INTERVAL_MS = 110;
-const PAUSE_BEFORE_HOLD_MS = 200;
-const HOLD_AFTER_MS = 700;
+const PAUSE_AFTER_PERIOD_MS = 280; // brief "wait, wrong punctuation" beat
+const HOLD_AFTER_MS = 1100; // 1 full cursor blink cycle
 const FADE_MS = 550;
 
-type Phase = "waiting" | "typing" | "holding" | "fading" | "hidden";
+type Phase =
+  | "waiting"
+  | "typing"
+  | "pausing"
+  | "backspacing"
+  | "retyping"
+  | "holding"
+  | "fading"
+  | "hidden";
 
 export function IntroSplash() {
-  const [typed, setTyped] = useState(0);
+  const [text, setText] = useState("");
   const [phase, setPhase] = useState<Phase>("waiting");
 
   // Respect reduced motion — skip the whole intro.
@@ -31,11 +39,32 @@ export function IntroSplash() {
       return () => clearTimeout(t);
     }
     if (phase === "typing") {
-      if (typed >= TEXT.length) {
-        const t = setTimeout(() => setPhase("holding"), PAUSE_BEFORE_HOLD_MS);
-        return () => clearTimeout(t);
+      if (text.length >= TARGET.length) {
+        setPhase("pausing");
+        return;
       }
-      const t = setTimeout(() => setTyped((c) => c + 1), CHAR_INTERVAL_MS);
+      const t = setTimeout(
+        () => setText(TARGET.slice(0, text.length + 1)),
+        CHAR_INTERVAL_MS,
+      );
+      return () => clearTimeout(t);
+    }
+    if (phase === "pausing") {
+      const t = setTimeout(() => setPhase("backspacing"), PAUSE_AFTER_PERIOD_MS);
+      return () => clearTimeout(t);
+    }
+    if (phase === "backspacing") {
+      const t = setTimeout(() => {
+        setText((prev) => prev.slice(0, -1));
+        setPhase("retyping");
+      }, CHAR_INTERVAL_MS);
+      return () => clearTimeout(t);
+    }
+    if (phase === "retyping") {
+      const t = setTimeout(() => {
+        setText((prev) => `${prev},`);
+        setPhase("holding");
+      }, CHAR_INTERVAL_MS);
       return () => clearTimeout(t);
     }
     if (phase === "holding") {
@@ -46,16 +75,14 @@ export function IntroSplash() {
       const t = setTimeout(() => setPhase("hidden"), FADE_MS);
       return () => clearTimeout(t);
     }
-  }, [phase, typed]);
+  }, [phase, text.length]);
 
   if (phase === "hidden") return null;
 
-  const untilTyped = Math.min(typed, UNTIL_LENGTH);
-  const thenTyped = Math.max(0, typed - UNTIL_LENGTH);
-  const untilText = TEXT.slice(0, untilTyped);
-  const thenText = TEXT.slice(UNTIL_LENGTH, UNTIL_LENGTH + thenTyped);
+  const untilLen = Math.min(text.length, UNTIL_LENGTH);
+  const untilText = text.slice(0, untilLen);
+  const thenText = text.slice(UNTIL_LENGTH);
 
-  // Cursor visible during waiting, typing, and holding.
   const showCursor = phase !== "fading";
 
   return (
