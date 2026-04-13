@@ -230,18 +230,20 @@ export function HowItWorks() {
         <div className="grid gap-5 lg:gap-8 lg:grid-cols-3">
           <Step
             label="Create"
-            bg="bg-[#f6f1ea]"
-            hoverBg="hover:bg-[#efe7db]"
+            bg="bg-[#f9f2e4]"
+            hoverBg="hover:bg-[#f2e7cf]"
             icon={<PencilIcon />}
+            iconColor="text-amber"
             titleDelight={<HandwrittenUnderline />}
             title="Leave something behind"
             body="Write a letter, record a voice note, or upload a photo with a caption. Each entry takes minutes — and lasts a lifetime."
           />
           <Step
             label="Seal"
-            bg="bg-[#eef4f1]"
-            hoverBg="hover:bg-[#e2ebe6]"
+            bg="bg-gold-tint"
+            hoverBg="hover:bg-[#f6ead0]"
             icon={<LockIcon />}
+            iconColor="text-gold"
             title="Not for today"
             body="Every entry is sealed until a milestone you choose — their 13th birthday, graduation, or the day they fall in love."
           />
