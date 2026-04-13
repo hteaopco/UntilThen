@@ -29,6 +29,7 @@ model Waitlist {
 enum Role {
   PARENT
   CHILD
+  CONTRIBUTOR
 }
 
 enum EntryType {
@@ -36,6 +37,26 @@ enum EntryType {
   PHOTO
   VOICE
   VIDEO
+}
+
+enum ApprovalStatus {
+  PENDING_REVIEW
+  AUTO_APPROVED
+  APPROVED
+  REJECTED
+}
+
+enum ContributorRole {
+  FAMILY
+  FRIEND
+  TEACHER
+  OTHER
+}
+
+enum ContributorStatus {
+  PENDING
+  ACTIVE
+  REVOKED
 }
 
 model User {
@@ -70,9 +91,10 @@ model Vault {
   unlockedAt DateTime?
   createdAt  DateTime  @default(now())
 
-  child       Child        @relation(fields: [childId], references: [id])
-  entries     Entry[]
-  collections Collection[]
+  child        Child         @relation(fields: [childId], references: [id])
+  entries      Entry[]
+  collections  Collection[]
+  contributors Contributor[]
 }
 
 model Collection {
@@ -95,25 +117,57 @@ model Collection {
   @@index([vaultId])
 }
 
-model Entry {
-  id           String      @id @default(cuid())
-  vaultId      String
-  authorId     String
-  collectionId String?
-  orderIndex   Int?
-  type         EntryType   @default(TEXT)
-  title        String?
-  body         String?
-  mediaUrl     String?
-  tag          String?
-  revealDate   DateTime?
-  isPrivate    Boolean     @default(false)
-  createdAt    DateTime    @default(now())
-  unlockedAt   DateTime?
+model Contributor {
+  id               String            @id @default(cuid())
+  vaultId          String
+  invitedBy        String // parent's Clerk user id
+  email            String
+  name             String?
+  role             ContributorRole   @default(FAMILY)
+  status           ContributorStatus @default(PENDING)
+  requiresApproval Boolean           @default(false)
+  inviteToken      String            @unique @default(cuid())
+  clerkUserId      String?
+  createdAt        DateTime          @default(now())
+  acceptedAt       DateTime?
 
-  vault      Vault       @relation(fields: [vaultId], references: [id])
-  author     User        @relation(fields: [authorId], references: [id])
-  collection Collection? @relation(fields: [collectionId], references: [id])
+  vault   Vault   @relation(fields: [vaultId], references: [id])
+  entries Entry[]
+
+  @@index([vaultId])
+  @@index([inviteToken])
+  @@index([clerkUserId])
+}
+
+model Entry {
+  id             String         @id @default(cuid())
+  vaultId        String
+  authorId       String
+  contributorId  String?
+  collectionId   String?
+  orderIndex     Int?
+  type           EntryType      @default(TEXT)
+  title          String?
+  body           String? // Tiptap HTML
+  mediaUrls      String[]       @default([]) // R2 keys
+  mediaTypes     String[]       @default([]) // matching "photo" | "voice" | "video"
+  tag            String?
+  revealDate     DateTime?
+  isDraft        Boolean        @default(true)
+  isSealed       Boolean        @default(false)
+  isPrivate      Boolean        @default(false)
+  approvalStatus ApprovalStatus @default(AUTO_APPROVED)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt @default(now())
+  unlockedAt     DateTime?
+
+  vault       Vault        @relation(fields: [vaultId], references: [id])
+  author      User         @relation(fields: [authorId], references: [id])
+  contributor Contributor? @relation(fields: [contributorId], references: [id])
+  collection  Collection?  @relation(fields: [collectionId], references: [id])
 
   @@index([collectionId])
+  @@index([contributorId])
+  @@index([approvalStatus])
+  @@index([vaultId, isSealed])
 }

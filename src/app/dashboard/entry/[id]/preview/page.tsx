@@ -1,0 +1,119 @@
+import { auth } from "@clerk/nextjs/server";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
+export const metadata = {
+  title: "Proof read — untilThen",
+};
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+function formatShort(d: Date): string {
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export default async function ProofReadPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { userId } = auth();
+  if (!userId) redirect("/sign-in");
+  if (!process.env.DATABASE_URL) redirect("/dashboard");
+
+  const { id } = await params;
+
+  const { prisma } = await import("@/lib/prisma");
+  const user = await prisma.user.findUnique({
+    where: { clerkId: userId },
+  });
+  if (!user) redirect("/onboarding");
+
+  const entry = await prisma.entry.findUnique({
+    where: { id },
+    include: {
+      author: { select: { firstName: true, lastName: true } },
+      collection: true,
+    },
+  });
+  if (!entry) redirect("/dashboard");
+  if (entry.authorId !== user.id) redirect("/dashboard");
+
+  const unlockDate = entry.revealDate ?? entry.collection?.revealDate ?? null;
+
+  return (
+    <main className="min-h-screen bg-[#fdfbf5]">
+      <header className="sticky top-0 z-40 bg-[#fdfbf5]/90 backdrop-blur-md border-b border-navy/[0.06]">
+        <div className="mx-auto max-w-[720px] px-6 py-4 flex items-center justify-between gap-4">
+          <Link
+            href="/dashboard/new"
+            className="flex items-center gap-2 text-sm text-ink-mid hover:text-navy transition-colors"
+          >
+            <span aria-hidden="true">←</span>
+            <span>Return to Edit</span>
+          </Link>
+          <p className="text-[11px] uppercase tracking-[0.14em] text-gold font-bold">
+            Preview
+          </p>
+          <span className="text-xs text-ink-light hidden sm:inline">
+            How {entry.author.firstName}
+            {entry.author.lastName ? ` ${entry.author.lastName[0]}.` : ""} will
+            appear
+          </span>
+        </div>
+      </header>
+
+      <article className="mx-auto max-w-[680px] px-6 pt-12 pb-16">
+        <div className="rounded-2xl bg-white border border-navy/[0.06] px-8 py-10 lg:px-12 lg:py-14 shadow-[0_20px_50px_-30px_rgba(15,31,61,0.25)]">
+          {entry.title && (
+            <h1 className="text-[32px] lg:text-[40px] font-extrabold tracking-[-0.6px] leading-[1.1] text-navy mb-6">
+              {entry.title}
+            </h1>
+          )}
+          {entry.body ? (
+            <div
+              className="tiptap-editor text-[17px] leading-[1.75] text-navy"
+              dangerouslySetInnerHTML={{ __html: entry.body }}
+            />
+          ) : (
+            <p className="text-ink-light italic">No body yet.</p>
+          )}
+          <div className="mt-10 pt-6 border-t border-navy/[0.06] flex items-center justify-between gap-4 flex-wrap text-sm text-ink-mid">
+            <div>
+              — Written by{" "}
+              <span className="font-semibold text-navy">
+                {entry.author.firstName}
+              </span>{" "}
+              · {formatShort(entry.createdAt)}
+            </div>
+            {unlockDate && (
+              <div className="text-[11px] uppercase tracking-[0.12em] font-bold text-gold">
+                Unlocks {formatShort(unlockDate)}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Link
+            href="/dashboard/new"
+            className="inline-block text-sm font-semibold text-ink-mid hover:text-navy transition-colors px-4 py-2"
+          >
+            ← Return to Edit
+          </Link>
+          <Link
+            href="/dashboard"
+            className="inline-block bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
+          >
+            Back to dashboard
+          </Link>
+        </div>
+      </article>
+    </main>
+  );
+}

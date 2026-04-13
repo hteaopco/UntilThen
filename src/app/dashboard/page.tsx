@@ -4,9 +4,17 @@ import { redirect } from "next/navigation";
 
 import { Avatar } from "@/components/ui/Avatar";
 import {
+  ApprovalQueue,
+  type PendingEntry,
+} from "@/components/dashboard/ApprovalQueue";
+import {
   CollectionsSection,
   type CollectionRow,
 } from "@/components/dashboard/CollectionsSection";
+import {
+  ContributorsSection,
+  type ContributorRow,
+} from "@/components/dashboard/ContributorsSection";
 import { EntryList, type EntryRow } from "@/components/dashboard/EntryList";
 import { NewButton } from "@/components/dashboard/NewButton";
 import { VaultHero } from "@/components/dashboard/VaultHero";
@@ -36,13 +44,28 @@ export default async function DashboardPage() {
           vault: {
             include: {
               entries: {
-                where: { collectionId: null },
+                where: {
+                  collectionId: null,
+                  isSealed: true,
+                  approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+                },
                 orderBy: { createdAt: "desc" },
                 take: 50,
               },
               collections: {
                 include: {
-                  _count: { select: { entries: true } },
+                  _count: {
+                    select: {
+                      entries: {
+                        where: {
+                          isSealed: true,
+                          approvalStatus: {
+                            in: ["AUTO_APPROVED", "APPROVED"],
+                          },
+                        },
+                      },
+                    },
+                  },
                 },
                 orderBy: { createdAt: "desc" },
               },
@@ -60,6 +83,42 @@ export default async function DashboardPage() {
 
   const vault = child.vault;
   const vaultRevealDate = vault.revealDate?.toISOString() ?? null;
+
+  // Contributors + pending-approval entries (only for contributors
+  // whose requiresApproval is true).
+  const [contributorRecords, pendingEntries] = await Promise.all([
+    prisma.contributor.findMany({
+      where: { vaultId: vault.id },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.entry.findMany({
+      where: {
+        vaultId: vault.id,
+        isSealed: true,
+        approvalStatus: "PENDING_REVIEW",
+      },
+      include: { contributor: true },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+
+  const contributors: ContributorRow[] = contributorRecords.map((c) => ({
+    id: c.id,
+    name: c.name,
+    email: c.email,
+    role: c.role,
+    status: c.status,
+    requiresApproval: c.requiresApproval,
+  }));
+
+  const pending: PendingEntry[] = pendingEntries.map((e) => ({
+    id: e.id,
+    title: e.title,
+    type: e.type,
+    createdAt: e.createdAt.toISOString(),
+    contributorName:
+      e.contributor?.name ?? e.contributor?.email ?? "A contributor",
+  }));
 
   // Standalone entries (not in a collection).
   const entries: EntryRow[] = vault.entries.map((e) => ({
@@ -98,6 +157,7 @@ export default async function DashboardPage() {
 
       <section className="mx-auto max-w-[980px] px-6 lg:px-10 pt-8 lg:pt-10">
         <VaultHero
+          childId={child.id}
           childFirstName={child.firstName}
           revealDate={vaultRevealDate}
           entryCount={totalSealed}
@@ -116,6 +176,10 @@ export default async function DashboardPage() {
           </div>
           <NewButton vaultRevealDate={vaultRevealDate} />
         </div>
+
+        <ApprovalQueue entries={pending} />
+
+        <ContributorsSection contributors={contributors} />
 
         <CollectionsSection
           collections={collections}

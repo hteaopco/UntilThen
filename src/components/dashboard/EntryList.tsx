@@ -21,7 +21,7 @@ function formatShort(iso: string): string {
 
 function TypePill({ type }: { type: EntryRow["type"] }) {
   const labels: Record<EntryRow["type"], { label: string; icon: string }> = {
-    TEXT: { label: "Letter", icon: "✍️" },
+    TEXT: { label: "Moment", icon: "✍️" },
     PHOTO: { label: "Photo", icon: "📷" },
     VOICE: { label: "Voice", icon: "🎙" },
     VIDEO: { label: "Video", icon: "🎥" },
@@ -61,13 +61,13 @@ export function EntryList({
           Nothing sealed yet.
         </p>
         <p className="text-sm text-ink-mid mb-6">
-          Start with a letter to {childFirstName}.
+          Start with a moment for {childFirstName}.
         </p>
         <Link
           href="/dashboard/new"
           className="inline-block bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
         >
-          Write your first letter →
+          Write your first moment →
         </Link>
       </div>
     );

@@ -11,6 +11,8 @@ interface Body {
   type?: string;
   revealDate?: string | null;
   collectionId?: string | null;
+  isDraft?: boolean;
+  isSealed?: boolean;
 }
 
 const VALID_TYPES: EntryType[] = ["TEXT", "PHOTO", "VOICE", "VIDEO"];
@@ -34,21 +36,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const title =
-    typeof body.title === "string" ? body.title.trim() : "";
-  const bodyText =
-    typeof body.body === "string" ? body.body.trim() : "";
+  const title = typeof body.title === "string" ? body.title.trim() : "";
+  const bodyText = typeof body.body === "string" ? body.body : "";
   const typeInput = typeof body.type === "string" ? body.type : "TEXT";
   const type = VALID_TYPES.includes(typeInput as EntryType)
     ? (typeInput as EntryType)
     : "TEXT";
 
-  if (!bodyText) {
-    return NextResponse.json(
-      { error: "Please write something before sealing." },
-      { status: 400 },
-    );
-  }
+  // POST is now an auto-save / draft creation endpoint. It's OK to
+  // create an empty draft — the user may have only typed a title.
+  const isSealed = body.isSealed === true;
+  const isDraft = !isSealed;
 
   let revealDate: Date | null = null;
   if (typeof body.revealDate === "string" && body.revealDate.trim()) {
@@ -78,32 +76,30 @@ export async function POST(req: Request) {
         },
       },
     });
-    if (!user) {
+    if (!user)
       return NextResponse.json({ error: "User not found." }, { status: 404 });
-    }
     const vault = user.children[0]?.vault;
-    if (!vault) {
+    if (!vault)
       return NextResponse.json({ error: "No vault yet." }, { status: 404 });
-    }
 
-    // If collectionId was provided, verify ownership + clear per-entry
-    // reveal date (the collection controls it).
     let orderIndex: number | null = null;
     if (collectionId) {
       const collection = await prisma.collection.findUnique({
         where: { id: collectionId },
-        include: {
-          _count: { select: { entries: true } },
-        },
+        include: { _count: { select: { entries: true } } },
       });
-      if (!collection || collection.authorId !== user.id || collection.vaultId !== vault.id) {
+      if (
+        !collection ||
+        collection.authorId !== user.id ||
+        collection.vaultId !== vault.id
+      ) {
         return NextResponse.json(
           { error: "Collection not found." },
           { status: 404 },
         );
       }
       revealDate = null;
-      orderIndex = collection._count.entries; // append to the end
+      orderIndex = collection._count.entries;
     }
 
     const entry = await prisma.entry.create({
@@ -112,10 +108,13 @@ export async function POST(req: Request) {
         authorId: user.id,
         type,
         title: title || null,
-        body: bodyText,
+        body: bodyText || null,
         revealDate,
         collectionId,
         orderIndex,
+        isDraft,
+        isSealed,
+        approvalStatus: "AUTO_APPROVED",
       },
     });
 
@@ -123,7 +122,7 @@ export async function POST(req: Request) {
   } catch (err) {
     console.error("[dashboard/entries POST] error:", err);
     return NextResponse.json(
-      { error: "Couldn't seal your entry." },
+      { error: "Couldn't save your entry." },
       { status: 500 },
     );
   }

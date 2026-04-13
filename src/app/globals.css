@@ -93,3 +93,36 @@ html {
     opacity: 0 !important;
   }
 }
+
+/* Tiptap editor content — match the design system without
+   fighting the default ProseMirror resets. */
+.tiptap-editor p { margin: 0 0 1em; }
+.tiptap-editor p:last-child { margin-bottom: 0; }
+.tiptap-editor blockquote {
+  border-left: 3px solid #c9a84c;
+  padding: 0.1em 0 0.1em 1em;
+  margin: 0.4em 0 1em;
+  color: #4a5568;
+  font-style: italic;
+}
+.tiptap-editor ul, .tiptap-editor ol {
+  padding-left: 1.4em;
+  margin: 0 0 1em;
+}
+.tiptap-editor ul { list-style: disc; }
+.tiptap-editor ol { list-style: decimal; }
+.tiptap-editor li { margin: 0.2em 0; }
+.tiptap-editor li > p { margin: 0; }
+.tiptap-editor strong { font-weight: 700; }
+.tiptap-editor em { font-style: italic; }
+.tiptap-editor u { text-decoration: underline; }
+.tiptap-editor:focus { outline: none; }
+/* Placeholder styling via extension: the emptyEditorClass adds the
+   `before:` decorators. */
+.tiptap-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: rgba(136, 150, 165, 0.6);
+  float: left;
+  pointer-events: none;
+  height: 0;
+}

@@ -25,10 +25,12 @@ function isoToDateInput(iso: string | null): string {
 }
 
 export function VaultHero({
+  childId,
   childFirstName,
   revealDate,
   entryCount,
 }: {
+  childId: string;
   childFirstName: string;
   revealDate: string | null;
   entryCount: number;
@@ -59,7 +61,7 @@ export function VaultHero({
             {entryCount === 0
               ? "Nothing sealed yet."
               : `${entryCount.toLocaleString()} ${
-                  entryCount === 1 ? "memory" : "memories"
+                  entryCount === 1 ? "moment" : "moments"
                 } sealed.`}
           </h1>
 
@@ -103,17 +105,30 @@ export function VaultHero({
             />
           )}
 
-          <div className="mt-6">
+          <div className="mt-6 flex flex-wrap items-center gap-3 justify-center lg:justify-start">
+            <Link
+              href={`/vault/${childId}/child-view`}
+              prefetch={false}
+              className="inline-flex items-center gap-2 bg-white border border-navy/15 text-navy px-4 py-2.5 rounded-lg text-sm font-bold hover:border-navy transition-colors"
+            >
+              <span aria-hidden="true">👁</span>
+              View {childFirstName}&rsquo;s vault
+            </Link>
             <Link
               href="/dashboard/preview"
               prefetch={false}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-navy hover:text-navy-mid transition-colors"
+              className="inline-flex items-center gap-2 bg-navy text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid transition-colors"
             >
-              <span aria-hidden="true">🔓</span>
-              See what {childFirstName} will see
-              <span aria-hidden="true">→</span>
+              <span aria-hidden="true">🎁</span>
+              See what {childFirstName} sees
             </Link>
           </div>
+          <p className="mt-3 text-xs text-ink-light italic">
+            <span className="font-semibold text-ink-mid">View</span> shows the
+            locked countdown;{" "}
+            <span className="font-semibold text-ink-mid">See</span> shows the
+            reveal-day preview.
+          </p>
         </div>
       </div>
     </div>
