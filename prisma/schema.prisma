@@ -44,6 +44,7 @@ model User {
   id        String   @id @default(cuid())
   clerkId   String   @unique
   firstName String
+  lastName  String
   role      Role     @default(PARENT)
   createdAt DateTime @default(now())
 
@@ -53,7 +54,8 @@ model User {
 
 model Child {
   id          String    @id @default(cuid())
-  name        String
+  firstName   String
+  lastName    String
   dateOfBirth DateTime?
   parentId    String
   createdAt   DateTime  @default(now())

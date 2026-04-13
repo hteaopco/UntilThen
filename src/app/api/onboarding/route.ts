@@ -6,7 +6,10 @@ export const dynamic = "force-dynamic";
 
 interface Body {
   firstName?: string;
-  childName?: string;
+  lastName?: string;
+  childFirstName?: string;
+  childLastName?: string;
+  childDateOfBirth?: string;
 }
 
 export async function POST(req: Request) {
@@ -31,12 +34,46 @@ export async function POST(req: Request) {
 
   const firstName =
     typeof body.firstName === "string" ? body.firstName.trim() : "";
-  const childName =
-    typeof body.childName === "string" ? body.childName.trim() : "";
+  const lastName =
+    typeof body.lastName === "string" ? body.lastName.trim() : "";
+  const childFirstName =
+    typeof body.childFirstName === "string" ? body.childFirstName.trim() : "";
+  const childLastName =
+    typeof body.childLastName === "string" ? body.childLastName.trim() : "";
+  const childDobRaw =
+    typeof body.childDateOfBirth === "string"
+      ? body.childDateOfBirth.trim()
+      : "";
 
-  if (!firstName || !childName) {
+  if (!firstName || !lastName) {
     return NextResponse.json(
-      { error: "Please enter your first name and your child's name." },
+      { error: "Please enter your first and last name." },
+      { status: 400 },
+    );
+  }
+  if (!childFirstName || !childLastName) {
+    return NextResponse.json(
+      { error: "Please enter your child's first and last name." },
+      { status: 400 },
+    );
+  }
+  if (!childDobRaw) {
+    return NextResponse.json(
+      { error: "Please enter your child's birthdate." },
+      { status: 400 },
+    );
+  }
+
+  const childDob = new Date(childDobRaw);
+  if (Number.isNaN(childDob.getTime())) {
+    return NextResponse.json(
+      { error: "Child's birthdate is invalid." },
+      { status: 400 },
+    );
+  }
+  if (childDob.getTime() > Date.now()) {
+    return NextResponse.json(
+      { error: "Child's birthdate can't be in the future." },
       { status: 400 },
     );
   }
@@ -44,7 +81,6 @@ export async function POST(req: Request) {
   try {
     const { prisma } = await import("@/lib/prisma");
 
-    // Idempotent: if the user already onboarded, don't duplicate rows.
     const existing = await prisma.user.findUnique({
       where: { clerkId: userId },
     });
@@ -52,18 +88,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: true, alreadyOnboarded: true });
     }
 
-    // One-shot: create User + first Child + empty Vault atomically.
     await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
           clerkId: userId,
           firstName,
+          lastName,
           role: "PARENT",
         },
       });
       const child = await tx.child.create({
         data: {
-          name: childName,
+          firstName: childFirstName,
+          lastName: childLastName,
+          dateOfBirth: childDob,
           parentId: user.id,
         },
       });
