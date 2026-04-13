@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { DeleteEntryButton } from "@/app/admin/DeleteEntryButton";
 import { SignOutButton } from "@/app/admin/SignOutButton";
 
 export const dynamic = "force-dynamic";
@@ -179,7 +180,8 @@ export default async function AdminPage() {
                     <th className="py-2 pr-4 font-bold">Email</th>
                     <th className="py-2 pr-4 font-bold">Children</th>
                     <th className="py-2 pr-4 font-bold">Source</th>
-                    <th className="py-2 font-bold">When</th>
+                    <th className="py-2 pr-4 font-bold">When</th>
+                    <th className="py-2 font-bold text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -195,8 +197,14 @@ export default async function AdminPage() {
                       <td className="py-2.5 pr-4 text-ink-mid">
                         {e.hearAboutUs ?? "—"}
                       </td>
-                      <td className="py-2.5 text-ink-mid">
+                      <td className="py-2.5 pr-4 text-ink-mid">
                         {formatDate(e.createdAt)}
+                      </td>
+                      <td className="py-2.5 text-right">
+                        <DeleteEntryButton
+                          id={e.id}
+                          name={`${e.firstName} ${e.lastName}`}
+                        />
                       </td>
                     </tr>
                   ))}
