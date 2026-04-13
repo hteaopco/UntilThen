@@ -4,8 +4,8 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { VaultDoor } from "@/components/dashboard/VaultDoor";
 import { EntryTypeBadge } from "@/components/ui/EntryTypeBadge";
+import { TimeVault, type TimeVaultState } from "@/components/ui/TimeVault";
 import {
   MediaDisplay,
   type MediaItem,
@@ -30,8 +30,6 @@ export type PreviewCollection = {
   revealDate: string | null;
   entries: PreviewEntry[];
 };
-
-type DoorState = "idle" | "unlocking" | "open";
 
 function formatShort(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -62,13 +60,15 @@ export function PreviewClient({
   standaloneEntries: PreviewEntry[];
   collections: PreviewCollection[];
 }) {
-  const [state, setState] = useState<DoorState>("idle");
+  const [state, setState] = useState<TimeVaultState>("sealed");
   const [revealed, setRevealed] = useState(false);
   const [openCollection, setOpenCollection] = useState<string | null>(null);
 
+  // Reveal-day preview sequence: sealed → unlocking → open, then the
+  // entries fade in once the 1.8s unlock animation has fully landed.
   useEffect(() => {
     const t1 = setTimeout(() => setState("unlocking"), 700);
-    const t2 = setTimeout(() => setState("open"), 1900);
+    const t2 = setTimeout(() => setState("open"), 2500);
     const t3 = setTimeout(() => setRevealed(true), 3200);
     return () => {
       clearTimeout(t1);
@@ -143,7 +143,10 @@ export function PreviewClient({
           </section>
 
           <section className="relative flex justify-center my-10 lg:my-14">
-            <VaultDoor state={state} size={260} />
+            <TimeVault
+              state={state}
+              ariaLabel={`${childFirstName}'s time vault`}
+            />
           </section>
 
           <section

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
-import { VaultDoor } from "@/components/dashboard/VaultDoor";
+import { TimeVault } from "@/components/ui/TimeVault";
 
 function daysUntil(date: Date): number {
   const ms = date.getTime() - Date.now();
@@ -51,20 +51,26 @@ export function VaultHero({
     <div className="relative rounded-3xl border border-navy/[0.06] px-6 py-10 lg:px-12 lg:py-14 overflow-hidden bg-gradient-to-br from-[#fdf3e9] via-[#fdf8f2] to-[#fdf6e3]">
       <div className="relative grid gap-10 lg:gap-14 lg:grid-cols-[auto,1fr] items-center">
         <div className="flex justify-center">
-          <VaultDoor state="idle" />
+          <TimeVault
+            state="sealed"
+            ariaLabel={`${childFirstName}'s time vault`}
+          />
         </div>
 
         <div className="text-center lg:text-left">
           <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
             {childFirstName}&rsquo;s vault
           </p>
-          <h1 className="text-[34px] lg:text-[44px] font-extrabold text-navy leading-[1.05] tracking-[-0.8px] mb-5">
+          <h1 className="text-[34px] lg:text-[44px] font-extrabold text-navy leading-[1.05] tracking-[-0.8px] mb-2">
             {entryCount === 0
               ? "Nothing sealed yet."
               : `${entryCount.toLocaleString()} ${
                   entryCount === 1 ? "moment" : "moments"
                 } sealed.`}
           </h1>
+          <p className="text-[15px] italic text-ink-mid mb-5">
+            A collection of moments, sealed in time.
+          </p>
 
           {currentReveal && !editing ? (
             <div>
@@ -113,7 +119,7 @@ export function VaultHero({
               className="inline-flex items-center gap-2 bg-white border border-navy/15 text-navy px-4 py-2.5 rounded-lg text-sm font-bold hover:border-navy transition-colors"
             >
               <Eye size={16} strokeWidth={1.5} aria-hidden="true" />
-              View {childFirstName}&rsquo;s vault
+              Open {childFirstName}&rsquo;s time vault
             </Link>
             <Link
               href="/dashboard/preview"
@@ -121,14 +127,14 @@ export function VaultHero({
               className="inline-flex items-center gap-2 bg-amber text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
               <Gift size={16} strokeWidth={1.5} aria-hidden="true" />
-              See what {childFirstName} sees
+              Preview the moment
             </Link>
           </div>
           <p className="mt-3 text-xs text-ink-light italic">
-            <span className="font-semibold text-ink-mid">View</span> shows the
+            <span className="font-semibold text-ink-mid">Open</span> shows the
             locked countdown;{" "}
-            <span className="font-semibold text-ink-mid">See</span> shows the
-            reveal-day preview.
+            <span className="font-semibold text-ink-mid">Preview</span> shows
+            the reveal-day moment.
           </p>
         </div>
       </div>

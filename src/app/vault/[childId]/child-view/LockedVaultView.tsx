@@ -3,8 +3,8 @@
 import { Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { VaultDoor } from "@/components/dashboard/VaultDoor";
 import { EntryTypeBadge } from "@/components/ui/EntryTypeBadge";
+import { TimeVault } from "@/components/ui/TimeVault";
 
 type LockedEntry = {
   id: string;
@@ -72,11 +72,15 @@ export function LockedVaultView({
         Hi {childFirstName} <span aria-hidden="true">👋</span>
       </h1>
       <p className="text-ink-mid text-[15px]">
-        Your family is writing to you.
+        Your family is writing to you. A collection of moments, sealed in
+        time.
       </p>
 
       <div className="flex justify-center my-10">
-        <VaultDoor state="idle" size={220} />
+        <TimeVault
+          state="sealed"
+          ariaLabel={`${childFirstName}'s time vault`}
+        />
       </div>
 
       {revealDate && timeLeft ? (
