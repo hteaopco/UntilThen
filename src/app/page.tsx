@@ -1,8 +1,29 @@
+import { Nav } from "@/components/landing/Nav";
+import { Hero } from "@/components/landing/Hero";
+import { QuillDivider } from "@/components/landing/QuillDivider";
+import { HowItWorks } from "@/components/landing/HowItWorks";
+import { PromiseSection } from "@/components/landing/Promise";
+import { Features } from "@/components/landing/Features";
+import { Testimonial } from "@/components/landing/Testimonial";
+import { Pricing } from "@/components/landing/Pricing";
+import { CtaSection } from "@/components/landing/CtaSection";
+import { Footer } from "@/components/landing/Footer";
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-5xl font-semibold tracking-tight">UntilThen</h1>
-      <p className="mt-4 text-neutral-400">Scaffold ready. Tell me what to build.</p>
-    </main>
+    <>
+      <Nav />
+      <main>
+        <Hero />
+        <QuillDivider />
+        <HowItWorks />
+        <PromiseSection />
+        <Features />
+        <Testimonial />
+        <Pricing />
+        <CtaSection />
+      </main>
+      <Footer />
+    </>
   );
 }
