@@ -77,10 +77,16 @@ function Plan({
   const gift = variant === "gift";
 
   const cardClasses = featured
-    ? "bg-navy border-navy shadow-[0_10px_30px_-10px_rgba(15,31,61,0.25)]"
+    ? "border-navy shadow-[0_10px_30px_-10px_rgba(15,31,61,0.25)]"
     : gift
       ? "bg-[#fdf6e8] border-gold/25 shadow-[0_10px_30px_-10px_rgba(201,168,76,0.22)]"
       : "bg-white border-navy/[0.08] hover:shadow-[0_8px_24px_rgba(15,31,61,0.08)]";
+
+  // Match the gradient on the Writing Experience feature card so the
+  // two "signature" dark blocks feel part of the same system.
+  const cardStyle = featured
+    ? { background: "linear-gradient(180deg, #1e3560 0%, #0f1f3d 75%)" }
+    : undefined;
 
   const tagColor = featured
     ? "text-sky-light"
@@ -112,6 +118,7 @@ function Plan({
   return (
     <div
       className={`relative rounded-2xl p-9 flex flex-col transition-all border ${cardClasses}`}
+      style={cardStyle}
     >
       {overlay}
       <div className="relative z-[1] flex flex-col flex-1">
