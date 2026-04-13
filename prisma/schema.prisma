@@ -1,6 +1,6 @@
-// Prisma schema for UntilThen
-// Phase 1: just the waitlist. Phase 2 models (User/Child/Vault/Entry)
-// land when we start the app proper.
+// Prisma schema for untilThen
+// Phase 1: waitlist only. Phase 2 models (User/Child/Vault/Entry) land
+// when we start the app proper.
 
 generator client {
   provider = "prisma-client-js"
@@ -12,9 +12,14 @@ datasource db {
 }
 
 model Waitlist {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  source    String?
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  email       String    @unique
+  firstName   String
+  lastName    String
+  phone       String?
+  dateOfBirth DateTime?
+  numChildren Int
+  hearAboutUs String?
+  createdAt   DateTime  @default(now())
+  ipAddress   String?
 }

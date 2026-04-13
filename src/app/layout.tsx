@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
+import { PosthogProvider } from "@/components/PosthogProvider";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -29,7 +30,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={dmSans.variable}>
-      <body className="font-sans bg-white text-navy antialiased">{children}</body>
+      <body className="font-sans bg-white text-navy antialiased">
+        <PosthogProvider>{children}</PosthogProvider>
+      </body>
     </html>
   );
 }
