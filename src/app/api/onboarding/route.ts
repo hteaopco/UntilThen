@@ -95,6 +95,9 @@ export async function POST(req: Request) {
           firstName,
           lastName,
           role: "PARENT",
+          // Seed default notification preferences so the account
+          // settings page always has a row to show.
+          notificationPreferences: { create: {} },
         },
       });
       const child = await tx.child.create({

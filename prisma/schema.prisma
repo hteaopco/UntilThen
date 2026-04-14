@@ -60,25 +60,29 @@ enum ContributorStatus {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  clerkId   String   @unique
-  firstName String
-  lastName  String
-  role      Role     @default(PARENT)
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  clerkId     String   @unique
+  firstName   String
+  lastName    String
+  displayName String?
+  role        Role     @default(PARENT)
+  createdAt   DateTime @default(now())
 
-  children    Child[]
-  entries     Entry[]
-  collections Collection[]
+  children                Child[]
+  entries                 Entry[]
+  collections             Collection[]
+  notificationPreferences NotificationPreferences?
 }
 
 model Child {
-  id          String    @id @default(cuid())
-  firstName   String
-  lastName    String
-  dateOfBirth DateTime?
-  parentId    String
-  createdAt   DateTime  @default(now())
+  id           String    @id @default(cuid())
+  firstName    String
+  lastName     String
+  dateOfBirth  DateTime?
+  parentId     String
+  trusteeName  String?
+  trusteeEmail String?
+  createdAt    DateTime  @default(now())
 
   parent User   @relation(fields: [parentId], references: [id])
   vault  Vault?
@@ -170,4 +174,19 @@ model Entry {
   @@index([contributorId])
   @@index([approvalStatus])
   @@index([vaultId, isSealed])
+}
+
+model NotificationPreferences {
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  writingReminders    Boolean   @default(true)
+  milestoneReminders  Boolean   @default(true)
+  vaultAnniversary    Boolean   @default(true)
+  contributorActivity Boolean   @default(true)
+  revealCountdown     Boolean   @default(true)
+  pausedUntil         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
 }

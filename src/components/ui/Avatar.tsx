@@ -1,6 +1,8 @@
 "use client";
 
 import { useClerk, useUser } from "@clerk/nextjs";
+import { Settings } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 export function Avatar() {
@@ -67,6 +69,16 @@ export function Avatar() {
               </div>
             )}
           </div>
+          <Link
+            href="/account"
+            role="menuitem"
+            prefetch={false}
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-ink-mid hover:bg-amber-tint hover:text-navy transition-colors border-b border-navy/[0.06]"
+          >
+            <Settings size={16} strokeWidth={1.5} aria-hidden="true" />
+            Account settings
+          </Link>
           <button
             type="button"
             role="menuitem"
@@ -74,7 +86,7 @@ export function Avatar() {
               setOpen(false);
               signOut({ redirectUrl: "/" });
             }}
-            className="w-full text-left px-4 py-3 text-sm font-medium text-ink-mid hover:bg-[#f8fafc] hover:text-navy transition-colors"
+            className="w-full text-left px-4 py-3 text-sm font-medium text-ink-mid hover:bg-amber-tint hover:text-navy transition-colors"
           >
             Sign out
           </button>

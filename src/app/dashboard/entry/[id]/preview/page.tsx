@@ -60,7 +60,9 @@ export default async function ProofReadPage({
   const entry = await prisma.entry.findUnique({
     where: { id },
     include: {
-      author: { select: { firstName: true, lastName: true } },
+      author: {
+        select: { firstName: true, lastName: true, displayName: true },
+      },
       collection: true,
     },
   });
@@ -123,7 +125,7 @@ export default async function ProofReadPage({
             <div>
               — Written by{" "}
               <span className="font-semibold text-navy">
-                {entry.author.firstName}
+                {entry.author.displayName || entry.author.firstName}
               </span>{" "}
               · {formatShort(entry.createdAt)}
             </div>

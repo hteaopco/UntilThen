@@ -454,6 +454,29 @@ html {
   }
 }
 
+/* Shared account-section input style. Same visual rhythm as the
+   onboarding form so the whole app reads as one family. */
+.account-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 11px 14px;
+  font-size: 15px;
+  color: #0f1f3d;
+  background-color: #ffffff;
+  border: 1.5px solid rgba(15, 31, 61, 0.12);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.account-input:focus {
+  border-color: #c47a3a;
+  box-shadow: 0 0 0 3px rgba(196, 122, 58, 0.18);
+}
+.account-input:disabled {
+  opacity: 0.55;
+}
+
 /* Blog post body — prose styles for rendered MDX. Narrow column,
    17px body, 1.8 line-height, amber quote rule, navy headings. */
 .blog-prose {

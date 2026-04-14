@@ -38,7 +38,10 @@ export default async function ChildViewPage({
         include: {
           entries: {
             where: { isSealed: true, approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] } },
-            include: { contributor: { select: { name: true, email: true } }, author: { select: { firstName: true } } },
+            include: {
+              contributor: { select: { name: true, email: true } },
+              author: { select: { firstName: true, displayName: true } },
+            },
             orderBy: { createdAt: "asc" },
           },
           collections: {
@@ -60,6 +63,7 @@ export default async function ChildViewPage({
     author:
       e.contributor?.name ||
       e.contributor?.email ||
+      e.author.displayName ||
       e.author.firstName ||
       "someone",
   }));
