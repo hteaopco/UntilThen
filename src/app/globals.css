@@ -77,8 +77,8 @@ html {
 
 .time-vault-stage {
   position: relative;
-  width: 290px;
-  height: 290px;
+  width: 280px;
+  height: 280px;
 }
 
 .time-vault-stage__bloom {
@@ -106,7 +106,10 @@ html {
 }
 
 /* The vault itself — an image wrapper with a subtle 6s breathing
-   scale while sealed. No clock-face CSS: the illustration is final. */
+   scale while sealed. No clock-face CSS: the illustration is final.
+   The source PNG has its near-cream background pre-keyed to alpha,
+   so the circular crop shows the illustration cleanly on any page
+   (cream dashboard, sage child vault, warm-slate preview). */
 .time-vault {
   position: relative;
   width: 100%;
@@ -118,8 +121,15 @@ html {
 .time-vault__img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   display: block;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  /* Circular crop so the rectangular source edges are never
+     visible. The clock is centred in the PNG so cover + 50%
+     radius reveals the dial and hides the letterbox. */
+  border-radius: 50%;
 }
 
 .time-vault[data-state="sealed"] {

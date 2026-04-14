@@ -16,7 +16,7 @@ export type TimeVaultState = "sealed" | "unlocking" | "open";
  */
 export function TimeVault({
   state = "sealed",
-  size = 290,
+  size = 280,
   ariaLabel = "Time vault",
 }: {
   state?: TimeVaultState;
