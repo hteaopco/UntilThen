@@ -16,6 +16,7 @@ import {
   type ContributorRow,
 } from "@/components/dashboard/ContributorsSection";
 import { EntryList, type EntryRow } from "@/components/dashboard/EntryList";
+import { MemoryStarter } from "@/components/dashboard/MemoryStarter";
 import { NewButton } from "@/components/dashboard/NewButton";
 import { VaultHero } from "@/components/dashboard/VaultHero";
 import {
@@ -181,37 +182,48 @@ export default async function DashboardPage({
           options={switcherOptions}
           selectedChildId={selectedChild.id}
         />
-        <VaultHero
-          childId={selectedChild.id}
+
+        {/* Primary: creation spark right at the top of the page. */}
+        <MemoryStarter
           childFirstName={selectedChild.firstName}
           vaultId={vault.id}
-          revealDate={vaultRevealDate}
-          entryCount={totalSealed}
         />
+
+        {/* Anything that needs the parent's attention jumps in here
+            — pending approvals only surface when contributors have
+            submitted entries that require review. */}
+        {pending.length > 0 && (
+          <div className="mt-8">
+            <ApprovalQueue entries={pending} />
+          </div>
+        )}
+
+        {/* Vault — secondary context now. Countdown + emotional
+            framing, with the action links demoted to text. */}
+        <div className="mt-10 lg:mt-12">
+          <VaultHero
+            childId={selectedChild.id}
+            childFirstName={selectedChild.firstName}
+            vaultId={vault.id}
+            revealDate={vaultRevealDate}
+            entryCount={totalSealed}
+          />
+        </div>
       </section>
 
       <section className="mx-auto max-w-[980px] px-6 lg:px-10 pt-10 lg:pt-14 pb-24">
-        <div className="flex items-center justify-between gap-4 flex-wrap mb-8">
+        <div className="flex items-center justify-between gap-4 flex-wrap mb-6">
           <div>
             <h2 className="text-xl lg:text-2xl font-bold text-navy tracking-[-0.3px]">
-              Sealed entries
+              Moments you&rsquo;ve saved
             </h2>
             <p className="text-sm text-ink-mid mt-1">
-              Your child will open these on reveal day.
+              A timeline of what you&rsquo;ve written for{" "}
+              {selectedChild.firstName}.
             </p>
           </div>
-          <NewButton
-            vaultId={vault.id}
-            vaultRevealDate={vaultRevealDate}
-          />
+          <NewButton vaultId={vault.id} vaultRevealDate={vaultRevealDate} />
         </div>
-
-        <ApprovalQueue entries={pending} />
-
-        <ContributorsSection
-          contributors={contributors}
-          vaultId={vault.id}
-        />
 
         <CollectionsSection
           collections={collections}
@@ -219,15 +231,16 @@ export default async function DashboardPage({
           vaultId={vault.id}
         />
 
-        {collections.length > 0 && (
-          <div className="text-[11px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-4">
-            Entries · {entries.length}
-          </div>
-        )}
         <EntryList
           entries={entries}
           childFirstName={selectedChild.firstName}
           revealDate={vaultRevealDate}
+        />
+
+        <ContributorsSection
+          contributors={contributors}
+          vaultId={vault.id}
+          childFirstName={selectedChild.firstName}
         />
       </section>
     </main>

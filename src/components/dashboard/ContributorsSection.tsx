@@ -43,9 +43,11 @@ const STATUS_CLASS: Record<ContributorRow["status"], string> = {
 export function ContributorsSection({
   contributors,
   vaultId,
+  childFirstName,
 }: {
   contributors: ContributorRow[];
   vaultId: string;
+  childFirstName: string;
 }) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
@@ -72,9 +74,10 @@ export function ContributorsSection({
   return (
     <>
       <div className="mt-12 pt-8 border-t border-navy/[0.06] mb-10">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div className="text-[11px] uppercase tracking-[0.12em] font-bold text-ink-mid">
-            Contributors · {contributors.length}
+            People adding to {childFirstName}&rsquo;s story ·{" "}
+            {contributors.length}
           </div>
           <button
             type="button"
@@ -87,18 +90,20 @@ export function ContributorsSection({
         </div>
 
         {contributors.length === 0 ? (
-          <div className="rounded-2xl border-2 border-dashed border-navy/15 bg-warm-surface px-6 py-8 text-center">
+          // Compact empty state — a single line. The big dashed
+          // call-to-action was drawing too much eye away from the
+          // writing spark at the top of the page.
+          <div className="rounded-xl bg-warm-surface/60 border border-navy/[0.04] px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
             <p className="text-sm text-ink-mid">
-              No contributors yet. Invite grandparents, godparents, or family
-              to add memories alongside you.
+              No contributors yet — invite family to add memories alongside
+              you.
             </p>
             <button
               type="button"
               onClick={() => setModalOpen(true)}
-              className="mt-4 inline-flex items-center gap-2 bg-amber text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
+              className="text-[11px] uppercase tracking-[0.08em] font-bold text-amber hover:text-navy transition-colors"
             >
-              <UserPlus size={16} strokeWidth={1.5} aria-hidden="true" />
-              Invite your first contributor
+              Invite someone →
             </button>
           </div>
         ) : (

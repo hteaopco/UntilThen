@@ -63,15 +63,15 @@ export function VaultHero({
           <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
             {childFirstName}&rsquo;s vault
           </p>
-          <h1 className="text-[34px] lg:text-[44px] font-extrabold text-navy leading-[1.05] tracking-[-0.8px] mb-2">
+          <h2 className="text-[28px] lg:text-[36px] font-extrabold text-navy leading-[1.05] tracking-[-0.6px] mb-2">
             {entryCount === 0
-              ? "Nothing sealed yet."
+              ? "Nothing saved yet."
               : `${entryCount.toLocaleString()} ${
                   entryCount === 1 ? "moment" : "moments"
-                } sealed.`}
-          </h1>
+                } saved.`}
+          </h2>
           <p className="text-[15px] italic text-ink-mid mb-5">
-            A collection of moments, sealed in time.
+            {childFirstName} will open this one day.
           </p>
 
           {currentReveal && !editing ? (
@@ -115,30 +115,27 @@ export function VaultHero({
             />
           )}
 
-          <div className="mt-6 flex flex-wrap items-center gap-3 justify-center lg:justify-start">
+          {/* Vault actions demoted to quiet text links. Writing is
+              the primary action now — it lives at the top of the
+              page in the MemoryStarter card. */}
+          <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 justify-center lg:justify-start text-sm">
             <Link
               href={`/vault/${childId}/child-view`}
               prefetch={false}
-              className="inline-flex items-center gap-2 bg-white border border-navy/15 text-navy px-4 py-2.5 rounded-lg text-sm font-bold hover:border-navy transition-colors"
+              className="inline-flex items-center gap-1.5 font-semibold text-ink-mid hover:text-amber transition-colors"
             >
-              <Eye size={16} strokeWidth={1.5} aria-hidden="true" />
-              Open {childFirstName}&rsquo;s time vault
+              <Eye size={15} strokeWidth={1.5} aria-hidden="true" />
+              View countdown
             </Link>
             <Link
               href={`/dashboard/preview?vault=${childId}`}
               prefetch={false}
-              className="inline-flex items-center gap-2 bg-amber text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
+              className="inline-flex items-center gap-1.5 font-semibold text-ink-mid hover:text-amber transition-colors"
             >
-              <Gift size={16} strokeWidth={1.5} aria-hidden="true" />
-              Preview the moment
+              <Gift size={15} strokeWidth={1.5} aria-hidden="true" />
+              Preview reveal day
             </Link>
           </div>
-          <p className="mt-3 text-xs text-ink-light italic">
-            <span className="font-semibold text-ink-mid">Open</span> shows the
-            locked countdown;{" "}
-            <span className="font-semibold text-ink-mid">Preview</span> shows
-            the reveal-day moment.
-          </p>
         </div>
       </div>
     </div>
