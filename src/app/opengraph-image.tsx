@@ -1,10 +1,12 @@
+import fs from "node:fs/promises";
+import path from "node:path";
+
 import { ImageResponse } from "next/og";
 
-// Next.js's file-based OG image convention. Placing this file at
+// Next.js's file-based OG image convention. Placing this at
 // src/app/opengraph-image.tsx makes Next auto-emit the correct
-// <meta property="og:image" content="..."> tag on every page,
-// with the URL resolved to the actual request origin (Railway
-// preview or production) — no metadataBase gymnastics needed.
+// <meta property="og:image"> tag on every page, with the URL
+// resolved to the actual request origin automatically.
 // See: https://nextjs.org/docs/app/api-reference/file-conventions/metadata/opengraph-image
 
 export const runtime = "nodejs";
@@ -15,14 +17,15 @@ export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 export default async function OpengraphImage() {
-  // Photo is co-located with this route so Satori can fetch its
-  // bytes via import.meta.url at build/request time. File is
-  // pre-cropped to 1200×630 (137 KB) so image generation is fast.
-  const photoBytes = await fetch(
-    new URL("./og-photo.jpg", import.meta.url),
-  ).then((r) => r.arrayBuffer());
-  const photoBase64 = Buffer.from(photoBytes).toString("base64");
-  const photoSrc = `data:image/jpeg;base64,${photoBase64}`;
+  // Read the pre-cropped 1200×630 photo from /public at image-
+  // generation time. fs works in both the build-time prerender
+  // and at runtime in the standalone output (process.cwd() points
+  // at the app root in both cases; /public gets copied into the
+  // standalone bundle).
+  const photoBytes = await fs.readFile(
+    path.join(process.cwd(), "public", "og-photo.jpg"),
+  );
+  const photoSrc = `data:image/jpeg;base64,${photoBytes.toString("base64")}`;
 
   return new ImageResponse(
     (
