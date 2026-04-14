@@ -3,6 +3,8 @@ import { ChevronRight, UsersRound } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { AddChildButton } from "@/components/account/AddChildButton";
+
 export const metadata = {
   title: "Children & Vaults — untilThen",
 };
@@ -107,26 +109,15 @@ export default async function AccountChildrenPage() {
           );
         })}
 
-        {/* Add-another stub (multi-child billing isn't live yet). */}
         <li>
-          <div className="rounded-2xl border-2 border-dashed border-navy/15 bg-warm-surface px-5 py-5 text-sm text-ink-mid">
-            <div className="font-semibold text-navy mb-1">
-              Add another child vault
-            </div>
-            <div>
-              $1.99 / month per additional child. Manage this from the{" "}
-              <Link
-                href="/account/billing"
-                prefetch={false}
-                className="text-amber underline underline-offset-4"
-              >
-                Billing tab
-              </Link>{" "}
-              once payment is set up.
-            </div>
-          </div>
+          <AddChildButton />
         </li>
       </ul>
+
+      <p className="text-xs italic text-ink-light">
+        Additional child vaults will be $1.99 / month each when billing is
+        live. No charge during the current beta.
+      </p>
     </div>
   );
 }
