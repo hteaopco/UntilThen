@@ -1,4 +1,4 @@
-import { Eye, Lock, Mail, Pencil, Unlock } from "lucide-react";
+import { Eye, Lock, Pencil, Unlock } from "lucide-react";
 import Link from "next/link";
 
 import { DeleteEntryButton } from "@/components/dashboard/DeleteEntryButton";
@@ -45,27 +45,52 @@ export function EntryList({
   entries,
   childFirstName,
   revealDate,
+  vaultId,
 }: {
   entries: EntryRow[];
   childFirstName: string;
   revealDate: string | null;
+  vaultId: string;
 }) {
   if (entries.length === 0) {
-    // Empty state kept intentionally quiet — the MemoryStarter at
-    // the top of the page is already handling the "start writing"
-    // invitation. No need to shout about it twice.
+    // First-moment state. Carries its own CTA + a few starter
+    // prompts so parents staring at a blank timeline have
+    // something concrete to write toward.
     return (
       <div className="rounded-2xl border border-dashed border-navy/10 bg-warm-surface/50 px-6 py-10 text-center">
-        <div
-          aria-hidden="true"
-          className="mb-3 inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-tint text-amber"
-        >
-          <Mail size={20} strokeWidth={1.5} />
-        </div>
-        <p className="text-sm text-ink-mid">
-          Nothing here yet. Your first moment for {childFirstName} will
-          land here.
+        <h3 className="text-[19px] font-extrabold text-navy tracking-[-0.2px]">
+          No moments yet.
+        </h3>
+        <p className="mt-2 text-sm text-ink-mid">
+          Write your first memory for {childFirstName}.
         </p>
+        <Link
+          href={`/dashboard/new?vault=${vaultId}`}
+          prefetch={false}
+          className="mt-5 inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
+        >
+          <Pencil size={16} strokeWidth={1.5} aria-hidden="true" />
+          Write your first memory →
+        </Link>
+        <div className="mt-7 pt-5 border-t border-navy/[0.08] text-left max-w-[360px] mx-auto">
+          <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-light mb-2">
+            Most parents start with
+          </p>
+          <ul className="space-y-1.5 text-sm text-ink-mid">
+            <li className="flex gap-2">
+              <span aria-hidden="true" className="text-amber">
+                •
+              </span>
+              The day you were born
+            </li>
+            <li className="flex gap-2">
+              <span aria-hidden="true" className="text-amber">
+                •
+              </span>
+              A moment that made you smile today
+            </li>
+          </ul>
+        </div>
       </div>
     );
   }

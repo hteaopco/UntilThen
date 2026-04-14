@@ -13,6 +13,21 @@ function daysUntil(date: Date): number {
   return Math.max(0, Math.ceil(ms / (1000 * 60 * 60 * 24)));
 }
 
+/**
+ * Human-readable countdown label. Under two years we keep the
+ * tactile "N days" count (2,628 days reads as a lot of scroll
+ * and not much meaning). Past that we switch to "in N years" so
+ * the distance lands as emotion, not arithmetic.
+ */
+function countdownLabel(days: number): string {
+  if (days <= 0) return "today";
+  if (days < 365 * 2) {
+    return `${days.toLocaleString()} ${days === 1 ? "day" : "days"}`;
+  }
+  const years = Math.round(days / 365);
+  return `in ${years} years`;
+}
+
 function formatLongDate(date: Date): string {
   return date.toLocaleDateString("en-US", {
     month: "long",
@@ -79,9 +94,8 @@ export function VaultHero({
                 <>
                   {" · "}
                   <span className="font-extrabold text-navy tabular-nums">
-                    {days.toLocaleString()}
-                  </span>{" "}
-                  {days === 1 ? "day" : "days"}
+                    {countdownLabel(days)}
+                  </span>
                 </>
               )}
               {" · "}

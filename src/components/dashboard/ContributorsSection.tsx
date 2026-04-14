@@ -84,7 +84,7 @@ export function ContributorsSection({
             className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] font-bold text-amber hover:text-navy transition-colors"
           >
             <UserPlus size={14} strokeWidth={1.75} aria-hidden="true" />
-            Invite someone
+            Invite family →
           </button>
         </div>
 
@@ -102,7 +102,7 @@ export function ContributorsSection({
               onClick={() => setModalOpen(true)}
               className="text-[11px] uppercase tracking-[0.08em] font-bold text-amber hover:text-navy transition-colors"
             >
-              Invite someone →
+              Invite family →
             </button>
           </div>
         ) : (

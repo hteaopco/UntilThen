@@ -246,13 +246,8 @@ export default async function DashboardPage({
       <section className="mx-auto max-w-[980px] px-6 lg:px-10 pt-6 lg:pt-8 pb-24">
         <div className="text-center lg:text-left mb-6">
           <h2 className="text-xl lg:text-2xl font-bold text-navy tracking-[-0.3px]">
-            Moments waiting for {selectedChild.firstName}
+            Moments you&rsquo;ve sealed for {selectedChild.firstName}
           </h2>
-          {totalSealed === 0 && (
-            <p className="text-sm text-ink-mid mt-1">
-              Your sealed letters and journals will appear here.
-            </p>
-          )}
         </div>
 
         <CollectionsSection
@@ -265,6 +260,7 @@ export default async function DashboardPage({
           entries={entries}
           childFirstName={selectedChild.firstName}
           revealDate={vaultRevealDate}
+          vaultId={vault.id}
         />
 
         <ContributorsSection
