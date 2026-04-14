@@ -32,14 +32,12 @@ export function VaultHero({
   childDateOfBirth,
   vaultId,
   revealDate,
-  entryCount,
 }: {
   childId: string;
   childFirstName: string;
   childDateOfBirth: string | null;
   vaultId: string;
   revealDate: string | null;
-  entryCount: number;
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState(revealDate === null);
@@ -53,8 +51,8 @@ export function VaultHero({
   }, [revealDate]);
 
   return (
-    <div className="relative rounded-3xl border border-navy/[0.06] px-6 py-10 lg:px-12 lg:py-14 overflow-hidden bg-gradient-to-br from-[#fdf3e9] via-[#fdf8f2] to-[#fdf6e3]">
-      <div className="relative grid gap-10 lg:gap-14 lg:grid-cols-[auto,1fr] items-center">
+    <div className="relative rounded-3xl border border-navy/[0.06] px-6 py-7 lg:px-10 lg:py-9 overflow-hidden bg-gradient-to-br from-[#fdf3e9] via-[#fdf8f2] to-[#fdf6e3]">
+      <div className="relative grid gap-8 lg:gap-12 lg:grid-cols-[auto,1fr] items-center">
         <div className="flex justify-center">
           <TimeVault
             state="sealed"
@@ -67,19 +65,9 @@ export function VaultHero({
             intrinsic min-width past the grid column and poking out
             the right side of the card. */}
         <div className="text-center lg:text-left min-w-0">
-          <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
-            {childFirstName}&rsquo;s vault
-          </p>
-          <h2 className="text-[24px] lg:text-[30px] font-extrabold text-navy leading-[1.1] tracking-[-0.5px] mb-2">
-            Keep writing {childFirstName}&rsquo;s story.
+          <h2 className="text-[24px] lg:text-[30px] font-extrabold text-navy leading-[1.1] tracking-[-0.5px] mb-4">
+            {childFirstName} will open this one day.
           </h2>
-          <p className="text-[15px] italic text-ink-mid mb-5">
-            {entryCount === 0
-              ? `${childFirstName} will open this one day.`
-              : `${entryCount.toLocaleString()} ${
-                  entryCount === 1 ? "moment" : "moments"
-                } waiting for ${childFirstName}.`}
-          </p>
 
           {currentReveal && !editing ? (
             <div>
@@ -88,6 +76,14 @@ export function VaultHero({
                 <span className="font-semibold text-navy">
                   {formatLongDate(new Date(currentReveal))}
                 </span>
+                {" · "}
+                <button
+                  type="button"
+                  onClick={() => setEditing(true)}
+                  className="text-sm text-ink-light hover:text-amber underline underline-offset-[3px] transition-colors"
+                >
+                  change
+                </button>
               </p>
               {days != null && (
                 <p className="text-base text-ink-mid mt-1">
@@ -98,13 +94,6 @@ export function VaultHero({
                   {days === 1 ? "day" : "days"}
                 </p>
               )}
-              <button
-                type="button"
-                onClick={() => setEditing(true)}
-                className="mt-3 text-sm font-medium text-amber hover:text-navy transition-colors underline underline-offset-4"
-              >
-                Change reveal date
-              </button>
             </div>
           ) : (
             <RevealDateForm
@@ -124,10 +113,10 @@ export function VaultHero({
             />
           )}
 
-          {/* Vault actions demoted to quiet text links. Writing is
-              the primary action now — it lives at the top of the
-              page in the MemoryStarter card. */}
-          <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 justify-center lg:justify-start text-sm">
+          {/* Two supporting actions — View countdown and Preview
+              reveal day. Writing is covered by the editor spark
+              at the top of the page. */}
+          <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 justify-center lg:justify-start text-sm">
             <Link
               href={`/vault/${childId}/child-view`}
               prefetch={false}

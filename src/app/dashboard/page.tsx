@@ -224,9 +224,9 @@ export default async function DashboardPage({
         )}
 
         {/* Vault — secondary context now. Countdown + emotional
-            framing, with the action links demoted to text.
-            Tight mt-5/mt-6 keeps the editor and vault reading as
-            one connected block. */}
+            framing, with the action links demoted to text. Tight
+            mt-5/mt-6 keeps editor and vault reading as one
+            connected block. */}
         <div className="mt-5 lg:mt-6">
           <VaultHero
             childId={selectedChild.id}
@@ -236,24 +236,25 @@ export default async function DashboardPage({
             }
             vaultId={vault.id}
             revealDate={vaultRevealDate}
-            entryCount={totalSealed}
           />
         </div>
       </section>
 
-      <section className="mx-auto max-w-[980px] px-6 lg:px-10 pt-10 lg:pt-14 pb-24">
-        <div className="flex items-end justify-between gap-4 flex-wrap mb-6">
+      <section className="mx-auto max-w-[980px] px-6 lg:px-10 pt-6 lg:pt-8 pb-24">
+        <div className="flex items-center justify-between gap-4 flex-wrap mb-6">
           <div className="text-center lg:text-left">
             <h2 className="text-xl lg:text-2xl font-bold text-navy tracking-[-0.3px]">
-              Moments you&rsquo;ve sealed
+              Moments waiting for {selectedChild.firstName}
             </h2>
             <p className="text-sm text-ink-mid mt-1">
-              A timeline of moments sealed for {selectedChild.firstName}.
+              {totalSealed === 0
+                ? `Your sealed letters and journals will appear here.`
+                : `${totalSealed.toLocaleString()} sealed so far.`}
             </p>
           </div>
-          {/* Collection-starter is a quiet secondary action now —
-              "New entry" was redundant with the editor spark at the
-              top of the page. */}
+          {/* Collection creation — the one remaining distinct
+              action since the editor spark at the top of the page
+              covers entry creation. */}
           <StartCollectionLink
             vaultId={vault.id}
             vaultRevealDate={vaultRevealDate}

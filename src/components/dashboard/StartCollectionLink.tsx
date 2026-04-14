@@ -30,9 +30,9 @@ export function StartCollectionLink({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.1em] font-bold text-amber hover:text-navy transition-colors"
+        className="inline-flex items-center gap-2 bg-amber text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
       >
-        <Library size={14} strokeWidth={1.75} aria-hidden="true" />
+        <Library size={16} strokeWidth={1.75} aria-hidden="true" />
         Start a collection
       </button>
       {open && (
