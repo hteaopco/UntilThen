@@ -304,12 +304,12 @@ html {
      directional metallic sheen can be tuned per hand. */
 }
 
-/* Hour hand — short + tapered, slightly wider at the base, sharp
-   tip. Pivot sits 15px above the base so the hand extends deeper
-   under the centre hub for a cleaner join. Soft 5-stop highlight
-   reads as edge light rather than a bright stripe. */
+/* Hour hand — longer taper into a narrow, sharp point; slightly
+   wider base for stronger anchoring. Pivot sits 15px above the
+   base so the bottom of the hand tucks under the centre hub. The
+   metallic highlight is a gentle edge light, not a bright stripe. */
 .time-vault__hand--hour {
-  width: 14px;
+  width: 16px;
   height: 81px;
   transform-origin: 50% calc(100% - 15px);
   transform: translate(-50%, -100%) rotate(-60deg);
@@ -317,54 +317,54 @@ html {
   background: linear-gradient(
     90deg,
     var(--gold-dark) 0%,
-    var(--gold-mid) 30%,
-    var(--gold-light) 48%,
-    var(--gold-mid) 66%,
+    var(--gold-mid) 35%,
+    #d4b472 52%,
+    var(--gold-mid) 70%,
     var(--gold-dark) 100%
   );
   clip-path: polygon(
     50% 0%,
-    78% 10%,
-    64% 74%,
-    58% 92%,
-    58% 100%,
-    42% 100%,
-    42% 92%,
-    36% 74%,
-    22% 10%
+    72% 24%,
+    64% 72%,
+    60% 92%,
+    60% 100%,
+    40% 100%,
+    40% 92%,
+    36% 72%,
+    28% 24%
   );
-  filter: drop-shadow(0 0 3px rgba(239, 210, 138, 0.14));
+  filter: drop-shadow(0 0 2.5px rgba(168, 139, 74, 0.16));
 }
 
-/* Minute hand — longer + slenderer with a needle tip and the same
-   softened gradient. Same 15px pivot tuck so the bases meet the
-   hub cleanly at identical depth. */
+/* Minute hand — longer, slenderer, needle-tip. Tip sits just
+   inside the tick ring (tick outer edge ≈ 110px from centre; hand
+   reach now 112px). Same gentle highlight as the hour hand. */
 .time-vault__hand--minute {
-  width: 12px;
-  height: 118px;
+  width: 14px;
+  height: 112px;
   transform-origin: 50% calc(100% - 15px);
   transform: translate(-50%, -100%) rotate(40deg);
   z-index: 7;
   background: linear-gradient(
     90deg,
     var(--gold-dark) 0%,
-    var(--gold-mid) 28%,
-    var(--gold-light) 50%,
-    var(--gold-mid) 72%,
+    var(--gold-mid) 34%,
+    #d4b472 52%,
+    var(--gold-mid) 68%,
     var(--gold-dark) 100%
   );
   clip-path: polygon(
     50% 0%,
-    72% 8%,
-    58% 82%,
-    55% 94%,
-    55% 100%,
-    45% 100%,
-    45% 94%,
-    42% 82%,
-    28% 8%
+    68% 18%,
+    60% 82%,
+    57% 94%,
+    57% 100%,
+    43% 100%,
+    43% 94%,
+    40% 82%,
+    32% 18%
   );
-  filter: drop-shadow(0 0 4px rgba(239, 210, 138, 0.16));
+  filter: drop-shadow(0 0 3px rgba(168, 139, 74, 0.18));
 }
 
 /* Second hand removed from the composition — it was fighting the
@@ -387,24 +387,26 @@ html {
   border-radius: 9999px;
   display: grid;
   place-items: center;
-  color: #d1ad63;
+  color: #b8944e;
   background: radial-gradient(
     circle at 50% 45%,
     #24407a 0%,
     #1d3569 55%,
     #162a54 100%
   );
-  border: 3px solid #d1ad63;
+  /* Desaturated, slightly darker gold ring with a much quieter
+     glow — feels anchored, not showy. */
+  border: 3px solid #a88b4a;
   box-shadow:
-    0 0 0 2px rgba(209, 173, 99, 0.18),
-    0 0 18px rgba(209, 173, 99, 0.14);
+    0 0 0 1px rgba(168, 139, 74, 0.12),
+    0 0 10px rgba(168, 139, 74, 0.08);
 }
 
 .time-vault__hub svg {
   width: 22px;
   height: 22px;
-  fill: #d1ad63;
-  stroke: #d1ad63;
+  fill: #c8a45d;
+  stroke: #c8a45d;
 }
 
 /* ── States ── */
