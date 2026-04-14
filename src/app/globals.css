@@ -304,65 +304,67 @@ html {
      directional metallic sheen can be tuned per hand. */
 }
 
-/* Hour hand — short, slimmer, tapered to a sharp tip. Left→right
-   metallic gradient gives the crisp polished feel. The pivot sits
-   8px up from the base so the bottom of the hand tucks under the
-   centre hub instead of meeting it flush. */
+/* Hour hand — short + tapered, slightly wider at the base, sharp
+   tip. Pivot sits 15px above the base so the hand extends deeper
+   under the centre hub for a cleaner join. Soft 5-stop highlight
+   reads as edge light rather than a bright stripe. */
 .time-vault__hand--hour {
-  width: 12px;
-  height: 86px;
-  transform-origin: 50% calc(100% - 8px);
-  transform: translate(-50%, -100%) rotate(-55deg);
+  width: 14px;
+  height: 81px;
+  transform-origin: 50% calc(100% - 15px);
+  transform: translate(-50%, -100%) rotate(-60deg);
   z-index: 6;
   background: linear-gradient(
     90deg,
     var(--gold-dark) 0%,
-    var(--gold-light) 42%,
-    var(--gold-mid) 62%,
+    var(--gold-mid) 30%,
+    var(--gold-light) 48%,
+    var(--gold-mid) 66%,
     var(--gold-dark) 100%
   );
   clip-path: polygon(
     50% 0%,
-    74% 10%,
-    63% 74%,
+    78% 10%,
+    64% 74%,
     58% 92%,
     58% 100%,
     42% 100%,
     42% 92%,
-    37% 74%,
-    26% 10%
+    36% 74%,
+    22% 10%
   );
-  filter: drop-shadow(0 0 3px rgba(239, 210, 138, 0.18));
+  filter: drop-shadow(0 0 3px rgba(239, 210, 138, 0.14));
 }
 
-/* Minute hand — longer, slenderer, needle-like tip. Five-stop
-   gradient gives a slightly brighter specular band mid-hand. */
+/* Minute hand — longer + slenderer with a needle tip and the same
+   softened gradient. Same 15px pivot tuck so the bases meet the
+   hub cleanly at identical depth. */
 .time-vault__hand--minute {
-  width: 10px;
-  height: 128px;
-  transform-origin: 50% calc(100% - 8px);
+  width: 12px;
+  height: 118px;
+  transform-origin: 50% calc(100% - 15px);
   transform: translate(-50%, -100%) rotate(40deg);
   z-index: 7;
   background: linear-gradient(
     90deg,
     var(--gold-dark) 0%,
-    var(--gold-light) 40%,
-    #e7c777 52%,
-    var(--gold-mid) 68%,
+    var(--gold-mid) 28%,
+    var(--gold-light) 50%,
+    var(--gold-mid) 72%,
     var(--gold-dark) 100%
   );
   clip-path: polygon(
     50% 0%,
-    68% 8%,
+    72% 8%,
     58% 82%,
     55% 94%,
     55% 100%,
     45% 100%,
     45% 94%,
     42% 82%,
-    32% 8%
+    28% 8%
   );
-  filter: drop-shadow(0 0 4px rgba(239, 210, 138, 0.2));
+  filter: drop-shadow(0 0 4px rgba(239, 210, 138, 0.16));
 }
 
 /* Second hand removed from the composition — it was fighting the
@@ -378,8 +380,8 @@ html {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 54px;
-  height: 54px;
+  width: 60px;
+  height: 60px;
   transform: translate(-50%, -50%);
   z-index: 10;
   border-radius: 9999px;
@@ -395,7 +397,7 @@ html {
   border: 3px solid #d1ad63;
   box-shadow:
     0 0 0 2px rgba(209, 173, 99, 0.18),
-    0 0 16px rgba(209, 173, 99, 0.14);
+    0 0 18px rgba(209, 173, 99, 0.14);
 }
 
 .time-vault__hub svg {
