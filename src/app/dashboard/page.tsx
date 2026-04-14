@@ -215,16 +215,16 @@ export default async function DashboardPage({
       </section>
 
       <section className="mx-auto max-w-[980px] px-6 lg:px-10 pt-10 lg:pt-14 pb-24">
-        <div className="flex items-center justify-between gap-4 flex-wrap mb-6">
-          <div>
-            <h2 className="text-xl lg:text-2xl font-bold text-navy tracking-[-0.3px]">
-              Moments you&rsquo;ve saved
-            </h2>
-            <p className="text-sm text-ink-mid mt-1">
-              A timeline of what you&rsquo;ve written for{" "}
-              {selectedChild.firstName}.
-            </p>
-          </div>
+        <div className="text-center lg:text-left mb-6">
+          <h2 className="text-xl lg:text-2xl font-bold text-navy tracking-[-0.3px]">
+            Moments you&rsquo;ve sealed
+          </h2>
+          <p className="text-sm text-ink-mid mt-1">
+            A timeline of moments sealed for {selectedChild.firstName}.
+          </p>
+        </div>
+
+        <div className="mx-auto w-full lg:max-w-[280px] mb-8">
           <NewButton
             vaultId={vault.id}
             vaultRevealDate={vaultRevealDate}
@@ -232,6 +232,7 @@ export default async function DashboardPage({
             childDateOfBirth={
               selectedChild.dateOfBirth?.toISOString() ?? null
             }
+            fullWidth
           />
         </div>
 

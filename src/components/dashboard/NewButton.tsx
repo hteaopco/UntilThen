@@ -11,11 +11,15 @@ export function NewButton({
   vaultRevealDate,
   childFirstName,
   childDateOfBirth,
+  fullWidth = false,
 }: {
   vaultId: string;
   vaultRevealDate: string | null;
   childFirstName: string;
   childDateOfBirth: string | null;
+  /** Stretch the button to fill its container (used for the
+   * centred CTA under "Moments you've sealed"). */
+  fullWidth?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [showCollectionModal, setShowCollectionModal] = useState(false);
@@ -44,13 +48,15 @@ export function NewButton({
 
   return (
     <>
-      <div ref={ref} className="relative">
+      <div ref={ref} className={`relative ${fullWidth ? "w-full" : ""}`}>
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-haspopup="menu"
           aria-expanded={open}
-          className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors inline-flex items-center gap-2"
+          className={`bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors inline-flex items-center gap-2 ${
+            fullWidth ? "w-full justify-center" : ""
+          }`}
         >
           <Plus size={16} strokeWidth={2} aria-hidden="true" />
           New
