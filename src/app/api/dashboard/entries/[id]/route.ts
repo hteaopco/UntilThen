@@ -2,6 +2,8 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { captureServerEvent } from "@/lib/posthog-server";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -56,6 +58,9 @@ export async function PATCH(
         authorId: true,
         collectionId: true,
         contributorId: true,
+        isSealed: true,
+        vaultId: true,
+        type: true,
       },
     });
     if (!entry)
@@ -113,6 +118,20 @@ export async function PATCH(
     }
 
     await prisma.entry.update({ where: { id }, data });
+
+    // Only fire entry_sealed on the transition false → true so
+    // repeated "save" PATCHes (which can include isSealed: true
+    // on an already-sealed entry) don't double-count.
+    if (body.isSealed === true && !entry.isSealed) {
+      await captureServerEvent(userId, "entry_sealed", {
+        entryId: entry.id,
+        vaultId: entry.vaultId,
+        collectionId: entry.collectionId,
+        type: entry.type,
+        source: "patch",
+      });
+    }
+
     // Drop the dashboard's server cache so the patched entry
     // shows up immediately on router.refresh().
     revalidatePath("/dashboard");

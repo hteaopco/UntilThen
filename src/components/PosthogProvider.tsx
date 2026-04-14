@@ -18,6 +18,13 @@ export function PosthogProvider({ children }: { children: React.ReactNode }) {
       capture_pageview: true,
       capture_pageleave: true,
       persistence: "localStorage+cookie",
+      // Record sessions so we can review real UX. maskAllInputs
+      // hides every <input>/<textarea> value by default — passwords,
+      // email, letter drafts, etc. — so recordings never leak
+      // sensitive content.
+      session_recording: {
+        maskAllInputs: true,
+      },
     });
   }, []);
 

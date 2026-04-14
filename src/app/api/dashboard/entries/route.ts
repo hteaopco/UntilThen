@@ -2,6 +2,8 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { EntryType } from "@prisma/client";
 
+import { captureServerEvent } from "@/lib/posthog-server";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -123,6 +125,29 @@ export async function POST(req: Request) {
         approvalStatus: "AUTO_APPROVED",
       },
     });
+
+    // entry_created fires exactly once, at create time, so
+    // auto-save PATCH updates later don't double-count. If the
+    // new entry was created already-sealed (rare — the
+    // "Seal Moment" flow typically PATCHes after creating), also
+    // fire entry_sealed so the funnel stays honest.
+    await captureServerEvent(userId, "entry_created", {
+      entryId: entry.id,
+      vaultId: vault.id,
+      collectionId,
+      type,
+      hasTitle: Boolean(entry.title),
+      hasBody: Boolean(entry.body),
+    });
+    if (isSealed) {
+      await captureServerEvent(userId, "entry_sealed", {
+        entryId: entry.id,
+        vaultId: vault.id,
+        collectionId,
+        type,
+        source: "create",
+      });
+    }
 
     return NextResponse.json({ success: true, id: entry.id });
   } catch (err) {

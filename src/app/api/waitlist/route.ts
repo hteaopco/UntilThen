@@ -120,6 +120,7 @@ export async function POST(req: Request) {
       const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
         from: "untilThen <hello@untilthenapp.io>",
+        replyTo: "support@untilthenapp.io",
         // TEMP: Resend in test mode can only deliver to the account
         // owner's email. Route all test traffic to jett@evolamco.com;
         // restore `to: email` once the domain is verified.

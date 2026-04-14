@@ -1,5 +1,10 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+
+import {
+  captureServerEvent,
+  identifyServerUser,
+} from "@/lib/posthog-server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -119,6 +124,30 @@ export async function POST(req: Request) {
         },
       });
     });
+
+    // Identify + fire the signup event in PostHog. Best-effort —
+    // we already committed the vault, so analytics failures must
+    // not flip the request to a 500. Clerk lookup is wrapped too
+    // in case the user's emails list is empty for some reason.
+    try {
+      const clerk = await clerkClient();
+      const clerkUser = await clerk.users.getUser(userId);
+      const email =
+        clerkUser.primaryEmailAddress?.emailAddress ??
+        clerkUser.emailAddresses[0]?.emailAddress ??
+        null;
+      await identifyServerUser(userId, {
+        email,
+        firstName,
+        createdAt: new Date().toISOString(),
+      });
+      await captureServerEvent(userId, "user_signed_up", {
+        firstName,
+        childFirstName,
+      });
+    } catch (err) {
+      console.error("[onboarding] posthog identify/capture:", err);
+    }
 
     return NextResponse.json({ success: true });
   } catch (err) {

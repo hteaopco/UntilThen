@@ -2,6 +2,8 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { ContributorRole } from "@prisma/client";
 
+import { captureServerEvent } from "@/lib/posthog-server";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -97,6 +99,7 @@ export async function POST(req: Request) {
           : "the reveal date";
         await resend.emails.send({
           from: "untilThen <hello@untilthenapp.io>",
+          replyTo: "support@untilthenapp.io",
           // TEMP: routed while domain is unverified.
           to: "jett@evolamco.com",
           subject: `You've been invited to write to ${child?.firstName ?? "their child"}`,
@@ -120,6 +123,13 @@ export async function POST(req: Request) {
         console.error("[invites] email error:", err);
       }
     }
+
+    await captureServerEvent(userId, "contributor_invited", {
+      contributorId: contributor.id,
+      vaultId: vault.id,
+      role,
+      requiresApproval,
+    });
 
     return NextResponse.json({ success: true, id: contributor.id });
   } catch (err) {

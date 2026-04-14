@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { captureServerEvent } from "@/lib/posthog-server";
 import { LockedVaultView } from "./LockedVaultView";
 
 export const metadata = {
@@ -73,6 +74,17 @@ export default async function ChildViewPage({
     coverEmoji: c.coverEmoji,
     entryCount: c._count.entries,
   }));
+
+  // Fire-and-forget so the page render isn't blocked on analytics.
+  // Access here is the parent viewing the child's vault — future
+  // child-account flow will surface a different viewerRole.
+  void captureServerEvent(userId, "vault_viewed", {
+    childId: child.id,
+    vaultId: child.vault.id,
+    viewerRole: "parent",
+    entryCount: entries.length,
+    collectionCount: collections.length,
+  });
 
   return (
     <main className="min-h-screen bg-[#f5f7f0]">

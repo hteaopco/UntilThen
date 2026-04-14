@@ -9,6 +9,7 @@
 
 const TEST_RECIPIENT = "jett@evolamco.com";
 const FROM = "untilThen <hello@untilthenapp.io>";
+const REPLY_TO = "support@untilthenapp.io";
 
 function escapeHtml(input: string): string {
   return input
@@ -38,6 +39,7 @@ async function send({
     const resend = new Resend(process.env.RESEND_API_KEY);
     await resend.emails.send({
       from: FROM,
+      replyTo: REPLY_TO,
       // TEMP: routing all sends to the account owner while domain is unverified.
       to: TEST_RECIPIENT,
       subject: `${subject} — for ${to}`,

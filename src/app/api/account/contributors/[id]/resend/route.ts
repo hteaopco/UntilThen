@@ -92,6 +92,7 @@ export async function POST(
       const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
         from: "untilThen <hello@untilthenapp.io>",
+        replyTo: "support@untilthenapp.io",
         // TEMP: while the untilthenapp.io domain is unverified in Resend,
         // all transactional mail routes to the account owner.
         to: "jett@evolamco.com",
