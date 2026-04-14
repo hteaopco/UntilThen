@@ -1,4 +1,4 @@
-import { Eye, Mail, Pencil } from "lucide-react";
+import { Eye, Lock, Mail, Pencil, Unlock } from "lucide-react";
 import Link from "next/link";
 
 import { DeleteEntryButton } from "@/components/dashboard/DeleteEntryButton";
@@ -77,36 +77,26 @@ export function EntryList({
             key={e.id}
             className="rounded-2xl border border-navy/[0.08] bg-white px-6 py-5 hover:border-amber/25 hover:shadow-[0_8px_24px_rgba(15,31,61,0.06)] transition-all"
           >
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-3 mb-1.5">
-                  <EntryTypeBadge type={e.type} />
-                  <span className="text-[11px] text-ink-light">
-                    Sealed {formatShort(e.createdAt)}
-                  </span>
-                </div>
-                {e.title && (
-                  <h3 className="text-[17px] font-bold text-navy tracking-[-0.2px] mb-1.5 leading-tight">
-                    {e.title}
-                  </h3>
-                )}
-                {e.body && (
-                  <p className="text-sm text-ink-mid leading-[1.6]">
-                    {preview(e.body)}
-                  </p>
-                )}
-              </div>
-              <div className="flex items-center gap-4 shrink-0">
-                <div className="text-right">
-                  <div className="text-[10px] uppercase tracking-[0.08em] font-bold text-gold">
-                    {unlocked ? "Unlocked" : "Unlocks"}
-                  </div>
-                  <div className="text-xs text-ink-mid">
-                    {unlockIso ? formatShort(unlockIso) : "Not set"}
-                  </div>
-                </div>
-              </div>
+            <div className="flex items-center gap-3 mb-2 flex-wrap">
+              <EntryTypeBadge type={e.type} />
+              <span className="text-[11px] text-ink-light">
+                Sealed {formatShort(e.createdAt)}
+              </span>
             </div>
+            {e.title && (
+              <h3 className="text-[17px] font-bold text-navy tracking-[-0.2px] mb-2 leading-tight">
+                {e.title}
+              </h3>
+            )}
+            {e.body && (
+              <p className="text-sm text-ink-mid leading-[1.6] mb-3">
+                {preview(e.body)}
+              </p>
+            )}
+            <UnlocksPill
+              unlocked={unlocked}
+              label={unlockIso ? formatShort(unlockIso) : "Not set"}
+            />
             <div className="mt-4 pt-3 border-t border-navy/[0.06] flex items-center gap-2 text-[11px] uppercase tracking-[0.06em] font-bold">
               <Link
                 href={`/dashboard/entry/${e.id}/preview`}
@@ -134,5 +124,33 @@ export function EntryList({
         );
       })}
     </ul>
+  );
+}
+
+/**
+ * Gold reveal-date pill. Same footprint as the EntryTypeBadge
+ * (px-2 py-[3px] rounded, uppercase tracking-[0.1em] 10px bold)
+ * but with a gold border + gold text on a transparent ground —
+ * reads as the "when" in the same visual language as the "what".
+ */
+function UnlocksPill({
+  unlocked,
+  label,
+}: {
+  unlocked: boolean;
+  label: string;
+}) {
+  const Icon = unlocked ? Unlock : Lock;
+  return (
+    <span
+      style={{
+        color: "#c9a84c",
+        borderColor: "rgba(201, 168, 76, 0.3)",
+      }}
+      className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.1em] px-2 py-[3px] rounded border"
+    >
+      <Icon size={11} strokeWidth={2} aria-hidden="true" />
+      {unlocked ? "Unlocked" : "Unlocks"} · {label}
+    </span>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowLeft,
   Bell,
   CreditCard,
   User,
@@ -42,15 +41,6 @@ export function AccountShell({ children }: { children: ReactNode }) {
 
   return (
     <section className="mx-auto max-w-[1020px] px-6 lg:px-10 pt-8 lg:pt-10 pb-24">
-      <Link
-        href="/dashboard"
-        prefetch={false}
-        className="inline-flex items-center gap-2 text-sm text-ink-mid hover:text-navy transition-colors mb-6"
-      >
-        <ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />
-        Back to dashboard
-      </Link>
-
       <h1 className="text-[32px] lg:text-[40px] font-extrabold text-navy tracking-[-0.8px] leading-[1.05] mb-8">
         Account
       </h1>

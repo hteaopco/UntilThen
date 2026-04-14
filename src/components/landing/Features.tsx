@@ -84,7 +84,7 @@ function FeatureBadge({
 }) {
   return (
     <span
-      className={`inline-block text-[10px] font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-md mb-3.5 ${
+      className={`inline-block text-[10px] font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-md ${
         dark ? "bg-amber/20 text-amber-light" : "bg-amber-tint text-amber"
       }`}
     >
@@ -114,14 +114,18 @@ function SimpleFeature({
           : "bg-white border-navy/[0.08] p-9 hover:border-amber/25 hover:shadow-[0_8px_24px_rgba(15,31,61,0.06)]"
       }`}
     >
-      <div
-        className={`inline-flex items-center justify-center w-12 h-12 rounded-xl mb-5 ${
-          primary ? "bg-white text-amber" : "bg-amber-tint text-amber"
-        }`}
-      >
-        <Icon size={24} strokeWidth={1.5} aria-hidden="true" />
+      {/* Icon on the left, badge pushed to the right so they're
+          not sitting on top of each other. */}
+      <div className="flex items-center justify-between gap-3 mb-5">
+        <div
+          className={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${
+            primary ? "bg-white text-amber" : "bg-amber-tint text-amber"
+          }`}
+        >
+          <Icon size={24} strokeWidth={1.5} aria-hidden="true" />
+        </div>
+        <FeatureBadge>{badge}</FeatureBadge>
       </div>
-      <FeatureBadge>{badge}</FeatureBadge>
       <h3
         className={`font-bold text-navy mb-2.5 tracking-[-0.3px] leading-[1.2] ${
           primary ? "text-[21px]" : "text-[19px]"
@@ -148,7 +152,9 @@ export function Features() {
             }}
           >
             <div>
-              <FeatureBadge dark>Writing Experience</FeatureBadge>
+              <div className="mb-3.5">
+                <FeatureBadge dark>Writing Experience</FeatureBadge>
+              </div>
               <h3 className="text-[19px] font-bold text-white mb-2.5 tracking-[-0.3px] leading-[1.2]">
                 A letter editor built for emotion, not productivity.
               </h3>
