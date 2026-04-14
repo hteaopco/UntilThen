@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { CollectionCover } from "@/components/collections/CollectionCover";
 import { EntryTypeBadge } from "@/components/ui/EntryTypeBadge";
 import { TimeVault, type TimeVaultState } from "@/components/ui/TimeVault";
 import {
@@ -202,9 +203,14 @@ export function PreviewClient({
                     <div className="flex items-start gap-5">
                       <div
                         aria-hidden="true"
-                        className="shrink-0 w-14 h-14 rounded-xl bg-gold-tint flex items-center justify-center text-3xl"
+                        className="shrink-0 w-14 h-14 rounded-xl bg-gold-tint flex items-center justify-center"
                       >
-                        {c.coverEmoji ?? "📖"}
+                        <CollectionCover
+                          title={c.title}
+                          coverEmoji={c.coverEmoji}
+                          size="lg"
+                          tone="gold"
+                        />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-[10px] uppercase tracking-[0.14em] font-bold text-amber mb-1">
@@ -326,9 +332,14 @@ function CollectionReader({
       <section className="relative mx-auto max-w-[720px] px-6 pt-10 lg:pt-14 text-center">
         <div
           aria-hidden="true"
-          className="mx-auto w-16 h-16 rounded-2xl bg-gold-tint flex items-center justify-center text-4xl mb-4"
+          className="mx-auto w-16 h-16 rounded-2xl bg-gold-tint flex items-center justify-center mb-4"
         >
-          {collection.coverEmoji ?? "📖"}
+          <CollectionCover
+            title={collection.title}
+            coverEmoji={collection.coverEmoji}
+            size="lg"
+            tone="gold"
+          />
         </div>
         <p className="text-[11px] uppercase tracking-[0.14em] text-gold font-bold mb-2">
           Journal · {collection.entries.length.toLocaleString()}{" "}

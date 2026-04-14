@@ -9,9 +9,13 @@ import { CreateCollectionModal } from "@/components/dashboard/CreateCollectionMo
 export function NewButton({
   vaultId,
   vaultRevealDate,
+  childFirstName,
+  childDateOfBirth,
 }: {
   vaultId: string;
   vaultRevealDate: string | null;
+  childFirstName: string;
+  childDateOfBirth: string | null;
 }) {
   const [open, setOpen] = useState(false);
   const [showCollectionModal, setShowCollectionModal] = useState(false);
@@ -99,6 +103,8 @@ export function NewButton({
         <CreateCollectionModal
           vaultId={vaultId}
           vaultRevealDate={vaultRevealDate}
+          childFirstName={childFirstName}
+          childDateOfBirth={childDateOfBirth}
           onClose={() => setShowCollectionModal(false)}
         />
       )}

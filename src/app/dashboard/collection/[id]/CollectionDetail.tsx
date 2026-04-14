@@ -20,6 +20,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { CollectionCover } from "@/components/collections/CollectionCover";
 import { EntryTypeBadge } from "@/components/ui/EntryTypeBadge";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 
@@ -178,9 +179,14 @@ export function CollectionDetail({
         <div className="flex items-start gap-5">
           <div
             aria-hidden="true"
-            className="shrink-0 w-16 h-16 rounded-2xl bg-gold-tint flex items-center justify-center text-4xl"
+            className="shrink-0 w-16 h-16 rounded-2xl bg-gold-tint flex items-center justify-center"
           >
-            {coverEmoji ?? "📖"}
+            <CollectionCover
+              title={title}
+              coverEmoji={coverEmoji}
+              size="lg"
+              tone="gold"
+            />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { CollectionCover } from "@/components/collections/CollectionCover";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import {
   MediaAttachments,
@@ -234,8 +235,12 @@ export function NewEntryForm({
           {selectedCollection && (
             <>
               {" · "}
-              <span className="text-navy">
-                {selectedCollection.coverEmoji ?? "📖"}{" "}
+              <span className="inline-flex items-center gap-1.5 text-navy align-middle">
+                <CollectionCover
+                  title={selectedCollection.title}
+                  coverEmoji={selectedCollection.coverEmoji}
+                  size="sm"
+                />
                 {selectedCollection.title}
               </span>
             </>
@@ -301,7 +306,7 @@ export function NewEntryForm({
                 <option value="">None — standalone entry</option>
                 {collections.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.coverEmoji ?? "📖"} {c.title}
+                    {c.title}
                   </option>
                 ))}
               </select>

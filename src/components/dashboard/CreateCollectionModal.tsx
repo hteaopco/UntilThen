@@ -4,22 +4,48 @@ import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
-const EMOJI_PRESETS = ["📖", "⚽", "💙", "🎵", "🌟", "✈️", "🎨", "📷"];
+import { inferCollectionIcon } from "@/components/collections/CollectionCover";
+
+function yyyymmdd(d: Date): string {
+  return d.toISOString().split("T")[0] ?? "";
+}
+
+function addMonths(date: Date, months: number): Date {
+  const r = new Date(date);
+  r.setMonth(r.getMonth() + months);
+  return r;
+}
+
+function ordinalSuffix(n: number): string {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return s[(v - 20) % 10] ?? s[v] ?? s[0] ?? "th";
+}
+
+function formatLong(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 export function CreateCollectionModal({
   vaultId,
   vaultRevealDate,
+  childFirstName,
+  childDateOfBirth,
   onClose,
 }: {
   vaultId: string;
   vaultRevealDate: string | null;
+  childFirstName: string;
+  childDateOfBirth: string | null;
   onClose: () => void;
 }) {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [emoji, setEmoji] = useState<string>(EMOJI_PRESETS[0]!);
-  const [customEmoji, setCustomEmoji] = useState("");
   const [dateMode, setDateMode] = useState<"vault" | "custom">("vault");
   const [customDate, setCustomDate] = useState("");
   const [saving, setSaving] = useState(false);
@@ -30,11 +56,39 @@ export function CreateCollectionModal({
     firstFieldRef.current?.focus();
   }, []);
 
-  const effectiveEmoji = customEmoji.trim() || emoji;
+  // Preview icon as the parent types. "new memories" is a safe
+  // placeholder seed so an empty title still shows a neutral book.
+  const PreviewIcon = inferCollectionIcon(title || "new memories");
+
+  const minDate = yyyymmdd(new Date(Date.now() + 24 * 60 * 60 * 1000));
+  const today = new Date();
+
+  const quickPicks: { label: string; iso: string }[] = [
+    { label: "3 months", iso: yyyymmdd(addMonths(today, 3)) },
+    { label: "6 months", iso: yyyymmdd(addMonths(today, 6)) },
+    { label: "1 year", iso: yyyymmdd(addMonths(today, 12)) },
+  ];
+  if (childDateOfBirth) {
+    const dob = new Date(childDateOfBirth);
+    for (const age of [3, 6, 12, 18]) {
+      const birthday = new Date(dob);
+      birthday.setFullYear(birthday.getFullYear() + age);
+      if (birthday.getTime() > today.getTime()) {
+        quickPicks.push({
+          label: `${childFirstName}'s ${age}${ordinalSuffix(age)}`,
+          iso: yyyymmdd(birthday),
+        });
+      }
+    }
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!title.trim()) return;
+    if (dateMode === "custom" && !customDate) {
+      setError("Pick a date or switch back to the vault default.");
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -45,7 +99,9 @@ export function CreateCollectionModal({
           vaultId,
           title: title.trim(),
           description: description.trim() || null,
-          coverEmoji: effectiveEmoji || null,
+          // Icons are now inferred from the title on display.
+          // Leave coverEmoji null for new collections.
+          coverEmoji: null,
           revealDate: dateMode === "custom" ? customDate || null : null,
         }),
       });
@@ -97,35 +153,24 @@ export function CreateCollectionModal({
         </div>
 
         <div className="px-7 py-6 space-y-5">
-          <div>
-            <Label>Choose an emoji</Label>
-            <div className="flex flex-wrap items-center gap-2">
-              {EMOJI_PRESETS.map((e) => (
-                <button
-                  key={e}
-                  type="button"
-                  onClick={() => {
-                    setEmoji(e);
-                    setCustomEmoji("");
-                  }}
-                  className={`w-10 h-10 rounded-lg border-2 flex items-center justify-center text-xl transition-all ${
-                    !customEmoji && emoji === e
-                      ? "border-navy bg-amber-tint"
-                      : "border-navy/10 hover:border-navy/30"
-                  }`}
-                  aria-label={`Use ${e}`}
-                >
-                  {e}
-                </button>
-              ))}
-              <input
-                type="text"
-                value={customEmoji}
-                onChange={(e) => setCustomEmoji(e.target.value)}
-                placeholder="or type"
-                maxLength={8}
-                className="w-24 px-3 py-2 border border-navy/15 rounded-lg text-sm text-navy outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+          {/* Live-preview cover — the icon updates automatically as
+              the title is typed. No emoji picker required. */}
+          <div className="flex items-center gap-3 rounded-xl bg-warm-surface px-4 py-3">
+            <div className="shrink-0 w-12 h-12 rounded-xl bg-white border border-amber/20 flex items-center justify-center">
+              <PreviewIcon
+                size={22}
+                strokeWidth={1.5}
+                className="text-amber"
+                aria-hidden="true"
               />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] uppercase tracking-[0.14em] font-bold text-ink-mid">
+                Cover
+              </div>
+              <div className="text-sm text-ink-mid italic">
+                Updates automatically from your title.
+              </div>
             </div>
           </div>
 
@@ -139,7 +184,7 @@ export function CreateCollectionModal({
               placeholder="Early Years Journal"
               disabled={saving}
               required
-              className="w-full px-4 py-2.5 text-sm text-navy bg-white border border-navy/15 rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 disabled:opacity-50"
+              className="account-input"
             />
           </div>
 
@@ -151,13 +196,13 @@ export function CreateCollectionModal({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Random notes from the early years"
               disabled={saving}
-              className="w-full px-4 py-2.5 text-sm text-navy bg-white border border-navy/15 rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 disabled:opacity-50"
+              className="account-input"
             />
           </div>
 
           <div>
             <Label>Unlock date</Label>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <label className="flex items-start gap-2 text-sm text-ink-mid cursor-pointer">
                 <input
                   type="radio"
@@ -165,50 +210,80 @@ export function CreateCollectionModal({
                   value="vault"
                   checked={dateMode === "vault"}
                   onChange={() => setDateMode("vault")}
-                  className="mt-1 accent-navy"
+                  className="mt-1 accent-amber"
                 />
                 <span>
                   <span className="font-medium text-navy">
                     Vault date
                     {vaultRevealDate
-                      ? ` — ${new Date(vaultRevealDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
+                      ? ` — ${formatLong(vaultRevealDate)}`
                       : ""}
                   </span>
                   <span className="text-ink-light italic ml-1">(default)</span>
                 </span>
               </label>
-              <label className="flex items-center gap-2 text-sm text-ink-mid cursor-pointer">
+              <label className="flex items-start gap-2 text-sm text-ink-mid cursor-pointer">
                 <input
                   type="radio"
                   name="dateMode"
                   value="custom"
                   checked={dateMode === "custom"}
                   onChange={() => setDateMode("custom")}
-                  className="accent-navy"
+                  className="mt-1 accent-amber"
                 />
                 <span className="font-medium text-navy">
                   Choose a different date
                 </span>
               </label>
+
               {dateMode === "custom" && (
-                <input
-                  type={customDate ? "date" : "text"}
-                  placeholder="Select date"
-                  value={customDate}
-                  onChange={(e) => setCustomDate(e.target.value)}
-                  onFocus={(e) => {
-                    e.currentTarget.type = "date";
-                  }}
-                  onBlur={(e) => {
-                    if (!e.currentTarget.value) {
-                      e.currentTarget.type = "text";
-                    }
-                  }}
-                  min={new Date(Date.now() + 24 * 60 * 60 * 1000)
-                    .toISOString()
-                    .split("T")[0]}
-                  className="ml-6 px-3 py-2 border border-navy/15 rounded-lg text-sm text-navy outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 placeholder-ink-light"
-                />
+                <div className="ml-6 space-y-3">
+                  {/* Quick-pick chips for common unlock windows.
+                      Tapping one fills the date input below. */}
+                  <div className="flex flex-wrap gap-2">
+                    {quickPicks.map((q) => {
+                      const active = customDate === q.iso;
+                      return (
+                        <button
+                          key={q.label}
+                          type="button"
+                          onClick={() => setCustomDate(q.iso)}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-bold uppercase tracking-[0.06em] transition-colors ${
+                            active
+                              ? "bg-amber text-white border-amber"
+                              : "bg-white border-navy/15 text-ink-mid hover:border-navy hover:text-navy"
+                          }`}
+                        >
+                          {q.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div>
+                    <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-light mb-1.5">
+                      Or pick your own
+                    </div>
+                    <input
+                      type="date"
+                      value={customDate}
+                      onChange={(e) => setCustomDate(e.target.value)}
+                      min={minDate}
+                      disabled={saving}
+                      style={{
+                        WebkitAppearance: "none",
+                        appearance: "none",
+                        boxSizing: "border-box",
+                      }}
+                      className="block w-full min-h-[48px] px-4 py-3 text-[15px] text-navy bg-white border-[1.5px] border-navy/[0.12] rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 placeholder-ink-light disabled:opacity-50"
+                    />
+                    {customDate && (
+                      <p className="mt-2 text-xs italic text-ink-light">
+                        Unlocks {formatLong(customDate)}
+                      </p>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -231,7 +306,7 @@ export function CreateCollectionModal({
           <button
             type="submit"
             disabled={!title.trim() || saving}
-            className="bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
+            className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
           >
             {saving ? "Creating…" : "Create Collection →"}
           </button>

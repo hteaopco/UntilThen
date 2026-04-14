@@ -222,7 +222,14 @@ export default async function DashboardPage({
               {selectedChild.firstName}.
             </p>
           </div>
-          <NewButton vaultId={vault.id} vaultRevealDate={vaultRevealDate} />
+          <NewButton
+            vaultId={vault.id}
+            vaultRevealDate={vaultRevealDate}
+            childFirstName={selectedChild.firstName}
+            childDateOfBirth={
+              selectedChild.dateOfBirth?.toISOString() ?? null
+            }
+          />
         </div>
 
         <CollectionsSection

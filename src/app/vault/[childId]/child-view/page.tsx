@@ -69,6 +69,7 @@ export default async function ChildViewPage({
   }));
   const collections = child.vault.collections.map((c) => ({
     id: c.id,
+    title: c.title,
     coverEmoji: c.coverEmoji,
     entryCount: c._count.entries,
   }));

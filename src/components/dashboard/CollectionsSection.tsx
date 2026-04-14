@@ -1,6 +1,8 @@
 import { Lock, PlusCircle } from "lucide-react";
 import Link from "next/link";
 
+import { CollectionCover } from "@/components/collections/CollectionCover";
+
 export type CollectionRow = {
   id: string;
   title: string;
@@ -64,9 +66,14 @@ function CollectionCard({
       <div className="flex items-start gap-4">
         <div
           aria-hidden="true"
-          className="shrink-0 w-12 h-12 rounded-xl bg-gold-tint flex items-center justify-center text-2xl"
+          className="shrink-0 w-12 h-12 rounded-xl bg-gold-tint flex items-center justify-center"
         >
-          {collection.coverEmoji ?? "📖"}
+          <CollectionCover
+            title={collection.title}
+            coverEmoji={collection.coverEmoji}
+            size="md"
+            tone="gold"
+          />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">

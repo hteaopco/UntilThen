@@ -3,6 +3,7 @@
 import { Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { CollectionCover } from "@/components/collections/CollectionCover";
 import { EntryTypeBadge } from "@/components/ui/EntryTypeBadge";
 import { TimeVault } from "@/components/ui/TimeVault";
 
@@ -14,6 +15,7 @@ type LockedEntry = {
 
 type LockedCollection = {
   id: string;
+  title: string;
   coverEmoji: string | null;
   entryCount: number;
 };
@@ -135,8 +137,13 @@ export function LockedVaultView({
               key={c.id}
               className="flex items-center gap-3 bg-white rounded-xl border border-navy/[0.06] px-5 py-4"
             >
-              <span aria-hidden="true" className="text-xl">
-                {c.coverEmoji ?? "📖"}
+              <span aria-hidden="true" className="inline-flex">
+                <CollectionCover
+                  title={c.title}
+                  coverEmoji={c.coverEmoji}
+                  size="md"
+                  tone="gold"
+                />
               </span>
               <span className="flex-1 text-[15px] text-navy font-medium">
                 A journal sealed for you
