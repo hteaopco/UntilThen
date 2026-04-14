@@ -15,21 +15,41 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
+// Site origin used for absolute metadata + OG image URLs. Falls back
+// to the production domain so previews keep working locally / in
+// staging unless a different origin is explicitly provided.
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://untilthenapp.io";
+
+const DEFAULT_TITLE =
+  "untilThen — Moments from the past, opened in the future.";
+const DEFAULT_DESCRIPTION =
+  "Write letters, record voice notes, and seal memories in a vault your child opens when they're ready.";
+
 export const metadata: Metadata = {
-  title: "untilThen — Moments from the past, opened in the future",
-  description:
-    "A time capsule diary for parents. Write moments, record voice notes, and seal memories your child unlocks when they're ready.",
+  metadataBase: new URL(SITE_URL),
+  title: DEFAULT_TITLE,
+  description: DEFAULT_DESCRIPTION,
   openGraph: {
-    title: "untilThen — Moments from the past, opened in the future",
-    description:
-      "A time capsule diary for parents. Write moments, record voice notes, and seal memories your child unlocks when they're ready.",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    url: SITE_URL,
+    siteName: "untilThen",
     type: "website",
+    images: [
+      {
+        url: "/api/og",
+        width: 1200,
+        height: 630,
+        alt: "untilThen — Moments from the past, opened in the future.",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "untilThen — Moments from the past, opened in the future",
-    description:
-      "A time capsule diary for parents. Write moments, record voice notes, and seal memories your child unlocks when they're ready.",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: ["/api/og"],
   },
   other: {
     "supported-color-schemes": "light",
