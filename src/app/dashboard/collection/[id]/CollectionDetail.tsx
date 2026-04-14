@@ -15,7 +15,14 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ArrowLeft, GripVertical, Lock, PlusCircle } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  GripVertical,
+  Lock,
+  PlusCircle,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -81,6 +88,7 @@ export function CollectionDetail({
   const router = useRouter();
   const [entries, setEntries] = useState<CollectionEntryRow[]>(initialEntries);
   const [savingOrder, setSavingOrder] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -119,19 +127,14 @@ export function CollectionDetail({
     }
   }
 
-  async function handleDelete() {
-    if (
-      !window.confirm(
-        `Delete the "${title}" collection?\n\nThe memories inside will become standalone entries (not deleted). Can't be undone.`,
-      )
-    ) {
-      return;
-    }
+  async function handleDelete(deleteEntries: boolean) {
     setDeleting(true);
     setError(null);
     try {
       const res = await fetch(`/api/collections/${collectionId}`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deleteEntries }),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -142,6 +145,7 @@ export function CollectionDetail({
     } catch (err) {
       setError((err as Error).message);
       setDeleting(false);
+      setDeleteOpen(false);
     }
   }
 
@@ -291,14 +295,164 @@ export function CollectionDetail({
       <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-12 pb-20 text-center opacity-60">
         <button
           type="button"
-          onClick={handleDelete}
+          onClick={() => setDeleteOpen(true)}
           disabled={deleting}
           className="text-[10px] uppercase tracking-[0.12em] text-ink-light hover:text-red-600 transition-colors underline underline-offset-[3px] disabled:opacity-50"
         >
           {deleting ? "Deleting…" : "Delete collection"}
         </button>
       </section>
+
+      {deleteOpen && (
+        <DeleteCollectionModal
+          title={title}
+          memoryCount={entries.length}
+          deleting={deleting}
+          onCancel={() => {
+            if (!deleting) setDeleteOpen(false);
+          }}
+          onConfirm={handleDelete}
+        />
+      )}
     </main>
+  );
+}
+
+function DeleteCollectionModal({
+  title,
+  memoryCount,
+  deleting,
+  onCancel,
+  onConfirm,
+}: {
+  title: string;
+  memoryCount: number;
+  deleting: boolean;
+  onCancel: () => void;
+  onConfirm: (deleteEntries: boolean) => void;
+}) {
+  const hasMemories = memoryCount > 0;
+  const memoryWord = memoryCount === 1 ? "memory" : "memories";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/40 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Delete ${title}`}
+      onClick={onCancel}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-2xl shadow-[0_24px_48px_-8px_rgba(15,31,61,0.4)] w-full max-w-[480px]"
+      >
+        <div className="px-7 py-5 border-b border-navy/[0.08] flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div
+              aria-hidden="true"
+              className="shrink-0 w-9 h-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center"
+            >
+              <AlertTriangle size={18} strokeWidth={1.75} />
+            </div>
+            <div>
+              <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px]">
+                Delete &ldquo;{title}&rdquo;?
+              </h2>
+              <p className="mt-1 text-sm text-ink-mid leading-[1.5]">
+                {hasMemories
+                  ? `This collection holds ${memoryCount.toLocaleString()} ${memoryWord}. Choose what happens to them.`
+                  : "This collection is empty, so nothing inside will be lost."}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={deleting}
+            className="text-ink-mid hover:text-navy transition-colors disabled:opacity-50"
+            aria-label="Close"
+          >
+            <X size={20} strokeWidth={1.75} aria-hidden="true" />
+          </button>
+        </div>
+
+        {hasMemories ? (
+          <div className="p-3 space-y-1">
+            {/* Safer option first — keeps the writing the parent
+                has done, just unlinks it from this collection. */}
+            <button
+              type="button"
+              onClick={() => onConfirm(false)}
+              disabled={deleting}
+              className="group flex items-start gap-3 w-full text-left rounded-xl px-4 py-3.5 hover:bg-amber-tint/60 focus:bg-amber-tint/60 focus:outline-none transition-colors disabled:opacity-50"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="text-[15px] font-bold text-navy">
+                  Delete the collection only
+                </div>
+                <div className="text-xs text-ink-mid mt-0.5">
+                  Keep the {memoryWord}. They&rsquo;ll move into the main
+                  vault as standalone memories.
+                </div>
+              </div>
+              <span
+                aria-hidden="true"
+                className="text-amber opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity text-lg"
+              >
+                →
+              </span>
+            </button>
+
+            {/* Destructive — deletes everything inside. */}
+            <button
+              type="button"
+              onClick={() => onConfirm(true)}
+              disabled={deleting}
+              className="group flex items-start gap-3 w-full text-left rounded-xl px-4 py-3.5 hover:bg-red-50 focus:bg-red-50 focus:outline-none transition-colors disabled:opacity-50"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="text-[15px] font-bold text-red-700">
+                  Delete everything
+                </div>
+                <div className="text-xs text-red-700/75 mt-0.5">
+                  Permanently delete the collection and all{" "}
+                  {memoryCount.toLocaleString()} {memoryWord} inside. Can&rsquo;t
+                  be undone.
+                </div>
+              </div>
+              <span
+                aria-hidden="true"
+                className="text-red-600 opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity text-lg"
+              >
+                →
+              </span>
+            </button>
+          </div>
+        ) : (
+          <div className="p-3">
+            <button
+              type="button"
+              onClick={() => onConfirm(false)}
+              disabled={deleting}
+              className="w-full inline-flex items-center justify-center gap-2 bg-red-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-50"
+            >
+              {deleting ? "Deleting…" : "Delete collection"}
+            </button>
+          </div>
+        )}
+
+        <div className="px-7 py-4 border-t border-navy/[0.08] flex items-center justify-end">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={deleting}
+            className="text-sm font-semibold text-ink-mid hover:text-navy transition-colors px-3 py-2 disabled:opacity-50"
+          >
+            {deleting ? "Working…" : "Cancel"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

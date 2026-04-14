@@ -99,10 +99,20 @@ export function MediaAttachments({
   entryId,
   initial,
   ensureEntry,
+  canAttach,
 }: {
   entryId: string | null;
   initial: Attachment[];
   ensureEntry: () => Promise<string | null>;
+  /**
+   * Whether the parent letter has enough content to anchor an
+   * attachment yet. Drafts can't be created with attachments
+   * alone — without a title or body, ensureEntry() returns null
+   * and the upload would fail anyway. We surface that as a
+   * proactive prompt + disabled buttons instead of letting the
+   * parent click and bounce off an error.
+   */
+  canAttach: boolean;
 }) {
   const [attachments, setAttachments] = useState<Attachment[]>(initial);
   const [uploading, setUploading] = useState(false);
@@ -110,8 +120,16 @@ export function MediaAttachments({
 
   const [recorderOpen, setRecorderOpen] = useState(false);
 
+  // Block all attachment paths when the letter has no content.
+  // Existing entries already have content baked in (otherwise
+  // they wouldn't have an entryId), so this only gates new
+  // drafts on the first attachment attempt.
+  const locked = !canAttach;
+  const buttonsDisabled = uploading || locked;
+
   async function handleFiles(kind: Attachment["kind"], files: FileList | null) {
     if (!files || files.length === 0) return;
+    if (locked) return;
     setError(null);
 
     // Make sure there's an entry to attach to.
@@ -144,6 +162,7 @@ export function MediaAttachments({
 
   async function handleRecordedBlob(blob: Blob, durationSec: number) {
     setRecorderOpen(false);
+    if (locked) return;
     setError(null);
     const id = entryId ?? (await ensureEntry());
     if (!id) {
@@ -200,6 +219,19 @@ export function MediaAttachments({
         Attachments{attachments.length > 0 && ` · ${attachments.length}`}
       </label>
 
+      {/* Pre-upload prompt — shown when the parent letter is still
+          empty. Blocks the click rather than letting them open the
+          recorder, fail to save, then bounce off an error. */}
+      {locked && (
+        <div className="mb-3 rounded-xl border border-amber/30 bg-amber-tint/60 px-4 py-3 text-sm text-navy">
+          <span className="font-semibold">Write a few words first.</span>{" "}
+          <span className="text-ink-mid">
+            Add a title or start the letter, then attach voice notes, photos,
+            or video.
+          </span>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <FilePickerButton
           icon={<Camera size={16} strokeWidth={1.5} aria-hidden="true" />}
@@ -207,13 +239,15 @@ export function MediaAttachments({
           accept="image/*"
           multiple
           onChange={(files) => handleFiles("photo", files)}
-          disabled={uploading}
+          disabled={buttonsDisabled}
         />
         <button
           type="button"
           onClick={() => setRecorderOpen(true)}
-          disabled={uploading}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-navy/15 text-sm font-semibold text-navy bg-white hover:border-navy transition-colors disabled:opacity-50"
+          disabled={buttonsDisabled}
+          aria-disabled={buttonsDisabled}
+          title={locked ? "Write a few words first" : undefined}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-navy/15 text-sm font-semibold text-navy bg-white hover:border-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Mic size={16} strokeWidth={1.5} aria-hidden="true" />
           Record voice
@@ -223,14 +257,14 @@ export function MediaAttachments({
           label="Voice file"
           accept="audio/*"
           onChange={(files) => handleFiles("voice", files)}
-          disabled={uploading}
+          disabled={buttonsDisabled}
         />
         <FilePickerButton
           icon={<Video size={16} strokeWidth={1.5} aria-hidden="true" />}
           label="Add video"
           accept="video/*"
           onChange={(files) => handleFiles("video", files)}
-          disabled={uploading}
+          disabled={buttonsDisabled}
         />
       </div>
       <p className="text-xs italic text-ink-light mb-4">
@@ -333,7 +367,8 @@ function FilePickerButton({
         type="button"
         onClick={() => ref.current?.click()}
         disabled={disabled}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-navy/15 text-sm font-semibold text-navy bg-white hover:border-navy transition-colors disabled:opacity-50"
+        aria-disabled={disabled}
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-navy/15 text-sm font-semibold text-navy bg-white hover:border-navy transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {icon}
         {label}

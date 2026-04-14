@@ -112,7 +112,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const { userId } = auth();
@@ -128,6 +128,24 @@ export async function DELETE(
   const { id } = await ctx.params;
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
+  // Two delete modes:
+  //   { deleteEntries: false } (default) — detach the entries so
+  //     they survive as standalone memories in the vault, then
+  //     drop the collection.
+  //   { deleteEntries: true }            — delete the collection
+  //     and every memory inside in one transaction.
+  // Body is optional so a plain `DELETE` still works (defaults to
+  // detach), matching the previous behaviour.
+  let deleteEntries = false;
+  try {
+    const body = (await req.json().catch(() => null)) as
+      | { deleteEntries?: unknown }
+      | null;
+    if (body && body.deleteEntries === true) deleteEntries = true;
+  } catch {
+    /* no body — keep default */
+  }
+
   const owned = await findOwnedCollection(userId, id);
   if (owned.error === 404 || !owned.collection) {
     return NextResponse.json({ error: "Not found." }, { status: 404 });
@@ -138,16 +156,27 @@ export async function DELETE(
 
   try {
     const { prisma } = await import("@/lib/prisma");
-    // Detach entries (keep them as standalone) before deleting the
-    // collection so we don't violate the FK. `ON DELETE SET NULL`
-    // handles this at the DB level too, but being explicit is clearer.
-    await prisma.$transaction([
-      prisma.entry.updateMany({
-        where: { collectionId: id },
-        data: { collectionId: null, orderIndex: null },
-      }),
-      prisma.collection.delete({ where: { id } }),
-    ]);
+    if (deleteEntries) {
+      // Hard delete every memory inside the collection, then the
+      // collection itself. Single transaction so a failure mid-way
+      // doesn't leave orphaned entries pointing at a missing FK.
+      await prisma.$transaction([
+        prisma.entry.deleteMany({ where: { collectionId: id } }),
+        prisma.collection.delete({ where: { id } }),
+      ]);
+    } else {
+      // Detach entries (keep them as standalone) before deleting
+      // the collection so we don't violate the FK. `ON DELETE SET
+      // NULL` handles this at the DB level too, but being explicit
+      // is clearer.
+      await prisma.$transaction([
+        prisma.entry.updateMany({
+          where: { collectionId: id },
+          data: { collectionId: null, orderIndex: null },
+        }),
+        prisma.collection.delete({ where: { id } }),
+      ]);
+    }
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[collections DELETE] error:", err);

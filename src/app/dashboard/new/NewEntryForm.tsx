@@ -274,12 +274,23 @@ export function NewEntryForm({
           />
         </div>
 
-        {/* Attachments card */}
+        {/* Attachments card. canAttach mirrors the same content
+            check ensureEntry uses internally — empty draft +
+            empty title means there's nothing to anchor the
+            attachment to, so we surface that as a prompt rather
+            than a silent failure on click. Reads live state (not
+            stateRef) so the prompt updates the moment the parent
+            types the first character. */}
         <div className="mt-6 rounded-2xl bg-white border border-navy/[0.08] px-7 py-6">
           <MediaAttachments
             entryId={entryId}
             initial={initialEntry?.attachments ?? []}
             ensureEntry={save}
+            canAttach={
+              Boolean(entryId) ||
+              Boolean(title.trim()) ||
+              body.replace(/<[^>]*>/g, "").trim().length > 0
+            }
           />
         </div>
 
