@@ -488,13 +488,17 @@ html {
 }
 
 /* Shared account-section input style. Same visual rhythm as the
-   onboarding form so the whole app reads as one family. */
+   onboarding form so the whole app reads as one family.
+
+   Note: font-size MUST be >= 16px. Anything smaller triggers
+   iOS Safari's auto-zoom on focus, which makes modal forms feel
+   broken (the page jumps in and the user has to pinch back out). */
 .account-input {
   display: block;
   width: 100%;
   box-sizing: border-box;
   padding: 11px 14px;
-  font-size: 15px;
+  font-size: 16px;
   color: #0f1f3d;
   background-color: #ffffff;
   border: 1.5px solid rgba(15, 31, 61, 0.12);
@@ -508,6 +512,18 @@ html {
 }
 .account-input:disabled {
   opacity: 0.55;
+}
+
+/* iOS Safari zoom-on-focus safety net. On touch devices, force
+   every form control to at least 16px computed font-size so
+   tapping one never pinch-zooms the viewport. Desktop keeps
+   whatever size the component specifies. */
+@media (hover: none) and (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }
 
 /* Blog post body — prose styles for rendered MDX. Narrow column,

@@ -65,7 +65,7 @@ export function VaultHero({
             intrinsic min-width past the grid column and poking out
             the right side of the card. */}
         <div className="text-center lg:text-left min-w-0">
-          <h2 className="text-[24px] lg:text-[30px] font-extrabold text-navy leading-[1.1] tracking-[-0.5px] mb-4">
+          <h2 className="text-balance text-[24px] lg:text-[30px] font-extrabold text-navy leading-[1.1] tracking-[-0.5px] mb-4">
             {childFirstName} will open this one day.
           </h2>
 
