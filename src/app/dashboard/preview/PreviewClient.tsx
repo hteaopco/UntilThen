@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { EntryTypeBadge } from "@/components/ui/EntryTypeBadge";
-import { TimeVault, type TimeVaultState } from "@/components/ui/TimeVault";
+import { TimeVault } from "@/components/ui/TimeVault";
 import {
   MediaDisplay,
   type MediaItem,
@@ -60,21 +60,15 @@ export function PreviewClient({
   standaloneEntries: PreviewEntry[];
   collections: PreviewCollection[];
 }) {
-  const [state, setState] = useState<TimeVaultState>("sealed");
   const [revealed, setRevealed] = useState(false);
   const [openCollection, setOpenCollection] = useState<string | null>(null);
 
-  // Reveal-day preview sequence: sealed → unlocking → open, then the
-  // entries fade in once the 1.8s unlock animation has fully landed.
+  // Reveal-day preview: the vault illustration stays static (it's a
+  // fixed image, not a CSS clock any more). We simply fade the
+  // entries in after a short delay so the moment still lands.
   useEffect(() => {
-    const t1 = setTimeout(() => setState("unlocking"), 700);
-    const t2 = setTimeout(() => setState("open"), 2500);
-    const t3 = setTimeout(() => setRevealed(true), 3200);
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-    };
+    const t = setTimeout(() => setRevealed(true), 1200);
+    return () => clearTimeout(t);
   }, []);
 
   const totalEntries =
@@ -143,10 +137,7 @@ export function PreviewClient({
           </section>
 
           <section className="relative flex justify-center my-10 lg:my-14">
-            <TimeVault
-              state={state}
-              ariaLabel={`${childFirstName}'s time vault`}
-            />
+            <TimeVault ariaLabel={`${childFirstName}'s time vault`} />
           </section>
 
           <section

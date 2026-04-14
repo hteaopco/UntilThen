@@ -1,71 +1,49 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import Image from "next/image";
 
 export type TimeVaultState = "sealed" | "unlocking" | "open";
 
 /**
- * Time Vault — the keepsake clock illustration that anchors the
- * parent dashboard, the child countdown view, and the reveal-day
- * preview. Renders purely with HTML + CSS (see globals.css for the
- * `.time-vault*` rules and keyframes) so it scales cleanly and
- * respects `prefers-reduced-motion`.
+ * Time Vault — a static illustration wrapped in a subtle breathing
+ * animation and a warm ambient bloom. The clock face itself is the
+ * imported image (/public/time-vault.png); no CSS clock elements
+ * (bezel, hands, ticks, hub) are rendered here — the image is final.
  *
- * The three states drive CSS animations via `data-state`:
- * - `sealed`    — gentle 6s breathing; idle state
- * - `unlocking` — 1.8s spin + press + glow rise
- * - `open`      — static open state with lifted glow
+ * `state` is preserved for call-site compatibility and can drive
+ * future wrapper-level effects if an "unlock" moment is added; the
+ * illustration itself does not animate.
  */
 export function TimeVault({
   state = "sealed",
+  size = 290,
   ariaLabel = "Time vault",
 }: {
   state?: TimeVaultState;
+  size?: number;
   ariaLabel?: string;
 }) {
   return (
-    <div className="time-vault-stage" data-state={state}>
+    <div
+      className="time-vault-stage"
+      data-state={state}
+      style={{ width: size, height: size }}
+    >
       <div className="time-vault-stage__bloom" />
-      <div className="time-vault" data-state={state} aria-label={ariaLabel}>
-        <div className="time-vault__glow" />
-
-        <div className="time-vault__outer">
-          {/* 60 tick marks — every 5th is a prominent gold hour
-              mark, the rest are fine minute ticks. */}
-          <div className="time-vault__tick-ring">
-            {Array.from({ length: 60 }).map((_, i) => (
-              <span
-                key={i}
-                className="time-vault__tick"
-                style={{ "--i": i } as CSSProperties}
-              />
-            ))}
-          </div>
-
-          {/* Clock face */}
-          <div className="time-vault__face">
-            <div className="time-vault__rings" />
-
-            <div className="time-vault__hands">
-              <span className="time-vault__hand time-vault__hand--hour" />
-              <span className="time-vault__hand time-vault__hand--minute" />
-              <span className="time-vault__hand time-vault__hand--second" />
-            </div>
-
-            {/* Centre medallion + filled heart. */}
-            <div className="time-vault__hub">
-              <svg
-                viewBox="0 0 24 24"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M12 21s-7.5-4.5-7.5-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 7.5 3.5C19.5 16.5 12 21 12 21Z" />
-              </svg>
-            </div>
-          </div>
-        </div>
+      <div
+        className="time-vault"
+        data-state={state}
+        role="img"
+        aria-label={ariaLabel}
+      >
+        <Image
+          src="/time-vault.png"
+          alt=""
+          width={size}
+          height={size}
+          className="time-vault__img"
+          priority
+        />
       </div>
     </div>
   );
