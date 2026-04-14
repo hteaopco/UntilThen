@@ -70,31 +70,29 @@ export function VaultHero({
           </h2>
 
           {currentReveal && !editing ? (
-            <div>
-              <p className="text-[17px] text-ink-mid leading-[1.5]">
-                Opens{" "}
-                <span className="font-semibold text-navy">
-                  {formatLongDate(new Date(currentReveal))}
-                </span>
-                {" · "}
-                <button
-                  type="button"
-                  onClick={() => setEditing(true)}
-                  className="text-sm text-ink-light hover:text-amber underline underline-offset-[3px] transition-colors"
-                >
-                  change
-                </button>
-              </p>
+            <p className="text-[17px] text-ink-mid leading-[1.5]">
+              Opens{" "}
+              <span className="font-semibold text-navy">
+                {formatLongDate(new Date(currentReveal))}
+              </span>
               {days != null && (
-                <p className="text-base text-ink-mid mt-1">
-                  in{" "}
+                <>
+                  {" · "}
                   <span className="font-extrabold text-navy tabular-nums">
                     {days.toLocaleString()}
                   </span>{" "}
                   {days === 1 ? "day" : "days"}
-                </p>
+                </>
               )}
-            </div>
+              {" · "}
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="text-sm text-ink-light hover:text-amber underline underline-offset-[3px] transition-colors"
+              >
+                change
+              </button>
+            </p>
           ) : (
             <RevealDateForm
               vaultId={vaultId}

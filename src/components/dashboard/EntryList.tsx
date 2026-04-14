@@ -106,7 +106,7 @@ export function EntryList({
                   <div className="flex items-center gap-3 mb-2 flex-wrap">
                     <EntryTypeBadge type={e.type} />
                     <span className="text-[11px] text-ink-light">
-                      Saved {formatShort(e.createdAt)}
+                      Sealed {formatShort(e.createdAt)}
                     </span>
                   </div>
                   {e.title && (

@@ -17,7 +17,6 @@ import {
 } from "@/components/dashboard/ContributorsSection";
 import { EntryList, type EntryRow } from "@/components/dashboard/EntryList";
 import { MemoryStarter } from "@/components/dashboard/MemoryStarter";
-import { StartCollectionLink } from "@/components/dashboard/StartCollectionLink";
 import { VaultHero } from "@/components/dashboard/VaultHero";
 import {
   VaultSwitcher,
@@ -192,24 +191,10 @@ export default async function DashboardPage({
       </header>
 
       <section className="mx-auto max-w-[980px] px-6 lg:px-10 pt-8 lg:pt-10">
-        {/* Child identity on the left; collection-creation on the
-            right. Collection is the one explicit creation action
-            that isn't covered by the editor spark below. */}
-        <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
-          <VaultSwitcher
-            options={switcherOptions}
-            selectedChildId={selectedChild.id}
-            flush
-          />
-          <StartCollectionLink
-            vaultId={vault.id}
-            vaultRevealDate={vaultRevealDate}
-            childFirstName={selectedChild.firstName}
-            childDateOfBirth={
-              selectedChild.dateOfBirth?.toISOString() ?? null
-            }
-          />
-        </div>
+        <VaultSwitcher
+          options={switcherOptions}
+          selectedChildId={selectedChild.id}
+        />
 
         {/* Primary: creation spark right at the top of the page.
             If a draft exists, it offers to resume that instead of
@@ -217,6 +202,10 @@ export default async function DashboardPage({
         <MemoryStarter
           childFirstName={selectedChild.firstName}
           vaultId={vault.id}
+          vaultRevealDate={vaultRevealDate}
+          childDateOfBirth={
+            selectedChild.dateOfBirth?.toISOString() ?? null
+          }
           draft={
             latestDraft
               ? {
@@ -259,11 +248,11 @@ export default async function DashboardPage({
           <h2 className="text-xl lg:text-2xl font-bold text-navy tracking-[-0.3px]">
             Moments waiting for {selectedChild.firstName}
           </h2>
-          <p className="text-sm text-ink-mid mt-1">
-            {totalSealed === 0
-              ? `Your sealed letters and journals will appear here.`
-              : `${totalSealed.toLocaleString()} sealed so far.`}
-          </p>
+          {totalSealed === 0 && (
+            <p className="text-sm text-ink-mid mt-1">
+              Your sealed letters and journals will appear here.
+            </p>
+          )}
         </div>
 
         <CollectionsSection

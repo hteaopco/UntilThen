@@ -76,8 +76,7 @@ export function ContributorsSection({
       <div className="mt-12 pt-8 border-t border-navy/[0.06] mb-10">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div className="text-[11px] uppercase tracking-[0.12em] font-bold text-ink-mid">
-            People adding to {childFirstName}&rsquo;s story ·{" "}
-            {contributors.length}
+            Who&rsquo;s writing to {childFirstName} · {contributors.length}
           </div>
           <button
             type="button"
