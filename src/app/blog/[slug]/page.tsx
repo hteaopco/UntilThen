@@ -30,8 +30,9 @@ export async function generateMetadata({
   if (!post) return {};
 
   const url = `${SITE_URL}/blog/${post.slug}`;
-  // Posts without a cover image still get a sharable preview card
-  // via the default /api/og route.
+  // If the post has a cover image, use it; otherwise Next.js's
+  // file-based opengraph-image.tsx convention fills in the default
+  // site card automatically — leave openGraph.images undefined.
   const images = post.coverImage
     ? [
         {
@@ -40,7 +41,7 @@ export async function generateMetadata({
             : `${SITE_URL}${post.coverImage}`,
         },
       ]
-    : [{ url: `${SITE_URL}/api/og`, width: 1200, height: 630 }];
+    : undefined;
 
   return {
     title: `${post.title} — untilThen`,

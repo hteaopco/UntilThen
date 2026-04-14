@@ -1,17 +1,28 @@
 import { ImageResponse } from "next/og";
-import type { NextRequest } from "next/server";
 
-// Edge runtime keeps the bundle small and the image route isolated
-// from the Prisma / Clerk Node paths. ImageResponse sets
-// Content-Type: image/png automatically.
-export const runtime = "edge";
+// Next.js's file-based OG image convention. Placing this file at
+// src/app/opengraph-image.tsx makes Next auto-emit the correct
+// <meta property="og:image" content="..."> tag on every page,
+// with the URL resolved to the actual request origin (Railway
+// preview or production) — no metadataBase gymnastics needed.
+// See: https://nextjs.org/docs/app/api-reference/file-conventions/metadata/opengraph-image
 
-export async function GET(req: NextRequest) {
-  // Photo lives in /public so it's reachable at origin/og-photo.jpg
-  // on whatever deploy the request lands on (Railway preview or
-  // production) — no hardcoded domain needed.
-  const origin = new URL(req.url).origin;
-  const photoUrl = `${origin}/og-photo.jpg`;
+export const runtime = "nodejs";
+
+export const alt =
+  "untilThen — Moments from the past, opened in the future.";
+export const size = { width: 1200, height: 630 };
+export const contentType = "image/png";
+
+export default async function OpengraphImage() {
+  // Photo is co-located with this route so Satori can fetch its
+  // bytes via import.meta.url at build/request time. File is
+  // pre-cropped to 1200×630 (137 KB) so image generation is fast.
+  const photoBytes = await fetch(
+    new URL("./og-photo.jpg", import.meta.url),
+  ).then((r) => r.arrayBuffer());
+  const photoBase64 = Buffer.from(photoBytes).toString("base64");
+  const photoSrc = `data:image/jpeg;base64,${photoBase64}`;
 
   return new ImageResponse(
     (
@@ -24,11 +35,10 @@ export async function GET(req: NextRequest) {
           fontFamily: "sans-serif",
         }}
       >
-        {/* Full-bleed photo backdrop. object-fit: cover crops the
-            portrait source into the 1200×630 landscape frame. */}
+        {/* Full-bleed photo backdrop. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={photoUrl}
+          src={photoSrc}
           alt=""
           width={1200}
           height={630}
@@ -41,8 +51,7 @@ export async function GET(req: NextRequest) {
           }}
         />
 
-        {/* Dark navy gradient from the bottom so the copy stays
-            readable no matter what the photo looks like. */}
+        {/* Dark navy gradient from the bottom for copy legibility. */}
         <div
           style={{
             position: "absolute",
@@ -53,7 +62,7 @@ export async function GET(req: NextRequest) {
           }}
         />
 
-        {/* Content stack — anchored to the bottom-left corner. */}
+        {/* Bottom-left content stack. */}
         <div
           style={{
             position: "absolute",
@@ -106,7 +115,7 @@ export async function GET(req: NextRequest) {
             </span>
           </div>
 
-          {/* Headline — two lines, white, tight leading */}
+          {/* Headline — two lines, white */}
           <div
             style={{
               display: "flex",
@@ -138,7 +147,7 @@ export async function GET(req: NextRequest) {
             </span>
           </div>
 
-          {/* URL in amber */}
+          {/* URL */}
           <span
             style={{
               fontSize: 22,
@@ -152,9 +161,6 @@ export async function GET(req: NextRequest) {
         </div>
       </div>
     ),
-    {
-      width: 1200,
-      height: 630,
-    },
+    { ...size },
   );
 }

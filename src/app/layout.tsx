@@ -62,20 +62,14 @@ export async function generateMetadata(): Promise<Metadata> {
       url: siteUrl,
       siteName: "untilThen",
       type: "website",
-      images: [
-        {
-          url: "/api/og",
-          width: 1200,
-          height: 630,
-          alt: "untilThen — Moments from the past, opened in the future.",
-        },
-      ],
+      // Image is provided by src/app/opengraph-image.tsx via
+      // Next.js's file-based convention — no need to list it here.
     },
     twitter: {
       card: "summary_large_image",
       title: DEFAULT_TITLE,
       description: DEFAULT_DESCRIPTION,
-      images: ["/api/og"],
+      // Image is provided by src/app/twitter-image.tsx.
     },
     other: {
       "supported-color-schemes": "light",
