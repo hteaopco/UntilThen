@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { DM_Sans } from "next/font/google";
-import { headers } from "next/headers";
 import "./globals.css";
 import { PosthogProvider } from "@/components/PosthogProvider";
 
@@ -16,66 +15,49 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
+// TODO: when the app moves to https://untilthenapp.io, swap
+// SITE_URL to the production origin. The OG image is a static
+// PNG in /public so no other change is required.
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  "https://untilthen-production.up.railway.app";
+
+const OG_IMAGE_URL = `${SITE_URL}/og-image.jpg`;
+
 const DEFAULT_TITLE =
   "untilThen — Moments from the past, opened in the future.";
 const DEFAULT_DESCRIPTION =
   "Write letters, record voice notes, and seal memories in a vault your child opens when they're ready.";
 
-/**
- * Resolve the absolute site origin per request. This is what lets
- * link-preview scrapers (iMessage, WhatsApp, Twitter, LinkedIn,
- * Slack, etc.) fetch the OG image from the same host they just
- * scraped, whether that's a Railway preview URL or the final
- * untilthenapp.io production domain.
- *
- * Precedence:
- * 1. Explicit override via NEXT_PUBLIC_SITE_URL.
- * 2. Incoming request headers (`x-forwarded-*` in front of a
- *    proxy, `host` otherwise).
- * 3. untilthenapp.io fallback.
- */
-async function resolveSiteUrl(): Promise<string> {
-  if (process.env.NEXT_PUBLIC_SITE_URL) {
-    return process.env.NEXT_PUBLIC_SITE_URL;
-  }
-  try {
-    const h = await headers();
-    const host = h.get("x-forwarded-host") ?? h.get("host");
-    const proto = h.get("x-forwarded-proto") ?? "https";
-    if (host) return `${proto}://${host}`;
-  } catch {
-    // headers() throws in contexts where it can't be called;
-    // fall through to the production URL.
-  }
-  return "https://untilthenapp.io";
-}
-
-export async function generateMetadata(): Promise<Metadata> {
-  const siteUrl = await resolveSiteUrl();
-  return {
-    metadataBase: new URL(siteUrl),
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: DEFAULT_TITLE,
+  description: DEFAULT_DESCRIPTION,
+  openGraph: {
     title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
-    openGraph: {
-      title: DEFAULT_TITLE,
-      description: DEFAULT_DESCRIPTION,
-      url: siteUrl,
-      siteName: "untilThen",
-      type: "website",
-      // Image is provided by src/app/opengraph-image.tsx via
-      // Next.js's file-based convention — no need to list it here.
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: DEFAULT_TITLE,
-      description: DEFAULT_DESCRIPTION,
-      // Image is provided by src/app/twitter-image.tsx.
-    },
-    other: {
-      "supported-color-schemes": "light",
-    },
-  };
-}
+    url: SITE_URL,
+    siteName: "untilThen",
+    type: "website",
+    images: [
+      {
+        url: OG_IMAGE_URL,
+        width: 1200,
+        height: 630,
+        alt: "untilThen — Moments from the past, opened in the future.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+    images: [OG_IMAGE_URL],
+  },
+  other: {
+    "supported-color-schemes": "light",
+  },
+};
 
 export default function RootLayout({
   children,
