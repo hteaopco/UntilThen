@@ -33,9 +33,16 @@ const STORAGE_KEY = "untilthen_selected_vault";
 export function VaultSwitcher({
   options,
   selectedChildId,
+  flush = false,
 }: {
   options: VaultOption[];
   selectedChildId: string;
+  /**
+   * Drop the built-in bottom margin. Used when the switcher is
+   * placed inside a flex row alongside another element, so the
+   * spacing comes from the parent instead.
+   */
+  flush?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -99,14 +106,21 @@ export function VaultSwitcher({
   // One-child-only → static label, no dropdown.
   if (options.length < 2) {
     return (
-      <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-amber mb-2">
+      <p
+        className={`text-[11px] font-bold uppercase tracking-[0.14em] text-amber ${
+          flush ? "" : "mb-2"
+        }`}
+      >
         {selected.firstName}&rsquo;s vault
       </p>
     );
   }
 
   return (
-    <div ref={ref} className="relative inline-block mb-4">
+    <div
+      ref={ref}
+      className={`relative inline-block ${flush ? "" : "mb-4"}`}
+    >
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}

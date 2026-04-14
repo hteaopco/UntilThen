@@ -192,10 +192,24 @@ export default async function DashboardPage({
       </header>
 
       <section className="mx-auto max-w-[980px] px-6 lg:px-10 pt-8 lg:pt-10">
-        <VaultSwitcher
-          options={switcherOptions}
-          selectedChildId={selectedChild.id}
-        />
+        {/* Child identity on the left; collection-creation on the
+            right. Collection is the one explicit creation action
+            that isn't covered by the editor spark below. */}
+        <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+          <VaultSwitcher
+            options={switcherOptions}
+            selectedChildId={selectedChild.id}
+            flush
+          />
+          <StartCollectionLink
+            vaultId={vault.id}
+            vaultRevealDate={vaultRevealDate}
+            childFirstName={selectedChild.firstName}
+            childDateOfBirth={
+              selectedChild.dateOfBirth?.toISOString() ?? null
+            }
+          />
+        </div>
 
         {/* Primary: creation spark right at the top of the page.
             If a draft exists, it offers to resume that instead of
@@ -241,28 +255,15 @@ export default async function DashboardPage({
       </section>
 
       <section className="mx-auto max-w-[980px] px-6 lg:px-10 pt-6 lg:pt-8 pb-24">
-        <div className="flex items-center justify-between gap-4 flex-wrap mb-6">
-          <div className="text-center lg:text-left">
-            <h2 className="text-xl lg:text-2xl font-bold text-navy tracking-[-0.3px]">
-              Moments waiting for {selectedChild.firstName}
-            </h2>
-            <p className="text-sm text-ink-mid mt-1">
-              {totalSealed === 0
-                ? `Your sealed letters and journals will appear here.`
-                : `${totalSealed.toLocaleString()} sealed so far.`}
-            </p>
-          </div>
-          {/* Collection creation — the one remaining distinct
-              action since the editor spark at the top of the page
-              covers entry creation. */}
-          <StartCollectionLink
-            vaultId={vault.id}
-            vaultRevealDate={vaultRevealDate}
-            childFirstName={selectedChild.firstName}
-            childDateOfBirth={
-              selectedChild.dateOfBirth?.toISOString() ?? null
-            }
-          />
+        <div className="text-center lg:text-left mb-6">
+          <h2 className="text-xl lg:text-2xl font-bold text-navy tracking-[-0.3px]">
+            Moments waiting for {selectedChild.firstName}
+          </h2>
+          <p className="text-sm text-ink-mid mt-1">
+            {totalSealed === 0
+              ? `Your sealed letters and journals will appear here.`
+              : `${totalSealed.toLocaleString()} sealed so far.`}
+          </p>
         </div>
 
         <CollectionsSection
