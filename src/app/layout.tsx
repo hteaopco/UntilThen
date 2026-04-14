@@ -15,12 +15,11 @@ export const viewport: Viewport = {
   colorScheme: "light",
 };
 
-// TODO: when the app moves to https://untilthenapp.io, swap
-// SITE_URL to the production origin. The OG image is a static
-// PNG in /public so no other change is required.
+// Canonical origin for meta tags (metadataBase, og:image, etc.).
+// The production domain is live at untilthenapp.io. NEXT_PUBLIC_SITE_URL
+// can still override for preview deploys.
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://untilthen-production.up.railway.app";
+  process.env.NEXT_PUBLIC_SITE_URL ?? "https://untilthenapp.io";
 
 const OG_IMAGE_URL = `${SITE_URL}/og-image.jpg`;
 
