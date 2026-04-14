@@ -18,7 +18,15 @@ const HEAR_ABOUT_OPTIONS = [
 
 type Status = "idle" | "loading" | "success" | "error";
 
-export function WaitlistForm() {
+export function WaitlistForm({
+  submitLabel = "Join waitlist →",
+  expandedSubmitLabel = "Complete signup →",
+}: {
+  /** Label on the collapsed (email-only) submit button. */
+  submitLabel?: string;
+  /** Label on the expanded multi-field submit button. */
+  expandedSubmitLabel?: string;
+} = {}) {
   const [expanded, setExpanded] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
   const [topError, setTopError] = useState<string | null>(null);
@@ -187,7 +195,7 @@ export function WaitlistForm() {
             type="submit"
             className="bg-amber text-white px-[22px] py-[15px] text-[13px] font-bold whitespace-nowrap hover:bg-amber-dark transition-colors"
           >
-            Join waitlist →
+            {submitLabel}
           </button>
         )}
       </div>
@@ -305,7 +313,7 @@ export function WaitlistForm() {
               disabled={status === "loading"}
               className="w-full bg-amber text-white py-3.5 rounded-lg text-sm font-bold tracking-[0.01em] hover:bg-amber-dark transition-colors disabled:opacity-60"
             >
-              {status === "loading" ? "Joining…" : "Complete signup →"}
+              {status === "loading" ? "Joining…" : expandedSubmitLabel}
             </button>
             <p className="mt-3 text-xs italic text-ink-light text-center">
               No credit card required. Cancel anytime.

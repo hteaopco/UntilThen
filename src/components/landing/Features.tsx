@@ -2,7 +2,6 @@ import {
   Bold,
   Camera,
   Italic,
-  Lightbulb,
   Lock,
   Mic,
   Sparkles,
@@ -141,32 +140,34 @@ function SimpleFeature({
 export function Features() {
   return (
     <section id="features" className="bg-cream">
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-16 lg:py-24">
-        <div className="grid gap-4 lg:gap-5 lg:grid-cols-2">
-          {/* Featured: dark gradient, full width */}
-          <div
-            className="lg:col-span-2 rounded-2xl border border-white/5 p-9 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center"
-            style={{
-              background:
-                "linear-gradient(180deg, #3a2e2a 0%, #2c2420 75%)",
-            }}
-          >
-            <div>
-              <div className="mb-3.5">
-                <FeatureBadge dark>Writing Experience</FeatureBadge>
-              </div>
-              <h3 className="text-[19px] font-bold text-white mb-2.5 tracking-[-0.3px] leading-[1.2]">
-                A letter editor built for emotion, not productivity.
-              </h3>
-              <p className="text-sm leading-[1.75] text-white/75 font-light">
-                No clutter, no distractions. A quiet space to write freely —
-                with rich text, photo inserts, and an AI prompt when
-                you&rsquo;re stuck.
-              </p>
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-16 lg:py-24 space-y-4 lg:space-y-5">
+        {/* Featured: dark gradient, full width */}
+        <div
+          className="rounded-2xl border border-white/5 p-9 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center"
+          style={{
+            background: "linear-gradient(180deg, #3a2e2a 0%, #2c2420 75%)",
+          }}
+        >
+          <div>
+            <div className="mb-3.5">
+              <FeatureBadge dark>Writing Experience</FeatureBadge>
             </div>
-            <MockEditor />
+            <h3 className="text-[19px] font-bold text-white mb-2.5 tracking-[-0.3px] leading-[1.2]">
+              A quiet place to write what matters.
+            </h3>
+            <p className="text-sm leading-[1.75] text-white/75 font-light">
+              No clutter, no distractions. A quiet space to write freely —
+              with rich text, photo inserts, and an AI prompt when
+              you&rsquo;re stuck.
+            </p>
           </div>
+          <MockEditor />
+        </div>
 
+        {/* Three supporting features, evenly weighted in a 3-col
+            grid below the hero feature. Smart Prompts was cut
+            here — it was a nice-to-have, not an emotional hook. */}
+        <div className="grid gap-4 lg:gap-5 lg:grid-cols-3">
           <SimpleFeature
             icon={Mic}
             badge="Voice Notes"
@@ -180,17 +181,11 @@ export function Features() {
             body="Build a vault that holds a whole village of love. Each contributor writes privately — every voice in your child's life, in one place."
           />
           <SimpleFeature
-            icon={Lightbulb}
-            badge="Smart Prompts"
-            title="Never stare at a blank page."
-            body="Weekly prompts nudge you to write. Milestone reminders make sure no birthday passes unwritten."
-          />
-          <SimpleFeature
             primary
             icon={Sparkles}
             badge="The Reveal"
-            title="Entries unlock one by one, like gifts."
-            body="On the reveal date your child's vault opens — letters arriving in sequence. Each entry a discovery."
+            title="Memories unlock one by one, like gifts."
+            body="On the reveal date your child's vault opens — letters arriving in sequence. Each one a discovery."
           />
         </div>
       </div>

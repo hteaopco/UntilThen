@@ -6,10 +6,10 @@ export function HowItWorks() {
           How it works
         </p>
         <h2 className="text-[clamp(40px,5vw,64px)] font-extrabold tracking-[-2px] leading-[1.05] text-navy max-w-[720px]">
-          It&rsquo;s Simple. Capture
+          Capture what you
           <br />
-          <span className="font-light italic text-amber">emotions</span> as they
-          happen.
+          don&rsquo;t want to{" "}
+          <span className="font-light italic text-amber">forget.</span>
         </h2>
       </div>
     </section>

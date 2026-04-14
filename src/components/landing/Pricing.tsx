@@ -219,6 +219,9 @@ export function Pricing() {
             <br />
             less than a coffee a month.
           </h2>
+          <p className="mt-4 text-[15px] italic text-ink-mid">
+            Start for free. Keep it forever.
+          </p>
         </div>
 
         <div className="grid gap-4 lg:gap-5 lg:grid-cols-2 max-w-[760px] mx-auto">

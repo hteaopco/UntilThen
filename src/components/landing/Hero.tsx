@@ -17,10 +17,16 @@ export function Hero() {
             <span className="font-light italic text-amber">become.</span>
           </h1>
 
+          {/* The single emotional line the rest of the page earns
+              the right to make. Kept deliberately short. */}
+          <p className="hero-sub text-[19px] lg:text-[21px] font-medium italic text-amber/90 leading-[1.4] mb-5 max-w-[440px]">
+            One day, they&rsquo;ll hear your voice again.
+          </p>
+
           <p className="hero-sub text-[17px] font-normal leading-[1.7] text-ink-mid max-w-[440px] mb-10">
-            Seal letters, voice notes and memories in a vault your child unlocks
-            when they&rsquo;re ready — on their 18th birthday, or any milestone
-            you choose.
+            Write letters, voice notes, and memories they&rsquo;ll open when
+            they&rsquo;re older — on their 18th birthday, or any moment you
+            choose.
           </p>
 
           <div className="hero-actions">
@@ -29,8 +35,11 @@ export function Hero() {
               className="inline-block bg-amber text-white px-7 py-3.5 rounded-lg text-[15px] font-bold tracking-[0.01em] hover:bg-amber-dark hover:-translate-y-0.5 transition-all"
               style={{ boxShadow: "0 4px 16px rgba(15,31,61,0.2)" }}
             >
-              Join the waitlist →
+              Start writing for them →
             </a>
+            <p className="mt-3 text-[13px] italic text-ink-light">
+              Join the waitlist for early access
+            </p>
           </div>
         </div>
 
