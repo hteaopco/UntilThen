@@ -15,13 +15,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import {
-  ArrowLeft,
-  GripVertical,
-  Lock,
-  PlusCircle,
-  Sparkles,
-} from "lucide-react";
+import { ArrowLeft, GripVertical, Lock, PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -87,7 +81,6 @@ export function CollectionDetail({
   const router = useRouter();
   const [entries, setEntries] = useState<CollectionEntryRow[]>(initialEntries);
   const [savingOrder, setSavingOrder] = useState(false);
-  const [sealing, setSealing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -126,32 +119,6 @@ export function CollectionDetail({
     }
   }
 
-  async function handleSeal() {
-    if (
-      !window.confirm(
-        `Seal "${title}"?\n\n${childFirstName} will receive this as one complete journal on reveal day. You can still add memories until then.`,
-      )
-    ) {
-      return;
-    }
-    setSealing(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/collections/${collectionId}/seal`, {
-        method: "POST",
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? "Couldn't seal.");
-      }
-      router.refresh();
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setSealing(false);
-    }
-  }
-
   async function handleDelete() {
     if (
       !window.confirm(
@@ -182,6 +149,13 @@ export function CollectionDetail({
     ? "Add a memory →"
     : "Add your first memory →";
 
+  // Tail on the "Started {month year}" line. Empty collections
+  // show the anticipatory "Your first memory" hint; once there's
+  // content we switch to the count so the header stays honest.
+  const metaTail = hasEntries
+    ? `${entries.length} ${entries.length === 1 ? "memory" : "memories"}`
+    : "Your first memory";
+
   return (
     <main className="min-h-screen bg-cream">
       <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
@@ -197,7 +171,7 @@ export function CollectionDetail({
         </div>
       </header>
 
-      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10 lg:pt-12 pb-4">
+      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8 lg:pt-10 pb-2">
         <div className="flex items-start gap-5">
           <div
             aria-hidden="true"
@@ -223,35 +197,36 @@ export function CollectionDetail({
               )}
             </div>
 
-            {/* Emotional subline — warm framing that applies to
-                every collection, regardless of subject. */}
-            <p className="mt-1.5 text-[15px] text-ink-mid">
-              A story unfolding for {childFirstName}.
+            {/* Emotional subline — the parent as author, not
+                observer. Applies to every collection. */}
+            <p className="mt-1 text-[15px] text-ink-mid">
+              A story you&rsquo;re writing for {childFirstName}.
             </p>
 
             {description && (
-              <p className="mt-2 text-sm text-ink-light italic">
+              <p className="mt-1.5 text-sm text-ink-light italic">
                 {description}
               </p>
             )}
 
-            {/* Two-line meta: when it started, when it opens. The
-                old "N entries · Unlocks ..." one-liner made the
-                collection feel like a spreadsheet row. */}
-            <div className="mt-3 text-xs text-ink-light leading-[1.6]">
-              <div>Started {formatMonthYear(createdAt)}</div>
+            {/* Two-line meta: when it started (with a soft hint at
+                what's inside), and when it opens. */}
+            <div className="mt-2.5 text-xs text-ink-light leading-[1.6]">
+              <div>
+                Started {formatMonthYear(createdAt)} · {metaTail}
+              </div>
               {effectiveRevealDate && (
                 <div>Unlocks {formatLong(effectiveRevealDate)}</div>
               )}
             </div>
 
-            <p className="mt-3 text-sm italic text-amber/90">
+            <p className="mt-2.5 text-sm italic text-amber/90">
               They&rsquo;ll read this one day.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap mt-7">
+        <div className="mt-6">
           <Link
             href={`/dashboard/new?collectionId=${collectionId}`}
             className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
@@ -259,17 +234,6 @@ export function CollectionDetail({
             <PlusCircle size={16} strokeWidth={1.5} aria-hidden="true" />
             {primaryCtaLabel}
           </Link>
-          {!isSealed && hasEntries && (
-            <button
-              type="button"
-              onClick={handleSeal}
-              disabled={sealing}
-              className="inline-flex items-center gap-2 bg-gold text-navy px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-gold-light transition-colors disabled:opacity-60"
-            >
-              <Lock size={16} strokeWidth={1.5} aria-hidden="true" />
-              {sealing ? "Sealing…" : "Seal collection"}
-            </button>
-          )}
         </div>
 
         {error && (
@@ -279,7 +243,7 @@ export function CollectionDetail({
         )}
       </section>
 
-      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8 lg:pt-10 pb-12">
+      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10 lg:pt-14 pb-12">
         {hasEntries ? (
           <>
             {entries.length > 1 && (
@@ -317,21 +281,19 @@ export function CollectionDetail({
             </DndContext>
           </>
         ) : (
-          <EmptyState
-            collectionId={collectionId}
-            childFirstName={childFirstName}
-          />
+          <EmptyState childFirstName={childFirstName} />
         )}
       </section>
 
-      {/* Delete demoted to a small muted link at the bottom of the
-          page so it doesn't compete with the primary CTA up top. */}
-      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pb-16 text-center">
+      {/* Delete demoted to a tiny muted underline, separated from
+          the content by generous space so it never competes with
+          the primary CTA. */}
+      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-12 pb-20 text-center opacity-60">
         <button
           type="button"
           onClick={handleDelete}
           disabled={deleting}
-          className="text-[11px] text-ink-light hover:text-red-600 transition-colors underline underline-offset-[3px] disabled:opacity-50"
+          className="text-[10px] uppercase tracking-[0.12em] text-ink-light hover:text-red-600 transition-colors underline underline-offset-[3px] disabled:opacity-50"
         >
           {deleting ? "Deleting…" : "Delete collection"}
         </button>
@@ -340,42 +302,31 @@ export function CollectionDetail({
   );
 }
 
-function EmptyState({
-  collectionId,
-  childFirstName,
-}: {
-  collectionId: string;
-  childFirstName: string;
-}) {
+function EmptyState({ childFirstName }: { childFirstName: string }) {
+  // No CTA inside the card by design — the only creation action
+  // is the top-of-page button. Keeps the page one-CTA-clean.
   return (
     <div className="rounded-2xl border border-dashed border-navy/10 bg-warm-surface/60 px-6 py-14 text-center">
-      <div
-        aria-hidden="true"
-        className="mx-auto mb-4 w-12 h-12 rounded-full bg-amber-tint text-amber flex items-center justify-center"
-      >
-        <Sparkles size={20} strokeWidth={1.5} />
-      </div>
       <h3 className="text-[19px] font-extrabold text-navy tracking-[-0.2px]">
         This book is still blank.
       </h3>
-      <p className="mt-2 text-sm text-ink-mid max-w-[320px] mx-auto">
+      <p className="mt-2 text-sm text-ink-mid max-w-[360px] mx-auto leading-[1.6]">
         Write the first page — one moment {childFirstName} will get to read
         one day.
       </p>
-      <Link
-        href={`/dashboard/new?collectionId=${collectionId}`}
-        className="mt-6 inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
-      >
-        <PlusCircle size={16} strokeWidth={1.5} aria-hidden="true" />
-        Add your first memory →
-      </Link>
     </div>
   );
 }
 
 function preview(body: string | null, max = 140): string {
   if (!body) return "";
-  const clean = body.replace(/\s+/g, " ").trim();
+  // Strip Tiptap HTML tags first, then normalise whitespace.
+  // Without the tag strip, raw "<p>" / "<strong>" show up in
+  // memory-card previews on this page.
+  const clean = body
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   if (clean.length <= max) return clean;
   return clean.slice(0, max).trimEnd() + "…";
 }
