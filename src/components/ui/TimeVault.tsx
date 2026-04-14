@@ -18,13 +18,26 @@ export type TimeVaultState = "sealed" | "unlocking" | "open";
  */
 export function TimeVault({
   state = "sealed",
+  size = "default",
   ariaLabel = "Time vault",
 }: {
   state?: TimeVaultState;
+  /**
+   * `default` — 290px, full glow. Used on the reveal-day preview
+   * and the child countdown view, where the vault is the hero.
+   * `compact` — ~250px with softer bloom/glow. Used on the parent
+   * dashboard, where the vault is emotional context, not the
+   * primary interaction surface.
+   */
+  size?: "default" | "compact";
   ariaLabel?: string;
 }) {
   return (
-    <div className="time-vault-stage" data-state={state}>
+    <div
+      className="time-vault-stage"
+      data-state={state}
+      data-size={size}
+    >
       <div className="time-vault-stage__bloom" />
       <div className="time-vault" data-state={state} aria-label={ariaLabel}>
         <div className="time-vault__glow" />

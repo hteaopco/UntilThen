@@ -17,7 +17,7 @@ import {
 } from "@/components/dashboard/ContributorsSection";
 import { EntryList, type EntryRow } from "@/components/dashboard/EntryList";
 import { MemoryStarter } from "@/components/dashboard/MemoryStarter";
-import { NewButton } from "@/components/dashboard/NewButton";
+import { StartCollectionLink } from "@/components/dashboard/StartCollectionLink";
 import { VaultHero } from "@/components/dashboard/VaultHero";
 import {
   VaultSwitcher,
@@ -77,6 +77,7 @@ export default async function DashboardPage({
     vaultCollections,
     contributorRecords,
     pendingEntries,
+    latestDraft,
   ] = await Promise.all([
     prisma.entry.findMany({
       where: {
@@ -116,6 +117,19 @@ export default async function DashboardPage({
       },
       include: { contributor: true },
       orderBy: { createdAt: "desc" },
+    }),
+    // Most recent in-progress draft — only the parent's own
+    // drafts show up as "continue writing" (contributors go
+    // through a separate flow).
+    prisma.entry.findFirst({
+      where: {
+        vaultId: vault.id,
+        authorId: user.id,
+        isDraft: true,
+        isSealed: false,
+      },
+      orderBy: { updatedAt: "desc" },
+      select: { id: true, title: true, updatedAt: true },
     }),
   ]);
 
@@ -183,10 +197,21 @@ export default async function DashboardPage({
           selectedChildId={selectedChild.id}
         />
 
-        {/* Primary: creation spark right at the top of the page. */}
+        {/* Primary: creation spark right at the top of the page.
+            If a draft exists, it offers to resume that instead of
+            starting over. */}
         <MemoryStarter
           childFirstName={selectedChild.firstName}
           vaultId={vault.id}
+          draft={
+            latestDraft
+              ? {
+                  id: latestDraft.id,
+                  title: latestDraft.title,
+                  updatedAt: latestDraft.updatedAt.toISOString(),
+                }
+              : null
+          }
         />
 
         {/* Anything that needs the parent's attention jumps in here
@@ -199,8 +224,10 @@ export default async function DashboardPage({
         )}
 
         {/* Vault — secondary context now. Countdown + emotional
-            framing, with the action links demoted to text. */}
-        <div className="mt-10 lg:mt-12">
+            framing, with the action links demoted to text.
+            Tight mt-5/mt-6 keeps the editor and vault reading as
+            one connected block. */}
+        <div className="mt-5 lg:mt-6">
           <VaultHero
             childId={selectedChild.id}
             childFirstName={selectedChild.firstName}
@@ -215,24 +242,25 @@ export default async function DashboardPage({
       </section>
 
       <section className="mx-auto max-w-[980px] px-6 lg:px-10 pt-10 lg:pt-14 pb-24">
-        <div className="text-center lg:text-left mb-6">
-          <h2 className="text-xl lg:text-2xl font-bold text-navy tracking-[-0.3px]">
-            Moments you&rsquo;ve sealed
-          </h2>
-          <p className="text-sm text-ink-mid mt-1">
-            A timeline of moments sealed for {selectedChild.firstName}.
-          </p>
-        </div>
-
-        <div className="mx-auto w-full lg:max-w-[280px] mb-8">
-          <NewButton
+        <div className="flex items-end justify-between gap-4 flex-wrap mb-6">
+          <div className="text-center lg:text-left">
+            <h2 className="text-xl lg:text-2xl font-bold text-navy tracking-[-0.3px]">
+              Moments you&rsquo;ve sealed
+            </h2>
+            <p className="text-sm text-ink-mid mt-1">
+              A timeline of moments sealed for {selectedChild.firstName}.
+            </p>
+          </div>
+          {/* Collection-starter is a quiet secondary action now —
+              "New entry" was redundant with the editor spark at the
+              top of the page. */}
+          <StartCollectionLink
             vaultId={vault.id}
             vaultRevealDate={vaultRevealDate}
             childFirstName={selectedChild.firstName}
             childDateOfBirth={
               selectedChild.dateOfBirth?.toISOString() ?? null
             }
-            fullWidth
           />
         </div>
 

@@ -58,6 +58,7 @@ export function VaultHero({
         <div className="flex justify-center">
           <TimeVault
             state="sealed"
+            size="compact"
             ariaLabel={`${childFirstName}'s time vault`}
           />
         </div>
@@ -69,15 +70,15 @@ export function VaultHero({
           <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
             {childFirstName}&rsquo;s vault
           </p>
-          <h2 className="text-[28px] lg:text-[36px] font-extrabold text-navy leading-[1.05] tracking-[-0.6px] mb-2">
-            {entryCount === 0
-              ? "Nothing saved yet."
-              : `${entryCount.toLocaleString()} ${
-                  entryCount === 1 ? "moment" : "moments"
-                } saved.`}
+          <h2 className="text-[24px] lg:text-[30px] font-extrabold text-navy leading-[1.1] tracking-[-0.5px] mb-2">
+            Keep writing {childFirstName}&rsquo;s story.
           </h2>
           <p className="text-[15px] italic text-ink-mid mb-5">
-            {childFirstName} will open this one day.
+            {entryCount === 0
+              ? `${childFirstName} will open this one day.`
+              : `${entryCount.toLocaleString()} ${
+                  entryCount === 1 ? "moment" : "moments"
+                } waiting for ${childFirstName}.`}
           </p>
 
           {currentReveal && !editing ? (

@@ -118,6 +118,19 @@ html {
   height: 290px;
 }
 
+/* Compact variant — 12% smaller footprint and a softer bloom
+   so the vault reads as supporting context on the dashboard
+   rather than the page's hero. */
+.time-vault-stage[data-size="compact"] {
+  width: 250px;
+  height: 250px;
+}
+.time-vault-stage[data-size="compact"] .time-vault,
+.time-vault-stage[data-size="compact"] .time-vault__outer {
+  width: 250px;
+  height: 250px;
+}
+
 .time-vault-stage__bloom {
   position: absolute;
   inset: -40px;
@@ -134,6 +147,26 @@ html {
   transition: opacity 700ms ease, transform 900ms ease;
   pointer-events: none;
   filter: blur(2px);
+}
+
+.time-vault-stage[data-size="compact"] .time-vault-stage__bloom {
+  opacity: 0.5;
+  background: radial-gradient(
+    circle,
+    rgba(214, 184, 116, 0.28) 0%,
+    rgba(214, 184, 116, 0.14) 28%,
+    rgba(214, 184, 116, 0.05) 48%,
+    rgba(214, 184, 116, 0) 72%
+  );
+}
+.time-vault-stage[data-size="compact"] .time-vault__glow {
+  background: radial-gradient(
+    circle,
+    rgba(214, 184, 116, 0.22) 0%,
+    rgba(214, 184, 116, 0.1) 40%,
+    rgba(214, 184, 116, 0.03) 65%,
+    rgba(214, 184, 116, 0) 82%
+  );
 }
 
 .time-vault-stage[data-state="unlocking"] .time-vault-stage__bloom,
