@@ -76,6 +76,7 @@ function CollectionCard({
           />
         </div>
         <div className="flex-1 min-w-0">
+          {/* Title + optional sealed badge. */}
           <div className="flex items-center gap-2 flex-wrap">
             <Link
               href={`/dashboard/collection/${collection.id}`}
@@ -91,33 +92,51 @@ function CollectionCard({
               </span>
             )}
           </div>
+
+          {/* Memory count — sits directly under the title, muted
+              so the title carries the weight. */}
           <div className="mt-1 text-sm text-ink-mid">
             {collection.entryCount.toLocaleString()}{" "}
             {collection.entryCount === 1 ? "memory" : "memories"}
-            {revealDate && <> · Unlocks {formatShort(revealDate)}</>}
           </div>
+
           {collection.description && (
             <p className="mt-1 text-sm text-ink-mid italic truncate">
               &ldquo;{collection.description}&rdquo;
             </p>
           )}
-        </div>
-        <div className="flex flex-col items-end gap-3 shrink-0">
-          <Link
-            href={`/dashboard/new?vault=${vaultId}&collectionId=${collection.id}`}
-            prefetch={false}
-            className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.08em] font-bold text-amber hover:text-navy transition-colors whitespace-nowrap"
-          >
-            <PlusCircle size={14} strokeWidth={1.5} aria-hidden="true" />
-            Add memory
-          </Link>
-          <Link
-            href={`/dashboard/collection/${collection.id}`}
-            prefetch={false}
-            className="text-[11px] uppercase tracking-[0.08em] font-bold text-ink-light hover:text-navy transition-colors whitespace-nowrap"
-          >
-            Open →
-          </Link>
+
+          {/* Unlock date demoted to metadata beneath the count.
+              Lock icon + smaller/muted type so it reads as an
+              attribute, not a headline. */}
+          {revealDate && (
+            <div className="mt-2.5 inline-flex items-center gap-1.5 text-xs text-ink-light">
+              <Lock size={11} strokeWidth={1.5} aria-hidden="true" />
+              <span>Unlocks {formatShort(revealDate)}</span>
+            </div>
+          )}
+
+          {/* Action row: primary (Add memory, filled button-style)
+              on the left, secondary (View memories, text link) on
+              the right. 44px min-height keeps the tap area
+              comfortable on mobile. */}
+          <div className="mt-4 pt-3 border-t border-navy/[0.06] flex items-center justify-between gap-3 flex-wrap">
+            <Link
+              href={`/dashboard/new?vault=${vaultId}&collectionId=${collection.id}`}
+              prefetch={false}
+              className="inline-flex items-center gap-1.5 min-h-[40px] px-3 py-2 rounded-lg bg-amber-tint text-amber text-[12px] uppercase tracking-[0.08em] font-bold hover:bg-amber hover:text-white transition-colors"
+            >
+              <PlusCircle size={14} strokeWidth={1.75} aria-hidden="true" />
+              Add memory
+            </Link>
+            <Link
+              href={`/dashboard/collection/${collection.id}`}
+              prefetch={false}
+              className="inline-flex items-center min-h-[40px] px-1 text-[13px] font-semibold text-ink-mid hover:text-navy transition-colors whitespace-nowrap"
+            >
+              View memories →
+            </Link>
+          </div>
         </div>
       </div>
     </li>
