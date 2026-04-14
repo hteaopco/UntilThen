@@ -72,14 +72,32 @@ html {
 }
 
 /* ── Time Vault ── static PNG illustration at /public/time-vault2.png.
-   Background is already transparent; no CSS clock face, no ambient
-   glow, no circular mask — the illustration does all the framing.
+   Background is pre-keyed transparent; the image does all the clock
+   framing itself. The stage adds a warm ambient bloom behind the
+   illustration and a subtle breathing scale while sealed.
    See src/components/ui/TimeVault.tsx for the markup. */
 
 .time-vault-stage {
   position: relative;
-  width: 280px;
-  height: 280px;
+}
+
+/* Warm amber halo sitting behind the clock. Scaled + blurred so the
+   illustration feels lit from behind on any page background. */
+.time-vault-stage__bloom {
+  position: absolute;
+  inset: -18%;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    rgba(214, 184, 116, 0.42) 0%,
+    rgba(214, 184, 116, 0.22) 28%,
+    rgba(214, 184, 116, 0.08) 48%,
+    rgba(214, 184, 116, 0) 72%
+  );
+  filter: blur(18px);
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .time-vault {
@@ -97,6 +115,9 @@ html {
   border: 0;
   outline: 0;
   background: transparent;
+  /* Crisper rendering of the detail lines + gold strokes on
+     small-to-mid display sizes. */
+  image-rendering: -webkit-optimize-contrast;
 }
 
 .time-vault[data-state="sealed"] {
