@@ -4,6 +4,8 @@ import { AlertCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { RevealDatePicker } from "@/components/ui/RevealDatePicker";
+
 /**
  * Add-another-child modal. Mirrors the onboarding fields (name,
  * optional DOB, optional reveal date) so multi-child parents can
@@ -121,20 +123,21 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
             />
           </Field>
 
-          <Field
-            label="Reveal date (optional)"
-            hint="When the vault opens for this child. Change it any time later from the vault's edit page."
-          >
-            <input
-              type="date"
+          <div>
+            <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
+              Reveal date (optional)
+            </span>
+            <RevealDatePicker
               value={revealDate}
-              onChange={(e) => setRevealDate(e.target.value)}
-              min={new Date(Date.now() + 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split("T")[0]}
-              className="account-input"
+              onChange={setRevealDate}
+              childFirstName={firstName || null}
+              childDateOfBirth={dob || null}
             />
-          </Field>
+            <p className="mt-1.5 text-xs italic text-ink-light">
+              When the vault opens for this child. Change it any time later
+              from the vault&rsquo;s edit page.
+            </p>
+          </div>
 
           {error && (
             <div

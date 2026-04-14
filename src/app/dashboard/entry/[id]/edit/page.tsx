@@ -94,6 +94,7 @@ export default async function EditEntryPage({
   return (
     <NewEntryForm
       childFirstName={entry.vault.child.firstName}
+      childDateOfBirth={entry.vault.child.dateOfBirth?.toISOString() ?? null}
       vaultId={entry.vault.id}
       vaultRevealDate={entry.vault.revealDate?.toISOString() ?? null}
       collections={collections}

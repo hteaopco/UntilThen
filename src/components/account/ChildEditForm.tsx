@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { RevealDatePicker } from "@/components/ui/RevealDatePicker";
+
 type SaveState = "idle" | "saving" | "saved" | "error";
 
 function toDateInput(iso: string | null): string {
@@ -132,20 +134,20 @@ export function ChildEditForm({
             />
           </Field>
 
-          <Field
-            label="Reveal date"
-            hint="The day the vault opens to your child."
-          >
-            <input
-              type="date"
+          <div>
+            <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
+              Reveal date
+            </span>
+            <RevealDatePicker
               value={revealDate}
-              onChange={(e) => setRevealDate(e.target.value)}
-              min={new Date(Date.now() + 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split("T")[0]}
-              className="account-input"
+              onChange={setRevealDate}
+              childFirstName={firstName || null}
+              childDateOfBirth={dob || null}
             />
-          </Field>
+            <p className="mt-1.5 text-xs italic text-ink-light">
+              The day the vault opens to {firstName || "your child"}.
+            </p>
+          </div>
 
           <div className="pt-6 border-t border-navy/[0.06]">
             <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-2">

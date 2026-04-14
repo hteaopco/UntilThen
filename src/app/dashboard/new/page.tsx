@@ -74,6 +74,7 @@ export default async function NewEntryPage({
   return (
     <NewEntryForm
       childFirstName={targetChild.firstName}
+      childDateOfBirth={targetChild.dateOfBirth?.toISOString() ?? null}
       vaultId={vault.id}
       vaultRevealDate={vault.revealDate?.toISOString() ?? null}
       collections={collections}

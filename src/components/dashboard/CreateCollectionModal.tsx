@@ -5,22 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { inferCollectionIcon } from "@/components/collections/CollectionCover";
-
-function yyyymmdd(d: Date): string {
-  return d.toISOString().split("T")[0] ?? "";
-}
-
-function addMonths(date: Date, months: number): Date {
-  const r = new Date(date);
-  r.setMonth(r.getMonth() + months);
-  return r;
-}
-
-function ordinalSuffix(n: number): string {
-  const s = ["th", "st", "nd", "rd"];
-  const v = n % 100;
-  return s[(v - 20) % 10] ?? s[v] ?? s[0] ?? "th";
-}
+import { RevealDatePicker } from "@/components/ui/RevealDatePicker";
 
 function formatLong(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -59,28 +44,6 @@ export function CreateCollectionModal({
   // Preview icon as the parent types. "new memories" is a safe
   // placeholder seed so an empty title still shows a neutral book.
   const PreviewIcon = inferCollectionIcon(title || "new memories");
-
-  const minDate = yyyymmdd(new Date(Date.now() + 24 * 60 * 60 * 1000));
-  const today = new Date();
-
-  const quickPicks: { label: string; iso: string }[] = [
-    { label: "3 months", iso: yyyymmdd(addMonths(today, 3)) },
-    { label: "6 months", iso: yyyymmdd(addMonths(today, 6)) },
-    { label: "1 year", iso: yyyymmdd(addMonths(today, 12)) },
-  ];
-  if (childDateOfBirth) {
-    const dob = new Date(childDateOfBirth);
-    for (const age of [3, 6, 12, 18]) {
-      const birthday = new Date(dob);
-      birthday.setFullYear(birthday.getFullYear() + age);
-      if (birthday.getTime() > today.getTime()) {
-        quickPicks.push({
-          label: `${childFirstName}'s ${age}${ordinalSuffix(age)}`,
-          iso: yyyymmdd(birthday),
-        });
-      }
-    }
-  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -237,52 +200,14 @@ export function CreateCollectionModal({
               </label>
 
               {dateMode === "custom" && (
-                <div className="ml-6 space-y-3">
-                  {/* Quick-pick chips for common unlock windows.
-                      Tapping one fills the date input below. */}
-                  <div className="flex flex-wrap gap-2">
-                    {quickPicks.map((q) => {
-                      const active = customDate === q.iso;
-                      return (
-                        <button
-                          key={q.label}
-                          type="button"
-                          onClick={() => setCustomDate(q.iso)}
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-bold uppercase tracking-[0.06em] transition-colors ${
-                            active
-                              ? "bg-amber text-white border-amber"
-                              : "bg-white border-navy/15 text-ink-mid hover:border-navy hover:text-navy"
-                          }`}
-                        >
-                          {q.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div>
-                    <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-light mb-1.5">
-                      Or pick your own
-                    </div>
-                    <input
-                      type="date"
-                      value={customDate}
-                      onChange={(e) => setCustomDate(e.target.value)}
-                      min={minDate}
-                      disabled={saving}
-                      style={{
-                        WebkitAppearance: "none",
-                        appearance: "none",
-                        boxSizing: "border-box",
-                      }}
-                      className="block w-full min-h-[48px] px-4 py-3 text-[15px] text-navy bg-white border-[1.5px] border-navy/[0.12] rounded-lg outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 placeholder-ink-light disabled:opacity-50"
-                    />
-                    {customDate && (
-                      <p className="mt-2 text-xs italic text-ink-light">
-                        Unlocks {formatLong(customDate)}
-                      </p>
-                    )}
-                  </div>
+                <div className="ml-6">
+                  <RevealDatePicker
+                    value={customDate}
+                    onChange={setCustomDate}
+                    childFirstName={childFirstName}
+                    childDateOfBirth={childDateOfBirth}
+                    disabled={saving}
+                  />
                 </div>
               )}
             </div>
