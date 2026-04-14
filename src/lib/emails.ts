@@ -8,7 +8,7 @@
 // real recipient.
 
 const TEST_RECIPIENT = "jett@evolamco.com";
-const FROM = "untilThen <onboarding@resend.dev>";
+const FROM = "untilThen <hello@untilthenapp.io>";
 
 function escapeHtml(input: string): string {
   return input

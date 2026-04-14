@@ -96,7 +96,7 @@ export async function POST(req: Request) {
             })
           : "the reveal date";
         await resend.emails.send({
-          from: "untilThen <onboarding@resend.dev>",
+          from: "untilThen <hello@untilthenapp.io>",
           // TEMP: routed while domain is unverified.
           to: "jett@evolamco.com",
           subject: `You've been invited to write to ${child?.firstName ?? "their child"}`,

@@ -119,10 +119,7 @@ export async function POST(req: Request) {
       const { Resend } = await import("resend");
       const resend = new Resend(process.env.RESEND_API_KEY);
       await resend.emails.send({
-        // TEMP: using Resend's shared sender until the untilthenapp.io
-        // domain is verified. Swap back to "hello@untilthenapp.io" once
-        // the domain is live in Resend.
-        from: "untilThen <onboarding@resend.dev>",
+        from: "untilThen <hello@untilthenapp.io>",
         // TEMP: Resend in test mode can only deliver to the account
         // owner's email. Route all test traffic to jett@evolamco.com;
         // restore `to: email` once the domain is verified.
