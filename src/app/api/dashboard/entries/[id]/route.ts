@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { revalidatePath } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 
 export const runtime = "nodejs";
@@ -112,6 +113,9 @@ export async function PATCH(
     }
 
     await prisma.entry.update({ where: { id }, data });
+    // Drop the dashboard's server cache so the patched entry
+    // shows up immediately on router.refresh().
+    revalidatePath("/dashboard");
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[dashboard/entries PATCH] error:", err);
@@ -155,6 +159,9 @@ export async function DELETE(
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
 
     await prisma.entry.delete({ where: { id } });
+    // Invalidate the dashboard's cached server render so the
+    // deleted entry disappears immediately on router.refresh().
+    revalidatePath("/dashboard");
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[dashboard/entries DELETE] error:", err);
