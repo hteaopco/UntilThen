@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
 import { TimeVault } from "@/components/ui/TimeVault";
+import { RevealDatePicker } from "@/components/ui/RevealDatePicker";
 
 function daysUntil(date: Date): number {
   const ms = date.getTime() - Date.now();
@@ -28,12 +29,14 @@ function isoToDateInput(iso: string | null): string {
 export function VaultHero({
   childId,
   childFirstName,
+  childDateOfBirth,
   vaultId,
   revealDate,
   entryCount,
 }: {
   childId: string;
   childFirstName: string;
+  childDateOfBirth: string | null;
   vaultId: string;
   revealDate: string | null;
   entryCount: number;
@@ -59,7 +62,10 @@ export function VaultHero({
           />
         </div>
 
-        <div className="text-center lg:text-left">
+        {/* min-w-0 keeps the native date input from pushing its
+            intrinsic min-width past the grid column and poking out
+            the right side of the card. */}
+        <div className="text-center lg:text-left min-w-0">
           <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
             {childFirstName}&rsquo;s vault
           </p>
@@ -103,6 +109,8 @@ export function VaultHero({
             <RevealDateForm
               vaultId={vaultId}
               initialDate={currentReveal}
+              childFirstName={childFirstName}
+              childDateOfBirth={childDateOfBirth}
               onSaved={(date) => {
                 setCurrentReveal(date);
                 setEditing(false);
@@ -145,12 +153,16 @@ export function VaultHero({
 function RevealDateForm({
   vaultId,
   initialDate,
+  childFirstName,
+  childDateOfBirth,
   onSaved,
   onCancel,
   showCancel,
 }: {
   vaultId: string;
   initialDate: string | null;
+  childFirstName: string;
+  childDateOfBirth: string | null;
   onSaved: (date: string) => void;
   onCancel: () => void;
   showCancel: boolean;
@@ -158,10 +170,6 @@ function RevealDateForm({
   const [value, setValue] = useState(isoToDateInput(initialDate));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const minDate = new Date(Date.now() + 24 * 60 * 60 * 1000)
-    .toISOString()
-    .split("T")[0];
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -187,24 +195,20 @@ function RevealDateForm({
   }
 
   return (
-    <form
-      onSubmit={submit}
-      className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
-    >
-      <div className="flex-1">
-        <label className="block text-[10px] uppercase tracking-[0.1em] font-bold text-ink-mid mb-1.5">
+    <form onSubmit={submit} className="space-y-4 text-left">
+      <div>
+        <label className="block text-[10px] uppercase tracking-[0.1em] font-bold text-ink-mid mb-2">
           Reveal date
         </label>
-        <input
-          type="date"
+        <RevealDatePicker
           value={value}
-          min={minDate}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={setValue}
+          childFirstName={childFirstName}
+          childDateOfBirth={childDateOfBirth}
           disabled={saving}
-          className="w-full px-4 py-2.5 border border-navy/15 rounded-lg text-sm text-navy bg-white outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 disabled:opacity-50"
         />
       </div>
-      <div className="flex items-center gap-2 sm:self-end">
+      <div className="flex items-center gap-3">
         <button
           type="submit"
           disabled={!value || saving}
@@ -216,14 +220,15 @@ function RevealDateForm({
           <button
             type="button"
             onClick={onCancel}
-            className="text-sm font-medium text-ink-mid hover:text-navy transition-colors px-2 py-2.5"
+            disabled={saving}
+            className="text-sm font-medium text-ink-mid hover:text-navy transition-colors px-2 py-2.5 disabled:opacity-50"
           >
             Cancel
           </button>
         )}
       </div>
       {error && (
-        <p className="text-sm text-red-600 sm:w-full" role="alert">
+        <p className="text-sm text-red-600" role="alert">
           {error}
         </p>
       )}

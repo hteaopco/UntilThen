@@ -204,6 +204,9 @@ export default async function DashboardPage({
           <VaultHero
             childId={selectedChild.id}
             childFirstName={selectedChild.firstName}
+            childDateOfBirth={
+              selectedChild.dateOfBirth?.toISOString() ?? null
+            }
             vaultId={vault.id}
             revealDate={vaultRevealDate}
             entryCount={totalSealed}
