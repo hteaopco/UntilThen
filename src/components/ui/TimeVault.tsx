@@ -5,14 +5,14 @@ import Image from "next/image";
 export type TimeVaultState = "sealed" | "unlocking" | "open";
 
 /**
- * Time Vault — a static illustration wrapped in a subtle breathing
- * animation and a warm ambient bloom. The clock face itself is the
- * imported image (/public/time-vault.png); no CSS clock elements
- * (bezel, hands, ticks, hub) are rendered here — the image is final.
+ * Time Vault — a static, pre-background-stripped illustration wrapped
+ * in a subtle 6s breathing scale while sealed. No ambient glow, no
+ * CSS clock elements — the PNG at /public/time-vault2.png is the
+ * illustration end-to-end.
  *
- * `state` is preserved for call-site compatibility and can drive
- * future wrapper-level effects if an "unlock" moment is added; the
- * illustration itself does not animate.
+ * `state` is preserved for call-site compatibility. Only the
+ * `sealed` state currently drives animation (breathing); any future
+ * unlock choreography can layer on top without touching the image.
  */
 export function TimeVault({
   state = "sealed",
@@ -29,7 +29,6 @@ export function TimeVault({
       data-state={state}
       style={{ width: size, height: size }}
     >
-      <div className="time-vault-stage__bloom" />
       <div
         className="time-vault"
         data-state={state}
@@ -37,7 +36,7 @@ export function TimeVault({
         aria-label={ariaLabel}
       >
         <Image
-          src="/time-vault.png"
+          src="/time-vault2.png"
           alt=""
           width={size}
           height={size}

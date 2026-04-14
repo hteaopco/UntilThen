@@ -71,9 +71,10 @@ html {
   animation-iteration-count: infinite;
 }
 
-/* ── Time Vault ── a keepsake clock illustration that replaces the
-   older mechanical bank-vault door. Uses only CSS / HTML; see
-   src/components/ui/TimeVault.tsx for the markup. */
+/* ── Time Vault ── static PNG illustration at /public/time-vault2.png.
+   Background is already transparent; no CSS clock face, no ambient
+   glow, no circular mask — the illustration does all the framing.
+   See src/components/ui/TimeVault.tsx for the markup. */
 
 .time-vault-stage {
   position: relative;
@@ -81,55 +82,21 @@ html {
   height: 280px;
 }
 
-.time-vault-stage__bloom {
-  position: absolute;
-  inset: -40px;
-  border-radius: 9999px;
-  background: radial-gradient(
-    circle,
-    rgba(214, 184, 116, 0.42) 0%,
-    rgba(214, 184, 116, 0.22) 28%,
-    rgba(214, 184, 116, 0.08) 48%,
-    rgba(214, 184, 116, 0) 72%
-  );
-  opacity: 0.75;
-  transform: scale(1);
-  transition: opacity 700ms ease, transform 900ms ease;
-  pointer-events: none;
-  filter: blur(2px);
-}
-
-.time-vault-stage[data-state="unlocking"] .time-vault-stage__bloom,
-.time-vault-stage[data-state="open"] .time-vault-stage__bloom {
-  opacity: 1;
-  transform: scale(1.08);
-}
-
-/* The vault itself — an image wrapper with a subtle 6s breathing
-   scale while sealed. No clock-face CSS: the illustration is final.
-   The source PNG has its near-cream background pre-keyed to alpha,
-   so the circular crop shows the illustration cleanly on any page
-   (cream dashboard, sage child vault, warm-slate preview). */
 .time-vault {
   position: relative;
   width: 100%;
   height: 100%;
   z-index: 1;
-  isolation: isolate;
 }
 
 .time-vault__img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
   border: 0;
   outline: 0;
   background: transparent;
-  /* Circular crop so the rectangular source edges are never
-     visible. The clock is centred in the PNG so cover + 50%
-     radius reveals the dial and hides the letterbox. */
-  border-radius: 50%;
 }
 
 .time-vault[data-state="sealed"] {
@@ -148,9 +115,6 @@ html {
   }
   .time-vault[data-state="sealed"] {
     animation: none !important;
-  }
-  .time-vault-stage__bloom {
-    transition: none !important;
   }
 }
 
