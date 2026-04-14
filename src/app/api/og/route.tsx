@@ -2,9 +2,9 @@ import { ImageResponse } from "next/og";
 
 // @vercel/og + Satori runs in edge / nodejs. Mark as edge so the
 // route stays lightweight and the image generation isn't bundled
-// with the Prisma + Clerk Node runtime paths.
+// with the Prisma + Clerk Node runtime paths. ImageResponse sets
+// Content-Type: image/png automatically — no extra export needed.
 export const runtime = "edge";
-export const contentType = "image/png";
 
 export async function GET() {
   return new ImageResponse(
