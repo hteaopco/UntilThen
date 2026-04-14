@@ -214,7 +214,7 @@ export function PreviewClient({
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-[10px] uppercase tracking-[0.14em] font-bold text-amber mb-1">
-                          Journal · {c.entries.length.toLocaleString()} {c.entries.length === 1 ? "entry" : "entries"}
+                          Journal · {c.entries.length.toLocaleString()} {c.entries.length === 1 ? "memory" : "memories"}
                         </div>
                         <h2 className="text-2xl lg:text-[28px] font-extrabold tracking-[-0.4px] leading-tight mb-2 text-navy">
                           {c.title}
@@ -343,7 +343,7 @@ function CollectionReader({
         </div>
         <p className="text-[11px] uppercase tracking-[0.14em] text-gold font-bold mb-2">
           Journal · {collection.entries.length.toLocaleString()}{" "}
-          {collection.entries.length === 1 ? "entry" : "entries"}
+          {collection.entries.length === 1 ? "memory" : "memories"}
         </p>
         <h1 className="text-[32px] lg:text-[44px] font-extrabold tracking-[-0.8px] leading-[1.05] text-white mb-2">
           {collection.title}

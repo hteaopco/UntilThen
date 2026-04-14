@@ -149,7 +149,8 @@ export function LockedVaultView({
                 A journal sealed for you
               </span>
               <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-light">
-                {c.entryCount.toLocaleString()} entries
+                {c.entryCount.toLocaleString()}{" "}
+                {c.entryCount === 1 ? "memory" : "memories"}
               </span>
               <Lock
                 size={16}

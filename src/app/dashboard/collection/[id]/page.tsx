@@ -35,7 +35,9 @@ export default async function CollectionPage({
   const collection = await prisma.collection.findUnique({
     where: { id },
     include: {
-      vault: true,
+      vault: {
+        include: { child: { select: { firstName: true } } },
+      },
       entries: {
         orderBy: [
           { orderIndex: "asc" },
@@ -62,6 +64,8 @@ export default async function CollectionPage({
       title={collection.title}
       description={collection.description}
       coverEmoji={collection.coverEmoji}
+      childFirstName={collection.vault.child.firstName}
+      createdAt={collection.createdAt.toISOString()}
       revealDate={collection.revealDate?.toISOString() ?? null}
       vaultRevealDate={collection.vault.revealDate?.toISOString() ?? null}
       isSealed={collection.isSealed}

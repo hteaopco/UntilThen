@@ -362,7 +362,7 @@ function ContributorRow({
         </div>
         <div className="text-xs text-ink-light mt-1">
           {contributor.email} · {contributor.entryCount.toLocaleString()}{" "}
-          {contributor.entryCount === 1 ? "entry" : "entries"}
+          {contributor.entryCount === 1 ? "memory" : "memories"}
         </div>
       </div>
       <div className="flex items-center gap-2">

@@ -93,7 +93,7 @@ function CollectionCard({
           </div>
           <div className="mt-1 text-sm text-ink-mid">
             {collection.entryCount.toLocaleString()}{" "}
-            {collection.entryCount === 1 ? "entry" : "entries"}
+            {collection.entryCount === 1 ? "memory" : "memories"}
             {revealDate && <> · Unlocks {formatShort(revealDate)}</>}
           </div>
           {collection.description && (
@@ -109,7 +109,7 @@ function CollectionCard({
             className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.08em] font-bold text-amber hover:text-navy transition-colors whitespace-nowrap"
           >
             <PlusCircle size={14} strokeWidth={1.5} aria-hidden="true" />
-            Add entry
+            Add memory
           </Link>
           <Link
             href={`/dashboard/collection/${collection.id}`}

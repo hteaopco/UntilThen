@@ -15,7 +15,13 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ArrowLeft, GripVertical, Lock, PlusCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  GripVertical,
+  Lock,
+  PlusCircle,
+  Sparkles,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -48,11 +54,20 @@ function formatLong(iso: string): string {
   });
 }
 
+function formatMonthYear(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
 export function CollectionDetail({
   collectionId,
   title,
   description,
   coverEmoji,
+  childFirstName,
+  createdAt,
   revealDate,
   vaultRevealDate,
   isSealed,
@@ -62,6 +77,8 @@ export function CollectionDetail({
   title: string;
   description: string | null;
   coverEmoji: string | null;
+  childFirstName: string;
+  createdAt: string;
   revealDate: string | null;
   vaultRevealDate: string | null;
   isSealed: boolean;
@@ -79,6 +96,7 @@ export function CollectionDetail({
   );
 
   const effectiveRevealDate = revealDate ?? vaultRevealDate;
+  const hasEntries = entries.length > 0;
 
   async function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -111,7 +129,7 @@ export function CollectionDetail({
   async function handleSeal() {
     if (
       !window.confirm(
-        `Seal "${title}"?\n\nYour child will receive this as one complete journal on reveal day. You can still add entries until then.`,
+        `Seal "${title}"?\n\n${childFirstName} will receive this as one complete journal on reveal day. You can still add memories until then.`,
       )
     ) {
       return;
@@ -137,7 +155,7 @@ export function CollectionDetail({
   async function handleDelete() {
     if (
       !window.confirm(
-        `Delete the "${title}" collection?\n\nThe entries inside will become standalone entries (not deleted). Can't be undone.`,
+        `Delete the "${title}" collection?\n\nThe memories inside will become standalone entries (not deleted). Can't be undone.`,
       )
     ) {
       return;
@@ -160,6 +178,10 @@ export function CollectionDetail({
     }
   }
 
+  const primaryCtaLabel = hasEntries
+    ? "Add a memory →"
+    : "Add your first memory →";
+
   return (
     <main className="min-h-screen bg-cream">
       <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
@@ -175,7 +197,7 @@ export function CollectionDetail({
         </div>
       </header>
 
-      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10 lg:pt-14 pb-6">
+      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10 lg:pt-12 pb-4">
         <div className="flex items-start gap-5">
           <div
             aria-hidden="true"
@@ -190,7 +212,7 @@ export function CollectionDetail({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-[32px] lg:text-[40px] font-extrabold text-navy leading-[1.05] tracking-[-0.8px]">
+              <h1 className="text-balance text-[32px] lg:text-[40px] font-extrabold text-navy leading-[1.05] tracking-[-0.8px]">
                 {title}
               </h1>
               {isSealed && (
@@ -200,30 +222,44 @@ export function CollectionDetail({
                 </span>
               )}
             </div>
+
+            {/* Emotional subline — warm framing that applies to
+                every collection, regardless of subject. */}
+            <p className="mt-1.5 text-[15px] text-ink-mid">
+              A story unfolding for {childFirstName}.
+            </p>
+
             {description && (
-              <p className="mt-2 text-ink-mid italic text-base">
-                &ldquo;{description}&rdquo;
+              <p className="mt-2 text-sm text-ink-light italic">
+                {description}
               </p>
             )}
-            <p className="mt-3 text-sm text-ink-mid">
-              {entries.length.toLocaleString()}{" "}
-              {entries.length === 1 ? "entry" : "entries"}
+
+            {/* Two-line meta: when it started, when it opens. The
+                old "N entries · Unlocks ..." one-liner made the
+                collection feel like a spreadsheet row. */}
+            <div className="mt-3 text-xs text-ink-light leading-[1.6]">
+              <div>Started {formatMonthYear(createdAt)}</div>
               {effectiveRevealDate && (
-                <> · Unlocks {formatLong(effectiveRevealDate)}</>
+                <div>Unlocks {formatLong(effectiveRevealDate)}</div>
               )}
+            </div>
+
+            <p className="mt-3 text-sm italic text-amber/90">
+              They&rsquo;ll read this one day.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap mt-8">
+        <div className="flex items-center gap-3 flex-wrap mt-7">
           <Link
             href={`/dashboard/new?collectionId=${collectionId}`}
             className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
           >
             <PlusCircle size={16} strokeWidth={1.5} aria-hidden="true" />
-            Add entry
+            {primaryCtaLabel}
           </Link>
-          {!isSealed && entries.length > 0 && (
+          {!isSealed && hasEntries && (
             <button
               type="button"
               onClick={handleSeal}
@@ -234,14 +270,6 @@ export function CollectionDetail({
               {sealing ? "Sealing…" : "Seal collection"}
             </button>
           )}
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={deleting}
-            className="text-[11px] uppercase tracking-[0.08em] font-bold text-ink-light hover:text-red-600 transition-colors ml-auto disabled:opacity-50"
-          >
-            {deleting ? "Deleting…" : "Delete collection"}
-          </button>
         </div>
 
         {error && (
@@ -251,53 +279,97 @@ export function CollectionDetail({
         )}
       </section>
 
-      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pb-24">
-        <div className="flex items-center justify-between mb-4">
-          <div className="text-[11px] uppercase tracking-[0.12em] font-bold text-ink-mid">
-            Entries in order {entries.length > 1 && "· Drag to reorder"}
-          </div>
-          {savingOrder && (
-            <div className="text-[11px] text-ink-light italic">Saving…</div>
-          )}
-        </div>
-
-        {entries.length === 0 ? (
-          <div className="rounded-2xl border border-navy/[0.08] bg-[#f8fafc] px-8 py-14 text-center">
-            <p className="text-ink-mid mb-5">
-              No entries in this collection yet.
-            </p>
-            <Link
-              href={`/dashboard/new?collectionId=${collectionId}`}
-              className="inline-block bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
+      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8 lg:pt-10 pb-12">
+        {hasEntries ? (
+          <>
+            {entries.length > 1 && (
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[11px] italic text-ink-light">
+                  Drag to reorder the reading sequence.
+                </p>
+                {savingOrder && (
+                  <div className="text-[11px] text-ink-light italic">
+                    Saving…
+                  </div>
+                )}
+              </div>
+            )}
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
             >
-              Add the first entry →
-            </Link>
-          </div>
+              <SortableContext
+                items={entries.map((e) => e.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <ul className="space-y-3">
+                  {entries.map((entry, index) => (
+                    <SortableEntryRow
+                      key={entry.id}
+                      entry={entry}
+                      index={index + 1}
+                      unlockDate={effectiveRevealDate}
+                    />
+                  ))}
+                </ul>
+              </SortableContext>
+            </DndContext>
+          </>
         ) : (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={entries.map((e) => e.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <ul className="space-y-3">
-                {entries.map((entry, index) => (
-                  <SortableEntryRow
-                    key={entry.id}
-                    entry={entry}
-                    index={index + 1}
-                    unlockDate={effectiveRevealDate}
-                  />
-                ))}
-              </ul>
-            </SortableContext>
-          </DndContext>
+          <EmptyState
+            collectionId={collectionId}
+            childFirstName={childFirstName}
+          />
         )}
       </section>
+
+      {/* Delete demoted to a small muted link at the bottom of the
+          page so it doesn't compete with the primary CTA up top. */}
+      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pb-16 text-center">
+        <button
+          type="button"
+          onClick={handleDelete}
+          disabled={deleting}
+          className="text-[11px] text-ink-light hover:text-red-600 transition-colors underline underline-offset-[3px] disabled:opacity-50"
+        >
+          {deleting ? "Deleting…" : "Delete collection"}
+        </button>
+      </section>
     </main>
+  );
+}
+
+function EmptyState({
+  collectionId,
+  childFirstName,
+}: {
+  collectionId: string;
+  childFirstName: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-dashed border-navy/10 bg-warm-surface/60 px-6 py-14 text-center">
+      <div
+        aria-hidden="true"
+        className="mx-auto mb-4 w-12 h-12 rounded-full bg-amber-tint text-amber flex items-center justify-center"
+      >
+        <Sparkles size={20} strokeWidth={1.5} />
+      </div>
+      <h3 className="text-[19px] font-extrabold text-navy tracking-[-0.2px]">
+        This book is still blank.
+      </h3>
+      <p className="mt-2 text-sm text-ink-mid max-w-[320px] mx-auto">
+        Write the first page — one moment {childFirstName} will get to read
+        one day.
+      </p>
+      <Link
+        href={`/dashboard/new?collectionId=${collectionId}`}
+        className="mt-6 inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
+      >
+        <PlusCircle size={16} strokeWidth={1.5} aria-hidden="true" />
+        Add your first memory →
+      </Link>
+    </div>
   );
 }
 
