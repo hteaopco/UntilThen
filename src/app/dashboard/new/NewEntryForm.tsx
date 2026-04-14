@@ -42,12 +42,14 @@ const AUTOSAVE_INTERVAL_MS = 30000;
 
 export function NewEntryForm({
   childFirstName,
+  vaultId,
   vaultRevealDate,
   collections,
   lockedCollectionId,
   initialEntry,
 }: {
   childFirstName: string;
+  vaultId: string;
   vaultRevealDate: string | null;
   collections: CollectionOption[];
   lockedCollectionId: string | null;
@@ -112,6 +114,7 @@ export function NewEntryForm({
     if (!hasContent()) return s.entryId;
 
     const payload = {
+      vaultId,
       title: s.title.trim() || null,
       body: s.body,
       type: "TEXT",

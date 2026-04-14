@@ -13,7 +13,10 @@ export const runtime = "nodejs";
 export default async function NewEntryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ collectionId?: string | string[] }>;
+  searchParams: Promise<{
+    collectionId?: string | string[];
+    vault?: string | string[];
+  }>;
 }) {
   const { userId } = auth();
   if (!userId) redirect("/sign-in");
@@ -25,6 +28,7 @@ export default async function NewEntryPage({
   const sp = await searchParams;
   const collectionIdParam =
     typeof sp.collectionId === "string" ? sp.collectionId : null;
+  const vaultParam = typeof sp.vault === "string" ? sp.vault : null;
 
   const { prisma } = await import("@/lib/prisma");
   const user = await prisma.user.findUnique({
@@ -34,9 +38,7 @@ export default async function NewEntryPage({
         include: {
           vault: {
             include: {
-              collections: {
-                orderBy: { createdAt: "desc" },
-              },
+              collections: { orderBy: { createdAt: "desc" } },
             },
           },
         },
@@ -46,25 +48,34 @@ export default async function NewEntryPage({
   });
   if (!user) redirect("/onboarding");
 
-  const child = user.children[0];
-  if (!child || !child.vault) redirect("/onboarding");
+  const childrenWithVaults = user.children.filter((c) => c.vault);
+  if (childrenWithVaults.length === 0) redirect("/onboarding");
 
-  const collections: CollectionOption[] = child.vault.collections.map((c) => ({
+  // Pick the target child: URL `?vault=<childId>` if present and
+  // owned; otherwise fall back to the first child so the legacy
+  // single-vault flow still works.
+  const targetChild =
+    childrenWithVaults.find((c) => c.id === vaultParam) ??
+    childrenWithVaults[0];
+  const vault = targetChild.vault!;
+
+  const collections: CollectionOption[] = vault.collections.map((c) => ({
     id: c.id,
     title: c.title,
     coverEmoji: c.coverEmoji,
     revealDate: c.revealDate?.toISOString() ?? null,
   }));
 
-  // Verify the lock target actually belongs to the user.
+  // Verify the lock target actually belongs to this vault.
   const lockedCollection = collectionIdParam
     ? collections.find((c) => c.id === collectionIdParam) ?? null
     : null;
 
   return (
     <NewEntryForm
-      childFirstName={child.firstName}
-      vaultRevealDate={child.vault.revealDate?.toISOString() ?? null}
+      childFirstName={targetChild.firstName}
+      vaultId={vault.id}
+      vaultRevealDate={vault.revealDate?.toISOString() ?? null}
       collections={collections}
       lockedCollectionId={lockedCollection?.id ?? null}
     />

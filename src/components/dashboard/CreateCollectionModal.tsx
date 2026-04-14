@@ -7,9 +7,11 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 const EMOJI_PRESETS = ["📖", "⚽", "💙", "🎵", "🌟", "✈️", "🎨", "📷"];
 
 export function CreateCollectionModal({
+  vaultId,
   vaultRevealDate,
   onClose,
 }: {
+  vaultId: string;
   vaultRevealDate: string | null;
   onClose: () => void;
 }) {
@@ -40,6 +42,7 @@ export function CreateCollectionModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          vaultId,
           title: title.trim(),
           description: description.trim() || null,
           coverEmoji: effectiveEmoji || null,

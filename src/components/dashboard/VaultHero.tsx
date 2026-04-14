@@ -28,11 +28,13 @@ function isoToDateInput(iso: string | null): string {
 export function VaultHero({
   childId,
   childFirstName,
+  vaultId,
   revealDate,
   entryCount,
 }: {
   childId: string;
   childFirstName: string;
+  vaultId: string;
   revealDate: string | null;
   entryCount: number;
 }) {
@@ -99,6 +101,7 @@ export function VaultHero({
             </div>
           ) : (
             <RevealDateForm
+              vaultId={vaultId}
               initialDate={currentReveal}
               onSaved={(date) => {
                 setCurrentReveal(date);
@@ -122,7 +125,7 @@ export function VaultHero({
               Open {childFirstName}&rsquo;s time vault
             </Link>
             <Link
-              href="/dashboard/preview"
+              href={`/dashboard/preview?vault=${childId}`}
               prefetch={false}
               className="inline-flex items-center gap-2 bg-amber text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
@@ -143,11 +146,13 @@ export function VaultHero({
 }
 
 function RevealDateForm({
+  vaultId,
   initialDate,
   onSaved,
   onCancel,
   showCancel,
 }: {
+  vaultId: string;
   initialDate: string | null;
   onSaved: (date: string) => void;
   onCancel: () => void;
@@ -170,7 +175,7 @@ function RevealDateForm({
       const res = await fetch("/api/dashboard/vault", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ revealDate: value }),
+        body: JSON.stringify({ vaultId, revealDate: value }),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };

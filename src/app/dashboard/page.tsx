@@ -18,6 +18,10 @@ import {
 import { EntryList, type EntryRow } from "@/components/dashboard/EntryList";
 import { NewButton } from "@/components/dashboard/NewButton";
 import { VaultHero } from "@/components/dashboard/VaultHero";
+import {
+  VaultSwitcher,
+  type VaultOption,
+} from "@/components/dashboard/VaultSwitcher";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 
 export const metadata = {
@@ -27,7 +31,11 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ vault?: string }>;
+}) {
   const { userId } = auth();
   if (!userId) redirect("/sign-in");
 
@@ -35,58 +43,66 @@ export default async function DashboardPage() {
     return <DbMissing />;
   }
 
+  const { vault: vaultParam } = await searchParams;
+
   const { prisma } = await import("@/lib/prisma");
   const user = await prisma.user.findUnique({
     where: { clerkId: userId },
     include: {
       children: {
-        include: {
-          vault: {
-            include: {
-              entries: {
-                where: {
-                  collectionId: null,
-                  isSealed: true,
-                  approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
-                },
-                orderBy: { createdAt: "desc" },
-                take: 50,
-              },
-              collections: {
-                include: {
-                  _count: {
-                    select: {
-                      entries: {
-                        where: {
-                          isSealed: true,
-                          approvalStatus: {
-                            in: ["AUTO_APPROVED", "APPROVED"],
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-                orderBy: { createdAt: "desc" },
-              },
-            },
-          },
-        },
+        include: { vault: true },
         orderBy: { createdAt: "asc" },
       },
     },
   });
   if (!user) redirect("/onboarding");
 
-  const child = user.children[0];
-  if (!child || !child.vault) redirect("/onboarding");
+  // Only children who have a vault are switchable. If the user has
+  // no child at all, they still need to complete onboarding.
+  const childrenWithVaults = user.children.filter((c) => c.vault !== null);
+  if (childrenWithVaults.length === 0) redirect("/onboarding");
 
-  const vault = child.vault;
+  // Pick the active child: URL param if it matches an owned child,
+  // otherwise the first one.
+  const selectedChild =
+    childrenWithVaults.find((c) => c.id === vaultParam) ??
+    childrenWithVaults[0];
+  // Narrowed by the filter above.
+  const vault = selectedChild.vault!;
   const vaultRevealDate = vault.revealDate?.toISOString() ?? null;
 
-  // Contributors + pending-approval entries (only for contributors
-  // whose requiresApproval is true).
-  const [contributorRecords, pendingEntries] = await Promise.all([
+  const [
+    vaultEntries,
+    vaultCollections,
+    contributorRecords,
+    pendingEntries,
+  ] = await Promise.all([
+    prisma.entry.findMany({
+      where: {
+        vaultId: vault.id,
+        collectionId: null,
+        isSealed: true,
+        approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    }),
+    prisma.collection.findMany({
+      where: { vaultId: vault.id },
+      include: {
+        _count: {
+          select: {
+            entries: {
+              where: {
+                isSealed: true,
+                approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
     prisma.contributor.findMany({
       where: { vaultId: vault.id, status: { not: "REVOKED" } },
       orderBy: { createdAt: "desc" },
@@ -120,8 +136,7 @@ export default async function DashboardPage() {
       e.contributor?.name ?? e.contributor?.email ?? "A contributor",
   }));
 
-  // Standalone entries (not in a collection).
-  const entries: EntryRow[] = vault.entries.map((e) => ({
+  const entries: EntryRow[] = vaultEntries.map((e) => ({
     id: e.id,
     type: e.type,
     title: e.title,
@@ -130,7 +145,7 @@ export default async function DashboardPage() {
     revealDate: e.revealDate?.toISOString() ?? null,
   }));
 
-  const collections: CollectionRow[] = vault.collections.map((c) => ({
+  const collections: CollectionRow[] = vaultCollections.map((c) => ({
     id: c.id,
     title: c.title,
     description: c.description,
@@ -144,6 +159,12 @@ export default async function DashboardPage() {
     entries.length +
     collections.reduce((acc, c) => acc + c.entryCount, 0);
 
+  const switcherOptions: VaultOption[] = childrenWithVaults.map((c) => ({
+    id: c.id,
+    firstName: c.firstName,
+    vaultId: c.vault!.id,
+  }));
+
   return (
     <main className="min-h-screen bg-cream">
       <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
@@ -156,9 +177,14 @@ export default async function DashboardPage() {
       </header>
 
       <section className="mx-auto max-w-[980px] px-6 lg:px-10 pt-8 lg:pt-10">
+        <VaultSwitcher
+          options={switcherOptions}
+          selectedChildId={selectedChild.id}
+        />
         <VaultHero
-          childId={child.id}
-          childFirstName={child.firstName}
+          childId={selectedChild.id}
+          childFirstName={selectedChild.firstName}
+          vaultId={vault.id}
           revealDate={vaultRevealDate}
           entryCount={totalSealed}
         />
@@ -174,16 +200,23 @@ export default async function DashboardPage() {
               Your child will open these on reveal day.
             </p>
           </div>
-          <NewButton vaultRevealDate={vaultRevealDate} />
+          <NewButton
+            vaultId={vault.id}
+            vaultRevealDate={vaultRevealDate}
+          />
         </div>
 
         <ApprovalQueue entries={pending} />
 
-        <ContributorsSection contributors={contributors} />
+        <ContributorsSection
+          contributors={contributors}
+          vaultId={vault.id}
+        />
 
         <CollectionsSection
           collections={collections}
           vaultRevealDate={vaultRevealDate}
+          vaultId={vault.id}
         />
 
         {collections.length > 0 && (
@@ -193,7 +226,7 @@ export default async function DashboardPage() {
         )}
         <EntryList
           entries={entries}
-          childFirstName={child.firstName}
+          childFirstName={selectedChild.firstName}
           revealDate={vaultRevealDate}
         />
       </section>

@@ -30,29 +30,23 @@ export default async function EditEntryPage({
   const { prisma } = await import("@/lib/prisma");
   const user = await prisma.user.findUnique({
     where: { clerkId: userId },
-    include: {
-      children: {
-        include: {
-          vault: {
-            include: {
-              collections: {
-                orderBy: { createdAt: "desc" },
-              },
-            },
-          },
-        },
-        orderBy: { createdAt: "asc" },
-      },
-    },
+    select: { id: true },
   });
   if (!user) redirect("/onboarding");
 
-  const child = user.children[0];
-  if (!child || !child.vault) redirect("/onboarding");
-
+  // Resolve the entry + its vault directly so this works for
+  // any of the user's vaults, not just the first one.
   const entry = await prisma.entry.findUnique({
     where: { id },
-    include: { collection: true },
+    include: {
+      collection: true,
+      vault: {
+        include: {
+          child: true,
+          collections: { orderBy: { createdAt: "desc" } },
+        },
+      },
+    },
   });
   if (!entry) redirect("/dashboard");
   if (entry.authorId !== user.id) redirect("/dashboard");
@@ -60,13 +54,13 @@ export default async function EditEntryPage({
   const unlockDate =
     entry.revealDate ??
     entry.collection?.revealDate ??
-    child.vault.revealDate ??
+    entry.vault.revealDate ??
     null;
   if (unlockDate && new Date(unlockDate).getTime() <= Date.now()) {
     redirect(`/dashboard/entry/${entry.id}/preview`);
   }
 
-  const collections: CollectionOption[] = child.vault.collections.map((c) => ({
+  const collections: CollectionOption[] = entry.vault.collections.map((c) => ({
     id: c.id,
     title: c.title,
     coverEmoji: c.coverEmoji,
@@ -99,8 +93,9 @@ export default async function EditEntryPage({
 
   return (
     <NewEntryForm
-      childFirstName={child.firstName}
-      vaultRevealDate={child.vault.revealDate?.toISOString() ?? null}
+      childFirstName={entry.vault.child.firstName}
+      vaultId={entry.vault.id}
+      vaultRevealDate={entry.vault.revealDate?.toISOString() ?? null}
       collections={collections}
       lockedCollectionId={null}
       initialEntry={initialEntry}

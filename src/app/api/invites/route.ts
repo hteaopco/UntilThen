@@ -6,6 +6,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 interface Body {
+  vaultId?: string;
   email?: string;
   name?: string;
   role?: string;
@@ -56,9 +57,17 @@ export async function POST(req: Request) {
     });
     if (!user)
       return NextResponse.json({ error: "User not found." }, { status: 404 });
-    const vault = user.children[0]?.vault;
+
+    // Accept an explicit vaultId so multi-vault parents can invite
+    // to a specific child's vault. Falls back to the first vault
+    // for legacy single-child flows.
+    const vault =
+      (body.vaultId &&
+        user.children.find((c) => c.vault?.id === body.vaultId)?.vault) ||
+      user.children[0]?.vault;
     if (!vault)
       return NextResponse.json({ error: "No vault yet." }, { status: 404 });
+    const vaultChild = user.children.find((c) => c.vault?.id === vault.id);
 
     const contributor = await prisma.contributor.create({
       data: {
@@ -78,7 +87,7 @@ export async function POST(req: Request) {
         const resend = new Resend(process.env.RESEND_API_KEY);
         const origin = process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
         const inviteUrl = `${origin}/invite/${contributor.inviteToken}`;
-        const child = user.children[0];
+        const child = vaultChild ?? user.children[0];
         const revealLabel = vault.revealDate
           ? vault.revealDate.toLocaleDateString("en-US", {
               month: "long",

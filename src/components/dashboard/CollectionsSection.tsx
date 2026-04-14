@@ -22,9 +22,11 @@ function formatShort(iso: string): string {
 export function CollectionsSection({
   collections,
   vaultRevealDate,
+  vaultId,
 }: {
   collections: CollectionRow[];
   vaultRevealDate: string | null;
+  vaultId: string;
 }) {
   if (collections.length === 0) return null;
 
@@ -39,6 +41,7 @@ export function CollectionsSection({
             key={c.id}
             collection={c}
             vaultRevealDate={vaultRevealDate}
+            vaultId={vaultId}
           />
         ))}
       </ul>
@@ -49,9 +52,11 @@ export function CollectionsSection({
 function CollectionCard({
   collection,
   vaultRevealDate,
+  vaultId,
 }: {
   collection: CollectionRow;
   vaultRevealDate: string | null;
+  vaultId: string;
 }) {
   const revealDate = collection.revealDate ?? vaultRevealDate;
   return (
@@ -92,7 +97,7 @@ function CollectionCard({
         </div>
         <div className="flex flex-col items-end gap-3 shrink-0">
           <Link
-            href={`/dashboard/new?collectionId=${collection.id}`}
+            href={`/dashboard/new?vault=${vaultId}&collectionId=${collection.id}`}
             prefetch={false}
             className="inline-flex items-center gap-1 text-[11px] uppercase tracking-[0.08em] font-bold text-amber hover:text-navy transition-colors whitespace-nowrap"
           >

@@ -47,11 +47,17 @@ async function serialise(entry: DbEntry): Promise<PreviewEntry> {
   };
 }
 
-export default async function PreviewPage() {
+export default async function PreviewPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ vault?: string }>;
+}) {
   const { userId } = auth();
   if (!userId) redirect("/sign-in");
 
   if (!process.env.DATABASE_URL) redirect("/dashboard");
+
+  const { vault: vaultParam } = await searchParams;
 
   const { prisma } = await import("@/lib/prisma");
   const user = await prisma.user.findUnique({
@@ -93,15 +99,22 @@ export default async function PreviewPage() {
   });
   if (!user) redirect("/onboarding");
 
-  const child = user.children[0];
-  if (!child || !child.vault) redirect("/dashboard");
+  const childrenWithVaults = user.children.filter((c) => c.vault);
+  if (childrenWithVaults.length === 0) redirect("/dashboard");
+
+  // Same selection logic as /dashboard — URL param takes precedence,
+  // otherwise the first child.
+  const child =
+    childrenWithVaults.find((c) => c.id === vaultParam) ??
+    childrenWithVaults[0];
+  const vault = child.vault!;
 
   const standalone: PreviewEntry[] = await Promise.all(
-    child.vault.entries.map(serialise),
+    vault.entries.map(serialise),
   );
 
   const collections: PreviewCollection[] = await Promise.all(
-    child.vault.collections.map(async (c) => ({
+    vault.collections.map(async (c) => ({
       id: c.id,
       title: c.title,
       description: c.description,
@@ -114,8 +127,8 @@ export default async function PreviewPage() {
   return (
     <PreviewClient
       childFirstName={child.firstName}
-      parentFirstName={user.firstName}
-      revealDate={child.vault.revealDate?.toISOString() ?? null}
+      parentFirstName={user.displayName ?? user.firstName}
+      revealDate={vault.revealDate?.toISOString() ?? null}
       standaloneEntries={standalone}
       collections={collections}
     />

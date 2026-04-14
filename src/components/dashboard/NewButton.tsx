@@ -7,8 +7,10 @@ import { useEffect, useRef, useState } from "react";
 import { CreateCollectionModal } from "@/components/dashboard/CreateCollectionModal";
 
 export function NewButton({
+  vaultId,
   vaultRevealDate,
 }: {
+  vaultId: string;
   vaultRevealDate: string | null;
 }) {
   const [open, setOpen] = useState(false);
@@ -61,7 +63,7 @@ export function NewButton({
             className="absolute top-11 left-0 lg:left-auto lg:right-0 min-w-[220px] rounded-xl bg-white border border-navy/[0.08] shadow-[0_4px_24px_rgba(15,31,61,0.12)] overflow-hidden z-40"
           >
             <Link
-              href="/dashboard/new"
+              href={`/dashboard/new?vault=${vaultId}`}
               prefetch={false}
               onClick={() => setOpen(false)}
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-navy hover:bg-amber-tint transition-colors"
@@ -95,6 +97,7 @@ export function NewButton({
       </div>
       {showCollectionModal && (
         <CreateCollectionModal
+          vaultId={vaultId}
           vaultRevealDate={vaultRevealDate}
           onClose={() => setShowCollectionModal(false)}
         />

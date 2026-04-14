@@ -42,8 +42,10 @@ const STATUS_CLASS: Record<ContributorRow["status"], string> = {
 
 export function ContributorsSection({
   contributors,
+  vaultId,
 }: {
   contributors: ContributorRow[];
+  vaultId: string;
 }) {
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
@@ -173,7 +175,12 @@ export function ContributorsSection({
           </ul>
         )}
       </div>
-      {modalOpen && <InviteModal onClose={() => setModalOpen(false)} />}
+      {modalOpen && (
+        <InviteModal
+          vaultId={vaultId}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
     </>
   );
 }

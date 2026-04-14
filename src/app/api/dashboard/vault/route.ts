@@ -1,10 +1,12 @@
 import { auth } from "@clerk/nextjs/server";
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 interface Body {
+  vaultId?: string;
   revealDate?: string | null;
 }
 
@@ -69,16 +71,27 @@ export async function PATCH(req: Request) {
     if (!user) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
-    const vault = user.children[0]?.vault;
-    if (!vault) {
+
+    // Resolve the target vault: explicit body.vaultId if the parent
+    // owns it, otherwise fall back to the first child's vault so
+    // existing single-child clients keep working.
+    const ownedVaults = user.children
+      .map((c) => c.vault)
+      .filter((v): v is NonNullable<typeof v> => Boolean(v));
+    const targetVault =
+      (body.vaultId && ownedVaults.find((v) => v.id === body.vaultId)) ||
+      ownedVaults[0] ||
+      null;
+    if (!targetVault) {
       return NextResponse.json({ error: "No vault yet." }, { status: 404 });
     }
 
     await prisma.vault.update({
-      where: { id: vault.id },
+      where: { id: targetVault.id },
       data: { revealDate },
     });
 
+    revalidatePath("/dashboard");
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[dashboard/vault PATCH] error:", err);

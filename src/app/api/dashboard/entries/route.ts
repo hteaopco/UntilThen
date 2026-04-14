@@ -6,6 +6,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 interface Body {
+  vaultId?: string;
   title?: string | null;
   body?: string;
   type?: string;
@@ -78,7 +79,12 @@ export async function POST(req: Request) {
     });
     if (!user)
       return NextResponse.json({ error: "User not found." }, { status: 404 });
-    const vault = user.children[0]?.vault;
+    const ownedVaults = user.children
+      .map((c) => c.vault)
+      .filter((v): v is NonNullable<typeof v> => Boolean(v));
+    const vault =
+      (body.vaultId && ownedVaults.find((v) => v.id === body.vaultId)) ||
+      ownedVaults[0];
     if (!vault)
       return NextResponse.json({ error: "No vault yet." }, { status: 404 });
 

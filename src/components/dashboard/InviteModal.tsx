@@ -15,7 +15,16 @@ const ROLES: Array<{
   { value: "OTHER", label: "Other", hint: "" },
 ];
 
-export function InviteModal({ onClose }: { onClose: () => void }) {
+export function InviteModal({
+  vaultId,
+  onClose,
+}: {
+  /** Optional: when set, the invite is bound to this specific vault.
+      Omitted for the account-level contributors manager which
+      already resolves the vault internally. */
+  vaultId?: string;
+  onClose: () => void;
+}) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -33,6 +42,7 @@ export function InviteModal({ onClose }: { onClose: () => void }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          vaultId,
           email: email.trim(),
           name: name.trim() || null,
           role,

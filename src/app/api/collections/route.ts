@@ -5,13 +5,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 interface CreateBody {
+  vaultId?: string;
   title?: string;
   description?: string | null;
   coverEmoji?: string | null;
   revealDate?: string | null;
 }
 
-async function getUserAndVault(userId: string) {
+async function getUserWithVaults(userId: string) {
   const { prisma } = await import("@/lib/prisma");
   const user = await prisma.user.findUnique({
     where: { clerkId: userId },
@@ -23,8 +24,21 @@ async function getUserAndVault(userId: string) {
     },
   });
   if (!user) return null;
-  const vault = user.children[0]?.vault ?? null;
-  return { user, vault };
+  const ownedVaults = user.children
+    .map((c) => c.vault)
+    .filter((v): v is NonNullable<typeof v> => Boolean(v));
+  return { user, ownedVaults };
+}
+
+function resolveVaultId(
+  ownedVaults: { id: string }[],
+  requestedVaultId: string | undefined,
+): string | null {
+  if (requestedVaultId) {
+    const owned = ownedVaults.find((v) => v.id === requestedVaultId);
+    return owned?.id ?? null;
+  }
+  return ownedVaults[0]?.id ?? null;
 }
 
 export async function GET() {
@@ -40,16 +54,19 @@ export async function GET() {
   }
 
   try {
-    const ctx = await getUserAndVault(userId);
+    const ctx = await getUserWithVaults(userId);
     if (!ctx?.user) {
       return NextResponse.json({ error: "User not found." }, { status: 404 });
     }
-    if (!ctx.vault) {
+    if (ctx.ownedVaults.length === 0) {
       return NextResponse.json({ collections: [] });
     }
     const { prisma } = await import("@/lib/prisma");
+    // GET is used by multi-vault pickers (NewEntryForm collection
+    // dropdown) — return collections across every vault the user
+    // owns. Per-vault filtering happens on the client.
     const collections = await prisma.collection.findMany({
-      where: { vaultId: ctx.vault.id },
+      where: { vaultId: { in: ctx.ownedVaults.map((v) => v.id) } },
       include: { _count: { select: { entries: true } } },
       orderBy: { createdAt: "desc" },
     });
@@ -123,8 +140,12 @@ export async function POST(req: Request) {
   }
 
   try {
-    const ctx = await getUserAndVault(userId);
-    if (!ctx?.user || !ctx.vault) {
+    const ctx = await getUserWithVaults(userId);
+    if (!ctx?.user) {
+      return NextResponse.json({ error: "User not found." }, { status: 404 });
+    }
+    const targetVaultId = resolveVaultId(ctx.ownedVaults, body.vaultId);
+    if (!targetVaultId) {
       return NextResponse.json(
         { error: "No vault to add this collection to." },
         { status: 400 },
@@ -133,7 +154,7 @@ export async function POST(req: Request) {
     const { prisma } = await import("@/lib/prisma");
     const collection = await prisma.collection.create({
       data: {
-        vaultId: ctx.vault.id,
+        vaultId: targetVaultId,
         authorId: ctx.user.id,
         title,
         description,

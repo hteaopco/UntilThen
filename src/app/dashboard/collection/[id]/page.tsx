@@ -25,21 +25,17 @@ export default async function CollectionPage({
   const { prisma } = await import("@/lib/prisma");
   const user = await prisma.user.findUnique({
     where: { clerkId: userId },
-    include: {
-      children: {
-        include: { vault: true },
-        orderBy: { createdAt: "asc" },
-      },
-    },
+    select: { id: true },
   });
   if (!user) redirect("/onboarding");
 
-  const vault = user.children[0]?.vault;
-  if (!vault) redirect("/onboarding");
-
+  // Resolve the collection + its vault directly — ownership check
+  // now uses authorId, which scales to any number of children the
+  // parent has without a hardcoded first-child lookup.
   const collection = await prisma.collection.findUnique({
     where: { id },
     include: {
+      vault: true,
       entries: {
         orderBy: [
           { orderIndex: "asc" },
@@ -50,9 +46,7 @@ export default async function CollectionPage({
   });
 
   if (!collection) redirect("/dashboard");
-  if (collection.authorId !== user.id || collection.vaultId !== vault.id) {
-    redirect("/dashboard");
-  }
+  if (collection.authorId !== user.id) redirect("/dashboard");
 
   const entries: CollectionEntryRow[] = collection.entries.map((e) => ({
     id: e.id,
@@ -69,7 +63,7 @@ export default async function CollectionPage({
       description={collection.description}
       coverEmoji={collection.coverEmoji}
       revealDate={collection.revealDate?.toISOString() ?? null}
-      vaultRevealDate={vault.revealDate?.toISOString() ?? null}
+      vaultRevealDate={collection.vault.revealDate?.toISOString() ?? null}
       isSealed={collection.isSealed}
       entries={entries}
     />

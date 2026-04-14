@@ -48,12 +48,7 @@ export default async function ProofReadPage({
   const { prisma } = await import("@/lib/prisma");
   const user = await prisma.user.findUnique({
     where: { clerkId: userId },
-    include: {
-      children: {
-        include: { vault: true },
-        orderBy: { createdAt: "asc" },
-      },
-    },
+    select: { id: true },
   });
   if (!user) redirect("/onboarding");
 
@@ -64,17 +59,21 @@ export default async function ProofReadPage({
         select: { firstName: true, lastName: true, displayName: true },
       },
       collection: true,
+      vault: {
+        include: { child: { select: { firstName: true } } },
+      },
     },
   });
   if (!entry) redirect("/dashboard");
   if (entry.authorId !== user.id) redirect("/dashboard");
 
-  const vault = user.children[0]?.vault ?? null;
-
   const unlockDate =
-    entry.revealDate ?? entry.collection?.revealDate ?? vault?.revealDate ?? null;
+    entry.revealDate ??
+    entry.collection?.revealDate ??
+    entry.vault.revealDate ??
+    null;
 
-  const childFirstName = user.children[0]?.firstName ?? "them";
+  const childFirstName = entry.vault.child.firstName;
 
   const media: MediaItem[] = r2IsConfigured()
     ? await Promise.all(
