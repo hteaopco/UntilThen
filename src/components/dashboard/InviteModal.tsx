@@ -276,7 +276,7 @@ function ResultScreen({
       ? `${result.name ?? result.email} is already on untilThen and has been added as a contributor. They can jump straight in next time they sign in.`
       : result.kind === "email-failed"
         ? `Contributor added but the invite email to ${result.email} failed to send. Check the address and try resending from the contributors list.`
-        : `Invite sent to ${result.email}. They'll get an email with a link to accept.`;
+        : `Invite sent to ${result.email}. Ask them to check their spam folder if they don't see it within a few minutes.`;
 
   return (
     <div
