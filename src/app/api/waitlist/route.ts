@@ -122,17 +122,23 @@ export async function POST(req: Request) {
         from: "untilThen <hello@untilthenapp.io>",
         replyTo: "support@untilthenapp.io",
         to: email,
-        subject: `You're on the list, ${firstName}.`,
+        subject: "You're on the list.",
         html: `
 <div style="font-family: 'DM Sans', -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 24px; color: #0f1f3d;">
-  <h1 style="font-size: 28px; font-weight: 800; color: #0f1f3d; margin: 0 0 12px; letter-spacing: -0.5px;">
+  <h1 style="font-size: 28px; font-weight: 800; color: #0f1f3d; margin: 0 0 20px; letter-spacing: -0.5px;">
     You&rsquo;re on the list, ${escapeHtml(firstName)}.
   </h1>
   <p style="font-size: 16px; color: #4a5568; line-height: 1.7; margin: 0 0 20px;">
-    We&rsquo;re building something we think you&rsquo;ll love — a place to write letters, record voice notes, and capture memories your child will open when they&rsquo;re ready.
+    We&rsquo;re building something we think you&rsquo;ll love — a place to capture moments for the people who matter most.
+  </p>
+  <p style="font-size: 16px; color: #4a5568; line-height: 1.7; margin: 0 0 20px;">
+    Write something they&rsquo;ll open years from now. Or bring together messages from everyone who loves them for a day that matters.
+  </p>
+  <p style="font-size: 16px; color: #4a5568; line-height: 1.7; margin: 0 0 20px;">
+    We&rsquo;ll let you know when untilThen opens.
   </p>
   <p style="font-size: 16px; color: #4a5568; line-height: 1.7; margin: 0 0 32px;">
-    We&rsquo;ll be in touch when untilThen launches. In the meantime, maybe think about what you&rsquo;d write in your first letter.
+    Until then — maybe think about what you&rsquo;d say if they were reading it today.
   </p>
   <div style="border-top: 1px solid #e2e8f0; padding-top: 20px;">
     <p style="font-size: 13px; color: #8896a5; margin: 0; font-style: italic;">
