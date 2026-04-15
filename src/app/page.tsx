@@ -6,6 +6,7 @@ import { Features } from "@/components/landing/Features";
 import { Pricing } from "@/components/landing/Pricing";
 import { CtaSection } from "@/components/landing/CtaSection";
 import { Footer } from "@/components/landing/Footer";
+import { ChooseYourVault } from "@/components/marketing/ChooseYourVault";
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       <Nav />
       <main>
         <Hero />
+        <ChooseYourVault />
         <HowItWorks />
         <Features />
         <Pricing />
