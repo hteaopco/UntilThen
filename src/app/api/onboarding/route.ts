@@ -136,49 +136,50 @@ export async function POST(req: Request) {
         if (!hasVault) {
           const childFirstName = (body.childFirstName as string).trim();
           const childLastName = (body.childLastName as string).trim();
-          await prisma.$transaction(
-            async (tx) => {
-              const child = await tx.child.create({
-                data: {
-                  firstName: childFirstName,
-                  lastName: childLastName,
-                  dateOfBirth: childDob,
-                  parentId: existing.id,
-                },
-              });
-              const defaultRevealDate = new Date(childDob!);
-              defaultRevealDate.setFullYear(
-                defaultRevealDate.getFullYear() + 18,
-              );
-              await tx.vault.create({
-                data: {
-                  childId: child.id,
-                  revealDate: defaultRevealDate,
-                },
-              });
-              await tx.user.update({
-                where: { id: existing.id },
-                data: {
-                  userType:
-                    existing.userType === "ORGANISER" ? "BOTH" : "PARENT",
-                },
-              });
+          // Sequential writes without a $transaction. Prisma
+          // Accelerate caps interactive transactions at 15s (P6005);
+          // for onboarding's 2–3 inserts the atomicity isn't worth
+          // the operational risk. If a later write fails we log,
+          // leave any partial rows in place, and surface a 500 so
+          // the client can retry idempotently (the findUnique at
+          // the top of this handler is the guard).
+          const child = await prisma.child.create({
+            data: {
+              firstName: childFirstName,
+              lastName: childLastName,
+              dateOfBirth: childDob,
+              parentId: existing.id,
             },
-            // Accelerate defaults to 5s max run — too tight for cold
-            // starts where the first query establishes the pooled
-            // connection.
-            { maxWait: 10_000, timeout: 20_000 },
+          });
+          const defaultRevealDate = new Date(childDob!);
+          defaultRevealDate.setFullYear(
+            defaultRevealDate.getFullYear() + 18,
           );
+          await prisma.vault.create({
+            data: {
+              childId: child.id,
+              revealDate: defaultRevealDate,
+            },
+          });
+          await prisma.user.update({
+            where: { id: existing.id },
+            data: {
+              userType:
+                existing.userType === "ORGANISER" ? "BOTH" : "PARENT",
+            },
+          });
         }
       }
       return NextResponse.json({ success: true, alreadyOnboarded: true });
     }
 
-    // Fresh user. For the memory-capsule path this is a single
-    // insert — no need for an interactive transaction through
-    // Accelerate, which has tight default timeouts. For the vault
-    // path we need User + Child + Vault atomically, so wrap those
-    // three in a $transaction with an explicit higher timeout.
+    // Fresh user. Both paths now run as sequential individual
+    // writes — Prisma Accelerate doesn't support long-running
+    // interactive transactions (hard 15s ceiling, error P6005),
+    // so onboarding has to live with the usual distributed-write
+    // tradeoff: partial failure can leave an orphan row. The
+    // handler is idempotent on retry because the findUnique on
+    // clerkId above catches the user row we already created.
     let createdUserId: string;
     if (flow === "memory_capsule") {
       const user = await prisma.user.create({
@@ -194,38 +195,32 @@ export async function POST(req: Request) {
     } else {
       const childFirstName = (body.childFirstName as string).trim();
       const childLastName = (body.childLastName as string).trim();
-      const userId2 = await prisma.$transaction(
-        async (tx) => {
-          const user = await tx.user.create({
-            data: {
-              clerkId: userId,
-              firstName,
-              lastName: lastName || "",
-              role: "PARENT",
-              userType: "PARENT",
-            },
-          });
-          const child = await tx.child.create({
-            data: {
-              firstName: childFirstName,
-              lastName: childLastName,
-              dateOfBirth: childDob!,
-              parentId: user.id,
-            },
-          });
-          const defaultRevealDate = new Date(childDob!);
-          defaultRevealDate.setFullYear(defaultRevealDate.getFullYear() + 18);
-          await tx.vault.create({
-            data: {
-              childId: child.id,
-              revealDate: defaultRevealDate,
-            },
-          });
-          return user.id;
+      const user = await prisma.user.create({
+        data: {
+          clerkId: userId,
+          firstName,
+          lastName: lastName || "",
+          role: "PARENT",
+          userType: "PARENT",
         },
-        { maxWait: 10_000, timeout: 20_000 },
-      );
-      createdUserId = userId2;
+      });
+      const child = await prisma.child.create({
+        data: {
+          firstName: childFirstName,
+          lastName: childLastName,
+          dateOfBirth: childDob!,
+          parentId: user.id,
+        },
+      });
+      const defaultRevealDate = new Date(childDob!);
+      defaultRevealDate.setFullYear(defaultRevealDate.getFullYear() + 18);
+      await prisma.vault.create({
+        data: {
+          childId: child.id,
+          revealDate: defaultRevealDate,
+        },
+      });
+      createdUserId = user.id;
     }
 
     // Notification preferences live in their own row with a unique
