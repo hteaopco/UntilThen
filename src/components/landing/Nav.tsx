@@ -144,11 +144,13 @@ export function Nav() {
  * The right-side action — same component on desktop and mobile.
  *
  *   Signed out → "Sign in →" text link + "Sign up" amber button
- *   Signed in  → "Dashboard →" plain text link
+ *   Signed in  → "Dashboard →" navy button
  *
- * Sign in stays quiet per the brief (14px, medium weight); the
- * primary sign-up CTA is visible so new visitors have an obvious
- * path into the product without having to find the hero button.
+ * Sign in / Dashboard-when-on-it-already stay quiet; the primary
+ * action is always styled as a filled button so it's visible from
+ * across a marketing page — signed-out users see the sign-up path,
+ * signed-in users wandering on /blog or /faq see a clear way back
+ * into the product.
  */
 function RightAction() {
   return (
@@ -172,7 +174,7 @@ function RightAction() {
       <SignedIn>
         <Link
           href="/dashboard"
-          className="text-[14px] font-medium text-navy/85 hover:text-navy transition-colors"
+          className="inline-flex items-center gap-1 bg-navy text-white px-3.5 py-2 rounded-lg text-[13px] font-bold tracking-[0.01em] hover:bg-navy-mid transition-colors"
         >
           Dashboard →
         </Link>
