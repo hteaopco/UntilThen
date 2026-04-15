@@ -50,20 +50,4 @@ export default withSentryConfig(nextConfig, {
   // been uploaded so error stacks stay readable in Sentry but
   // not in the browser.
   sourcemaps: { deleteSourcemapsAfterUpload: true },
-
-  // We're on Railway, not Vercel — disable the cron-monitor
-  // wiring that only makes sense on Vercel deployments.
-  // NOTE: v10 logs a deprecation warning pointing at
-  // `webpack.automaticVercelMonitors`; leaving it at the top
-  // level anyway — nesting it under `webpack` produced a 100%
-  // healthcheck-fail startup regression (commit 38a0279). The
-  // warning is cosmetic; the behaviour at this top level is
-  // correct.
-  automaticVercelMonitors: false,
-
-  // Tree-shake Sentry's debug logger out of the production
-  // bundle for a smaller payload. Same warning + same reason
-  // as above — stays at the top level until we can reproduce
-  // the nested shape safely.
-  disableLogger: true,
 });
