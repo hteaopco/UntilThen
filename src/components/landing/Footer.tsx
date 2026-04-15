@@ -1,4 +1,5 @@
 import { SignedOut } from "@clerk/nextjs";
+import Link from "next/link";
 
 import { LogoSvg } from "@/components/ui/LogoSvg";
 
@@ -14,24 +15,24 @@ export function Footer() {
           <LogoSvg variant="footer" width={130} height={23} />
           <ul className="flex gap-6 list-none">
             <li>
-              <a
-                href="#"
+              <Link
+                href="/privacy"
                 className="text-[13px] text-white/90 hover:text-white transition-colors"
               >
                 Privacy
-              </a>
+              </Link>
             </li>
             <li>
-              <a
-                href="#"
+              <Link
+                href="/terms"
                 className="text-[13px] text-white/90 hover:text-white transition-colors"
               >
                 Terms
-              </a>
+              </Link>
             </li>
             <li>
               <a
-                href="#"
+                href="mailto:support@untilthenapp.io"
                 className="text-[13px] text-white/90 hover:text-white transition-colors"
               >
                 Help
