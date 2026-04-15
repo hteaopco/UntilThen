@@ -73,20 +73,16 @@ function FutureVaultCard() {
     <Link
       href="/sign-up"
       aria-label="Start a future vault"
-      className="group relative flex flex-col rounded-[20px] border-[1.5px] bg-amber-tint p-7 lg:p-8 transition-all duration-150 hover:-translate-y-[3px] hover:shadow-[0_8px_32px_rgba(196,122,58,0.18)]"
+      className="group relative flex flex-col rounded-[20px] border-[1.5px] p-7 lg:p-8 transition-all duration-150 hover:-translate-y-[3px] hover:shadow-[0_8px_32px_rgba(196,122,58,0.18)]"
       style={{
-        borderColor: "rgba(196,122,58,0.25)",
+        background: "#fef6ec",
+        borderColor: "rgba(196,122,58,0.2)",
         boxShadow: "0 4px 24px rgba(196,122,58,0.1)",
       }}
     >
-      {/* MOST POPULAR pill — top-left. */}
-      <div
-        className="absolute -top-3 left-6 inline-flex items-center gap-1.5 text-[10px] font-bold tracking-[0.14em] uppercase text-amber px-2.5 py-1 rounded-full"
-        style={{ background: "rgba(196,122,58,0.15)" }}
-      >
-        <Heart size={11} strokeWidth={2} aria-hidden="true" fill="currentColor" />
-        Most popular
-      </div>
+      {/* The "Most popular" pill lives inside the designer
+          composition at the top-left of /write now.png, so we don't
+          render a second one on the card frame. */}
 
       <FutureVaultVisual />
 
