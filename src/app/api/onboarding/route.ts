@@ -136,75 +136,110 @@ export async function POST(req: Request) {
         if (!hasVault) {
           const childFirstName = (body.childFirstName as string).trim();
           const childLastName = (body.childLastName as string).trim();
-          await prisma.$transaction(async (tx) => {
-            const child = await tx.child.create({
-              data: {
-                firstName: childFirstName,
-                lastName: childLastName,
-                dateOfBirth: childDob,
-                parentId: existing.id,
-              },
-            });
-            const defaultRevealDate = new Date(childDob!);
-            defaultRevealDate.setFullYear(
-              defaultRevealDate.getFullYear() + 18,
-            );
-            await tx.vault.create({
-              data: {
-                childId: child.id,
-                revealDate: defaultRevealDate,
-              },
-            });
-            await tx.user.update({
-              where: { id: existing.id },
-              data: {
-                userType:
-                  existing.userType === "ORGANISER" ? "BOTH" : "PARENT",
-              },
-            });
-          });
+          await prisma.$transaction(
+            async (tx) => {
+              const child = await tx.child.create({
+                data: {
+                  firstName: childFirstName,
+                  lastName: childLastName,
+                  dateOfBirth: childDob,
+                  parentId: existing.id,
+                },
+              });
+              const defaultRevealDate = new Date(childDob!);
+              defaultRevealDate.setFullYear(
+                defaultRevealDate.getFullYear() + 18,
+              );
+              await tx.vault.create({
+                data: {
+                  childId: child.id,
+                  revealDate: defaultRevealDate,
+                },
+              });
+              await tx.user.update({
+                where: { id: existing.id },
+                data: {
+                  userType:
+                    existing.userType === "ORGANISER" ? "BOTH" : "PARENT",
+                },
+              });
+            },
+            // Accelerate defaults to 5s max run — too tight for cold
+            // starts where the first query establishes the pooled
+            // connection.
+            { maxWait: 10_000, timeout: 20_000 },
+          );
         }
       }
       return NextResponse.json({ success: true, alreadyOnboarded: true });
     }
 
-    // Fresh user — create the User row and (for vault path) the
-    // child + vault in one transaction.
-    await prisma.$transaction(async (tx) => {
-      const user = await tx.user.create({
+    // Fresh user. For the memory-capsule path this is a single
+    // insert — no need for an interactive transaction through
+    // Accelerate, which has tight default timeouts. For the vault
+    // path we need User + Child + Vault atomically, so wrap those
+    // three in a $transaction with an explicit higher timeout.
+    let createdUserId: string;
+    if (flow === "memory_capsule") {
+      const user = await prisma.user.create({
         data: {
           clerkId: userId,
           firstName,
-          // lastName is now optional — fall back to empty string
-          // so the column constraint still holds.
           lastName: lastName || "",
           role: "PARENT",
-          userType: flow === "memory_capsule" ? "ORGANISER" : "PARENT",
-          notificationPreferences: { create: {} },
+          userType: "ORGANISER",
         },
       });
+      createdUserId = user.id;
+    } else {
+      const childFirstName = (body.childFirstName as string).trim();
+      const childLastName = (body.childLastName as string).trim();
+      const userId2 = await prisma.$transaction(
+        async (tx) => {
+          const user = await tx.user.create({
+            data: {
+              clerkId: userId,
+              firstName,
+              lastName: lastName || "",
+              role: "PARENT",
+              userType: "PARENT",
+            },
+          });
+          const child = await tx.child.create({
+            data: {
+              firstName: childFirstName,
+              lastName: childLastName,
+              dateOfBirth: childDob!,
+              parentId: user.id,
+            },
+          });
+          const defaultRevealDate = new Date(childDob!);
+          defaultRevealDate.setFullYear(defaultRevealDate.getFullYear() + 18);
+          await tx.vault.create({
+            data: {
+              childId: child.id,
+              revealDate: defaultRevealDate,
+            },
+          });
+          return user.id;
+        },
+        { maxWait: 10_000, timeout: 20_000 },
+      );
+      createdUserId = userId2;
+    }
 
-      if (flow === "child_vault" && childDob) {
-        const childFirstName = (body.childFirstName as string).trim();
-        const childLastName = (body.childLastName as string).trim();
-        const child = await tx.child.create({
-          data: {
-            firstName: childFirstName,
-            lastName: childLastName,
-            dateOfBirth: childDob,
-            parentId: user.id,
-          },
-        });
-        const defaultRevealDate = new Date(childDob);
-        defaultRevealDate.setFullYear(defaultRevealDate.getFullYear() + 18);
-        await tx.vault.create({
-          data: {
-            childId: child.id,
-            revealDate: defaultRevealDate,
-          },
-        });
-      }
-    });
+    // Notification preferences live in their own row with a unique
+    // userId. Create it after the user row exists so a failure here
+    // doesn't roll back onboarding — the user can always open
+    // settings and the row will be created on first save. Best-
+    // effort, same as PostHog below.
+    try {
+      await prisma.notificationPreferences.create({
+        data: { userId: createdUserId },
+      });
+    } catch (err) {
+      console.error("[onboarding] notification-prefs create failed:", err);
+    }
 
     // Identify + capture in PostHog. Best-effort — we've already
     // committed the row so analytics can't fail the request.
@@ -234,7 +269,32 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, flow });
   } catch (err) {
-    console.error("[onboarding] error:", err);
+    // Render the Prisma error fields explicitly so they survive
+    // whatever console.error → log aggregator formatting Railway
+    // applies. Without this the `err` object sometimes prints as
+    // `[object Object]` and the cause is invisible.
+    const e = err as {
+      code?: string;
+      message?: string;
+      meta?: unknown;
+      clientVersion?: string;
+      stack?: string;
+    };
+    console.error(
+      "[onboarding] error:",
+      JSON.stringify(
+        {
+          flow,
+          code: e.code,
+          message: e.message,
+          meta: e.meta,
+          clientVersion: e.clientVersion,
+        },
+        null,
+        2,
+      ),
+    );
+    if (e.stack) console.error("[onboarding] stack:", e.stack);
     return NextResponse.json(
       { error: "Something went wrong saving your account." },
       { status: 500 },
