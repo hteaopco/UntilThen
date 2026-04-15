@@ -59,6 +59,10 @@ type InviteRow = {
   email: string;
   name: string | null;
   status: "STAGED" | "PENDING" | "ACTIVE" | "REVOKED";
+  /** Per-contributor approval toggle. True = the organiser
+   * reviews this contributor's submission before the recipient
+   * sees it on reveal day. */
+  requiresApproval: boolean;
   inviteToken: string;
 };
 
@@ -774,6 +778,32 @@ function OwnContribution({
 
 // ── Contributors panel ────────────────────────────────────
 
+/**
+ * Contributors panel — batch entry + per-row approval toggle.
+ *
+ * The organiser builds a list of email rows (name + email +
+ * approval checkbox each), adds as many as they like via the
+ * "Add multiple" button, and saves them all in a single request.
+ * Existing invites are listed below with their approval state
+ * shown as an inline badge.
+ */
+type DraftRow = {
+  /** Client-only id so React keys stay stable across re-renders. */
+  key: string;
+  name: string;
+  email: string;
+  requiresApproval: boolean;
+};
+
+function blankRow(): DraftRow {
+  return {
+    key: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: "",
+    email: "",
+    requiresApproval: false,
+  };
+}
+
 function ContributorsPanel({
   capsuleId,
   invites,
@@ -788,39 +818,69 @@ function ContributorsPanel({
   onRemove: (id: string) => void;
 }) {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [adding, setAdding] = useState(false);
+  const [rows, setRows] = useState<DraftRow[]>([blankRow()]);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function add(e: FormEvent) {
+  function updateRow(key: string, patch: Partial<DraftRow>) {
+    setRows((prev) =>
+      prev.map((r) => (r.key === key ? { ...r, ...patch } : r)),
+    );
+  }
+
+  function removeRow(key: string) {
+    setRows((prev) => {
+      const next = prev.filter((r) => r.key !== key);
+      // Always keep at least one row so the form doesn't collapse.
+      return next.length > 0 ? next : [blankRow()];
+    });
+  }
+
+  function addRow() {
+    setRows((prev) => [...prev, blankRow()]);
+  }
+
+  async function save(e: FormEvent) {
     e.preventDefault();
-    if (!email.trim() || adding) return;
-    setAdding(true);
+    if (saving) return;
     setError(null);
+
+    // Normalise + filter any blank rows. At least one valid
+    // email is required to save.
+    const payload = rows
+      .map((r) => ({
+        name: r.name.trim() || null,
+        email: r.email.trim().toLowerCase(),
+        requiresApproval: r.requiresApproval,
+      }))
+      .filter((r) => r.email.length > 0);
+
+    if (payload.length === 0) {
+      setError("Add at least one email.");
+      return;
+    }
+
+    setSaving(true);
     try {
       const res = await fetch(`/api/capsules/${capsuleId}/invites`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          invites: [
-            { name: name.trim() || null, email: email.trim().toLowerCase() },
-          ],
-        }),
+        body: JSON.stringify({ invites: payload }),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as {
           error?: string;
         };
-        throw new Error(data.error ?? "Couldn't add.");
+        throw new Error(data.error ?? "Couldn't save contributors.");
       }
-      setName("");
-      setEmail("");
+      // Reset the form to a single blank row so the organiser
+      // can keep adding more batches.
+      setRows([blankRow()]);
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
     } finally {
-      setAdding(false);
+      setSaving(false);
     }
   }
 
@@ -833,108 +893,162 @@ function ContributorsPanel({
         </p>
       )}
 
-      <form
-        onSubmit={add}
-        className="flex flex-wrap items-end gap-2 mb-4"
-      >
-        <div className="flex-1 min-w-[140px]">
-          <label className="block text-[10px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-1.5">
-            Name (optional)
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Sarah"
-            className="account-input"
-          />
+      <form onSubmit={save} className="space-y-3">
+        {rows.map((row, idx) => (
+          <div
+            key={row.key}
+            className="rounded-xl border border-navy/[0.08] bg-warm-surface/40 px-4 py-3"
+          >
+            <div className="flex flex-wrap items-end gap-2">
+              <div className="flex-1 min-w-[140px]">
+                <label className="block text-[10px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-1.5">
+                  Name (optional)
+                </label>
+                <input
+                  type="text"
+                  value={row.name}
+                  onChange={(e) => updateRow(row.key, { name: e.target.value })}
+                  placeholder="Sarah"
+                  className="account-input"
+                />
+              </div>
+              <div className="flex-[2] min-w-[180px]">
+                <label className="block text-[10px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-1.5">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={row.email}
+                  onChange={(e) =>
+                    updateRow(row.key, { email: e.target.value })
+                  }
+                  placeholder="sarah@email.com"
+                  className="account-input"
+                />
+              </div>
+              {/* Per-row approval toggle sits to the right of the
+                  email, matching the spec. Drops below the email
+                  on narrow layouts via flex-wrap. */}
+              <label className="shrink-0 inline-flex items-center gap-2 min-h-[48px] px-2 text-[13px] text-navy cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={row.requiresApproval}
+                  onChange={(e) =>
+                    updateRow(row.key, { requiresApproval: e.target.checked })
+                  }
+                  className="accent-amber"
+                />
+                <span>Review</span>
+              </label>
+              {rows.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeRow(row.key)}
+                  aria-label={`Remove row ${idx + 1}`}
+                  className="shrink-0 text-ink-light hover:text-red-600 transition-colors min-h-[48px] px-2"
+                >
+                  <X size={16} strokeWidth={1.75} aria-hidden="true" />
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+
+        <div className="flex flex-wrap items-center gap-3 pt-1">
+          {/* "Add multiple" appends another blank row. Secondary
+              style so Save reads as the primary action. */}
+          <button
+            type="button"
+            onClick={addRow}
+            className="inline-flex items-center gap-1.5 bg-white border border-navy/15 text-navy px-4 py-2 rounded-lg text-sm font-semibold hover:border-navy transition-colors"
+          >
+            <UserPlus size={14} strokeWidth={1.75} aria-hidden="true" />
+            Add multiple
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="inline-flex items-center gap-1.5 bg-navy text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-navy/90 transition-colors disabled:opacity-50"
+          >
+            {saving
+              ? "Saving…"
+              : rows.length > 1
+                ? `Add ${rows.length} contributors →`
+                : "Add contributor →"}
+          </button>
         </div>
-        <div className="flex-[2] min-w-[180px]">
-          <label className="block text-[10px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-1.5">
-            Email
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="sarah@email.com"
-            className="account-input"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={!email.trim() || adding}
-          className="shrink-0 inline-flex items-center gap-1.5 bg-navy text-white px-4 py-3 rounded-lg text-sm font-bold hover:bg-navy/90 transition-colors disabled:opacity-50 min-h-[48px]"
-        >
-          <UserPlus size={14} strokeWidth={1.75} aria-hidden="true" />
-          Add
-        </button>
+
+        {error && (
+          <p className="text-sm text-red-600" role="alert">
+            {error}
+          </p>
+        )}
       </form>
 
-      {error && (
-        <p className="mb-3 text-sm text-red-600" role="alert">
-          {error}
-        </p>
-      )}
-
-      {invites.length === 0 ? (
-        <p className="text-sm text-ink-mid italic">
-          No one added yet.
-        </p>
-      ) : (
-        <ul className="space-y-2">
-          {invites.map((i) => (
-            <li
-              key={i.id}
-              className="rounded-xl border border-navy/[0.08] px-4 py-2.5 flex items-center gap-3"
-            >
-              <Mail
-                size={14}
-                strokeWidth={1.5}
-                className="text-ink-light shrink-0"
-                aria-hidden="true"
-              />
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold text-navy truncate">
-                  {i.name || i.email}
-                </div>
-                {i.name && (
-                  <div className="text-xs text-ink-light truncate">
-                    {i.email}
+      {invites.length > 0 && (
+        <>
+          <div className="mt-5 mb-2 text-[11px] uppercase tracking-[0.12em] font-bold text-ink-light">
+            Already added · {invites.length}
+          </div>
+          <ul className="space-y-2">
+            {invites.map((i) => (
+              <li
+                key={i.id}
+                className="rounded-xl border border-navy/[0.08] px-4 py-2.5 flex items-center gap-3"
+              >
+                <Mail
+                  size={14}
+                  strokeWidth={1.5}
+                  className="text-ink-light shrink-0"
+                  aria-hidden="true"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-navy truncate">
+                    {i.name || i.email}
                   </div>
+                  {i.name && (
+                    <div className="text-xs text-ink-light truncate">
+                      {i.email}
+                    </div>
+                  )}
+                </div>
+                {i.requiresApproval && (
+                  <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] font-bold text-amber bg-amber-tint px-2 py-0.5 rounded">
+                    Review
+                  </span>
                 )}
-              </div>
-              <span
-                className={`text-[10px] uppercase tracking-[0.12em] font-bold px-2 py-0.5 rounded ${
-                  i.status === "STAGED"
-                    ? "text-amber bg-amber-tint"
+                <span
+                  className={`text-[10px] uppercase tracking-[0.12em] font-bold px-2 py-0.5 rounded ${
+                    i.status === "STAGED"
+                      ? "text-amber bg-amber-tint"
+                      : i.status === "ACTIVE"
+                        ? "text-green-700 bg-green-50"
+                        : i.status === "REVOKED"
+                          ? "text-ink-light bg-[#f1f5f9]"
+                          : "text-gold bg-gold-tint"
+                  }`}
+                >
+                  {i.status === "STAGED"
+                    ? "Staged"
                     : i.status === "ACTIVE"
-                      ? "text-green-700 bg-green-50"
+                      ? "Contributed"
                       : i.status === "REVOKED"
-                        ? "text-ink-light bg-[#f1f5f9]"
-                        : "text-gold bg-gold-tint"
-                }`}
-              >
-                {i.status === "STAGED"
-                  ? "Staged"
-                  : i.status === "ACTIVE"
-                    ? "Contributed"
-                    : i.status === "REVOKED"
-                      ? "Removed"
-                      : "Invited"}
-              </span>
-              <button
-                type="button"
-                onClick={() => onRemove(i.id)}
-                disabled={busyId === i.id}
-                aria-label={`Remove ${i.email}`}
-                className="text-ink-light hover:text-red-600 transition-colors disabled:opacity-50"
-              >
-                <X size={16} strokeWidth={1.75} aria-hidden="true" />
-              </button>
-            </li>
-          ))}
-        </ul>
+                        ? "Removed"
+                        : "Invited"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onRemove(i.id)}
+                  disabled={busyId === i.id}
+                  aria-label={`Remove ${i.email}`}
+                  className="text-ink-light hover:text-red-600 transition-colors disabled:opacity-50"
+                >
+                  <X size={16} strokeWidth={1.75} aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </div>
   );

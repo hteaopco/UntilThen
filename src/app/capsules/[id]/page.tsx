@@ -94,6 +94,7 @@ export default async function CapsulePage({
         email: i.email,
         name: i.name,
         status: i.status,
+        requiresApproval: i.requiresApproval,
         inviteToken: i.inviteToken,
       }))}
     />

@@ -50,35 +50,22 @@ const OCCASIONS: { value: OccasionType; label: string }[] = [
   { value: "OTHER", label: "Other" },
 ];
 
-type Step = 1 | 2;
-
 export function CapsuleCreationFlow() {
   const router = useRouter();
   const { isLoaded: authLoaded, isSignedIn } = useAuth();
 
-  const [step, setStep] = useState<Step>(1);
-  const [capsuleId, setCapsuleId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Step 1 fields. Recipient contact (email / phone) is now
-  // collected at the activation paywall — the creation form
-  // stays minimal so the organiser can see the draft state
-  // quickly and start writing their own message.
+  // Creation collects the capsule shell only. Recipient contact
+  // is captured at the activation paywall; contributors are
+  // invited from the capsule dashboard. Once saved we redirect
+  // straight to /capsules/[id] — no wizard step 2.
   const [title, setTitle] = useState("");
   const [recipientName, setRecipientName] = useState("");
   const [occasionType, setOccasionType] = useState<OccasionType>("BIRTHDAY");
   const [revealDate, setRevealDate] = useState("");
   const [showExpiredNotice, setShowExpiredNotice] = useState(false);
-
-  // Step 2 fields
-  const [invitees, setInvitees] = useState<
-    { id: string; name: string; email: string }[]
-  >([]);
-  const [draftName, setDraftName] = useState("");
-  const [draftEmail, setDraftEmail] = useState("");
-  const [requiresApproval, setRequiresApproval] = useState(false);
-  const [contributorDeadline, setContributorDeadline] = useState("");
 
   // Rehydrate on mount:
   //   1. A pending step-1 snapshot (anonymous visitor bounced
@@ -165,95 +152,17 @@ export function CapsuleCreationFlow() {
         throw new Error(data.error ?? "Couldn't save the capsule.");
       }
       const data = (await res.json()) as { id: string };
-      setCapsuleId(data.id);
       try {
         window.localStorage.setItem(DRAFT_TITLE_KEY, title.trim());
         window.localStorage.removeItem(PENDING_STEP1_KEY);
       } catch {
         /* ignore */
       }
-      setStep(2);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  function addInvitee(e: FormEvent) {
-    e.preventDefault();
-    const email = draftEmail.trim().toLowerCase();
-    if (!email || !email.includes("@")) {
-      setError("Please enter a valid email.");
-      return;
-    }
-    if (invitees.some((i) => i.email === email)) {
-      setError("Already added.");
-      return;
-    }
-    setInvitees((prev) => [
-      ...prev,
-      {
-        id: `${Date.now()}-${prev.length}`,
-        name: draftName.trim(),
-        email,
-      },
-    ]);
-    setDraftName("");
-    setDraftEmail("");
-    setError(null);
-  }
-
-  function removeInvitee(id: string) {
-    setInvitees((prev) => prev.filter((i) => i.id !== id));
-  }
-
-  async function saveAndOpenDashboard(e: FormEvent) {
-    e.preventDefault();
-    if (!capsuleId) return;
-    setError(null);
-    setSaving(true);
-    try {
-      // Persist step 2 settings (approval toggle + deadline) on
-      // the capsule record. Then save any contributors the
-      // organiser entered — they'll land as STAGED because the
-      // capsule is still DRAFT. Activation is now triggered from
-      // the capsule dashboard, not here.
-      const res = await fetch(`/api/capsules/${capsuleId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          requiresApproval,
-          contributorDeadline: contributorDeadline || null,
-        }),
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as {
-          error?: string;
-        };
-        throw new Error(data.error ?? "Couldn't save your changes.");
-      }
-      if (invitees.length > 0) {
-        const inv = await fetch(`/api/capsules/${capsuleId}/invites`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            invites: invitees.map((i) => ({ name: i.name, email: i.email })),
-          }),
-        });
-        if (!inv.ok) {
-          const data = (await inv.json().catch(() => ({}))) as {
-            error?: string;
-          };
-          throw new Error(data.error ?? "Couldn't save contributors.");
-        }
-      }
-      try {
-        window.localStorage.removeItem(DRAFT_TITLE_KEY);
-      } catch {
-        /* ignore */
-      }
-      router.push(`/capsules/${capsuleId}`);
+      // Creation now ends here: the organiser is handed straight
+      // to the capsule dashboard where the "Your contribution"
+      // editor and the contributor panel live. Contributors +
+      // approval toggles are collected there, not in a wizard.
+      router.push(`/capsules/${data.id}`);
     } catch (err) {
       setError((err as Error).message);
       setSaving(false);
@@ -281,7 +190,7 @@ export function CapsuleCreationFlow() {
           Memory Capsule
         </div>
 
-        {showExpiredNotice && step === 1 && (
+        {showExpiredNotice && (
           <div className="mb-6 rounded-xl border border-amber/30 bg-amber-tint/60 px-4 py-3 text-sm text-navy">
             <p className="font-semibold">Your last draft expired.</p>
             <p className="mt-0.5 text-ink-mid">
@@ -291,8 +200,7 @@ export function CapsuleCreationFlow() {
           </div>
         )}
 
-        {step === 1 && (
-          <form onSubmit={submitStep1} className="space-y-5">
+        <form onSubmit={submitStep1} className="space-y-5">
             <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
               Create a Memory Capsule
             </h1>
@@ -393,154 +301,6 @@ export function CapsuleCreationFlow() {
                 : "No payment yet. We save your capsule as a draft."}
             </p>
           </form>
-        )}
-
-        {step === 2 && (
-          <form onSubmit={saveAndOpenDashboard} className="space-y-6">
-            <div>
-              <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
-                Invite contributors
-              </h1>
-              <p className="mt-1 text-[15px] text-ink-mid leading-[1.6]">
-                Add the people you want to hear from for{" "}
-                <span className="font-semibold text-navy">{title}</span>.
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-end gap-2">
-                <div className="flex-1 min-w-[140px]">
-                  <Label>Name (optional)</Label>
-                  <input
-                    type="text"
-                    value={draftName}
-                    onChange={(e) => setDraftName(e.target.value)}
-                    placeholder="Sarah"
-                    className="account-input"
-                  />
-                </div>
-                <div className="flex-[2] min-w-[200px]">
-                  <Label>Email</Label>
-                  <input
-                    type="email"
-                    value={draftEmail}
-                    onChange={(e) => setDraftEmail(e.target.value)}
-                    placeholder="sarah@email.com"
-                    className="account-input"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={addInvitee}
-                  disabled={!draftEmail.trim()}
-                  className="shrink-0 inline-flex items-center gap-1.5 bg-navy text-white px-4 py-3 rounded-lg text-sm font-bold hover:bg-navy/90 transition-colors disabled:opacity-50 min-h-[48px]"
-                >
-                  + Add
-                </button>
-              </div>
-
-              {invitees.length > 0 && (
-                <ul className="space-y-2">
-                  {invitees.map((i) => (
-                    <li
-                      key={i.id}
-                      className="flex items-center gap-3 rounded-xl border border-navy/[0.08] bg-white px-4 py-2.5"
-                    >
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-navy truncate">
-                          {i.name || i.email}
-                        </div>
-                        {i.name && (
-                          <div className="text-xs text-ink-light truncate">
-                            {i.email}
-                          </div>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeInvitee(i.id)}
-                        aria-label={`Remove ${i.email}`}
-                        className="text-ink-light hover:text-red-600"
-                      >
-                        <X size={16} strokeWidth={1.75} aria-hidden="true" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={requiresApproval}
-                onChange={(e) => setRequiresApproval(e.target.checked)}
-                className="mt-1 accent-amber"
-              />
-              <span className="text-sm text-navy leading-[1.5]">
-                <span className="font-semibold">
-                  Approve contributions before reveal
-                </span>
-                <span className="block text-ink-mid italic text-xs mt-0.5">
-                  (You&rsquo;ll review each one before {recipientName} sees it.)
-                </span>
-              </span>
-            </label>
-
-            <Field label="Contributor deadline (optional)">
-              <input
-                type="date"
-                value={contributorDeadline}
-                onChange={(e) => setContributorDeadline(e.target.value)}
-                min={new Date(Date.now() + 24 * 60 * 60 * 1000)
-                  .toISOString()
-                  .split("T")[0]}
-                max={revealDate || undefined}
-                className="account-input"
-              />
-            </Field>
-
-            {/* Activation moved to the capsule dashboard. This
-                step just stages everything as a draft so the
-                organiser can write their own contribution and
-                preview before paying. */}
-            <div className="rounded-2xl border border-amber/25 bg-amber-tint/40 px-5 py-5 space-y-3">
-              <h2 className="text-lg font-bold text-navy">
-                Almost there.
-              </h2>
-              <p className="text-sm text-ink-mid leading-[1.6]">
-                We&rsquo;ll save your capsule as a draft. You can write your
-                own message, preview, and add more contributors before you
-                activate.
-              </p>
-              <button
-                type="submit"
-                disabled={saving}
-                className="w-full bg-amber text-white py-3.5 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
-              >
-                {saving ? "Saving…" : "Open my capsule →"}
-              </button>
-              <p className="text-center text-xs italic text-ink-light">
-                No payment yet. Activate from the capsule page when
-                you&rsquo;re ready.
-              </p>
-            </div>
-
-            {error && (
-              <p className="text-sm text-red-600" role="alert">
-                {error}
-              </p>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="text-sm font-medium text-ink-mid hover:text-navy underline underline-offset-4"
-            >
-              ← Edit capsule details
-            </button>
-          </form>
-        )}
       </section>
     </main>
   );

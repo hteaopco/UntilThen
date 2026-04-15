@@ -10,7 +10,13 @@ export const dynamic = "force-dynamic";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface InviteBody {
-  invites?: Array<{ email?: string; name?: string | null }>;
+  invites?: Array<{
+    email?: string;
+    name?: string | null;
+    /** Per-contributor approval toggle (optional; defaults to
+     * the capsule's legacy requiresApproval if unspecified). */
+    requiresApproval?: boolean;
+  }>;
 }
 
 /**
@@ -58,6 +64,13 @@ export async function POST(
         typeof i?.email === "string" ? i.email.trim().toLowerCase() : "",
       name:
         typeof i?.name === "string" && i.name.trim() ? i.name.trim() : null,
+      // If the caller didn't send a flag, fall back to the
+      // capsule's legacy requiresApproval so older entry points
+      // keep their behaviour until migrated.
+      requiresApproval:
+        typeof i?.requiresApproval === "boolean"
+          ? i.requiresApproval
+          : capsule.requiresApproval,
     }))
     .filter((i) => EMAIL_RE.test(i.email));
 
@@ -101,6 +114,7 @@ export async function POST(
             capsuleId: id,
             email: i.email,
             name: i.name,
+            requiresApproval: i.requiresApproval,
             status: shouldStage ? "STAGED" : "PENDING",
           },
         }),

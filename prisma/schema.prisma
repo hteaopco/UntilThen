@@ -281,14 +281,19 @@ model CapsuleContribution {
 }
 
 model CapsuleInvite {
-  id          String            @id @default(cuid())
-  capsuleId   String
-  email       String
-  name        String?
-  inviteToken String            @unique @default(cuid())
-  status      ContributorStatus @default(PENDING)
-  createdAt   DateTime          @default(now())
-  acceptedAt  DateTime?
+  id               String            @id @default(cuid())
+  capsuleId        String
+  email            String
+  name             String?
+  inviteToken      String            @unique @default(cuid())
+  status           ContributorStatus @default(PENDING)
+  /// Per-contributor approval toggle. When true, this
+  /// contributor's submission lands as PENDING_REVIEW and the
+  /// organiser reviews it before the recipient sees it on
+  /// reveal day. Backfilled from the old capsule-level flag.
+  requiresApproval Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  acceptedAt       DateTime?
 
   capsule MemoryCapsule @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
 

@@ -151,9 +151,14 @@ export async function POST(
         body: text,
         mediaUrls,
         mediaTypes,
-        approvalStatus: c.requiresApproval
-          ? "PENDING_REVIEW"
-          : "AUTO_APPROVED",
+        // Per-contributor approval: the invite decides whether
+        // this contributor's message needs review. Falls back to
+        // the legacy capsule-wide flag for older invites that
+        // predate the per-invite column.
+        approvalStatus:
+          invite.requiresApproval || c.requiresApproval
+            ? "PENDING_REVIEW"
+            : "AUTO_APPROVED",
       },
     });
 
