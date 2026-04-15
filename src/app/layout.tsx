@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { DM_Sans } from "next/font/google";
+import { DM_Sans, Dancing_Script } from "next/font/google";
 import "./globals.css";
 import { PosthogProvider } from "@/components/PosthogProvider";
 
@@ -8,6 +8,17 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-dm-sans",
+  display: "swap",
+});
+
+// Handwritten script used on the landing page "Choose your vault"
+// illustrative cards (the letter + sticky-note visuals). Exposed as
+// a CSS variable so we can reference it via tailwind arbitrary
+// values where we need the handwritten feel.
+const dancingScript = Dancing_Script({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-dancing-script",
   display: "swap",
 });
 
@@ -74,7 +85,10 @@ export default function RootLayout({
         },
       }}
     >
-      <html lang="en" className={dmSans.variable}>
+      <html
+        lang="en"
+        className={`${dmSans.variable} ${dancingScript.variable}`}
+      >
         <body className="font-sans bg-white text-navy antialiased">
           <PosthogProvider>{children}</PosthogProvider>
         </body>
