@@ -4,16 +4,10 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Mark the recipient's sequential reveal as complete.
- *
- * Originally this wrote MemoryCapsule.recipientCompletedAt, but
- * Prisma Accelerate is currently serving a stale schema that
- * rejects the column with P2022 even though the DB has it. Until
- * Accelerate's cache is purged, this endpoint validates the token
- * and returns success without touching the row — analytics
- * continues to fire from the client (capsule_sequential_completed)
- * which is enough for product signal. Re-enable the DB write
- * once the schema cache is fresh.
+ * Stamp `recipientCompletedAt` once the recipient has walked
+ * through the full sequential reveal. Token-gated like the rest of
+ * the public capsule surfaces; idempotent so the client can fire
+ * it without coordination.
  */
 export async function POST(
   req: NextRequest,
@@ -34,7 +28,7 @@ export async function POST(
   const { prisma } = await import("@/lib/prisma");
   const capsule = await prisma.memoryCapsule.findUnique({
     where: { id },
-    select: { accessToken: true },
+    select: { accessToken: true, recipientCompletedAt: true },
   });
   if (!capsule) {
     return NextResponse.json({ error: "Not found." }, { status: 404 });
@@ -42,7 +36,11 @@ export async function POST(
   if (capsule.accessToken !== token) {
     return NextResponse.json({ error: "Invalid link." }, { status: 401 });
   }
-  // No DB write for now — see header comment. Client-side PostHog
-  // event still fires from CapsuleRevealClient.onComplete.
+  if (!capsule.recipientCompletedAt) {
+    await prisma.memoryCapsule.update({
+      where: { id },
+      data: { recipientCompletedAt: new Date() },
+    });
+  }
   return NextResponse.json({ success: true });
 }

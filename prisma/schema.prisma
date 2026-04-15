@@ -259,12 +259,11 @@ model MemoryCapsule {
   // sequential reveal. Return visits then get the browseable
   // list instead of the guided sequence.
   firstOpenedAt       DateTime?
-  // NOTE: recipientCompletedAt column exists in the database
-  // (added by migrations 20260415080000 and 20260415090000) but
-  // is intentionally not mapped on the model right now — Prisma
-  // Accelerate is serving a stale schema and P2022's every
-  // query that references it. Re-add as `recipientCompletedAt
-  // DateTime?` once Accelerate's cache has been purged.
+  // Stamped when the recipient reaches the end of the sequential
+  // reveal. Used by analytics + future "completion" surfaces.
+  // Column added by migrations 20260415080000 +
+  // 20260415090000 (idempotent backfill).
+  recipientCompletedAt DateTime?
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 
