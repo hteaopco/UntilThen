@@ -78,6 +78,7 @@ export async function GET(
       id: c.id,
       authorName: c.authorName,
       type: c.type,
+      title: c.title,
       body: c.body,
       mediaUrls: c.mediaUrls,
       mediaTypes: c.mediaTypes,

@@ -262,6 +262,7 @@ model CapsuleContribution {
   /// Null for public-facing contributions (contributor invites).
   clerkUserId    String?
   type           EntryType      @default(TEXT)
+  title          String?
   body           String?
   mediaUrls      String[]       @default([])
   mediaTypes     String[]       @default([])

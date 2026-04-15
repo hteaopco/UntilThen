@@ -60,22 +60,41 @@ export async function deleteR2Object(key: string): Promise<void> {
   await getClient().send(cmd);
 }
 
-// Build a safe storage key.
-// Pattern: entries/{entryId}/{kind}/{timestamp}-{safeName}
+// Build a safe storage key. Two surfaces use this:
+//   target=entry              → entries/{id}/{kind}/{ts}-{name}
+//   target=capsuleContribution → capsule-contributions/{id}/{kind}/{ts}-{name}
+// The complete + delete routes parse the prefix back so the right
+// table receives the update — keep these two in sync if either
+// pattern changes.
+export type MediaTarget = "entry" | "capsuleContribution";
+
+export function mediaKeyPrefix(target: MediaTarget, id: string): string {
+  return target === "entry"
+    ? `entries/${id}`
+    : `capsule-contributions/${id}`;
+}
+
 export function buildMediaKey({
+  target = "entry",
+  id,
   entryId,
   kind,
   filename,
 }: {
-  entryId: string;
+  target?: MediaTarget;
+  /** Preferred: id + target. */
+  id?: string;
+  /** Back-compat alias. */
+  entryId?: string;
   kind: "photo" | "voice" | "video";
   filename: string;
 }): string {
+  const resolvedId = id ?? entryId ?? "";
   const safe = filename
     .replace(/[^\w.\-]+/g, "_")
     .replace(/_+/g, "_")
     .slice(-60);
-  return `entries/${entryId}/${kind}/${Date.now()}-${safe}`;
+  return `${mediaKeyPrefix(target, resolvedId)}/${kind}/${Date.now()}-${safe}`;
 }
 
 export type MediaKind = "photo" | "voice" | "video";

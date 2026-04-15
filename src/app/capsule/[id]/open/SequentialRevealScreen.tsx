@@ -7,6 +7,7 @@ type Contribution = {
   id: string;
   authorName: string;
   type: "TEXT" | "PHOTO" | "VOICE" | "VIDEO";
+  title: string | null;
   body: string | null;
 };
 
@@ -66,6 +67,11 @@ export function SequentialRevealScreen({
           <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
             From {current.authorName}
           </div>
+          {current.title && (
+            <h2 className="text-2xl lg:text-[28px] font-extrabold tracking-[-0.4px] leading-tight text-navy mb-4">
+              {current.title}
+            </h2>
+          )}
           {current.body ? (
             <div
               className="tiptap-editor text-[16px] leading-[1.75] text-ink-mid"

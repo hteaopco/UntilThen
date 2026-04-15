@@ -11,6 +11,7 @@ const VALID_TYPES: EntryType[] = ["TEXT", "PHOTO", "VOICE", "VIDEO"];
 
 interface Body {
   type?: string;
+  title?: string | null;
   body?: string;
   mediaUrls?: string[];
   mediaTypes?: string[];
@@ -44,6 +45,10 @@ export async function POST(
   const type = VALID_TYPES.includes(payload.type as EntryType)
     ? (payload.type as EntryType)
     : "TEXT";
+  const title =
+    typeof payload.title === "string" && payload.title.trim()
+      ? payload.title.trim()
+      : null;
   const text =
     typeof payload.body === "string" && payload.body.trim()
       ? payload.body
@@ -55,9 +60,12 @@ export async function POST(
     ? payload.mediaTypes.filter((u): u is string => typeof u === "string")
     : [];
 
-  if (!text && mediaUrls.length === 0) {
+  // Lighter content gate than the parent entry editor — the
+  // organiser may want to start with just a title and add the
+  // body / media later. Only fail when literally nothing's set.
+  if (!title && !text && mediaUrls.length === 0) {
     return NextResponse.json(
-      { error: "Add a message or attach media." },
+      { error: "Add a title, message, or media." },
       { status: 400 },
     );
   }
@@ -93,6 +101,7 @@ export async function POST(
         authorEmail,
         clerkUserId: userId,
         type,
+        title,
         body: text,
         mediaUrls,
         mediaTypes,

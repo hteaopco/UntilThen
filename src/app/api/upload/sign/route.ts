@@ -8,12 +8,17 @@ import {
   r2IsConfigured,
   signPutUrl,
   type MediaKind,
+  type MediaTarget,
 } from "@/lib/r2";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 interface Body {
+  /** New shape — explicit target + targetId. */
+  target?: string;
+  targetId?: string;
+  /** Back-compat alias for the original entry-only callers. */
   entryId?: string;
   kind?: string;
   contentType?: string;
@@ -22,6 +27,7 @@ interface Body {
 }
 
 const VALID_KINDS: MediaKind[] = ["photo", "voice", "video"];
+const VALID_TARGETS: MediaTarget[] = ["entry", "capsuleContribution"];
 
 export async function POST(req: Request) {
   const { userId } = auth();
@@ -47,7 +53,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const entryId = typeof body.entryId === "string" ? body.entryId : "";
+  // Resolve the target. If `target` isn't sent, fall back to the
+  // legacy entry-only shape so existing callers (NewEntryForm,
+  // contributor entry form) keep working unchanged.
+  const target: MediaTarget = VALID_TARGETS.includes(body.target as MediaTarget)
+    ? (body.target as MediaTarget)
+    : "entry";
+  const targetId =
+    typeof body.targetId === "string" && body.targetId
+      ? body.targetId
+      : typeof body.entryId === "string"
+        ? body.entryId
+        : "";
   const kind = VALID_KINDS.includes(body.kind as MediaKind)
     ? (body.kind as MediaKind)
     : null;
@@ -59,9 +76,9 @@ export async function POST(req: Request) {
       : "upload";
   const size = typeof body.size === "number" ? body.size : 0;
 
-  if (!entryId || !kind || !contentType) {
+  if (!targetId || !kind || !contentType) {
     return NextResponse.json(
-      { error: "Missing entryId, kind, or contentType." },
+      { error: "Missing target id, kind, or contentType." },
       { status: 400 },
     );
   }
@@ -83,43 +100,76 @@ export async function POST(req: Request) {
   try {
     const { prisma } = await import("@/lib/prisma");
 
-    // Who owns this entry? Parent (authorId) or contributor (clerkUserId).
-    const entry = await prisma.entry.findUnique({
-      where: { id: entryId },
-      include: { vault: true, contributor: true },
-    });
-    if (!entry)
-      return NextResponse.json({ error: "Entry not found." }, { status: 404 });
-
-    const author = await prisma.user.findUnique({ where: { id: entry.authorId } });
-    const isOwner = author?.clerkId === userId;
-    const isContributor = entry.contributor?.clerkUserId === userId;
-    if (!isOwner && !isContributor) {
-      return NextResponse.json({ error: "Forbidden." }, { status: 403 });
-    }
-
-    // Photo quota — counted per vault per calendar year.
-    if (kind === "photo") {
-      const year = new Date().getFullYear();
-      const yearStart = new Date(year, 0, 1);
-      const photoCount = await prisma.entry.count({
-        where: {
-          vaultId: entry.vaultId,
-          createdAt: { gte: yearStart },
-          mediaTypes: { has: "photo" },
-        },
+    if (target === "entry") {
+      // Original auth model — parent (authorId) or contributor.
+      const entry = await prisma.entry.findUnique({
+        where: { id: targetId },
+        include: { vault: true, contributor: true },
       });
-      if (photoCount >= PHOTOS_PER_YEAR_LIMIT) {
+      if (!entry)
         return NextResponse.json(
-          {
-            error: `Annual photo limit reached (${PHOTOS_PER_YEAR_LIMIT}/year).`,
-          },
-          { status: 429 },
+          { error: "Entry not found." },
+          { status: 404 },
         );
+
+      const author = await prisma.user.findUnique({
+        where: { id: entry.authorId },
+      });
+      const isOwner = author?.clerkId === userId;
+      const isContributor = entry.contributor?.clerkUserId === userId;
+      if (!isOwner && !isContributor) {
+        return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+      }
+
+      // Photo quota — counted per vault per calendar year.
+      if (kind === "photo") {
+        const year = new Date().getFullYear();
+        const yearStart = new Date(year, 0, 1);
+        const photoCount = await prisma.entry.count({
+          where: {
+            vaultId: entry.vaultId,
+            createdAt: { gte: yearStart },
+            mediaTypes: { has: "photo" },
+          },
+        });
+        if (photoCount >= PHOTOS_PER_YEAR_LIMIT) {
+          return NextResponse.json(
+            {
+              error: `Annual photo limit reached (${PHOTOS_PER_YEAR_LIMIT}/year).`,
+            },
+            { status: 429 },
+          );
+        }
+      }
+    } else {
+      // capsuleContribution — only the contribution's own
+      // organiser (matched via clerkUserId) can attach media.
+      // Public contributions can't reach here because they
+      // don't carry a clerkUserId.
+      const contribution = await prisma.capsuleContribution.findUnique({
+        where: { id: targetId },
+        include: { capsule: { select: { organiserId: true } } },
+      });
+      if (!contribution)
+        return NextResponse.json(
+          { error: "Contribution not found." },
+          { status: 404 },
+        );
+      if (contribution.clerkUserId !== userId) {
+        const organiser = await prisma.user.findUnique({
+          where: { id: contribution.capsule.organiserId },
+          select: { clerkId: true },
+        });
+        // Allow the capsule organiser to attach media to their
+        // own contribution even if the row's clerkUserId hasn't
+        // been backfilled (defensive).
+        if (organiser?.clerkId !== userId) {
+          return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+        }
       }
     }
 
-    const key = buildMediaKey({ entryId, kind, filename });
+    const key = buildMediaKey({ target, id: targetId, kind, filename });
     const uploadUrl = await signPutUrl(key, contentType);
 
     return NextResponse.json({ uploadUrl, key });

@@ -7,6 +7,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 interface PatchBody {
+  title?: string | null;
   body?: string;
   mediaUrls?: string[];
   mediaTypes?: string[];
@@ -56,6 +57,12 @@ export async function PATCH(
   }
 
   const data: Record<string, unknown> = {};
+  if ("title" in payload) {
+    data.title =
+      typeof payload.title === "string" && payload.title.trim()
+        ? payload.title.trim()
+        : null;
+  }
   if (typeof payload.body === "string") {
     const trimmed = payload.body.trim();
     data.body = trimmed.length > 0 ? payload.body : null;

@@ -31,6 +31,7 @@ type Contribution = {
   id: string;
   authorName: string;
   type: "TEXT" | "PHOTO" | "VOICE" | "VIDEO";
+  title: string | null;
   body: string | null;
   mediaUrls: string[];
   mediaTypes: string[];

@@ -20,6 +20,7 @@ type Contribution = {
   id: string;
   authorName: string;
   type: "TEXT" | "PHOTO" | "VOICE" | "VIDEO";
+  title: string | null;
   body: string | null;
 };
 
@@ -100,6 +101,11 @@ export function ListScreen({
             <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
               From {open.authorName}
             </div>
+            {open.title && (
+              <h2 className="text-2xl lg:text-[28px] font-extrabold tracking-[-0.4px] leading-tight text-navy mb-4">
+                {open.title}
+              </h2>
+            )}
             {open.body && (
               <div
                 className="tiptap-editor text-[16px] leading-[1.75] text-ink-mid"
@@ -127,6 +133,11 @@ export function ListScreen({
                       <div className="text-xs uppercase tracking-[0.12em] font-bold text-white/55">
                         From {c.authorName}
                       </div>
+                      {c.title && (
+                        <div className="mt-1 text-sm font-bold text-white truncate">
+                          {c.title}
+                        </div>
+                      )}
                       {c.body && (
                         <p className="mt-1 text-sm text-white/85 line-clamp-2">
                           {c.body.replace(/<[^>]+>/g, " ")}

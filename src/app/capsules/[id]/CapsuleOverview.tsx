@@ -5,6 +5,7 @@ import {
   ArrowLeft,
   Check,
   Mail,
+  Paperclip,
   Pencil,
   Sparkles,
   Trash2,
@@ -13,8 +14,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useCallback, useRef, useState, type FormEvent } from "react";
 
+import {
+  MediaAttachments,
+  type Attachment,
+} from "@/components/editor/MediaAttachments";
+import { TiptapEditor } from "@/components/editor/TiptapEditor";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import { formatLong } from "@/lib/dateFormatters";
 import { OCCASION_LABELS } from "@/lib/capsules";
@@ -40,7 +46,9 @@ type ContributionRow = {
   authorName: string;
   clerkUserId: string | null;
   type: "TEXT" | "PHOTO" | "VOICE" | "VIDEO";
+  title: string | null;
   body: string | null;
+  attachmentCount: number;
   approvalStatus: "PENDING_REVIEW" | "AUTO_APPROVED" | "APPROVED" | "REJECTED";
   createdAt: string;
 };
@@ -62,11 +70,16 @@ export function CapsuleOverview({
   capsule,
   currentUserClerkId,
   contributions,
+  ownAttachments,
   invites,
 }: {
   capsule: CapsuleSummary;
   currentUserClerkId: string;
   contributions: ContributionRow[];
+  /** Pre-signed view URLs for the organiser's own contribution
+   * media. Server-rendered so MediaAttachments can hydrate the
+   * thumbnails without an extra round-trip on mount. */
+  ownAttachments: Attachment[];
   invites: InviteRow[];
 }) {
   const router = useRouter();
@@ -279,6 +292,7 @@ export function CapsuleOverview({
           capsuleId={capsule.id}
           recipientName={capsule.recipientName}
           contribution={ownContribution ?? null}
+          initialAttachments={ownAttachments}
         />
       </section>
 
@@ -407,8 +421,13 @@ export function CapsuleOverview({
                   <div className="text-xs text-ink-light uppercase tracking-[0.1em] font-bold">
                     {c.type.toLowerCase()} · {c.authorName}
                   </div>
+                  {c.title && (
+                    <h3 className="mt-1.5 text-[15px] font-bold text-navy tracking-[-0.2px]">
+                      {c.title}
+                    </h3>
+                  )}
                   {c.body && (
-                    <p className="mt-2 text-sm text-ink-mid leading-[1.6] line-clamp-4">
+                    <p className="mt-1.5 text-sm text-ink-mid leading-[1.6] line-clamp-4">
                       {c.body.replace(/<[^>]+>/g, " ")}
                     </p>
                   )}
@@ -462,36 +481,56 @@ function OwnContribution({
   capsuleId,
   recipientName,
   contribution,
+  initialAttachments,
 }: {
   capsuleId: string;
   recipientName: string;
   contribution: ContributionRow | null;
+  initialAttachments: Attachment[];
 }) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(contribution?.body ?? "");
+
+  // Editor state — same shape as NewEntryForm so contribution
+  // and entry editing stay visually identical.
+  const [contributionId, setContributionId] = useState<string | null>(
+    contribution?.id ?? null,
+  );
+  const [title, setTitle] = useState(contribution?.title ?? "");
+  const [body, setBody] = useState(contribution?.body ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function save(e: FormEvent) {
-    e.preventDefault();
-    if (!draft.trim() || saving) return;
-    setSaving(true);
-    setError(null);
+  // Refs so the ensureContribution callback always sees the
+  // latest typed state without re-creating itself on every
+  // keystroke (mirrors the NewEntryForm stateRef pattern).
+  const stateRef = useRef({ title, body, contributionId });
+  stateRef.current = { title, body, contributionId };
+
+  const hasContent = useCallback(() => {
+    const s = stateRef.current;
+    const bodyText = s.body.replace(/<[^>]*>/g, "").trim();
+    return Boolean(s.title.trim()) || bodyText.length > 0;
+  }, []);
+
+  /**
+   * Create-or-update side of the contribution. Called as the
+   * ensureTarget callback for MediaAttachments — the first photo
+   * upload triggers a POST so the row exists for the upload key
+   * to anchor to. Subsequent edits PATCH.
+   */
+  const ensureContribution = useCallback(async (): Promise<string | null> => {
+    const s = stateRef.current;
+    if (s.contributionId) return s.contributionId;
+    if (!hasContent()) return null;
     try {
-      // Tiptap isn't wired in here — the inline editor is a
-      // textarea so the page stays light. Saved value goes into
-      // the same body column the rich editor would use later.
-      const url = contribution
-        ? `/api/capsules/${capsuleId}/contributions/${contribution.id}`
-        : `/api/capsules/${capsuleId}/contributions`;
-      const method = contribution ? "PATCH" : "POST";
-      const res = await fetch(url, {
-        method,
+      const res = await fetch(`/api/capsules/${capsuleId}/contributions`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: "TEXT",
-          body: draft,
+          title: s.title.trim() || null,
+          body: s.body || null,
         }),
       });
       if (!res.ok) {
@@ -499,6 +538,48 @@ function OwnContribution({
           error?: string;
         };
         throw new Error(data.error ?? "Couldn't save.");
+      }
+      const json = (await res.json()) as { id: string };
+      setContributionId(json.id);
+      return json.id;
+    } catch (err) {
+      setError((err as Error).message);
+      return null;
+    }
+  }, [capsuleId, hasContent]);
+
+  async function save(e: FormEvent) {
+    e.preventDefault();
+    if (!hasContent() || saving) {
+      if (!hasContent()) setError("Add a title or write something first.");
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    try {
+      const id = stateRef.current.contributionId;
+      const url = id
+        ? `/api/capsules/${capsuleId}/contributions/${id}`
+        : `/api/capsules/${capsuleId}/contributions`;
+      const method = id ? "PATCH" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "TEXT",
+          title: title.trim() || null,
+          body: body || null,
+        }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(data.error ?? "Couldn't save.");
+      }
+      if (!id) {
+        const json = (await res.json()) as { id?: string };
+        if (json.id) setContributionId(json.id);
       }
       setEditing(false);
       router.refresh();
@@ -520,7 +601,9 @@ function OwnContribution({
         { method: "DELETE" },
       );
       if (!res.ok) throw new Error("Couldn't delete.");
-      setDraft("");
+      setTitle("");
+      setBody("");
+      setContributionId(null);
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
@@ -530,22 +613,37 @@ function OwnContribution({
   }
 
   if (contribution && !editing) {
+    const preview = (contribution.body ?? "").replace(/<[^>]+>/g, " ").trim();
     return (
       <div className="rounded-2xl border border-amber/25 bg-white px-5 py-5">
         <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.1em] font-bold text-amber mb-2">
           <Check size={12} strokeWidth={2} aria-hidden="true" />
           Your message is ready
         </div>
-        {contribution.body && (
-          <p className="text-sm text-navy leading-[1.7] line-clamp-6 whitespace-pre-wrap">
-            {contribution.body.replace(/<[^>]+>/g, " ")}
+        {contribution.title && (
+          <h3 className="text-[18px] font-extrabold text-navy tracking-[-0.2px] leading-tight mb-2">
+            {contribution.title}
+          </h3>
+        )}
+        {preview && (
+          <p className="text-sm text-navy leading-[1.7] line-clamp-6">
+            {preview}
+          </p>
+        )}
+        {contribution.attachmentCount > 0 && (
+          <p className="mt-2 inline-flex items-center gap-1.5 text-xs italic text-ink-light">
+            <Paperclip size={12} strokeWidth={1.75} aria-hidden="true" />
+            {contribution.attachmentCount}{" "}
+            {contribution.attachmentCount === 1 ? "attachment" : "attachments"}
           </p>
         )}
         <div className="mt-4 flex items-center gap-2">
           <button
             type="button"
             onClick={() => {
-              setDraft(contribution.body ?? "");
+              setTitle(contribution.title ?? "");
+              setBody(contribution.body ?? "");
+              setContributionId(contribution.id);
               setEditing(true);
             }}
             className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-mid hover:text-navy transition-colors"
@@ -576,34 +674,67 @@ function OwnContribution({
     return (
       <form
         onSubmit={save}
-        className="rounded-2xl border border-amber/40 bg-white px-5 py-5 shadow-[0_4px_18px_rgba(196,122,58,0.08)]"
+        className="rounded-2xl border border-amber/40 bg-white shadow-[0_4px_18px_rgba(196,122,58,0.08)] overflow-hidden"
       >
-        <textarea
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          placeholder={`Dear ${recipientName},`}
-          rows={8}
-          autoFocus
-          className="account-input min-h-[180px] leading-[1.7] resize-y"
-        />
+        {/* Title — same look as the letter editor's title input
+            (large, transparent, with a divider below). */}
+        <div className="px-6 pt-6">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Title (optional)"
+            aria-label="Contribution title"
+            className="w-full px-0 py-2 text-[24px] lg:text-[28px] font-extrabold text-navy bg-transparent border-0 outline-none placeholder-ink-light/60 tracking-[-0.4px] leading-tight border-b border-navy/[0.06] pb-3"
+          />
+        </div>
+
+        <div className="px-6 pt-4 pb-2">
+          <TiptapEditor
+            initialContent={body}
+            onUpdate={setBody}
+            placeholder={`Dear ${recipientName},`}
+          />
+        </div>
+
+        {/* Media — same component, same buttons. The only
+            difference is the target descriptor that routes
+            uploads through the capsule contribution path. */}
+        <div className="px-6 pt-4 pb-5 border-t border-navy/[0.06]">
+          <MediaAttachments
+            target="capsuleContribution"
+            capsuleId={capsuleId}
+            entryId={contributionId}
+            initial={initialAttachments}
+            ensureEntry={ensureContribution}
+            canAttach={Boolean(contributionId) || hasContent()}
+          />
+        </div>
+
         {error && (
-          <p className="mt-2 text-sm text-red-600" role="alert">
+          <p className="px-6 pb-3 text-sm text-red-600" role="alert">
             {error}
           </p>
         )}
-        <div className="mt-3 flex items-center gap-3">
+
+        <div className="px-6 py-4 border-t border-navy/[0.06] flex items-center gap-3">
           <button
             type="submit"
-            disabled={!draft.trim() || saving}
+            disabled={saving}
             className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
           >
-            {saving ? "Saving…" : contribution ? "Save changes" : "Save my message →"}
+            {saving
+              ? "Saving…"
+              : contribution
+                ? "Save changes"
+                : "Save my message →"}
           </button>
           <button
             type="button"
             onClick={() => {
               setEditing(false);
-              setDraft(contribution?.body ?? "");
+              setTitle(contribution?.title ?? "");
+              setBody(contribution?.body ?? "");
               setError(null);
             }}
             disabled={saving}
@@ -612,10 +743,6 @@ function OwnContribution({
             Cancel
           </button>
         </div>
-        {/* TODO: media uploads (photo / voice / video) for the
-            organiser's contribution. Schema already supports
-            mediaUrls/mediaTypes; the editor needs the existing
-            R2 signing path wired in. */}
       </form>
     );
   }
@@ -638,7 +765,8 @@ function OwnContribution({
             Write something for {recipientName} →
           </div>
           <div className="text-xs text-ink-mid italic mt-0.5">
-            Your own message, ready to seal alongside everyone else&rsquo;s.
+            Your own message — title, text, photo, voice, or video — ready
+            to seal alongside everyone else&rsquo;s.
           </div>
         </div>
       </div>

@@ -10,6 +10,14 @@ export type Attachment = {
   name: string;
 };
 
+/**
+ * What the attachment is hanging off of. Defaults to a child-vault
+ * Entry (the historical caller). Capsule contributions use the
+ * same component but route signing + completion + delete through
+ * the capsule-contribution-aware codepath.
+ */
+export type AttachmentTarget = "entry" | "capsuleContribution";
+
 const LIMITS = {
   photo: { maxBytes: 10 * 1024 * 1024, hint: "Up to 10MB · JPG, PNG, HEIC" },
   voice: {
@@ -20,7 +28,8 @@ const LIMITS = {
 } as const;
 
 async function uploadFileToR2(
-  entryId: string,
+  target: AttachmentTarget,
+  targetId: string,
   kind: Attachment["kind"],
   file: File,
 ): Promise<Attachment> {
@@ -29,7 +38,8 @@ async function uploadFileToR2(
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      entryId,
+      target,
+      targetId,
       kind,
       contentType: file.type || "application/octet-stream",
       filename: file.name,
@@ -59,7 +69,7 @@ async function uploadFileToR2(
   const completeRes = await fetch("/api/upload/complete", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ entryId, key, kind }),
+    body: JSON.stringify({ target, targetId, key, kind }),
   });
   if (!completeRes.ok) {
     const data = (await completeRes.json().catch(() => ({}))) as { error?: string };
@@ -100,6 +110,8 @@ export function MediaAttachments({
   initial,
   ensureEntry,
   canAttach,
+  target = "entry",
+  capsuleId,
 }: {
   entryId: string | null;
   initial: Attachment[];
@@ -113,6 +125,14 @@ export function MediaAttachments({
    * parent click and bounce off an error.
    */
   canAttach: boolean;
+  /** What kind of row the upload anchors to. Default = "entry"
+   * preserves the original NewEntryForm + ContributorEntryForm
+   * callers. Capsule organisers pass "capsuleContribution". */
+  target?: AttachmentTarget;
+  /** Required when target = "capsuleContribution" so the delete
+   * route can be addressed correctly
+   * (/api/capsules/[capsuleId]/contributions/[id]/media/[idx]). */
+  capsuleId?: string;
 }) {
   const [attachments, setAttachments] = useState<Attachment[]>(initial);
   const [uploading, setUploading] = useState(false);
@@ -150,7 +170,7 @@ export function MediaAttachments({
         if (kind === "video") {
           await checkVideoDuration(file, 60);
         }
-        const att = await uploadFileToR2(id, kind, file);
+        const att = await uploadFileToR2(target, id, kind, file);
         setAttachments((prev) => [...prev, att]);
       }
     } catch (err) {
@@ -182,7 +202,7 @@ export function MediaAttachments({
       if (file.size > LIMITS.voice.maxBytes) {
         throw new Error(`Recording too large.`);
       }
-      const att = await uploadFileToR2(id, "voice", file);
+      const att = await uploadFileToR2(target, id, "voice", file);
       att.name = `Voice memo · ${formatDuration(durationSec)}`;
       setAttachments((prev) => [...prev, att]);
     } catch (err) {
@@ -200,9 +220,11 @@ export function MediaAttachments({
       return;
     }
     try {
-      const res = await fetch(`/api/entries/${entryId}/media/${idx}`, {
-        method: "DELETE",
-      });
+      const url =
+        target === "entry"
+          ? `/api/entries/${entryId}/media/${idx}`
+          : `/api/capsules/${capsuleId}/contributions/${entryId}/media/${idx}`;
+      const res = await fetch(url, { method: "DELETE" });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Couldn't delete.");
