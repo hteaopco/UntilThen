@@ -143,22 +143,31 @@ export function Nav() {
 /**
  * The right-side action — same component on desktop and mobile.
  *
- *   Signed out → "Sign in →" plain text link
+ *   Signed out → "Sign in →" text link + "Sign up" amber button
  *   Signed in  → "Dashboard →" plain text link
  *
- * Quiet styling per the brief: 14px, medium weight, primary
- * text colour at ~85% opacity, no button background or border.
+ * Sign in stays quiet per the brief (14px, medium weight); the
+ * primary sign-up CTA is visible so new visitors have an obvious
+ * path into the product without having to find the hero button.
  */
 function RightAction() {
   return (
     <>
       <SignedOut>
-        <Link
-          href="/sign-in"
-          className="text-[14px] font-medium text-navy/85 hover:text-navy transition-colors"
-        >
-          Sign in →
-        </Link>
+        <div className="flex items-center gap-3 lg:gap-4">
+          <Link
+            href="/sign-in"
+            className="text-[14px] font-medium text-navy/85 hover:text-navy transition-colors"
+          >
+            Sign in →
+          </Link>
+          <Link
+            href="/sign-up"
+            className="inline-flex items-center bg-amber text-white px-3.5 py-2 rounded-lg text-[13px] font-bold tracking-[0.01em] hover:bg-amber-dark transition-colors"
+          >
+            Sign up
+          </Link>
+        </div>
       </SignedOut>
       <SignedIn>
         <Link
