@@ -1,6 +1,6 @@
 "use client";
 
-import { Mail, X } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Mail, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
@@ -14,6 +14,14 @@ const ROLES: Array<{
   { value: "TEACHER", label: "Teacher / Educator", hint: "" },
   { value: "OTHER", label: "Other", hint: "" },
 ];
+
+type Result =
+  // Email actually sent to a new invitee.
+  | { kind: "sent"; email: string }
+  // Invitee already had an untilThen account — added as ACTIVE, no email.
+  | { kind: "already-member"; name: string | null; email: string }
+  // Contributor row created but the invite email failed to deliver.
+  | { kind: "email-failed"; email: string; detail: string | null };
 
 export function InviteModal({
   vaultId,
@@ -32,6 +40,12 @@ export function InviteModal({
   const [requiresApproval, setRequiresApproval] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<Result | null>(null);
+
+  function closeAndRefresh() {
+    router.refresh();
+    onClose();
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -49,16 +63,47 @@ export function InviteModal({
           requiresApproval,
         }),
       });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        alreadyOnUntilThen?: boolean;
+        existingUserName?: string | null;
+        emailSent?: boolean;
+        emailError?: string | null;
+      };
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Couldn't send invite.");
       }
-      onClose();
+
+      // Refresh the server data now that a contributor row exists;
+      // the summary screen takes over the modal UI either way.
       router.refresh();
+
+      if (data.alreadyOnUntilThen) {
+        setResult({
+          kind: "already-member",
+          name: data.existingUserName ?? null,
+          email: email.trim(),
+        });
+      } else if (data.emailSent === false) {
+        setResult({
+          kind: "email-failed",
+          email: email.trim(),
+          detail: data.emailError ?? null,
+        });
+      } else {
+        setResult({ kind: "sent", email: email.trim() });
+      }
+      setSaving(false);
     } catch (err) {
       setError((err as Error).message);
       setSaving(false);
     }
+  }
+
+  if (result) {
+    return (
+      <ResultScreen result={result} onDone={closeAndRefresh} />
+    );
   }
 
   return (
@@ -193,6 +238,83 @@ export function InviteModal({
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+/**
+ * Post-submit summary. Three variants:
+ *   - "sent": confirms the invite email went out.
+ *   - "already-member": celebrates the auto-add when the invitee
+ *     already has an account on untilThen.
+ *   - "email-failed": warns the parent the row was created but the
+ *     email bounced so they can resend / fix the address.
+ */
+function ResultScreen({
+  result,
+  onDone,
+}: {
+  result: Result;
+  onDone: () => void;
+}) {
+  const variant = result.kind === "email-failed" ? "warning" : "success";
+  const Icon = variant === "warning" ? AlertTriangle : CheckCircle2;
+  const iconClass =
+    variant === "warning" ? "text-amber" : "text-green-600";
+  const iconBgClass =
+    variant === "warning" ? "bg-amber-tint" : "bg-green-50";
+
+  const title =
+    result.kind === "already-member"
+      ? "Added to your vault"
+      : result.kind === "email-failed"
+        ? "Contributor added, but email failed"
+        : "Invite sent";
+
+  const body =
+    result.kind === "already-member"
+      ? `${result.name ?? result.email} is already on untilThen and has been added as a contributor. They can jump straight in next time they sign in.`
+      : result.kind === "email-failed"
+        ? `Contributor added but the invite email to ${result.email} failed to send. Check the address and try resending from the contributors list.`
+        : `Invite sent to ${result.email}. They'll get an email with a link to accept.`;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/40 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      onClick={onDone}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-2xl shadow-[0_24px_48px_-8px_rgba(15,31,61,0.4)] w-full max-w-[460px]"
+      >
+        <div className="px-7 pt-7 pb-5 text-center">
+          <div
+            className={`mx-auto w-12 h-12 rounded-full ${iconBgClass} flex items-center justify-center mb-4`}
+          >
+            <Icon size={24} strokeWidth={1.75} className={iconClass} />
+          </div>
+          <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] mb-2">
+            {title}
+          </h2>
+          <p className="text-[15px] text-ink-mid leading-[1.55]">{body}</p>
+          {result.kind === "email-failed" && result.detail && (
+            <p className="mt-3 text-xs text-ink-light italic">
+              {result.detail}
+            </p>
+          )}
+        </div>
+        <div className="px-7 py-4 border-t border-navy/[0.08] flex items-center justify-end">
+          <button
+            type="button"
+            onClick={onDone}
+            className="inline-flex items-center gap-2 bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy-mid"
+          >
+            Done
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

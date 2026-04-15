@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { ContributorRole } from "@prisma/client";
 
@@ -13,6 +13,26 @@ interface Body {
   name?: string;
   role?: string;
   requiresApproval?: boolean;
+}
+
+/**
+ * Response shape for POST /api/invites:
+ *
+ *   success           — always true when the row was created
+ *   id                — new Contributor.id
+ *   alreadyOnUntilThen — true if the email matches an existing account;
+ *                        contributor is created ACTIVE and no email is sent
+ *   existingUserName  — populated alongside alreadyOnUntilThen
+ *   emailSent         — true if an invite email actually went out
+ *   emailError        — human-readable message when emailSent is false
+ */
+interface InviteResponse {
+  success: true;
+  id: string;
+  alreadyOnUntilThen: boolean;
+  existingUserName?: string | null;
+  emailSent: boolean;
+  emailError?: string | null;
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,7 +60,8 @@ export async function POST(req: Request) {
   if (!EMAIL_RE.test(email)) {
     return NextResponse.json({ error: "Invalid email" }, { status: 400 });
   }
-  const name = typeof body.name === "string" && body.name.trim() ? body.name.trim() : null;
+  const name =
+    typeof body.name === "string" && body.name.trim() ? body.name.trim() : null;
   const role = VALID_ROLES.includes(body.role as ContributorRole)
     ? (body.role as ContributorRole)
     : "FAMILY";
@@ -71,23 +92,115 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No vault yet." }, { status: 404 });
     const vaultChild = user.children.find((c) => c.vault?.id === vault.id);
 
-    const contributor = await prisma.contributor.create({
-      data: {
+    // Is the invitee already on untilThen? Look up their Clerk user
+    // by email, then confirm they've finished our onboarding (User
+    // row with that clerkId). If both are true we auto-add them as
+    // an ACTIVE contributor and skip the invite email — there's no
+    // account to create and no magic link they need to click.
+    let existingClerkId: string | null = null;
+    let existingName: string | null = null;
+    try {
+      const clerk = await clerkClient();
+      const resp = await clerk.users.getUserList({
+        emailAddress: [email],
+        limit: 1,
+      });
+      const list = Array.isArray(resp)
+        ? resp
+        : (resp as { data?: unknown[] }).data ?? [];
+      const clerkUser = (
+        list as Array<{
+          id: string;
+          firstName: string | null;
+          lastName: string | null;
+        }>
+      )[0];
+      if (clerkUser) {
+        const dbUser = await prisma.user.findUnique({
+          where: { clerkId: clerkUser.id },
+          select: { id: true, firstName: true, lastName: true },
+        });
+        if (dbUser) {
+          existingClerkId = clerkUser.id;
+          existingName =
+            [clerkUser.firstName ?? dbUser.firstName, clerkUser.lastName ?? dbUser.lastName]
+              .filter(Boolean)
+              .join(" ")
+              .trim() || null;
+        }
+      }
+    } catch (err) {
+      // Lookup is best-effort — if Clerk is unreachable, fall through
+      // to the normal invite-email flow rather than failing the
+      // request. Worst case: an existing user gets an invite email
+      // they don't strictly need.
+      console.error("[invites] clerk lookup error:", err);
+    }
+
+    let contributor;
+    try {
+      contributor = await prisma.contributor.create({
+        data: {
+          vaultId: vault.id,
+          invitedBy: userId,
+          email,
+          name: name ?? existingName,
+          role,
+          requiresApproval,
+          status: existingClerkId ? "ACTIVE" : "PENDING",
+          clerkUserId: existingClerkId,
+          acceptedAt: existingClerkId ? new Date() : null,
+        },
+      });
+    } catch (err) {
+      const code =
+        typeof err === "object" && err !== null && "code" in err
+          ? (err as { code?: string }).code
+          : undefined;
+      if (code === "P2002") {
+        return NextResponse.json(
+          {
+            error: "That email is already a contributor on this vault.",
+          },
+          { status: 409 },
+        );
+      }
+      throw err;
+    }
+
+    // Auto-added existing user — no email, skip the Resend work.
+    if (existingClerkId) {
+      await captureServerEvent(userId, "contributor_invited", {
+        contributorId: contributor.id,
         vaultId: vault.id,
-        invitedBy: userId,
-        email,
-        name,
         role,
         requiresApproval,
-      },
-    });
+        alreadyOnUntilThen: true,
+      });
+      const payload: InviteResponse = {
+        success: true,
+        id: contributor.id,
+        alreadyOnUntilThen: true,
+        existingUserName: existingName,
+        emailSent: false,
+      };
+      return NextResponse.json(payload);
+    }
 
-    // Send invite email (best-effort).
-    if (process.env.RESEND_API_KEY) {
+    // Fresh invite — attempt the email. Track whether it actually
+    // went out so the UI can warn the parent when delivery fails
+    // (previously the failure was swallowed and the parent had no
+    // visibility into it).
+    let emailSent = false;
+    let emailError: string | null = null;
+    if (!process.env.RESEND_API_KEY) {
+      emailError = "Email service is not configured.";
+    } else {
       try {
         const { Resend } = await import("resend");
         const resend = new Resend(process.env.RESEND_API_KEY);
-        const origin = process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
+        const origin =
+          process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
         const inviteUrl = `${origin}/invite/${contributor.inviteToken}`;
         const child = vaultChild ?? user.children[0];
         const revealLabel = vault.revealDate
@@ -118,8 +231,11 @@ export async function POST(req: Request) {
   </p>
 </div>`,
         });
+        emailSent = true;
       } catch (err) {
         console.error("[invites] email error:", err);
+        emailError =
+          (err as { message?: string })?.message ?? "Email service error.";
       }
     }
 
@@ -128,9 +244,18 @@ export async function POST(req: Request) {
       vaultId: vault.id,
       role,
       requiresApproval,
+      alreadyOnUntilThen: false,
+      emailSent,
     });
 
-    return NextResponse.json({ success: true, id: contributor.id });
+    const payload: InviteResponse = {
+      success: true,
+      id: contributor.id,
+      alreadyOnUntilThen: false,
+      emailSent,
+      emailError,
+    };
+    return NextResponse.json(payload);
   } catch (err) {
     console.error("[invites POST] error:", err);
     return NextResponse.json(

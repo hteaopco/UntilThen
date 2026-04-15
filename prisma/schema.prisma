@@ -164,6 +164,10 @@ model Contributor {
   vault   Vault   @relation(fields: [vaultId], references: [id])
   entries Entry[]
 
+  // A given email can only be invited once per vault. The in-product
+  // flow checks this upfront so the UI can show a friendly "already
+  // a contributor" message, but the constraint is the hard guard.
+  @@unique([vaultId, email])
   @@index([vaultId])
   @@index([inviteToken])
   @@index([clerkUserId])

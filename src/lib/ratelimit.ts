@@ -46,10 +46,11 @@ const limiters: Record<LimiterKind, Ratelimit | null> = {
   // account or attempts credentials.
   auth: buildLimiter("rl:auth-strict", 5, "1 m"),
 
-  // Anything that triggers an email send. 3 in 10 minutes is
-  // enough for legitimate "I clicked too fast" retries; abusive
-  // mass-invite scripts hit the wall immediately.
-  email: buildLimiter("rl:email", 3, "10 m"),
+  // Anything that triggers an email send. 10 in 10 minutes gives a
+  // parent room to invite a handful of grandparents / teachers
+  // back-to-back without tripping the limiter, while still slamming
+  // the door on mass-invite scripts.
+  email: buildLimiter("rl:email", 10, "10 m"),
 };
 
 interface RateLimitResult {
