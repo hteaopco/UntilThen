@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { InviteModal } from "@/components/dashboard/InviteModal";
+import { formatShort } from "@/lib/dateFormatters";
 
 type Role = "FAMILY" | "FRIEND" | "TEACHER" | "OTHER";
 type Status = "PENDING" | "ACTIVE" | "REVOKED";
@@ -53,14 +54,6 @@ const ROLE_ICON: Record<Role, LucideIcon> = {
   TEACHER: BookOpen,
   OTHER: User,
 };
-
-function formatShort(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 export function ContributorsManager({
   vaults,

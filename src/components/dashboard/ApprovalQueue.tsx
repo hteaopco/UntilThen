@@ -46,7 +46,7 @@ export function ApprovalQueue({ entries }: { entries: PendingEntry[] }) {
                 <span className="text-ink-light">· {e.type}</span>
               </div>
               <div className="text-sm font-semibold text-navy truncate">
-                {e.title ?? "Untitled entry"}
+                {e.title ?? "Untitled memory"}
               </div>
             </div>
             <button

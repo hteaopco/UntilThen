@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { AddChildButton } from "@/components/account/AddChildButton";
+import { formatLong } from "@/lib/dateFormatters";
 
 export const metadata = {
   title: "Children & Vaults — untilThen",
@@ -11,14 +12,6 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-function formatLong(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 export default async function AccountChildrenPage() {
   const { userId } = auth();

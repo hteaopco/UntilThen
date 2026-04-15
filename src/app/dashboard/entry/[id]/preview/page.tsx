@@ -7,6 +7,7 @@ import {
   MediaDisplay,
   type MediaItem,
 } from "@/components/editor/MediaDisplay";
+import { formatLong, formatShort } from "@/lib/dateFormatters";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
 import { SealMomentActions } from "./SealMomentActions";
@@ -17,22 +18,6 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-function formatShort(d: Date): string {
-  return d.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatLong(d: Date): string {
-  return d.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 export default async function ProofReadPage({
   params,

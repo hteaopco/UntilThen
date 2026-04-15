@@ -4,6 +4,8 @@ import { AlertCircle, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+import { formatLong } from "@/lib/dateFormatters";
+
 type Prefs = {
   writingReminders: boolean;
   milestoneReminders: boolean;
@@ -47,14 +49,6 @@ const TOGGLES: Toggle[] = [
     description: "Reminders at 6 months and 30 days before the reveal date.",
   },
 ];
-
-function formatLong(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 export function NotificationsForm({ initial }: { initial: Prefs }) {
   const router = useRouter();

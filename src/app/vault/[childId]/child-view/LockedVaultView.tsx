@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { CollectionCover } from "@/components/collections/CollectionCover";
 import { EntryTypeBadge } from "@/components/ui/EntryTypeBadge";
 import { TimeVault } from "@/components/ui/TimeVault";
+import { formatLong } from "@/lib/dateFormatters";
 
 type LockedEntry = {
   id: string;
@@ -29,14 +30,6 @@ function getTimeLeft(revealDate: Date) {
     mins: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
     secs: Math.floor((diff % (1000 * 60)) / 1000),
   };
-}
-
-function formatLong(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 export function LockedVaultView({

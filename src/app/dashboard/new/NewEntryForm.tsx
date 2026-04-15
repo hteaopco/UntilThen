@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CollectionCover } from "@/components/collections/CollectionCover";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import { RevealDatePicker } from "@/components/ui/RevealDatePicker";
+import { formatLong } from "@/lib/dateFormatters";
 import {
   MediaAttachments,
   type Attachment,
@@ -31,14 +32,6 @@ export type InitialEntry = {
 };
 
 type SaveState = "idle" | "saving" | "saved" | "error";
-
-function formatLong(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 const AUTOSAVE_INTERVAL_MS = 30000;
 

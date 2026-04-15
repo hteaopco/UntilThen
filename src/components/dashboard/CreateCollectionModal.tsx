@@ -6,14 +6,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { inferCollectionIcon } from "@/components/collections/CollectionCover";
 import { RevealDatePicker } from "@/components/ui/RevealDatePicker";
-
-function formatLong(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+import { formatShort } from "@/lib/dateFormatters";
 
 export function CreateCollectionModal({
   vaultId,
@@ -179,7 +172,7 @@ export function CreateCollectionModal({
                   <span className="font-medium text-navy">
                     Vault date
                     {vaultRevealDate
-                      ? ` — ${formatLong(vaultRevealDate)}`
+                      ? ` — ${formatShort(vaultRevealDate)}`
                       : ""}
                   </span>
                   <span className="text-ink-light italic ml-1">(default)</span>

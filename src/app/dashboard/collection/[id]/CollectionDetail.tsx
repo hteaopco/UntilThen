@@ -30,6 +30,11 @@ import { useState } from "react";
 import { CollectionCover } from "@/components/collections/CollectionCover";
 import { EntryTypeBadge } from "@/components/ui/EntryTypeBadge";
 import { LogoSvg } from "@/components/ui/LogoSvg";
+import {
+  formatLong,
+  formatMonthYear,
+  formatShort,
+} from "@/lib/dateFormatters";
 
 export type CollectionEntryRow = {
   id: string;
@@ -38,29 +43,6 @@ export type CollectionEntryRow = {
   body: string | null;
   createdAt: string;
 };
-
-function formatShort(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatLong(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatMonthYear(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
-}
 
 export function CollectionDetail({
   collectionId,

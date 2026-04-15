@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { DeleteEntryButton } from "@/components/dashboard/DeleteEntryButton";
 import { EntryTypeBadge } from "@/components/ui/EntryTypeBadge";
+import { formatShort } from "@/lib/dateFormatters";
 
 export type EntryRow = {
   id: string;
@@ -12,14 +13,6 @@ export type EntryRow = {
   createdAt: string;
   revealDate: string | null;
 };
-
-function formatShort(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 function monthLabel(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -170,7 +163,7 @@ export function EntryList({
                     <div className="ml-auto">
                       <DeleteEntryButton
                         id={e.id}
-                        title={e.title ?? "this entry"}
+                        title={e.title ?? "this memory"}
                       />
                     </div>
                   </div>

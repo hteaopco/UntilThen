@@ -11,6 +11,7 @@ import {
   MediaDisplay,
   type MediaItem,
 } from "@/components/editor/MediaDisplay";
+import { formatLong, formatShort } from "@/lib/dateFormatters";
 
 export type PreviewMedia = MediaItem;
 
@@ -32,21 +33,6 @@ export type PreviewCollection = {
   entries: PreviewEntry[];
 };
 
-function formatShort(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatLong(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 export function PreviewClient({
   childFirstName,

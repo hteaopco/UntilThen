@@ -3,6 +3,7 @@ import { Gift, PlusCircle, TrendingUp } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { BillingActions } from "@/components/account/BillingActions";
+import { formatLong } from "@/lib/dateFormatters";
 
 export const metadata = {
   title: "Billing — untilThen",
@@ -10,14 +11,6 @@ export const metadata = {
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-
-function formatLong(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 export default async function AccountBillingPage() {
   const { userId } = auth();

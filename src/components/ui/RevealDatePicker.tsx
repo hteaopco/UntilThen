@@ -8,6 +8,8 @@
  * a free-form date.
  */
 
+import { formatShort } from "@/lib/dateFormatters";
+
 function yyyymmdd(d: Date): string {
   return d.toISOString().split("T")[0] ?? "";
 }
@@ -22,14 +24,6 @@ function ordinalSuffix(n: number): string {
   const s = ["th", "st", "nd", "rd"];
   const v = n % 100;
   return s[(v - 20) % 10] ?? s[v] ?? s[0] ?? "th";
-}
-
-function formatLong(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 export type QuickPick = { label: string; iso: string };
@@ -135,7 +129,7 @@ export function RevealDatePicker({
         />
         {showConfirmation && value && (
           <p className="mt-2 text-xs italic text-ink-light">
-            Unlocks {formatLong(value)}
+            Unlocks {formatShort(value)}
           </p>
         )}
       </div>

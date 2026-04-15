@@ -2,6 +2,7 @@ import { Lock, PlusCircle } from "lucide-react";
 import Link from "next/link";
 
 import { CollectionCover } from "@/components/collections/CollectionCover";
+import { formatShort } from "@/lib/dateFormatters";
 
 export type CollectionRow = {
   id: string;
@@ -12,14 +13,6 @@ export type CollectionRow = {
   isSealed: boolean;
   entryCount: number;
 };
-
-function formatShort(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 export function CollectionsSection({
   collections,

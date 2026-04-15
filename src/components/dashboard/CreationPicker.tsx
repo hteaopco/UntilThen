@@ -165,7 +165,7 @@ function PickerModal({
           <OptionButton
             icon={Library}
             label="Collection"
-            hint="Group several entries into one sealed journal."
+            hint="Group several memories into one sealed journal."
             onClick={onOpenCollection}
           />
         </div>

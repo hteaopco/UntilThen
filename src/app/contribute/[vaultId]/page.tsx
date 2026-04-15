@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { LogoSvg } from "@/components/ui/LogoSvg";
+import { formatShort } from "@/lib/dateFormatters";
 
 export const metadata = {
   title: "Contribute — untilThen",
@@ -27,14 +28,6 @@ const STATUS_LABELS: Record<
   },
   REJECTED: { label: "Rejected", className: "text-red-700 bg-red-50" },
 };
-
-function formatShort(iso: Date): string {
-  return iso.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 export default async function ContributePage({
   params,

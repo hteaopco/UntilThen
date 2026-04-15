@@ -7,6 +7,7 @@ import { useEffect, useState, type FormEvent } from "react";
 
 import { TimeVault } from "@/components/ui/TimeVault";
 import { RevealDatePicker } from "@/components/ui/RevealDatePicker";
+import { formatLong } from "@/lib/dateFormatters";
 
 function daysUntil(date: Date): number {
   const ms = date.getTime() - Date.now();
@@ -26,14 +27,6 @@ function countdownLabel(days: number): string {
   }
   const years = Math.round(days / 365);
   return `in ${years} years`;
-}
-
-function formatLongDate(date: Date): string {
-  return date.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
 }
 
 function isoToDateInput(iso: string | null): string {
@@ -88,7 +81,7 @@ export function VaultHero({
             <p className="text-[17px] text-ink-mid leading-[1.5]">
               Opens{" "}
               <span className="font-semibold text-navy">
-                {formatLongDate(new Date(currentReveal))}
+                {formatLong(currentReveal)}
               </span>
               {days != null && (
                 <>
