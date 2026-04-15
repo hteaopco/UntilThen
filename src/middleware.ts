@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
+import { checkRateLimit, clientIp } from "@/lib/ratelimit";
+
 // Routes that don't require Clerk sign-in.
 const isPublicRoute = createRouteMatcher([
   "/",
@@ -28,8 +30,75 @@ const isPublicRoute = createRouteMatcher([
   "/api/invites/(.*)",
 ]);
 
-export default clerkMiddleware((auth, req) => {
+// Path-based rate limit classification. Order matters — first
+// match wins. Anything that ends up unclassified under /api/*
+// gets the moderate "authenticated" cap.
+//
+// Auth = strict (5/min), email = very strict (3/10min),
+// public = 20/min, authenticated = 100/min.
+function rateLimitKindFor(
+  method: string,
+  path: string,
+): "public" | "auth" | "email" | "authenticated" | null {
+  if (!path.startsWith("/api/")) return null;
+  // Health probes — never throttle, Railway/uptime monitors hit
+  // them on a tight schedule.
+  if (path.startsWith("/api/health")) return null;
+  // Sentry tunnel route — never throttle.
+  if (path.startsWith("/monitoring")) return null;
+
+  // Email-sending endpoints
+  if (method === "POST" && path === "/api/invites") return "email";
+  if (method === "POST" && /^\/api\/capsules\/[^/]+\/invites$/.test(path))
+    return "email";
+  if (
+    method === "POST" &&
+    /^\/api\/capsules\/[^/]+\/refresh-token$/.test(path)
+  )
+    return "email";
+
+  // Auth-strict — account creation + waitlist signup
+  if (method === "POST" && path === "/api/waitlist") return "auth";
+  if (method === "POST" && path === "/api/onboarding") return "auth";
+
+  // Public anonymous surfaces
+  if (path.startsWith("/api/contribute/capsule/")) return "public";
+  if (path.startsWith("/api/capsules/open/")) return "public";
+
+  // Default for any other API hit
+  return "authenticated";
+}
+
+export default clerkMiddleware(async (auth, req) => {
   const { pathname } = req.nextUrl;
+
+  // Rate limiting runs before any auth work so abusive traffic
+  // can't burn Clerk quota. Skip when the limiter isn't
+  // configured (the helper returns success=true in that case).
+  const kind = rateLimitKindFor(req.method, pathname);
+  if (kind) {
+    const ip = clientIp(req.headers);
+    const { success, limit, remaining, reset } = await checkRateLimit(
+      kind,
+      ip,
+    );
+    if (!success) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again shortly." },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": limit.toString(),
+            "X-RateLimit-Remaining": remaining.toString(),
+            "X-RateLimit-Reset": reset.toString(),
+            "Retry-After": Math.ceil(
+              (reset - Date.now()) / 1000,
+            ).toString(),
+          },
+        },
+      );
+    }
+  }
 
   // The admin dashboard and its APIs run on a separate password-cookie
   // auth system, so Clerk shouldn't touch them. Handle them first and
