@@ -1,0 +1,174 @@
+import { auth } from "@clerk/nextjs/server";
+import { OccasionType } from "@prisma/client";
+import { NextResponse, type NextRequest } from "next/server";
+
+import {
+  CAPSULE_MAX_HORIZON_DAYS,
+  CAPSULE_MAX_HORIZON_MS,
+  findOwnedCapsule,
+} from "@/lib/capsules";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const VALID_OCCASIONS: OccasionType[] = [
+  "BIRTHDAY",
+  "ANNIVERSARY",
+  "RETIREMENT",
+  "GRADUATION",
+  "WEDDING",
+  "OTHER",
+];
+
+interface PatchBody {
+  title?: string;
+  recipientName?: string;
+  recipientEmail?: string;
+  occasionType?: string;
+  revealDate?: string;
+  contributorDeadline?: string | null;
+  requiresApproval?: boolean;
+}
+
+export async function GET(
+  _req: NextRequest,
+  ctx: { params: Promise<{ id: string }> },
+): Promise<NextResponse> {
+  const { userId } = auth();
+  const { id } = await ctx.params;
+  const owned = await findOwnedCapsule(userId ?? null, id);
+  if (!owned.ok)
+    return NextResponse.json({ error: "Not found." }, { status: owned.status });
+
+  const { prisma } = await import("@/lib/prisma");
+  const full = await prisma.memoryCapsule.findUnique({
+    where: { id },
+    include: {
+      contributions: { orderBy: [{ orderIndex: "asc" }, { createdAt: "asc" }] },
+      invites: { orderBy: { createdAt: "asc" } },
+    },
+  });
+  return NextResponse.json({ capsule: full });
+}
+
+export async function PATCH(
+  req: NextRequest,
+  ctx: { params: Promise<{ id: string }> },
+): Promise<NextResponse> {
+  const { userId } = auth();
+  const { id } = await ctx.params;
+  const owned = await findOwnedCapsule(userId ?? null, id);
+  if (!owned.ok)
+    return NextResponse.json({ error: "Not found." }, { status: owned.status });
+
+  let body: PatchBody;
+  try {
+    body = (await req.json()) as PatchBody;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  const data: Record<string, unknown> = {};
+  if (typeof body.title === "string") {
+    const t = body.title.trim();
+    if (!t)
+      return NextResponse.json(
+        { error: "Title can't be empty." },
+        { status: 400 },
+      );
+    data.title = t;
+  }
+  if (typeof body.recipientName === "string") {
+    const v = body.recipientName.trim();
+    if (!v)
+      return NextResponse.json(
+        { error: "Recipient name can't be empty." },
+        { status: 400 },
+      );
+    data.recipientName = v;
+  }
+  if (typeof body.recipientEmail === "string") {
+    data.recipientEmail = body.recipientEmail.trim().toLowerCase();
+  }
+  if (
+    typeof body.occasionType === "string" &&
+    VALID_OCCASIONS.includes(body.occasionType as OccasionType)
+  ) {
+    data.occasionType = body.occasionType as OccasionType;
+  }
+  if (typeof body.revealDate === "string") {
+    const parsed = new Date(body.revealDate);
+    if (Number.isNaN(parsed.getTime()))
+      return NextResponse.json(
+        { error: "Invalid reveal date." },
+        { status: 400 },
+      );
+    // Measure from the capsule's original createdAt — not from
+    // `now` — so an organiser can't slide the reveal out by
+    // editing later.
+    const ceiling =
+      owned.capsule.createdAt.getTime() + CAPSULE_MAX_HORIZON_MS;
+    if (parsed.getTime() > ceiling) {
+      return NextResponse.json(
+        {
+          error: `Memory Capsules reveal within ${CAPSULE_MAX_HORIZON_DAYS} days of creation.`,
+        },
+        { status: 400 },
+      );
+    }
+    data.revealDate = parsed;
+  }
+  if ("contributorDeadline" in body) {
+    if (body.contributorDeadline === null || body.contributorDeadline === "") {
+      data.contributorDeadline = null;
+    } else if (typeof body.contributorDeadline === "string") {
+      const parsed = new Date(body.contributorDeadline);
+      if (Number.isNaN(parsed.getTime()))
+        return NextResponse.json(
+          { error: "Invalid deadline." },
+          { status: 400 },
+        );
+      data.contributorDeadline = parsed;
+    }
+  }
+  if (typeof body.requiresApproval === "boolean") {
+    data.requiresApproval = body.requiresApproval;
+  }
+
+  try {
+    const { prisma } = await import("@/lib/prisma");
+    await prisma.memoryCapsule.update({ where: { id }, data });
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("[capsules PATCH] error:", err);
+    return NextResponse.json(
+      { error: "Couldn't save the capsule." },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  ctx: { params: Promise<{ id: string }> },
+): Promise<NextResponse> {
+  const { userId } = auth();
+  const { id } = await ctx.params;
+  const owned = await findOwnedCapsule(userId ?? null, id);
+  if (!owned.ok)
+    return NextResponse.json({ error: "Not found." }, { status: owned.status });
+
+  try {
+    const { prisma } = await import("@/lib/prisma");
+    // Cascade on MemoryCapsule → contributions + invites handles
+    // the children rows (see prisma schema).
+    await prisma.memoryCapsule.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("[capsules DELETE] error:", err);
+    return NextResponse.json(
+      { error: "Couldn't delete the capsule." },
+      { status: 500 },
+    );
+  }
+}

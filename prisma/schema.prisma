@@ -71,6 +71,7 @@ model User {
   children                Child[]
   entries                 Entry[]
   collections             Collection[]
+  memoryCapsules          MemoryCapsule[]
   notificationPreferences NotificationPreferences?
 }
 
@@ -174,6 +175,97 @@ model Entry {
   @@index([contributorId])
   @@index([approvalStatus])
   @@index([vaultId, isSealed])
+}
+
+// ── Memory Capsules ───────────────────────────────────────
+//
+// Second product type: a one-time, occasion-based capsule
+// (birthday, anniversary, retirement, etc.). Separate from the
+// child Vault so its lifecycle, pricing model, and recipient
+// flow can evolve independently — contributions are public-
+// facing (no Clerk account required) and the recipient opens
+// via a magic link.
+
+enum OccasionType {
+  BIRTHDAY
+  ANNIVERSARY
+  RETIREMENT
+  GRADUATION
+  WEDDING
+  OTHER
+}
+
+enum CapsuleStatus {
+  DRAFT // Created, not paid, no invites sent yet.
+  ACTIVE // Paid, collecting contributions.
+  SEALED // Past contributor deadline.
+  REVEALED // Recipient has opened it.
+}
+
+model MemoryCapsule {
+  id                  String        @id @default(cuid())
+  organiserId         String
+  title               String
+  recipientName       String
+  recipientEmail      String
+  occasionType        OccasionType  @default(OTHER)
+  revealDate          DateTime
+  contributorDeadline DateTime?
+  status              CapsuleStatus @default(DRAFT)
+  requiresApproval    Boolean       @default(false)
+  paymentId           String?
+  isPaid              Boolean       @default(false)
+  accessToken         String        @unique @default(cuid())
+  tokenExpiresAt      DateTime?
+  recipientClerkId    String?
+  // Tracks whether the recipient has completed the first-open
+  // sequential reveal. Return visits then get the browseable
+  // list instead of the guided sequence.
+  firstOpenedAt       DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  organiser     User                  @relation(fields: [organiserId], references: [id])
+  contributions CapsuleContribution[]
+  invites       CapsuleInvite[]
+
+  @@index([organiserId])
+  @@index([accessToken])
+  @@index([status])
+}
+
+model CapsuleContribution {
+  id             String         @id @default(cuid())
+  capsuleId      String
+  authorName     String
+  authorEmail    String?
+  type           EntryType      @default(TEXT)
+  body           String?
+  mediaUrls      String[]       @default([])
+  mediaTypes     String[]       @default([])
+  approvalStatus ApprovalStatus @default(AUTO_APPROVED)
+  orderIndex     Int?
+  createdAt      DateTime       @default(now())
+
+  capsule MemoryCapsule @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
+
+  @@index([capsuleId])
+}
+
+model CapsuleInvite {
+  id          String            @id @default(cuid())
+  capsuleId   String
+  email       String
+  name        String?
+  inviteToken String            @unique @default(cuid())
+  status      ContributorStatus @default(PENDING)
+  createdAt   DateTime          @default(now())
+  acceptedAt  DateTime?
+
+  capsule MemoryCapsule @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
+
+  @@index([capsuleId])
+  @@index([inviteToken])
 }
 
 model NotificationPreferences {

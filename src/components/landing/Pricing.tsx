@@ -59,6 +59,7 @@ function Plan({
   priceNote,
   features,
   cta,
+  ctaHref = "#cta",
   ctaNote,
   overlay,
 }: {
@@ -70,6 +71,8 @@ function Plan({
   priceNote?: string;
   features: string[];
   cta: string;
+  /** Destination for the plan CTA; defaults to the waitlist anchor. */
+  ctaHref?: string;
   ctaNote?: string;
   overlay?: ReactNode;
 }) {
@@ -166,7 +169,7 @@ function Plan({
           ))}
         </ul>
         <a
-          href="#cta"
+          href={ctaHref}
           className={`block text-center py-3 px-5 rounded-lg text-[13px] font-bold tracking-[0.01em] transition-all ${ctaClasses}`}
         >
           {cta}
@@ -204,6 +207,45 @@ const GIFT_FEATURES = [
   "Perfect for baby showers & new parents",
   "No auto-renewal — recipient chooses to continue",
 ];
+
+const CAPSULE_FEATURES = [
+  "Any occasion",
+  "Unlimited contributors",
+  "Text, photos, voice & video",
+  "Reveal within 60 days",
+  "No account needed to open",
+  "Save forever with a free account",
+];
+
+// Subtle cameo of multiple contributors, shown alongside the
+// Memory Capsule card. Keeps the card from reading as a lone
+// plain option while making it obvious the product is social.
+function ContributorsCameo() {
+  const people = [
+    { initial: "S", tone: "bg-amber text-white" },
+    { initial: "J", tone: "bg-gold text-navy" },
+    { initial: "E", tone: "bg-navy text-white" },
+    { initial: "D", tone: "bg-amber-tint text-amber" },
+  ];
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex -space-x-2">
+        {people.map((p) => (
+          <span
+            key={p.initial}
+            aria-hidden="true"
+            className={`inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-white text-[11px] font-bold ${p.tone}`}
+          >
+            {p.initial}
+          </span>
+        ))}
+      </div>
+      <span className="text-xs italic text-ink-mid">
+        Four people wrote to Margaret for her 60th.
+      </span>
+    </div>
+  );
+}
 
 export function Pricing() {
   return (
@@ -253,6 +295,42 @@ export function Pricing() {
           Have more than one child? Add a vault for{" "}
           <span className="font-semibold text-navy">$1.99/month</span> each.
         </p>
+
+        {/* Memory Capsule — secondary product. A single plain
+            card in its own row beneath the two flagship plans,
+            so the child-vault hierarchy stays obvious. A quiet
+            contributors cameo sits alongside on desktop to hint
+            that the product is inherently social. */}
+        <div className="mt-14 max-w-[760px] mx-auto">
+          <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-2.5">
+            Also available
+          </p>
+          <h3 className="text-[clamp(22px,2.5vw,28px)] font-extrabold tracking-[-0.8px] text-navy mb-5 leading-[1.1]">
+            A one-time Memory Capsule for any milestone.
+          </h3>
+          <div className="grid gap-6 lg:grid-cols-[1fr,280px] items-center">
+            <Plan
+              variant="plain"
+              tag="One-time"
+              name="Memory Capsule"
+              price="9.99"
+              priceUnit="one-time"
+              features={CAPSULE_FEATURES}
+              cta="Create a capsule →"
+              ctaHref="/capsules/new"
+            />
+            <div className="rounded-2xl border border-navy/[0.08] bg-white px-6 py-6 space-y-4">
+              <div className="text-[10px] uppercase tracking-[0.14em] font-bold text-amber">
+                Margaret&rsquo;s 60th Birthday
+              </div>
+              <ContributorsCameo />
+              <p className="text-xs text-ink-light italic leading-[1.6]">
+                &ldquo;Happy birthday Mum. I remember the day you taught me
+                how to drive…&rdquo; — Sarah
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

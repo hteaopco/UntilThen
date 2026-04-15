@@ -5,6 +5,7 @@ import {
   Library,
   Mic,
   Pencil,
+  Sparkles,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -167,6 +168,17 @@ function PickerModal({
             label="Collection"
             hint="Group several memories into one sealed journal."
             onClick={onOpenCollection}
+          />
+          {/* Divider + Memory Capsule — the second product type.
+              Secondary placement by design: the child vault is
+              flagship, capsules are the adjacent growth layer. */}
+          <div className="my-2 border-t border-navy/[0.06]" />
+          <OptionLink
+            href="/capsules/new"
+            icon={Sparkles}
+            label="Memory Capsule"
+            hint="A one-time keepsake for a birthday, retirement, or any milestone."
+            onPick={onClose}
           />
         </div>
       </div>

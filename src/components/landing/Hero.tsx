@@ -26,7 +26,14 @@ export function Hero() {
           <p className="hero-sub text-[17px] font-normal leading-[1.7] text-ink-mid max-w-[440px] mb-10">
             Write letters, voice notes, and memories they&rsquo;ll open when
             they&rsquo;re older — on their 18th birthday, or any moment you
-            choose.
+            choose. Or{" "}
+            <a
+              href="#pricing"
+              className="text-amber font-semibold hover:text-amber-dark transition-colors"
+            >
+              collect messages for a birthday, retirement, or milestone
+            </a>
+            .
           </p>
 
           <div className="hero-actions">

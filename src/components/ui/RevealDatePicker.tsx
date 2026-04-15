@@ -66,6 +66,7 @@ export function RevealDatePicker({
   childDateOfBirth = null,
   disabled = false,
   minDate,
+  maxDate,
   showConfirmation = true,
   id,
 }: {
@@ -76,6 +77,12 @@ export function RevealDatePicker({
   disabled?: boolean;
   minDate?: string;
   /**
+   * Optional ceiling — used by Memory Capsules to enforce the
+   * 60-day reveal horizon so users can't short-circuit the
+   * child-vault product via a long-horizon capsule.
+   */
+  maxDate?: string;
+  /**
    * Render a small "Unlocks Month D, YYYY" line under the input.
    * Off for tiny surfaces where the confirmation would wrap awkwardly.
    */
@@ -84,7 +91,12 @@ export function RevealDatePicker({
 }) {
   const effectiveMin =
     minDate ?? yyyymmdd(new Date(Date.now() + 24 * 60 * 60 * 1000));
-  const picks = buildQuickPicks(childFirstName, childDateOfBirth);
+  // Quick picks are filtered against the optional ceiling so
+  // we never surface a chip the native input would reject.
+  const allPicks = buildQuickPicks(childFirstName, childDateOfBirth);
+  const picks = maxDate
+    ? allPicks.filter((p) => p.iso <= maxDate)
+    : allPicks;
 
   return (
     <div className="space-y-3">
@@ -119,6 +131,7 @@ export function RevealDatePicker({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           min={effectiveMin}
+          max={maxDate}
           disabled={disabled}
           style={{
             WebkitAppearance: "none",

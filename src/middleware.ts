@@ -10,6 +10,13 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/invite/(.*)",
+  // Memory Capsule public surfaces — contributor invite links
+  // and the recipient reveal flow are both accountless by design.
+  "/contribute/capsule/(.*)",
+  "/capsule/(.*)/open",
+  "/api/contribute/capsule/(.*)",
+  "/api/capsules/open/(.*)",
+  "/api/capsules/(.*)/refresh-token",
   "/api/waitlist(.*)",
   "/api/health(.*)",
   "/api/invites/(.*)",
