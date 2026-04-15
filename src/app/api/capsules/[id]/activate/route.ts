@@ -2,7 +2,10 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { findOwnedCapsule, RECIPIENT_TOKEN_TTL_MS } from "@/lib/capsules";
-import { sendCapsuleActivated } from "@/lib/capsule-emails";
+import {
+  sendCapsuleActivated,
+  sendCapsuleInvite,
+} from "@/lib/capsule-emails";
 import { captureServerEvent } from "@/lib/posthog-server";
 
 export const runtime = "nodejs";
@@ -57,34 +60,60 @@ export async function POST(
     const tokenExpiresAt = new Date(
       capsule.revealDate.getTime() + RECIPIENT_TOKEN_TTL_MS,
     );
-    await prisma.memoryCapsule.update({
-      where: { id },
-      data: {
-        status: "ACTIVE",
-        isPaid: true,
-        paymentId,
-        tokenExpiresAt,
-      },
-    });
+
+    // Atomic flip: capsule → ACTIVE + every STAGED invite →
+    // PENDING. Doing both in one transaction means a partial
+    // failure can't leave staged rows behind a paid capsule.
+    const [, stagedInvites] = await prisma.$transaction([
+      prisma.memoryCapsule.update({
+        where: { id },
+        data: {
+          status: "ACTIVE",
+          isPaid: true,
+          paymentId,
+          tokenExpiresAt,
+        },
+      }),
+      prisma.capsuleInvite.findMany({
+        where: { capsuleId: id, status: "STAGED" },
+      }),
+      prisma.capsuleInvite.updateMany({
+        where: { capsuleId: id, status: "STAGED" },
+        data: { status: "PENDING" },
+      }),
+    ]);
 
     await captureServerEvent(userId ?? "anonymous", "capsule_activated", {
       capsuleId: id,
+      invitesDispatched: stagedInvites.length,
     });
 
-    // Activated confirmation to the organiser. Invite email
-    // count comes from the separate /invites route; this one
-    // just says the capsule is live.
+    // Now dispatch the invite emails for every freshly-promoted
+    // STAGED row + the organiser's "you're live" confirmation.
+    // Failures here are best-effort — the rows are already PENDING
+    // so a resend can pick them up later.
     try {
       const { clerkClient } = await import("@clerk/nextjs/server");
       const clerk = await clerkClient();
       const clerkUser = await clerk.users.getUser(userId!);
+      const organiserName = clerkUser.firstName ?? "Someone";
       const organiserEmail =
         clerkUser.primaryEmailAddress?.emailAddress ??
         clerkUser.emailAddresses[0]?.emailAddress;
-      if (organiserEmail) {
-        const pendingInvites = await prisma.capsuleInvite.count({
-          where: { capsuleId: id },
+
+      for (const invite of stagedInvites) {
+        await sendCapsuleInvite({
+          to: invite.email,
+          contributorName: invite.name,
+          organiserName,
+          title: capsule.title,
+          recipientName: capsule.recipientName,
+          revealDate: capsule.revealDate,
+          inviteToken: invite.inviteToken,
         });
+      }
+
+      if (organiserEmail) {
         const origin =
           process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
         await sendCapsuleActivated({
@@ -92,19 +121,25 @@ export async function POST(
           title: capsule.title,
           recipientName: capsule.recipientName,
           revealDate: capsule.revealDate,
-          contributorCount: pendingInvites,
+          contributorCount: stagedInvites.length,
           dashboardUrl: `${origin}/capsules/${id}`,
         });
       }
     } catch (err) {
-      console.error("[capsules activate] activated email:", err);
+      console.error("[capsules activate] post-activate emails:", err);
     }
 
     // TODO: schedule the reveal-day email (sendCapsuleRevealDay)
     // to fire at capsule.revealDate. Needs a job runner /
     // scheduled Railway task — deferred for v1.
+    console.log(
+      `[capsules activate] reveal email pending for ${id} on ${capsule.revealDate.toISOString()}`,
+    );
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      invitesDispatched: stagedInvites.length,
+    });
   } catch (err) {
     console.error("[capsules activate] error:", err);
     return NextResponse.json(

@@ -54,6 +54,9 @@ enum ContributorRole {
 }
 
 enum ContributorStatus {
+  /// Added to the list but the invite email hasn't been sent
+  /// yet. Used for DRAFT capsule invites that pay-to-activate.
+  STAGED
   PENDING
   ACTIVE
   REVOKED
@@ -253,6 +256,11 @@ model CapsuleContribution {
   capsuleId      String
   authorName     String
   authorEmail    String?
+  /// Set when the contribution comes from the organiser's own
+  /// "Your contribution" editor. Lets the organiser edit or
+  /// delete their own post-creation without needing a token.
+  /// Null for public-facing contributions (contributor invites).
+  clerkUserId    String?
   type           EntryType      @default(TEXT)
   body           String?
   mediaUrls      String[]       @default([])
@@ -264,6 +272,7 @@ model CapsuleContribution {
   capsule MemoryCapsule @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
 
   @@index([capsuleId])
+  @@index([clerkUserId])
 }
 
 model CapsuleInvite {

@@ -20,7 +20,7 @@ export type ContributorRow = {
   name: string | null;
   email: string;
   role: "FAMILY" | "FRIEND" | "TEACHER" | "OTHER";
-  status: "PENDING" | "ACTIVE" | "REVOKED";
+  status: "STAGED" | "PENDING" | "ACTIVE" | "REVOKED";
   requiresApproval: boolean;
 };
 
@@ -35,6 +35,10 @@ const ROLE_CONFIG: Record<
 };
 
 const STATUS_CLASS: Record<ContributorRow["status"], string> = {
+  // STAGED only appears for capsule invites today, but the
+  // ContributorStatus enum is shared so we need a class for the
+  // child-vault Contributor model too in case it ever surfaces.
+  STAGED: "text-amber bg-amber-tint",
   PENDING: "text-gold bg-gold-tint",
   ACTIVE: "text-green-700 bg-green-50",
   REVOKED: "text-ink-light bg-[#f1f5f9]",

@@ -51,7 +51,7 @@ const OCCASIONS: { value: OccasionType; label: string }[] = [
   { value: "OTHER", label: "Other" },
 ];
 
-type Step = 1 | 2 | 3;
+type Step = 1 | 2;
 
 export function CapsuleCreationFlow() {
   const router = useRouter();
@@ -209,15 +209,17 @@ export function CapsuleCreationFlow() {
     setInvitees((prev) => prev.filter((i) => i.id !== id));
   }
 
-  async function goToPayment(e: FormEvent) {
+  async function saveAndOpenDashboard(e: FormEvent) {
     e.preventDefault();
     if (!capsuleId) return;
     setError(null);
     setSaving(true);
     try {
       // Persist step 2 settings (approval toggle + deadline) on
-      // the capsule record before we take payment. Invitees are
-      // sent as part of the activation call.
+      // the capsule record. Then save any contributors the
+      // organiser entered — they'll land as STAGED because the
+      // capsule is still DRAFT. Activation is now triggered from
+      // the capsule dashboard, not here.
       const res = await fetch(`/api/capsules/${capsuleId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -232,46 +234,20 @@ export function CapsuleCreationFlow() {
         };
         throw new Error(data.error ?? "Couldn't save your changes.");
       }
-      setStep(3);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function confirmPayment() {
-    if (!capsuleId) return;
-    setSaving(true);
-    setError(null);
-    try {
-      // TODO: Square payment — $9.99 one-time. For now the
-      // activation endpoint trusts the client and flips the
-      // capsule to ACTIVE + isPaid. Once Square is wired up,
-      // this will POST a receipt id and the server will verify.
-      const act = await fetch(`/api/capsules/${capsuleId}/activate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentId: "placeholder-square-receipt" }),
-      });
-      if (!act.ok) {
-        const data = (await act.json().catch(() => ({}))) as {
-          error?: string;
-        };
-        throw new Error(data.error ?? "Payment couldn't be confirmed.");
-      }
-      const invites = await fetch(`/api/capsules/${capsuleId}/invites`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          invites: invitees.map((i) => ({ name: i.name, email: i.email })),
-        }),
-      });
-      if (!invites.ok) {
-        const data = (await invites.json().catch(() => ({}))) as {
-          error?: string;
-        };
-        throw new Error(data.error ?? "Couldn't send invites.");
+      if (invitees.length > 0) {
+        const inv = await fetch(`/api/capsules/${capsuleId}/invites`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            invites: invitees.map((i) => ({ name: i.name, email: i.email })),
+          }),
+        });
+        if (!inv.ok) {
+          const data = (await inv.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          throw new Error(data.error ?? "Couldn't save contributors.");
+        }
       }
       try {
         window.localStorage.removeItem(DRAFT_TITLE_KEY);
@@ -432,7 +408,7 @@ export function CapsuleCreationFlow() {
         )}
 
         {step === 2 && (
-          <form onSubmit={goToPayment} className="space-y-6">
+          <form onSubmit={saveAndOpenDashboard} className="space-y-6">
             <div>
               <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
                 Invite contributors
@@ -536,24 +512,29 @@ export function CapsuleCreationFlow() {
               />
             </Field>
 
+            {/* Activation moved to the capsule dashboard. This
+                step just stages everything as a draft so the
+                organiser can write their own contribution and
+                preview before paying. */}
             <div className="rounded-2xl border border-amber/25 bg-amber-tint/40 px-5 py-5 space-y-3">
               <h2 className="text-lg font-bold text-navy">
-                Ready to send invites?
+                Almost there.
               </h2>
               <p className="text-sm text-ink-mid leading-[1.6]">
-                Unlock your Memory Capsule for{" "}
-                <span className="font-bold text-navy">$9.99</span> to send
-                invites and activate your capsule.
+                We&rsquo;ll save your capsule as a draft. You can write your
+                own message, preview, and add more contributors before you
+                activate.
               </p>
               <button
                 type="submit"
-                disabled={saving || invitees.length === 0}
+                disabled={saving}
                 className="w-full bg-amber text-white py-3.5 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
               >
-                {saving ? "Saving…" : "Pay $9.99 and send invites →"}
+                {saving ? "Saving…" : "Open my capsule →"}
               </button>
               <p className="text-center text-xs italic text-ink-light">
-                One-time payment. No subscription.
+                No payment yet. Activate from the capsule page when
+                you&rsquo;re ready.
               </p>
             </div>
 
@@ -571,58 +552,6 @@ export function CapsuleCreationFlow() {
               ← Edit capsule details
             </button>
           </form>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-6">
-            <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
-              Confirm payment
-            </h1>
-            <p className="text-[15px] text-ink-mid leading-[1.6]">
-              One-time payment of{" "}
-              <span className="font-bold text-navy">$9.99</span>. We&rsquo;ll
-              send invites to{" "}
-              <span className="font-semibold text-navy">
-                {invitees.length}
-              </span>{" "}
-              {invitees.length === 1 ? "contributor" : "contributors"}{" "}
-              and activate your capsule.
-            </p>
-
-            <div className="rounded-2xl border border-navy/[0.08] bg-white px-5 py-5 space-y-2">
-              <Row label="Capsule">{title}</Row>
-              <Row label="For">{recipientName}</Row>
-              <Row label="Contributors">{invitees.length}</Row>
-              <Row label="Total">$9.99</Row>
-            </div>
-
-            {/* TODO: Square payment — $9.99 one-time. The button
-                currently skips straight to activation with a
-                placeholder receipt id. Swap for the Square SDK
-                checkout call when it lands. */}
-            <button
-              type="button"
-              onClick={confirmPayment}
-              disabled={saving}
-              className="w-full bg-amber text-white py-3.5 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
-            >
-              {saving ? "Activating…" : "Confirm $9.99 →"}
-            </button>
-
-            {error && (
-              <p className="text-sm text-red-600" role="alert">
-                {error}
-              </p>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setStep(2)}
-              className="text-sm font-medium text-ink-mid hover:text-navy underline underline-offset-4"
-            >
-              ← Back
-            </button>
-          </div>
         )}
       </section>
     </main>
@@ -655,19 +584,3 @@ function Label({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Row({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-baseline justify-between gap-3">
-      <span className="text-[11px] uppercase tracking-[0.1em] font-bold text-ink-light">
-        {label}
-      </span>
-      <span className="text-sm font-semibold text-navy">{children}</span>
-    </div>
-  );
-}

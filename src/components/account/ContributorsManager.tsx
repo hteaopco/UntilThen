@@ -21,7 +21,7 @@ import { InviteModal } from "@/components/dashboard/InviteModal";
 import { formatShort } from "@/lib/dateFormatters";
 
 type Role = "FAMILY" | "FRIEND" | "TEACHER" | "OTHER";
-type Status = "PENDING" | "ACTIVE" | "REVOKED";
+type Status = "STAGED" | "PENDING" | "ACTIVE" | "REVOKED";
 
 export type ManagerVaultOption = {
   vaultId: string;

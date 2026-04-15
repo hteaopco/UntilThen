@@ -50,13 +50,16 @@ export default async function CapsulePage({
         contributorDeadline:
           capsule.contributorDeadline?.toISOString() ?? null,
         status,
+        rawStatus: capsule.status,
         isPaid: capsule.isPaid,
         requiresApproval: capsule.requiresApproval,
         accessToken: capsule.accessToken,
       }}
+      currentUserClerkId={userId}
       contributions={capsule.contributions.map((c) => ({
         id: c.id,
         authorName: c.authorName,
+        clerkUserId: c.clerkUserId,
         type: c.type,
         body: c.body,
         approvalStatus: c.approvalStatus,

@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { findOwnedCapsule } from "@/lib/capsules";
+import { effectiveStatus, findOwnedCapsule } from "@/lib/capsules";
 import { sendCapsuleInvite } from "@/lib/capsule-emails";
 
 export const runtime = "nodejs";
@@ -14,10 +14,16 @@ interface InviteBody {
 }
 
 /**
- * Invite contributors for a capsule. The capsule must be paid
- * (activated) before invites can fire — this is the spec's
- * "pay before send" gate, checked server-side so the front end
- * can't bypass it.
+ * Add contributors to a capsule.
+ *
+ * - Capsule is DRAFT  → rows land with status STAGED. No invite
+ *   emails fire. They're held until /activate kicks them over
+ *   to PENDING (and dispatches the emails).
+ * - Capsule is ACTIVE → rows land with status PENDING and the
+ *   invite email goes out immediately.
+ *
+ * Either path is safe to call multiple times — duplicates are
+ * deduped against existing rows on email.
  */
 export async function POST(
   req: NextRequest,
@@ -30,10 +36,11 @@ export async function POST(
     return NextResponse.json({ error: "Not found." }, { status: owned.status });
   const capsule = owned.capsule;
 
-  if (!capsule.isPaid || capsule.status === "DRAFT") {
+  const status = effectiveStatus(capsule);
+  if (status === "SEALED" || status === "REVEALED") {
     return NextResponse.json(
-      { error: "Activate your capsule before sending invites." },
-      { status: 402 },
+      { error: "This capsule is no longer accepting new contributors." },
+      { status: 410 },
     );
   }
 
@@ -60,10 +67,11 @@ export async function POST(
       { status: 400 },
     );
 
+  const shouldStage = capsule.status === "DRAFT" || !capsule.isPaid;
+
   try {
     const { prisma } = await import("@/lib/prisma");
 
-    // De-dupe against existing invites for this capsule.
     const existing = await prisma.capsuleInvite.findMany({
       where: { capsuleId: id },
       select: { email: true },
@@ -76,6 +84,7 @@ export async function POST(
         success: true,
         skipped: normalised.length,
         created: 0,
+        staged: shouldStage,
       });
     }
 
@@ -85,9 +94,6 @@ export async function POST(
     });
     const organiserName = organiser?.firstName ?? "Someone";
 
-    // Persist, then fire email. Email failures are swallowed by
-    // the send helper so a row without an email delivered isn't
-    // fatal — we can resend later.
     const created = await prisma.$transaction(
       fresh.map((i) =>
         prisma.capsuleInvite.create({
@@ -95,32 +101,38 @@ export async function POST(
             capsuleId: id,
             email: i.email,
             name: i.name,
+            status: shouldStage ? "STAGED" : "PENDING",
           },
         }),
       ),
     );
 
-    for (const invite of created) {
-      await sendCapsuleInvite({
-        to: invite.email,
-        contributorName: invite.name,
-        organiserName,
-        title: capsule.title,
-        recipientName: capsule.recipientName,
-        revealDate: capsule.revealDate,
-        inviteToken: invite.inviteToken,
-      });
+    // Only dispatch invite emails for ACTIVE capsules. Staged
+    // rows wait for the /activate transaction.
+    if (!shouldStage) {
+      for (const invite of created) {
+        await sendCapsuleInvite({
+          to: invite.email,
+          contributorName: invite.name,
+          organiserName,
+          title: capsule.title,
+          recipientName: capsule.recipientName,
+          revealDate: capsule.revealDate,
+          inviteToken: invite.inviteToken,
+        });
+      }
     }
 
     return NextResponse.json({
       success: true,
       created: created.length,
       skipped: normalised.length - created.length,
+      staged: shouldStage,
     });
   } catch (err) {
     console.error("[capsule invites POST] error:", err);
     return NextResponse.json(
-      { error: "Couldn't send invites." },
+      { error: "Couldn't save contributors." },
       { status: 500 },
     );
   }
