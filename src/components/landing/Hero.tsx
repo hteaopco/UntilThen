@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { HeroLetterStack } from "./HeroLetterStack";
 
 export function Hero() {
@@ -47,13 +49,17 @@ export function Hero() {
               </a>
               {/* Secondary path for the capsule audience. Routes
                   to sign-up with the capsule-path hint persisted
-                  via redirect_url so onboarding auto-selects it. */}
-              <a
+                  via redirect_url so onboarding auto-selects it.
+                  `next/link` (not a plain <a>) is required by
+                  Next's no-html-link-for-pages rule — Railway's
+                  production build treats that lint rule as an
+                  error. */}
+              <Link
                 href="/sign-up?redirect_url=/onboarding?path=capsule"
                 className="inline-block bg-white text-navy border border-navy/15 px-6 py-3.5 rounded-lg text-[15px] font-bold tracking-[0.01em] hover:border-navy transition-colors"
               >
                 Create a Memory Capsule
-              </a>
+              </Link>
             </div>
             <p className="mt-3 text-[13px] italic text-ink-light">
               Join the waitlist for early access
