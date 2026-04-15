@@ -1,37 +1,45 @@
+import { SignedOut } from "@clerk/nextjs";
+
 import { LogoSvg } from "@/components/ui/LogoSvg";
 
+// Footer is marketing chrome — only show it to signed-out
+// visitors. Once a user has an account they're inside the
+// product and don't need the privacy / terms / help row at
+// the bottom of every public page.
 export function Footer() {
   return (
-    <footer className="bg-warm-slate text-white">
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-8 lg:py-9 flex flex-col lg:flex-row items-center justify-center gap-5 lg:gap-16 text-center">
-        <LogoSvg variant="footer" width={130} height={23} />
-        <ul className="flex gap-6 list-none">
-          <li>
-            <a
-              href="#"
-              className="text-[13px] text-white/90 hover:text-white transition-colors"
-            >
-              Privacy
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              className="text-[13px] text-white/90 hover:text-white transition-colors"
-            >
-              Terms
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              className="text-[13px] text-white/90 hover:text-white transition-colors"
-            >
-              Help
-            </a>
-          </li>
-        </ul>
-      </div>
-    </footer>
+    <SignedOut>
+      <footer className="bg-warm-slate text-white">
+        <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-8 lg:py-9 flex flex-col lg:flex-row items-center justify-center gap-5 lg:gap-16 text-center">
+          <LogoSvg variant="footer" width={130} height={23} />
+          <ul className="flex gap-6 list-none">
+            <li>
+              <a
+                href="#"
+                className="text-[13px] text-white/90 hover:text-white transition-colors"
+              >
+                Privacy
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                className="text-[13px] text-white/90 hover:text-white transition-colors"
+              >
+                Terms
+              </a>
+            </li>
+            <li>
+              <a
+                href="#"
+                className="text-[13px] text-white/90 hover:text-white transition-colors"
+              >
+                Help
+              </a>
+            </li>
+          </ul>
+        </div>
+      </footer>
+    </SignedOut>
   );
 }
