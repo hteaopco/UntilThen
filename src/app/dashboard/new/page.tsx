@@ -51,12 +51,16 @@ export default async function NewEntryPage({
   const childrenWithVaults = user.children.filter((c) => c.vault);
   if (childrenWithVaults.length === 0) redirect("/onboarding");
 
-  // Pick the target child: URL `?vault=<childId>` if present and
-  // owned; otherwise fall back to the first child so the legacy
-  // single-vault flow still works.
+  // Pick the target child. Different callers pass different
+  // identifiers in ?vault=: DashboardGrid links the childId (for
+  // the /dashboard vault switch), while MemoryStarter / EntryList /
+  // CreationPicker / CollectionsSection link the vaultId (since
+  // that's what they have locally). Accept either, falling back to
+  // the first child so a malformed param can't 404 the write flow.
   const targetChild =
-    childrenWithVaults.find((c) => c.id === vaultParam) ??
-    childrenWithVaults[0];
+    childrenWithVaults.find(
+      (c) => c.id === vaultParam || c.vault?.id === vaultParam,
+    ) ?? childrenWithVaults[0];
   const vault = targetChild.vault!;
 
   const collections: CollectionOption[] = vault.collections.map((c) => ({

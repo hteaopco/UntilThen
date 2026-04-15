@@ -93,21 +93,14 @@ export function ContributorsSection({
         </div>
 
         {contributors.length === 0 ? (
-          // Compact empty state — a single line. The big dashed
-          // call-to-action was drawing too much eye away from the
-          // writing spark at the top of the page.
-          <div className="rounded-xl bg-warm-surface/60 border border-navy/[0.04] px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+          // Compact empty state — a single line. The header above
+          // already has the Invite family CTA, so the card itself
+          // stays quiet (no duplicate button inside the row).
+          <div className="rounded-xl bg-warm-surface/60 border border-navy/[0.04] px-4 py-3">
             <p className="text-sm text-ink-mid">
               No contributors yet — invite family to add memories alongside
               you.
             </p>
-            <button
-              type="button"
-              onClick={() => setModalOpen(true)}
-              className="text-[11px] uppercase tracking-[0.08em] font-bold text-amber hover:text-navy transition-colors"
-            >
-              Invite family →
-            </button>
           </div>
         ) : (
           <ul className="space-y-2">

@@ -1,6 +1,7 @@
 import { Lock, PlusCircle, Sparkles } from "lucide-react";
 import Link from "next/link";
 
+import { NewVaultButton } from "@/components/dashboard/NewVaultButton";
 import { formatLong } from "@/lib/dateFormatters";
 
 export type DashboardVault = {
@@ -87,12 +88,7 @@ export function DashboardGrid({
             <p className="text-sm text-ink-mid leading-[1.5]">
               Want to write to a child over years?
             </p>
-            <Link
-              href="/onboarding?add=vault"
-              className="mt-4 inline-flex items-center gap-2 bg-amber text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
-            >
-              Create a vault →
-            </Link>
+            <NewVaultButton variant="primary" label="Create a vault →" />
           </div>
         ) : (
           vaults.map((v) => (
@@ -131,13 +127,7 @@ export function DashboardGrid({
           ))
         )}
 
-        <Link
-          href="/onboarding?add=vault"
-          className="mt-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-amber/40 text-amber text-sm font-bold hover:bg-amber-tint transition-colors"
-        >
-          <PlusCircle size={14} strokeWidth={1.75} aria-hidden="true" />
-          New vault
-        </Link>
+        <NewVaultButton />
       </div>
 
       <div className="flex flex-col gap-3">

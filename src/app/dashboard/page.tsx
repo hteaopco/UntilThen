@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { Avatar } from "@/components/ui/Avatar";
+import { Footer } from "@/components/landing/Footer";
 import {
   ApprovalQueue,
   type PendingEntry,
@@ -227,12 +228,49 @@ export default async function DashboardPage({
   }));
 
   return (
-    <main className="min-h-screen bg-cream">
+    <main className="min-h-screen bg-cream flex flex-col">
       <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
-        <div className="mx-auto max-w-[980px] px-6 lg:px-10 py-4 flex items-center justify-between">
-          <Link href="/dashboard" className="flex items-center" aria-label="Dashboard">
+        <div className="mx-auto max-w-[980px] px-6 lg:px-10 py-4 flex items-center justify-between gap-6">
+          <Link href="/dashboard" className="flex items-center shrink-0" aria-label="Dashboard">
             <LogoSvg variant="dark" width={130} height={26} />
           </Link>
+          {/* Marketing nav links — kept visible on the dashboard so
+              signed-in users can still reach the public pages (FAQ,
+              pricing, blog) without having to sign out first. */}
+          <ul className="hidden lg:flex items-center gap-7 text-sm text-ink-mid">
+            <li>
+              <Link
+                href="/#how"
+                className="hover:text-navy transition-colors font-medium"
+              >
+                How it works
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/#pricing"
+                className="hover:text-navy transition-colors font-medium"
+              >
+                Pricing
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/blog"
+                className="hover:text-navy transition-colors font-medium"
+              >
+                Blog
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/faq"
+                className="hover:text-navy transition-colors font-medium"
+              >
+                FAQ
+              </Link>
+            </li>
+          </ul>
           <Avatar />
         </div>
       </header>
@@ -337,6 +375,10 @@ export default async function DashboardPage({
           </section>
         </>
       )}
+
+      <div className="mt-auto">
+        <Footer />
+      </div>
     </main>
   );
 }

@@ -1,46 +1,42 @@
-import { SignedOut } from "@clerk/nextjs";
 import Link from "next/link";
 
 import { LogoSvg } from "@/components/ui/LogoSvg";
 
-// Footer is marketing chrome — only show it to signed-out
-// visitors. Once a user has an account they're inside the
-// product and don't need the privacy / terms / help row at
-// the bottom of every public page.
+// Footer is shown on every page where it's rendered. The
+// dashboard explicitly includes it for signed-in users so the
+// Privacy / Terms / Help row is always reachable.
 export function Footer() {
   return (
-    <SignedOut>
-      <footer className="bg-warm-slate text-white">
-        <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-8 lg:py-9 flex flex-col lg:flex-row items-center justify-center gap-5 lg:gap-16 text-center">
-          <LogoSvg variant="footer" width={130} height={23} />
-          <ul className="flex gap-6 list-none">
-            <li>
-              <Link
-                href="/privacy"
-                className="text-[13px] text-white/90 hover:text-white transition-colors"
-              >
-                Privacy
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/terms"
-                className="text-[13px] text-white/90 hover:text-white transition-colors"
-              >
-                Terms
-              </Link>
-            </li>
-            <li>
-              <a
-                href="mailto:support@untilthenapp.io"
-                className="text-[13px] text-white/90 hover:text-white transition-colors"
-              >
-                Help
-              </a>
-            </li>
-          </ul>
-        </div>
-      </footer>
-    </SignedOut>
+    <footer className="bg-warm-slate text-white">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-8 lg:py-9 flex flex-col lg:flex-row items-center justify-center gap-5 lg:gap-16 text-center">
+        <LogoSvg variant="footer" width={130} height={23} />
+        <ul className="flex gap-6 list-none">
+          <li>
+            <Link
+              href="/privacy"
+              className="text-[13px] text-white/90 hover:text-white transition-colors"
+            >
+              Privacy
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/terms"
+              className="text-[13px] text-white/90 hover:text-white transition-colors"
+            >
+              Terms
+            </Link>
+          </li>
+          <li>
+            <a
+              href="mailto:support@untilthenapp.io"
+              className="text-[13px] text-white/90 hover:text-white transition-colors"
+            >
+              Help
+            </a>
+          </li>
+        </ul>
+      </div>
+    </footer>
   );
 }
