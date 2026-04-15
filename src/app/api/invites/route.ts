@@ -100,8 +100,7 @@ export async function POST(req: Request) {
         await resend.emails.send({
           from: "untilThen <hello@untilthenapp.io>",
           replyTo: "support@untilthenapp.io",
-          // TEMP: routed while domain is unverified.
-          to: "jett@evolamco.com",
+          to: email,
           subject: `You've been invited to write to ${child?.firstName ?? "their child"}`,
           html: `
 <div style="font-family: 'DM Sans', -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 24px; color: #0f1f3d;">

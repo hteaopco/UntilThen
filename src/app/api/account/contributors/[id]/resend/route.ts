@@ -93,9 +93,7 @@ export async function POST(
       await resend.emails.send({
         from: "untilThen <hello@untilthenapp.io>",
         replyTo: "support@untilthenapp.io",
-        // TEMP: while the untilthenapp.io domain is unverified in Resend,
-        // all transactional mail routes to the account owner.
-        to: "jett@evolamco.com",
+        to: refreshed.email,
         subject: `Invitation to write to ${child.firstName}`,
         html: `
 <div style="font-family: 'DM Sans', -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 24px; color: #0f1f3d;">

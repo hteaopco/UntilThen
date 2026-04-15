@@ -1,13 +1,7 @@
 // Shared Resend email helpers. Each send is best-effort: if Resend is
 // not configured or the send throws, we log and move on — we never
 // want a failing email to break the primary request.
-//
-// TEMP: All emails currently route to jett@evolamco.com while the
-// untilthenapp.io domain is unverified in Resend. When the domain is
-// verified, remove TEST_RECIPIENT and change each `to` back to the
-// real recipient.
 
-const TEST_RECIPIENT = "jett@evolamco.com";
 const FROM = "untilThen <hello@untilthenapp.io>";
 const REPLY_TO = "support@untilthenapp.io";
 
@@ -40,9 +34,8 @@ async function send({
     await resend.emails.send({
       from: FROM,
       replyTo: REPLY_TO,
-      // TEMP: routing all sends to the account owner while domain is unverified.
-      to: TEST_RECIPIENT,
-      subject: `${subject} — for ${to}`,
+      to,
+      subject,
       html,
     });
   } catch (err) {

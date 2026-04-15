@@ -1,11 +1,6 @@
 // Resend email helpers for Memory Capsules. Best-effort — failed
 // sends log and move on, never fail the parent request.
-//
-// TEMP: domain verification routes all sends to the account
-// owner. Once untilthenapp.io is verified in Resend, swap the
-// `to` back to the real recipient (same pattern as src/lib/emails.ts).
 
-const TEST_RECIPIENT = "jett@evolamco.com";
 const FROM = "untilThen <hello@untilthenapp.io>";
 const REPLY_TO = "support@untilthenapp.io";
 
@@ -38,9 +33,8 @@ async function send(opts: {
     await resend.emails.send({
       from: FROM,
       replyTo: REPLY_TO,
-      // TEMP: route to account owner while domain is unverified.
-      to: TEST_RECIPIENT,
-      subject: `${opts.subject} — for ${opts.to}`,
+      to: opts.to,
+      subject: opts.subject,
       html: opts.html,
     });
   } catch (err) {

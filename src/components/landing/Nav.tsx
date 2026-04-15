@@ -1,6 +1,7 @@
 "use client";
 
-import { SignedOut } from "@clerk/nextjs";
+import { SignedIn, SignedOut } from "@clerk/nextjs";
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -13,8 +14,19 @@ const LINKS = [
   { href: "/faq", label: "FAQ" },
 ] as const;
 
+/**
+ * Pre-launch / waitlist nav. Calm + premium — three elements
+ * only on mobile (Logo · Sign in → · Hamburger). The desktop
+ * variant keeps the inline nav links so the marketing pages
+ * are still discoverable, but drops the amber "Get started"
+ * CTA so it doesn't compete with the hero CTA underneath.
+ *
+ * Scroll behaviour: transparent over the cream page at the top,
+ * a soft blurred surface once the page has scrolled past ~12px.
+ */
 export function Nav() {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   // Close on ESC + lock body scroll while the sheet is open.
   useEffect(() => {
@@ -31,137 +43,131 @@ export function Nav() {
     };
   }, [open]);
 
-  // Whole nav is for prospects only — signed-in users hit
-  // /dashboard directly. Wrapping in <SignedOut> hides the bar
-  // for them so the marketing chrome doesn't follow them around
-  // the app.
+  // Toggle the .scrolled state once the page leaves the top.
+  // Single passive listener; no rAF — the bar's fade-in is
+  // happening in CSS via a transition on background-color.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <SignedOut>
-      <nav
-        className="fixed top-0 inset-x-0 z-50 bg-cream/[0.96] backdrop-blur-[16px] border-b border-navy/[0.08]"
-        style={{ WebkitBackdropFilter: "blur(16px)" }}
+    <nav
+      className={`fixed top-0 inset-x-0 z-50 transition-[background-color,backdrop-filter,border-color] duration-200 ${
+        scrolled
+          ? "bg-cream/[0.92] backdrop-blur-[12px] border-b border-navy/[0.06]"
+          : "bg-transparent border-b border-transparent"
+      }`}
+      style={{ WebkitBackdropFilter: scrolled ? "blur(12px)" : "none" }}
+    >
+      <div className="mx-auto max-w-[1280px] px-5 lg:px-14 py-4 lg:py-5 flex items-center justify-between">
+        <Link href="/" aria-label="untilThen home" className="flex items-center">
+          <LogoSvg variant="dark" />
+        </Link>
+
+        {/* Desktop: inline nav links + sign-in / dashboard.
+            "Get started" CTA removed so the nav doesn't compete
+            with the hero CTA below. */}
+        <ul className="hidden lg:flex items-center gap-8 text-sm text-ink-mid">
+          {LINKS.map((l) => (
+            <li key={l.href}>
+              <Link
+                href={l.href}
+                className="hover:text-navy transition-colors font-medium"
+              >
+                {l.label}
+              </Link>
+            </li>
+          ))}
+          <li>
+            <RightAction />
+          </li>
+        </ul>
+
+        {/* Mobile: three elements only — Logo (above), then
+            Sign in → and the hamburger. Spacing matches the
+            spec's gap-16. */}
+        <div className="lg:hidden flex items-center gap-4">
+          <RightAction />
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            aria-controls="mobile-nav-panel"
+            className="text-navy/70 hover:text-navy transition-colors p-1"
+          >
+            {open ? (
+              <X size={24} strokeWidth={1.5} aria-hidden="true" />
+            ) : (
+              <Menu size={24} strokeWidth={1.5} aria-hidden="true" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile dropdown panel — slides in from under the nav. */}
+      <div
+        id="mobile-nav-panel"
+        className={`lg:hidden overflow-hidden transition-[max-height,opacity] duration-300 ease-out ${
+          open ? "max-h-[520px] opacity-100" : "max-h-0 opacity-0"
+        } ${
+          // Open panel needs a solid surface even if the page
+          // is still at the top (transparent nav).
+          open ? "bg-cream/[0.96] backdrop-blur-[12px]" : ""
+        }`}
+        style={{
+          WebkitBackdropFilter: open ? "blur(12px)" : "none",
+        }}
       >
-        <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-5 flex items-center justify-between">
-          <Link href="/" aria-label="untilThen home" className="flex items-center">
-            <LogoSvg variant="dark" />
-          </Link>
-
-          {/* Desktop nav */}
-          <ul className="hidden lg:flex items-center gap-8 text-sm text-ink-mid">
-            {LINKS.map((l) => (
-              <li key={l.href}>
-                <Link
-                  href={l.href}
-                  className="hover:text-navy transition-colors font-medium"
-                >
-                  {l.label}
-                </Link>
-              </li>
-            ))}
-            <li>
+        <ul className="px-5 pb-6 pt-2 flex flex-col gap-1 border-t border-navy/[0.06]">
+          {LINKS.map((l) => (
+            <li key={l.href}>
               <Link
-                href="/sign-in"
-                className="text-sm font-semibold text-navy hover:text-amber transition-colors"
+                href={l.href}
+                onClick={() => setOpen(false)}
+                className="block px-3 py-3 rounded-lg text-[15px] font-semibold text-navy hover:bg-amber-tint transition-colors"
               >
-                Sign in
+                {l.label}
               </Link>
             </li>
-            <li>
-              <Link
-                href="/sign-up"
-                className="bg-amber text-white px-[22px] py-2.5 rounded-lg text-[13px] font-bold tracking-[0.01em] hover:bg-amber-dark hover:-translate-y-px transition-all"
-              >
-                Get started free
-              </Link>
-            </li>
-          </ul>
+          ))}
+        </ul>
+      </div>
+    </nav>
+  );
+}
 
-          {/* Mobile actions: Sign in + Get started + hamburger */}
-          <div className="lg:hidden flex items-center gap-3">
-            <Link
-              href="/sign-in"
-              className="text-sm font-semibold text-navy hover:text-amber transition-colors"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/sign-up"
-              className="bg-amber text-white px-4 py-1.5 rounded-lg text-sm font-bold"
-            >
-              Get started
-            </Link>
-            <button
-              type="button"
-              onClick={() => setOpen((v) => !v)}
-              aria-label={open ? "Close menu" : "Open menu"}
-              aria-expanded={open}
-              aria-controls="mobile-nav-panel"
-              className="w-10 h-10 inline-flex items-center justify-center rounded-lg border border-navy/15 text-navy hover:border-navy/40 transition-colors"
-            >
-              {open ? <CloseIcon /> : <HamburgerIcon />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile dropdown panel */}
-        <div
-          id="mobile-nav-panel"
-          className={`lg:hidden overflow-hidden transition-[max-height,opacity] duration-300 ease-out ${
-            open ? "max-h-[520px] opacity-100" : "max-h-0 opacity-0"
-          }`}
+/**
+ * The right-side action — same component on desktop and mobile.
+ *
+ *   Signed out → "Sign in →" plain text link
+ *   Signed in  → "Dashboard →" plain text link
+ *
+ * Quiet styling per the brief: 14px, medium weight, primary
+ * text colour at ~85% opacity, no button background or border.
+ */
+function RightAction() {
+  return (
+    <>
+      <SignedOut>
+        <Link
+          href="/sign-in"
+          className="text-[14px] font-medium text-navy/85 hover:text-navy transition-colors"
         >
-          <ul className="px-6 pb-6 pt-2 flex flex-col gap-1 border-t border-navy/[0.06]">
-            {LINKS.map((l) => (
-              <li key={l.href}>
-                <Link
-                  href={l.href}
-                  onClick={() => setOpen(false)}
-                  className="block px-3 py-3 rounded-lg text-[15px] font-semibold text-navy hover:bg-amber-tint transition-colors"
-                >
-                  {l.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </nav>
-    </SignedOut>
-  );
-}
-
-function HamburgerIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      aria-hidden="true"
-    >
-      <line x1="3" y1="6" x2="17" y2="6" />
-      <line x1="3" y1="10" x2="17" y2="10" />
-      <line x1="3" y1="14" x2="17" y2="14" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg
-      width="20"
-      height="20"
-      viewBox="0 0 20 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      aria-hidden="true"
-    >
-      <line x1="5" y1="5" x2="15" y2="15" />
-      <line x1="15" y1="5" x2="5" y2="15" />
-    </svg>
+          Sign in →
+        </Link>
+      </SignedOut>
+      <SignedIn>
+        <Link
+          href="/dashboard"
+          className="text-[14px] font-medium text-navy/85 hover:text-navy transition-colors"
+        >
+          Dashboard →
+        </Link>
+      </SignedIn>
+    </>
   );
 }

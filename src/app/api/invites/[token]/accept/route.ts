@@ -81,13 +81,21 @@ export async function POST(
         where: { id: contributor.vault.childId },
       });
       if (parent && child) {
-        const { sendInviteAccepted } = await import("@/lib/emails");
-        await sendInviteAccepted({
-          parentEmail: "", // Clerk email lookup is overkill for the TEMP routing setup
-          parentFirstName: parent.firstName,
-          contributorName: contributor.name ?? firstName ?? "Someone",
-          childFirstName: child.firstName,
-        });
+        const clerk = await clerkClient();
+        const parentClerk = await clerk.users.getUser(parent.clerkId);
+        const parentEmail =
+          parentClerk.emailAddresses.find(
+            (e) => e.id === parentClerk.primaryEmailAddressId,
+          )?.emailAddress ?? parentClerk.emailAddresses[0]?.emailAddress;
+        if (parentEmail) {
+          const { sendInviteAccepted } = await import("@/lib/emails");
+          await sendInviteAccepted({
+            parentEmail,
+            parentFirstName: parent.firstName,
+            contributorName: contributor.name ?? firstName ?? "Someone",
+            childFirstName: child.firstName,
+          });
+        }
       }
     } catch (err) {
       console.error("[invites/accept] notify error:", err);
