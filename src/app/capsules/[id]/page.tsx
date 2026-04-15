@@ -64,6 +64,7 @@ export default async function CapsulePage({
         id: capsule.id,
         title: capsule.title,
         recipientName: capsule.recipientName,
+        recipientPronoun: capsule.recipientPronoun,
         recipientEmail: capsule.recipientEmail,
         recipientPhone: capsule.recipientPhone,
         occasionType: capsule.occasionType,

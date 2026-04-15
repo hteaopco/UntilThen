@@ -26,6 +26,8 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 interface CreateBody {
   title?: string;
   recipientName?: string;
+  /** "her" | "him" | "them". Defaults to "them" if omitted. */
+  recipientPronoun?: string | null;
   /** Optional at creation — captured at activation instead. */
   recipientEmail?: string | null;
   /** Optional at creation — captured at activation instead. */
@@ -78,6 +80,11 @@ export async function POST(req: Request) {
   const recipientPhone =
     typeof body.recipientPhone === "string" && body.recipientPhone.trim()
       ? body.recipientPhone.trim()
+      : null;
+  const recipientPronoun =
+    typeof body.recipientPronoun === "string" &&
+    ["her", "him", "them"].includes(body.recipientPronoun.toLowerCase())
+      ? body.recipientPronoun.toLowerCase()
       : null;
   const occasionType = VALID_OCCASIONS.includes(
     body.occasionType as OccasionType,
@@ -146,6 +153,7 @@ export async function POST(req: Request) {
         organiserId: user.id,
         title,
         recipientName,
+        recipientPronoun,
         recipientEmail,
         recipientPhone,
         occasionType,

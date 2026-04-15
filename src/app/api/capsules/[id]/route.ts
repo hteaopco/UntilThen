@@ -23,6 +23,7 @@ const VALID_OCCASIONS: OccasionType[] = [
 interface PatchBody {
   title?: string;
   recipientName?: string;
+  recipientPronoun?: string | null;
   recipientEmail?: string | null;
   recipientPhone?: string | null;
   occasionType?: string;
@@ -87,6 +88,13 @@ export async function PATCH(
         { status: 400 },
       );
     data.recipientName = v;
+  }
+  if ("recipientPronoun" in body) {
+    const v =
+      typeof body.recipientPronoun === "string"
+        ? body.recipientPronoun.trim().toLowerCase()
+        : "";
+    data.recipientPronoun = ["her", "him", "them"].includes(v) ? v : null;
   }
   if ("recipientEmail" in body) {
     const v =

@@ -224,6 +224,10 @@ model MemoryCapsule {
   organiserId         String
   title               String
   recipientName       String
+  /// Object-form pronoun for this recipient ("her" / "him" /
+  /// "them"). Used in emotional copy where the recipient name
+  /// would read too rigidly. Null = default to "them".
+  recipientPronoun    String?
   /// Both contact fields are optional at creation time. Activation
   /// (the paywall) collects at least one before flipping the
   /// capsule to ACTIVE — enforced server-side in /activate.

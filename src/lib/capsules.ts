@@ -74,6 +74,23 @@ export function tokenIsValid(
   return expires.getTime() > Date.now();
 }
 
+/** Valid object-form pronouns for MemoryCapsule.recipientPronoun. */
+export const RECIPIENT_PRONOUNS = ["her", "him", "them"] as const;
+export type RecipientPronoun = (typeof RECIPIENT_PRONOUNS)[number];
+
+/**
+ * Normalise whatever's on the capsule row into one of the three
+ * valid pronouns. Null / legacy / garbage all fall back to
+ * "them" so copy never breaks.
+ */
+export function recipientPronounOf(
+  capsule: { recipientPronoun: string | null } | null | undefined,
+): RecipientPronoun {
+  const v = capsule?.recipientPronoun?.toLowerCase();
+  if (v === "her" || v === "him" || v === "them") return v;
+  return "them";
+}
+
 /**
  * Labels we show to the organiser / contributors. Keep in sync
  * with the OccasionType enum.

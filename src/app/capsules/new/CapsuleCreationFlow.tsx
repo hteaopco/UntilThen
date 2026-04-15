@@ -62,6 +62,13 @@ export function CapsuleCreationFlow() {
   // straight to /capsules/[id] — no wizard step 2.
   const [title, setTitle] = useState("");
   const [recipientName, setRecipientName] = useState("");
+  // Object-form pronoun used in warm copy on the dashboard
+  // ("Send this to everyone who loves her"). Defaults to "them"
+  // — gender-neutral, always correct, and the organiser can
+  // upgrade to "her" / "him" if they'd rather.
+  const [recipientPronoun, setRecipientPronoun] = useState<
+    "them" | "her" | "him"
+  >("them");
   const [occasionType, setOccasionType] = useState<OccasionType>("BIRTHDAY");
   const [revealDate, setRevealDate] = useState("");
   const [showExpiredNotice, setShowExpiredNotice] = useState(false);
@@ -138,10 +145,11 @@ export function CapsuleCreationFlow() {
         body: JSON.stringify({
           title: title.trim(),
           recipientName: recipientName.trim(),
+          recipientPronoun,
           // Recipient contact is captured at activation.
           occasionType,
           revealDate,
-          requiresApproval: false, // collected in step 2
+          requiresApproval: false,
         }),
       });
       if (!res.ok) {
@@ -233,6 +241,38 @@ export function CapsuleCreationFlow() {
               />
             </Field>
 
+            {/* Object-form pronoun — drives the activation
+                headline ("Send this to everyone who loves her").
+                Defaults to "them"; organiser can switch. */}
+            <div>
+              <Label>Pronoun</Label>
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    { value: "them", label: "them" },
+                    { value: "her", label: "her" },
+                    { value: "him", label: "him" },
+                  ] as const
+                ).map((p) => {
+                  const active = recipientPronoun === p.value;
+                  return (
+                    <button
+                      key={p.value}
+                      type="button"
+                      onClick={() => setRecipientPronoun(p.value)}
+                      className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors ${
+                        active
+                          ? "bg-amber text-white border-amber"
+                          : "bg-white border-navy/15 text-ink-mid hover:border-navy hover:text-navy"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Recipient contact (email / phone) is captured at
                 the activation paywall so the creation form stays
                 minimal. */}
@@ -274,7 +314,7 @@ export function CapsuleCreationFlow() {
                 }
               />
               <p className="mt-2 text-xs italic text-ink-light">
-                Choose a date they&rsquo;ll open everything at once.
+                They&rsquo;ll open everything at once on this day.
               </p>
             </div>
 

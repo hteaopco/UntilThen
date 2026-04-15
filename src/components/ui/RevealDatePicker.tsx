@@ -139,7 +139,7 @@ export function RevealDatePicker({
         />
         {showConfirmation && value && (
           <p className="mt-2 text-xs italic text-ink-light">
-            Unlocks {formatShort(value)}
+            Opens {formatShort(value)}
           </p>
         )}
       </div>

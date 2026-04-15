@@ -23,12 +23,13 @@ import {
 import { TiptapEditor } from "@/components/editor/TiptapEditor";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import { formatLong } from "@/lib/dateFormatters";
-import { OCCASION_LABELS } from "@/lib/capsules";
+import { OCCASION_LABELS, recipientPronounOf } from "@/lib/capsules";
 
 type CapsuleSummary = {
   id: string;
   title: string;
   recipientName: string;
+  recipientPronoun: string | null;
   recipientEmail: string | null;
   recipientPhone: string | null;
   occasionType: keyof typeof OCCASION_LABELS;
@@ -95,6 +96,7 @@ export function CapsuleOverview({
   const [deleting, setDeleting] = useState(false);
 
   const isDraft = capsule.rawStatus === "DRAFT";
+  const pronoun = recipientPronounOf(capsule);
   const pending = contributions.filter(
     (c) => c.approvalStatus === "PENDING_REVIEW",
   );
@@ -384,7 +386,7 @@ export function CapsuleOverview({
         >
           <div className="rounded-2xl border border-amber/25 bg-amber-tint/40 px-6 py-6 space-y-3">
             <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px]">
-              Send this to everyone who loves {capsule.recipientName}
+              Send this to everyone who loves {pronoun}
             </h2>
             <p className="text-sm text-ink-mid leading-[1.6]">
               We&rsquo;ll send invites and deliver everything on{" "}
@@ -393,14 +395,20 @@ export function CapsuleOverview({
             <p className="text-xs italic text-ink-light">
               Takes less than 2 minutes. No subscription.
             </p>
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <button
-                type="button"
-                onClick={() => setActivateOpen(true)}
-                className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
-              >
-                Send to everyone — $9.99 →
-              </button>
+            <button
+              type="button"
+              onClick={() => setActivateOpen(true)}
+              className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
+            >
+              Send it — $9.99 →
+            </button>
+            {/* Impulse trigger — curiosity + emotional tension
+                right below the button, reinforcing why this is
+                worth clicking right now. */}
+            <p className="text-sm italic text-amber/90">
+              They&rsquo;ll never expect this.
+            </p>
+            <div className="pt-1">
               <Link
                 href={`/capsule/${capsule.id}/open?t=${capsule.accessToken}&preview=1`}
                 className="text-sm font-medium text-ink-mid hover:text-navy transition-colors"
@@ -454,18 +462,6 @@ export function CapsuleOverview({
         </section>
       )}
 
-      {/* Quiet preview link in the bottom band — visible regardless
-          of state so the organiser can sanity-check what the
-          recipient will see. */}
-      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8 text-center">
-        <Link
-          href={`/capsule/${capsule.id}/open?t=${capsule.accessToken}&preview=1`}
-          className="text-sm font-medium text-ink-mid hover:text-navy transition-colors"
-        >
-          See what they&rsquo;ll experience →
-        </Link>
-      </section>
-
       <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-12 pb-20 text-center opacity-60">
         <button
           type="button"
@@ -492,6 +488,7 @@ export function CapsuleOverview({
         <ActivationModal
           capsuleId={capsule.id}
           recipientName={capsule.recipientName}
+          recipientPronoun={pronoun}
           initialEmail={capsule.recipientEmail}
           initialPhone={capsule.recipientPhone}
           invitesStaged={invites.filter((i) => i.status === "STAGED").length}
@@ -616,13 +613,15 @@ function OwnContribution({
       setEditing(false);
       router.refresh();
       // Momentum stacking: after the organiser writes their
-      // first message, scroll straight to "Invite people" so
-      // the next step is obvious and the page doesn't feel
-      // over after a single action.
+      // first message, scroll straight to the send panel so
+      // the "Send it — $9.99" CTA is the next thing they see.
+      // Pushes the conversion moment while they've got emotional
+      // momentum — per the brief this is the single-highest-
+      // impact nudge.
       if (wasFirstSave && typeof window !== "undefined") {
         requestAnimationFrame(() => {
           document
-            .getElementById("invite-people")
+            .getElementById("activate")
             ?.scrollIntoView({ behavior: "smooth", block: "start" });
         });
       }
@@ -1180,6 +1179,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 function ActivationModal({
   capsuleId,
   recipientName,
+  recipientPronoun,
   initialEmail,
   initialPhone,
   invitesStaged,
@@ -1188,6 +1188,7 @@ function ActivationModal({
 }: {
   capsuleId: string;
   recipientName: string;
+  recipientPronoun: "her" | "him" | "them";
   initialEmail: string | null;
   initialPhone: string | null;
   invitesStaged: number;
@@ -1267,7 +1268,7 @@ function ActivationModal({
             </div>
             <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] leading-[1.25]">
               {step === "pay"
-                ? `Send this to everyone who loves ${recipientName}`
+                ? `Send this to everyone who loves ${recipientPronoun}`
                 : `How should we reach ${recipientName}?`}
             </h2>
           </div>
@@ -1318,8 +1319,11 @@ function ActivationModal({
               onClick={confirmPayment}
               className="w-full bg-amber text-white py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
-              Send to everyone — $9.99 →
+              Send it — $9.99 →
             </button>
+            <p className="text-sm italic text-amber/90 text-center">
+              They&rsquo;ll never expect this.
+            </p>
             <p className="text-sm italic text-navy/70 text-center">
               They&rsquo;ll open it all at once.
             </p>
