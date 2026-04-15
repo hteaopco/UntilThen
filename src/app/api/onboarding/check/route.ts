@@ -19,9 +19,13 @@ export async function GET() {
 
   try {
     const { prisma } = await import("@/lib/prisma");
+    // Onboarded state flips once and never goes back, so a 60-second
+    // edge cache is safe and saves a roundtrip on every navigation
+    // that calls into the gate.
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
       select: { id: true },
+      cacheStrategy: { ttl: 60 },
     });
     return NextResponse.json({ onboarded: Boolean(user) });
   } catch (err) {

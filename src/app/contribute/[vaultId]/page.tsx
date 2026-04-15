@@ -41,6 +41,8 @@ export default async function ContributePage({
   const { vaultId } = await params;
 
   const { prisma } = await import("@/lib/prisma");
+  // Vault + child metadata is essentially static for the duration
+  // of the contribution — cache the lookup at the edge for 60s.
   const contributor = await prisma.contributor.findFirst({
     where: { vaultId, clerkUserId: userId, status: "ACTIVE" },
     include: {
@@ -48,12 +50,17 @@ export default async function ContributePage({
         include: { child: true },
       },
     },
+    cacheStrategy: { ttl: 60 },
   });
   if (!contributor) redirect("/");
 
+  // The contributor's own entry list — cache for 60s. Their writes
+  // route through the editor and revalidate on save, so the worst
+  // case is a brief delay surfacing a brand-new draft on hard refresh.
   const entries = await prisma.entry.findMany({
     where: { contributorId: contributor.id },
     orderBy: { createdAt: "desc" },
+    cacheStrategy: { ttl: 60 },
   });
 
   return (
