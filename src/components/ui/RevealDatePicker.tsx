@@ -122,9 +122,6 @@ export function RevealDatePicker({
       </div>
 
       <div>
-        <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-light mb-1.5">
-          Or pick your own
-        </div>
         <input
           id={id}
           type="date"
