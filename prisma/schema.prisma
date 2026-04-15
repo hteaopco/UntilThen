@@ -259,6 +259,9 @@ model MemoryCapsule {
   // sequential reveal. Return visits then get the browseable
   // list instead of the guided sequence.
   firstOpenedAt       DateTime?
+  // Stamped when the recipient reaches the end of the sequential
+  // reveal. Used by analytics + future "completion" surfaces.
+  recipientCompletedAt DateTime?
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 

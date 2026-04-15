@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { captureEvent } from "@/components/PosthogProvider";
+import { triggerCelebration } from "@/lib/confetti";
 
 import { ExpiredLinkScreen } from "./ExpiredLinkScreen";
 import { FirstScreen } from "./FirstScreen";
@@ -126,7 +127,13 @@ export function CapsuleRevealClient({
         capsule={capsule}
         contributionCount={contributions.length}
         onOpen={() => {
-          if (!preview) captureEvent("capsule_opened");
+          if (!preview) {
+            captureEvent("capsule_opened", { capsuleId });
+            // Celebrate the moment with a warm confetti drift. Only
+            // fires on real opens (not the organiser's preview
+            // surface, which has its own scene for this).
+            void triggerCelebration();
+          }
           // If there's nothing in the capsule, skip straight to
           // the list so the recipient isn't staring at a sequence
           // of zero items.
@@ -141,7 +148,19 @@ export function CapsuleRevealClient({
       <SequentialRevealScreen
         contributions={contributions}
         onComplete={() => {
-          if (!preview) captureEvent("capsule_sequential_completed");
+          if (!preview) {
+            captureEvent("capsule_sequential_completed", { capsuleId });
+            // Stamp recipientCompletedAt server-side so analytics
+            // can distinguish "opened" from "completed". Fire and
+            // forget — a failure here shouldn't block the UI.
+            void fetch(`/api/capsules/open/${capsuleId}/complete`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token }),
+            }).catch(() => {
+              /* swallow — analytics is best-effort */
+            });
+          }
           setView("list");
         }}
       />

@@ -36,6 +36,18 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-dm-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
       },
+      keyframes: {
+        // Slow, warm fade used for the capsule preview / reveal
+        // scene transitions. Kept conservative (800ms, ease-out)
+        // so the emotional beat lands without feeling stagey.
+        fadeIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+      },
+      animation: {
+        fadeIn: "fadeIn 0.8s ease-out both",
+      },
     },
   },
   plugins: [],

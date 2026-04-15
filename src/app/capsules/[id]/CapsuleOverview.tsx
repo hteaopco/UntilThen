@@ -430,10 +430,10 @@ export function CapsuleOverview({
             </p>
             <div className="pt-1">
               <Link
-                href={`/capsule/${capsule.id}/open?t=${capsule.accessToken}&preview=1`}
+                href={`/capsules/${capsule.id}/preview`}
                 className="text-sm font-medium text-ink-mid hover:text-navy transition-colors"
               >
-                Preview what {capsule.recipientName} will see →
+                Preview their moment →
               </Link>
             </div>
           </div>
