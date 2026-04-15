@@ -27,6 +27,7 @@ export default async function OnboardingPage({
   // (flips ORGANISER → BOTH).
   let existingUserType: "PARENT" | "ORGANISER" | "BOTH" | null = null;
   let hasVault = false;
+  let shouldRedirectToDashboard = false;
   if (process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/prisma");
@@ -41,13 +42,16 @@ export default async function OnboardingPage({
         // explicitly here to add a vault AND don't already have
         // one. Anything else skips the wizard.
         if (!addVault || hasVault) {
-          redirect("/dashboard");
+          shouldRedirectToDashboard = true;
         }
       }
     } catch (err) {
       console.error("[onboarding] check error:", err);
     }
   }
+  // redirect() throws NEXT_REDIRECT, which would be swallowed inside
+  // the try/catch above — call it here once we know what we want.
+  if (shouldRedirectToDashboard) redirect("/dashboard");
 
   return (
     <OnboardingForm
