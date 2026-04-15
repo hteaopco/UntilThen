@@ -65,6 +65,7 @@ export default async function CapsulePage({
         title: capsule.title,
         recipientName: capsule.recipientName,
         recipientEmail: capsule.recipientEmail,
+        recipientPhone: capsule.recipientPhone,
         occasionType: capsule.occasionType,
         revealDate: capsule.revealDate.toISOString(),
         contributorDeadline:

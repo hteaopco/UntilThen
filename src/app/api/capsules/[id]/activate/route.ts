@@ -37,19 +37,59 @@ export async function POST(
     });
   }
 
-  // Optional client-provided payment reference. Accept anything
-  // for now so the front end can pass a placeholder / receipt id
-  // once Square is in.
+  // Body shape: { paymentId, recipientEmail?, recipientPhone? }.
+  // Recipient contact is collected at the activation paywall
+  // (deferred from creation) — at least one of email/phone must
+  // be on the capsule by the time activation completes, so the
+  // reveal-day message has somewhere to go.
   let paymentId: string | null = null;
+  let incomingEmail: string | null | undefined;
+  let incomingPhone: string | null | undefined;
   try {
     const body = (await req.json().catch(() => null)) as {
       paymentId?: unknown;
+      recipientEmail?: unknown;
+      recipientPhone?: unknown;
     } | null;
     if (body && typeof body.paymentId === "string" && body.paymentId.trim()) {
       paymentId = body.paymentId.trim();
     }
+    if (body && typeof body.recipientEmail === "string") {
+      const v = body.recipientEmail.trim().toLowerCase();
+      incomingEmail = v || null;
+    }
+    if (body && typeof body.recipientPhone === "string") {
+      const v = body.recipientPhone.trim();
+      incomingPhone = v || null;
+    }
   } catch {
     /* noop */
+  }
+
+  // Validate email format if provided.
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (incomingEmail && !EMAIL_RE.test(incomingEmail)) {
+    return NextResponse.json(
+      { error: "Please enter a valid recipient email." },
+      { status: 400 },
+    );
+  }
+
+  // Resolve the final contact state — prefer body, fall back to
+  // whatever was already on the capsule. Then require at least
+  // one channel before we charge / activate.
+  const finalEmail =
+    incomingEmail !== undefined ? incomingEmail : capsule.recipientEmail;
+  const finalPhone =
+    incomingPhone !== undefined ? incomingPhone : capsule.recipientPhone;
+  if (!finalEmail && !finalPhone) {
+    return NextResponse.json(
+      {
+        error:
+          "Add a way to reach your recipient — an email or phone number — before activating.",
+      },
+      { status: 400 },
+    );
   }
 
   try {
@@ -64,6 +104,8 @@ export async function POST(
     // Atomic flip: capsule → ACTIVE + every STAGED invite →
     // PENDING. Doing both in one transaction means a partial
     // failure can't leave staged rows behind a paid capsule.
+    // Recipient contact saves alongside so the reveal-day
+    // dispatch has an address the moment the capsule is live.
     const [, stagedInvites] = await prisma.$transaction([
       prisma.memoryCapsule.update({
         where: { id },
@@ -72,6 +114,8 @@ export async function POST(
           isPaid: true,
           paymentId,
           tokenExpiresAt,
+          recipientEmail: finalEmail,
+          recipientPhone: finalPhone,
         },
       }),
       prisma.capsuleInvite.findMany({

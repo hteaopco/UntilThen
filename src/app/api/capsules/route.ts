@@ -26,7 +26,10 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 interface CreateBody {
   title?: string;
   recipientName?: string;
-  recipientEmail?: string;
+  /** Optional at creation — captured at activation instead. */
+  recipientEmail?: string | null;
+  /** Optional at creation — captured at activation instead. */
+  recipientPhone?: string | null;
   occasionType?: string;
   revealDate?: string;
   contributorDeadline?: string | null;
@@ -58,10 +61,24 @@ export async function POST(req: Request) {
   const title = typeof body.title === "string" ? body.title.trim() : "";
   const recipientName =
     typeof body.recipientName === "string" ? body.recipientName.trim() : "";
+  // Recipient contact is optional here — collected at the
+  // activation paywall instead. We still sanitise anything sent
+  // so an organiser can pre-fill from the dashboard later without
+  // a separate PATCH.
   const recipientEmail =
-    typeof body.recipientEmail === "string"
+    typeof body.recipientEmail === "string" && body.recipientEmail.trim()
       ? body.recipientEmail.trim().toLowerCase()
-      : "";
+      : null;
+  if (recipientEmail && !EMAIL_RE.test(recipientEmail)) {
+    return NextResponse.json(
+      { error: "Please enter a valid recipient email." },
+      { status: 400 },
+    );
+  }
+  const recipientPhone =
+    typeof body.recipientPhone === "string" && body.recipientPhone.trim()
+      ? body.recipientPhone.trim()
+      : null;
   const occasionType = VALID_OCCASIONS.includes(
     body.occasionType as OccasionType,
   )
@@ -83,11 +100,6 @@ export async function POST(req: Request) {
   if (!recipientName)
     return NextResponse.json(
       { error: "Who's the capsule for?" },
-      { status: 400 },
-    );
-  if (!EMAIL_RE.test(recipientEmail))
-    return NextResponse.json(
-      { error: "Please enter a valid recipient email." },
       { status: 400 },
     );
   if (!revealDate || Number.isNaN(revealDate.getTime()))
@@ -135,6 +147,7 @@ export async function POST(req: Request) {
         title,
         recipientName,
         recipientEmail,
+        recipientPhone,
         occasionType,
         revealDate,
         contributorDeadline,

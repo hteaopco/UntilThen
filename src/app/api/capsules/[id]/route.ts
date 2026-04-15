@@ -23,7 +23,8 @@ const VALID_OCCASIONS: OccasionType[] = [
 interface PatchBody {
   title?: string;
   recipientName?: string;
-  recipientEmail?: string;
+  recipientEmail?: string | null;
+  recipientPhone?: string | null;
   occasionType?: string;
   revealDate?: string;
   contributorDeadline?: string | null;
@@ -87,8 +88,19 @@ export async function PATCH(
       );
     data.recipientName = v;
   }
-  if (typeof body.recipientEmail === "string") {
-    data.recipientEmail = body.recipientEmail.trim().toLowerCase();
+  if ("recipientEmail" in body) {
+    const v =
+      typeof body.recipientEmail === "string"
+        ? body.recipientEmail.trim().toLowerCase()
+        : "";
+    data.recipientEmail = v || null;
+  }
+  if ("recipientPhone" in body) {
+    const v =
+      typeof body.recipientPhone === "string"
+        ? body.recipientPhone.trim()
+        : "";
+    data.recipientPhone = v || null;
   }
   if (
     typeof body.occasionType === "string" &&

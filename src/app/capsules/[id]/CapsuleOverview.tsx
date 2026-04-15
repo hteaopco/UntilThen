@@ -29,7 +29,8 @@ type CapsuleSummary = {
   id: string;
   title: string;
   recipientName: string;
-  recipientEmail: string;
+  recipientEmail: string | null;
+  recipientPhone: string | null;
   occasionType: keyof typeof OCCASION_LABELS;
   revealDate: string;
   contributorDeadline: string | null;
@@ -85,7 +86,7 @@ export function CapsuleOverview({
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
-  const [activating, setActivating] = useState(false);
+  const [activateOpen, setActivateOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -111,33 +112,10 @@ export function CapsuleOverview({
     ? daysUntil(capsule.contributorDeadline)
     : null;
 
-  async function activate() {
-    if (activating) return;
-    setActivating(true);
-    setError(null);
-    try {
-      // TODO: Square payment — $9.99 one-time. Until the SDK
-      // lands, the activation endpoint trusts the client. Once
-      // we have a real receipt id we'll pass it through here so
-      // the server can verify before flipping isPaid.
-      const res = await fetch(`/api/capsules/${capsule.id}/activate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentId: "placeholder-square-receipt" }),
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as {
-          error?: string;
-        };
-        throw new Error(data.error ?? "Couldn't activate.");
-      }
-      router.refresh();
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setActivating(false);
-    }
-  }
+  // Activation now goes through a 2-step modal (pay → contact).
+  // The single /activate request fires at the end with the
+  // collected contact payload so contact + payment + invite
+  // dispatch all land in one server transaction.
 
   async function approve(contributionId: string) {
     setBusy(contributionId);
@@ -245,7 +223,13 @@ export function CapsuleOverview({
         </h1>
 
         <p className="mt-2 text-[15px] text-ink-mid">
-          For {capsule.recipientName} · {capsule.recipientEmail}
+          For {capsule.recipientName}
+          {capsule.recipientEmail && (
+            <> · {capsule.recipientEmail}</>
+          )}
+          {!capsule.recipientEmail && capsule.recipientPhone && (
+            <> · {capsule.recipientPhone}</>
+          )}
         </p>
 
         <div className="mt-4 text-sm text-ink-light leading-[1.7]">
@@ -379,11 +363,10 @@ export function CapsuleOverview({
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <button
                 type="button"
-                onClick={activate}
-                disabled={activating}
-                className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
+                onClick={() => setActivateOpen(true)}
+                className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
               >
-                {activating ? "Activating…" : "Pay $9.99 and activate →"}
+                Pay $9.99 and activate →
               </button>
               <Link
                 href={`/capsule/${capsule.id}/open?t=${capsule.accessToken}&preview=1`}
@@ -469,6 +452,21 @@ export function CapsuleOverview({
             if (!deleting) setDeleteOpen(false);
           }}
           onConfirm={deleteCapsule}
+        />
+      )}
+
+      {activateOpen && (
+        <ActivationModal
+          capsuleId={capsule.id}
+          recipientName={capsule.recipientName}
+          initialEmail={capsule.recipientEmail}
+          initialPhone={capsule.recipientPhone}
+          invitesStaged={invites.filter((i) => i.status === "STAGED").length}
+          onClose={() => setActivateOpen(false)}
+          onDone={() => {
+            setActivateOpen(false);
+            router.refresh();
+          }}
         />
       )}
     </main>
@@ -1000,6 +998,226 @@ function ConfirmDelete({
             {deleting ? "Deleting…" : "Delete capsule"}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Activation modal ────────────────────────────────────
+//
+// Two-step payment + recipient-contact flow.
+//
+//   Step 1 — Pay. $9.99 placeholder (Square SDK is a TODO);
+//            clicking "Confirm $9.99" just advances the step.
+//   Step 2 — Recipient contact. At least one of email / phone is
+//            required. On save the component POSTs to /activate
+//            with the payment id and contact payload — server
+//            validates, saves both, flips status to ACTIVE, and
+//            dispatches staged invite emails atomically.
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function ActivationModal({
+  capsuleId,
+  recipientName,
+  initialEmail,
+  initialPhone,
+  invitesStaged,
+  onClose,
+  onDone,
+}: {
+  capsuleId: string;
+  recipientName: string;
+  initialEmail: string | null;
+  initialPhone: string | null;
+  invitesStaged: number;
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const [step, setStep] = useState<"pay" | "contact">("pay");
+  const [email, setEmail] = useState(initialEmail ?? "");
+  const [phone, setPhone] = useState(initialPhone ?? "");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function confirmPayment() {
+    // TODO: Square payment — $9.99 one-time. For now we just
+    // advance; the server still gets a placeholder receipt id
+    // on the activate POST so the wire format is final.
+    setError(null);
+    setStep("contact");
+  }
+
+  async function saveAndActivate(e: FormEvent) {
+    e.preventDefault();
+    if (busy) return;
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPhone = phone.trim();
+    if (!trimmedEmail && !trimmedPhone) {
+      setError("Add an email or phone number so we can reach them.");
+      return;
+    }
+    if (trimmedEmail && !EMAIL_RE.test(trimmedEmail)) {
+      setError("Please enter a valid email.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/capsules/${capsuleId}/activate`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentId: "placeholder-square-receipt",
+          recipientEmail: trimmedEmail || null,
+          recipientPhone: trimmedPhone || null,
+        }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(data.error ?? "Couldn't activate.");
+      }
+      onDone();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/40 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      onClick={() => {
+        if (!busy) onClose();
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-2xl shadow-[0_24px_48px_-8px_rgba(15,31,61,0.4)] w-full max-w-[480px]"
+      >
+        <div className="px-7 py-5 border-b border-navy/[0.08] flex items-start justify-between gap-3">
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-1">
+              {step === "pay" ? "Step 1 of 2 · Payment" : "Step 2 of 2 · Recipient"}
+            </div>
+            <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px]">
+              {step === "pay"
+                ? "Activate your capsule"
+                : `How should we reach ${recipientName}?`}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (!busy) onClose();
+            }}
+            disabled={busy}
+            className="text-ink-mid hover:text-navy transition-colors disabled:opacity-50"
+            aria-label="Close"
+          >
+            <X size={20} strokeWidth={1.75} aria-hidden="true" />
+          </button>
+        </div>
+
+        {step === "pay" ? (
+          <div className="p-6 space-y-5">
+            <div className="rounded-xl border border-navy/[0.08] bg-warm-surface/60 px-5 py-4 space-y-2">
+              <div className="flex items-baseline justify-between gap-3">
+                <span className="text-[11px] uppercase tracking-[0.1em] font-bold text-ink-light">
+                  Memory Capsule
+                </span>
+                <span className="text-sm font-semibold text-navy">$9.99</span>
+              </div>
+              <p className="text-xs italic text-ink-light">
+                One-time payment · No subscription · No credit card saved
+              </p>
+            </div>
+            <p className="text-sm text-ink-mid leading-[1.6]">
+              Next, we&rsquo;ll ask how to reach {recipientName} on reveal
+              day. Then we&rsquo;ll send the invites you&rsquo;ve already
+              staged
+              {invitesStaged > 0 && (
+                <> ({invitesStaged.toLocaleString()} contributor
+                {invitesStaged === 1 ? "" : "s"})</>
+              )}
+              .
+            </p>
+            {error && (
+              <p className="text-sm text-red-600" role="alert">
+                {error}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={confirmPayment}
+              className="w-full bg-amber text-white py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
+            >
+              Confirm $9.99 →
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={saveAndActivate} className="p-6 space-y-4">
+            <p className="text-sm text-ink-mid leading-[1.6]">
+              Add at least one way to reach them. Email is what we use
+              today; phone is captured so we can text the reveal link
+              when SMS is live.
+            </p>
+            <label className="block">
+              <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
+                Recipient email
+              </span>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder={`${recipientName.toLowerCase().replace(/\s+/g, "")}@email.com`}
+                className="account-input"
+                autoFocus
+              />
+            </label>
+            <label className="block">
+              <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
+                Recipient phone (optional for now)
+              </span>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+1 555 123 4567"
+                className="account-input"
+              />
+            </label>
+            {error && (
+              <p className="text-sm text-red-600" role="alert">
+                {error}
+              </p>
+            )}
+            <div className="flex items-center gap-3 pt-1">
+              <button
+                type="submit"
+                disabled={busy}
+                className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
+              >
+                {busy ? "Activating…" : "Save & activate →"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!busy) setStep("pay");
+                }}
+                disabled={busy}
+                className="text-sm font-medium text-ink-mid hover:text-navy transition-colors disabled:opacity-50"
+              >
+                Back
+              </button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   );

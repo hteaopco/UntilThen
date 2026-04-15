@@ -29,7 +29,6 @@ const PENDING_STEP1_KEY = "untilthen:capsule-pending-step1";
 type PendingStep1 = {
   title: string;
   recipientName: string;
-  recipientEmail: string;
   occasionType: string;
   revealDate: string;
 };
@@ -62,10 +61,12 @@ export function CapsuleCreationFlow() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Step 1 fields
+  // Step 1 fields. Recipient contact (email / phone) is now
+  // collected at the activation paywall — the creation form
+  // stays minimal so the organiser can see the draft state
+  // quickly and start writing their own message.
   const [title, setTitle] = useState("");
   const [recipientName, setRecipientName] = useState("");
-  const [recipientEmail, setRecipientEmail] = useState("");
   const [occasionType, setOccasionType] = useState<OccasionType>("BIRTHDAY");
   const [revealDate, setRevealDate] = useState("");
   const [showExpiredNotice, setShowExpiredNotice] = useState(false);
@@ -92,7 +93,6 @@ export function CapsuleCreationFlow() {
         const pending = JSON.parse(pendingRaw) as Partial<PendingStep1>;
         if (pending.title) setTitle(pending.title);
         if (pending.recipientName) setRecipientName(pending.recipientName);
-        if (pending.recipientEmail) setRecipientEmail(pending.recipientEmail);
         if (pending.occasionType)
           setOccasionType(pending.occasionType as OccasionType);
         if (pending.revealDate) setRevealDate(pending.revealDate);
@@ -127,7 +127,6 @@ export function CapsuleCreationFlow() {
       const snapshot: PendingStep1 = {
         title: title.trim(),
         recipientName: recipientName.trim(),
-        recipientEmail: recipientEmail.trim(),
         occasionType,
         revealDate,
       };
@@ -153,7 +152,7 @@ export function CapsuleCreationFlow() {
         body: JSON.stringify({
           title: title.trim(),
           recipientName: recipientName.trim(),
-          recipientEmail: recipientEmail.trim(),
+          // Recipient contact is captured at activation.
           occasionType,
           revealDate,
           requiresApproval: false, // collected in step 2
@@ -324,19 +323,9 @@ export function CapsuleCreationFlow() {
               />
             </Field>
 
-            <Field
-              label="Recipient email"
-              hint="We'll send them a link on reveal day."
-            >
-              <input
-                type="email"
-                value={recipientEmail}
-                onChange={(e) => setRecipientEmail(e.target.value)}
-                placeholder="margaret@email.com"
-                className="account-input"
-                required
-              />
-            </Field>
+            {/* Recipient contact (email / phone) is captured at
+                the activation paywall so the creation form stays
+                minimal. */}
 
             <div>
               <Label>Occasion</Label>
@@ -392,7 +381,6 @@ export function CapsuleCreationFlow() {
                 saving ||
                 !title.trim() ||
                 !recipientName.trim() ||
-                !recipientEmail.trim() ||
                 !revealDate
               }
               className="w-full bg-amber text-white py-3.5 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"

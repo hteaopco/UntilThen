@@ -224,7 +224,11 @@ model MemoryCapsule {
   organiserId         String
   title               String
   recipientName       String
-  recipientEmail      String
+  /// Both contact fields are optional at creation time. Activation
+  /// (the paywall) collects at least one before flipping the
+  /// capsule to ACTIVE — enforced server-side in /activate.
+  recipientEmail      String?
+  recipientPhone      String?
   occasionType        OccasionType  @default(OTHER)
   revealDate          DateTime
   contributorDeadline DateTime?
