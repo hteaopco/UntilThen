@@ -64,6 +64,11 @@ interface RateLimitResult {
  * client IP). Returns success=true when rate limiting is
  * disabled or the request is under the cap; success=false when
  * the cap is exceeded.
+ *
+ * If the Upstash call itself throws (misconfigured URL, DNS
+ * failure, network blip, quota exhaustion), we log and fall
+ * open to "allow" rather than 500-ing the caller. A broken
+ * rate-limiter shouldn't take down the product.
  */
 export async function checkRateLimit(
   kind: LimiterKind,
@@ -78,7 +83,17 @@ export async function checkRateLimit(
       reset: Date.now(),
     };
   }
-  return limiter.limit(identifier);
+  try {
+    return await limiter.limit(identifier);
+  } catch (err) {
+    console.error("[ratelimit] upstash call failed, allowing request:", err);
+    return {
+      success: true,
+      limit: Infinity,
+      remaining: Infinity,
+      reset: Date.now(),
+    };
+  }
 }
 
 /**
