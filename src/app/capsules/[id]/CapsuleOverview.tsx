@@ -323,6 +323,7 @@ export function CapsuleOverview({
 
         <ContributorsPanel
           capsuleId={capsule.id}
+          recipientName={capsule.recipientName}
           invites={invites}
           isDraft={isDraft}
           busyId={busy}
@@ -377,8 +378,12 @@ export function CapsuleOverview({
         </section>
       )}
 
-      {/* Activate panel — only shown for drafts. Sits at the
-          bottom so it never blocks the rest of the page. */}
+      {/* Activate panel — only shown for drafts. Copy is carefully
+          written to make clear payment unlocks invites to
+          contributors (not delivery to the recipient); the recipient
+          doesn't see anything until the reveal date. Empty state
+          (no invites yet) pivots to "unlock your capsule" so the
+          user still has a forward action. */}
       {isDraft && (
         <section
           id="activate"
@@ -386,39 +391,51 @@ export function CapsuleOverview({
         >
           <div className="rounded-2xl border border-amber/25 bg-amber-tint/40 px-6 py-6 space-y-3">
             <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px]">
-              Send this to everyone who loves {pronoun}
+              Invite everyone who loves {pronoun}
             </h2>
             <p className="text-sm text-ink-mid leading-[1.6]">
-              We&rsquo;ll send invites and deliver everything on{" "}
+              We&rsquo;ll send invites now so they can add messages.
+              Everything will be delivered to {capsule.recipientName} on{" "}
               {formatLong(capsule.revealDate)}.
-            </p>
-            <p className="text-xs italic text-ink-light">
-              Takes less than 2 minutes. No subscription.
             </p>
             <button
               type="button"
               onClick={() => setActivateOpen(true)}
               className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
-              Send it — $9.99 →
+              {invites.length === 0
+                ? "Unlock your capsule — $9.99 →"
+                : "Unlock & send invites — $9.99 →"}
             </button>
-            {/* Impulse trigger — curiosity + emotional tension
-                right below the button, reinforcing why this is
-                worth clicking right now. */}
-            <p className="text-sm italic text-amber/90">
-              They&rsquo;ll never expect this.
+            <p className="text-sm text-ink-mid leading-[1.55]">
+              {invites.length === 0 ? (
+                <>
+                  You can invite people after unlocking, or keep it just
+                  from you.
+                </>
+              ) : (
+                <>
+                  Invites go to contributors now. {capsule.recipientName}{" "}
+                  receives everything on {formatLong(capsule.revealDate)}.
+                </>
+              )}
+            </p>
+            <p className="text-xs italic text-ink-light">
+              Takes less than 2 minutes. No subscription.
+            </p>
+            {/* Confidence line — the single reassurance that payment
+                does NOT fire anything off to the recipient yet. */}
+            <p className="text-sm font-semibold text-navy">
+              Nothing is sent to {capsule.recipientName} yet.
             </p>
             <div className="pt-1">
               <Link
                 href={`/capsule/${capsule.id}/open?t=${capsule.accessToken}&preview=1`}
                 className="text-sm font-medium text-ink-mid hover:text-navy transition-colors"
               >
-                See what they&rsquo;ll experience →
+                Preview what {capsule.recipientName} will see →
               </Link>
             </div>
-            <p className="text-sm italic text-navy/70">
-              They&rsquo;ll open it all at once.
-            </p>
           </div>
         </section>
       )}
@@ -845,12 +862,14 @@ function blankRow(): DraftRow {
 
 function ContributorsPanel({
   capsuleId,
+  recipientName,
   invites,
   isDraft,
   busyId,
   onRemove,
 }: {
   capsuleId: string;
+  recipientName: string;
   invites: InviteRow[];
   isDraft: boolean;
   busyId: string | null;
@@ -860,6 +879,10 @@ function ContributorsPanel({
   const [rows, setRows] = useState<DraftRow[]>([blankRow()]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Inline confirmation that shows briefly after a successful
+  // add — reassures the organiser the row landed and that invites
+  // will only go out after payment.
+  const [justAdded, setJustAdded] = useState<number>(0);
 
   function updateRow(key: string, patch: Partial<DraftRow>) {
     setRows((prev) =>
@@ -913,8 +936,15 @@ function ContributorsPanel({
         throw new Error(data.error ?? "Couldn't save contributors.");
       }
       // Reset the form to a single blank row so the organiser
-      // can keep adding more batches.
+      // can keep adding more batches. Remember how many we added so
+      // the inline confirmation can use the right pluralisation.
+      const added = payload.length;
       setRows([blankRow()]);
+      setJustAdded(added);
+      // Auto-dismiss the confirmation after a few seconds so it
+      // doesn't sit there forever; the badge in the list below is
+      // the persistent state of record.
+      window.setTimeout(() => setJustAdded(0), 6000);
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
@@ -927,8 +957,18 @@ function ContributorsPanel({
     <div className="rounded-2xl border border-navy/[0.07] bg-white px-5 py-5">
       {isDraft && (
         <p className="mb-4 text-xs italic text-ink-light">
-          Invites go out when you send the capsule.
+          Invites will be sent after you unlock your capsule.
         </p>
+      )}
+      {justAdded > 0 && (
+        <div
+          className="mb-4 rounded-lg bg-green-50 border border-green-200 px-3 py-2 text-sm text-green-800"
+          role="status"
+        >
+          {justAdded === 1
+            ? "Added. They\u2019ll be invited once you send your capsule."
+            : `Added ${justAdded}. They\u2019ll be invited once you send your capsule.`}
+        </div>
       )}
 
       <form onSubmit={save} className="space-y-3">
@@ -965,12 +1005,10 @@ function ContributorsPanel({
                 />
               </div>
               {/* Per-row approval toggle sits to the right of the
-                  email, matching the spec. Drops below the email
-                  on narrow layouts via flex-wrap. Full label
-                  ("Approve contributions before reveal") so the
-                  organiser understands the toggle without a
-                  tooltip; shortened to "Approve before reveal"
-                  on small screens via responsive spans. */}
+                  email. Drops below on narrow layouts via flex-wrap.
+                  Full label on desktop, short on mobile. Copy names
+                  the recipient so it's obvious what "before reveal"
+                  actually means. */}
               <label className="shrink-0 inline-flex items-center gap-2 min-h-[48px] px-2 text-[13px] text-navy cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -981,9 +1019,11 @@ function ContributorsPanel({
                   className="accent-amber"
                 />
                 <span className="hidden sm:inline">
-                  Approve contributions before reveal
+                  Review contributions before {recipientName} sees them
                 </span>
-                <span className="sm:hidden">Approve before reveal</span>
+                <span className="sm:hidden">
+                  Review before {recipientName} sees
+                </span>
               </label>
               {rows.length > 1 && (
                 <button
@@ -1062,25 +1102,31 @@ function ContributorsPanel({
                     Review
                   </span>
                 )}
-                <span
-                  className={`text-[10px] uppercase tracking-[0.12em] font-bold px-2 py-0.5 rounded ${
-                    i.status === "STAGED"
-                      ? "text-amber bg-amber-tint"
-                      : i.status === "ACTIVE"
+                {/* STAGED = pre-payment draft state; label spells
+                    out *why* nothing has left yet so the organiser
+                    isn't confused that the row is "stuck". Other
+                    statuses keep the tight uppercase pill. */}
+                {i.status === "STAGED" ? (
+                  <span className="text-[11px] font-semibold text-amber bg-amber-tint px-2 py-0.5 rounded whitespace-nowrap">
+                    Pending — invites send after payment
+                  </span>
+                ) : (
+                  <span
+                    className={`text-[10px] uppercase tracking-[0.12em] font-bold px-2 py-0.5 rounded ${
+                      i.status === "ACTIVE"
                         ? "text-green-700 bg-green-50"
                         : i.status === "REVOKED"
                           ? "text-ink-light bg-[#f1f5f9]"
                           : "text-gold bg-gold-tint"
-                  }`}
-                >
-                  {i.status === "STAGED"
-                    ? "Staged"
-                    : i.status === "ACTIVE"
+                    }`}
+                  >
+                    {i.status === "ACTIVE"
                       ? "Contributed"
                       : i.status === "REVOKED"
                         ? "Removed"
                         : "Invited"}
-                </span>
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={() => onRemove(i.id)}
@@ -1268,7 +1314,7 @@ function ActivationModal({
             </div>
             <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] leading-[1.25]">
               {step === "pay"
-                ? `Send this to everyone who loves ${recipientPronoun}`
+                ? `Invite everyone who loves ${recipientPronoun}`
                 : `How should we reach ${recipientName}?`}
             </h2>
           </div>
@@ -1299,12 +1345,17 @@ function ActivationModal({
               </p>
             </div>
             <p className="text-sm text-ink-mid leading-[1.6]">
-              We&rsquo;ll send the invites you&rsquo;ve added
-              {invitesStaged > 0 && (
-                <> ({invitesStaged.toLocaleString()}{" "}
-                {invitesStaged === 1 ? "person" : "people"})</>
+              We&rsquo;ll send invites now to the{" "}
+              {invitesStaged > 0 ? (
+                <>
+                  {invitesStaged.toLocaleString()}{" "}
+                  {invitesStaged === 1 ? "person" : "people"} you&rsquo;ve added
+                </>
+              ) : (
+                <>contributors you add</>
               )}{" "}
-              and deliver everything to {recipientName} on reveal day.
+              so they can add messages. Everything will be delivered to{" "}
+              {recipientName} on reveal day.
             </p>
             <p className="text-xs italic text-ink-light">
               Takes less than 2 minutes. No subscription.
@@ -1319,13 +1370,15 @@ function ActivationModal({
               onClick={confirmPayment}
               className="w-full bg-amber text-white py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
-              Send it — $9.99 →
+              {invitesStaged === 0
+                ? "Unlock your capsule — $9.99 →"
+                : "Unlock & send invites — $9.99 →"}
             </button>
-            <p className="text-sm italic text-amber/90 text-center">
-              They&rsquo;ll never expect this.
-            </p>
-            <p className="text-sm italic text-navy/70 text-center">
-              They&rsquo;ll open it all at once.
+            {/* Confidence line — payment does not fire anything off
+                to the recipient; reassurance the user needs before
+                handing over $9.99. */}
+            <p className="text-sm font-semibold text-navy text-center">
+              Nothing is sent to {recipientName} yet.
             </p>
           </div>
         ) : (
