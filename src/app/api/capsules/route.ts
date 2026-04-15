@@ -124,7 +124,7 @@ export async function POST(req: Request) {
     const { prisma } = await import("@/lib/prisma");
     const user = await prisma.user.findUnique({
       where: { clerkId: userId },
-      select: { id: true },
+      select: { id: true, userType: true },
     });
     if (!user)
       return NextResponse.json({ error: "User not found." }, { status: 404 });
@@ -141,6 +141,15 @@ export async function POST(req: Request) {
         requiresApproval,
       },
     });
+
+    // Flip PARENT → BOTH when a vault owner creates their first
+    // capsule. ORGANISER stays as-is (they started here).
+    if (user.userType === "PARENT") {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { userType: "BOTH" },
+      });
+    }
 
     await captureServerEvent(userId, "capsule_created", {
       capsuleId: capsule.id,

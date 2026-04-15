@@ -37,13 +37,24 @@ export function Hero() {
           </p>
 
           <div className="hero-actions">
-            <a
-              href="#cta"
-              className="inline-block bg-amber text-white px-7 py-3.5 rounded-lg text-[15px] font-bold tracking-[0.01em] hover:bg-amber-dark hover:-translate-y-0.5 transition-all"
-              style={{ boxShadow: "0 4px 16px rgba(15,31,61,0.2)" }}
-            >
-              Start writing for them →
-            </a>
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href="#cta"
+                className="inline-block bg-amber text-white px-7 py-3.5 rounded-lg text-[15px] font-bold tracking-[0.01em] hover:bg-amber-dark hover:-translate-y-0.5 transition-all"
+                style={{ boxShadow: "0 4px 16px rgba(15,31,61,0.2)" }}
+              >
+                Start writing for them →
+              </a>
+              {/* Secondary path for the capsule audience. Routes
+                  to sign-up with the capsule-path hint persisted
+                  via redirect_url so onboarding auto-selects it. */}
+              <a
+                href="/sign-up?redirect_url=/onboarding?path=capsule"
+                className="inline-block bg-white text-navy border border-navy/15 px-6 py-3.5 rounded-lg text-[15px] font-bold tracking-[0.01em] hover:border-navy transition-colors"
+              >
+                Create a Memory Capsule
+              </a>
+            </div>
             <p className="mt-3 text-[13px] italic text-ink-light">
               Join the waitlist for early access
             </p>

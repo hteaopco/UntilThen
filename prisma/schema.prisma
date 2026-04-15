@@ -59,6 +59,19 @@ enum ContributorStatus {
   REVOKED
 }
 
+/// Which product a user first came through. Lets us personalise
+/// the dashboard empty states and segment analytics without
+/// changing the role-based access model.
+///
+/// - PARENT    — signed up to write to a child (child vault path)
+/// - ORGANISER — signed up to run a Memory Capsule
+/// - BOTH      — has created both a vault and a capsule
+enum UserType {
+  PARENT
+  ORGANISER
+  BOTH
+}
+
 model User {
   id          String   @id @default(cuid())
   clerkId     String   @unique
@@ -66,6 +79,7 @@ model User {
   lastName    String
   displayName String?
   role        Role     @default(PARENT)
+  userType    UserType @default(PARENT)
   createdAt   DateTime @default(now())
 
   children                Child[]
