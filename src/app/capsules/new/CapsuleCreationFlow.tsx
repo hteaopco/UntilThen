@@ -9,7 +9,6 @@ import { useEffect, useState, type FormEvent } from "react";
 import { RevealDatePicker } from "@/components/ui/RevealDatePicker";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import {
-  CAPSULE_MAX_HORIZON_DAYS,
   CAPSULE_MAX_HORIZON_MS,
 } from "@/lib/capsules";
 
@@ -205,11 +204,14 @@ export function CapsuleCreationFlow() {
               Create a Memory Capsule
             </h1>
             <p className="text-[15px] text-ink-mid leading-[1.6]">
-              A one-time keepsake full of messages from the people who
-              love them.
+              A one-time gift they&rsquo;ll open on a day that matters.
+              Filled with messages from the people who love them.
             </p>
 
-            <Field label="Who is this for?" hint="Shown to contributors when they're invited.">
+            <Field
+              label="What are you celebrating?"
+              hint="This is what people will see when they&rsquo;re invited."
+            >
               <input
                 type="text"
                 value={title}
@@ -272,8 +274,7 @@ export function CapsuleCreationFlow() {
                 }
               />
               <p className="mt-2 text-xs italic text-ink-light">
-                Capsules reveal within {CAPSULE_MAX_HORIZON_DAYS} days.
-                For longer timeframes, write into a child Vault.
+                Choose a date they&rsquo;ll open everything at once.
               </p>
             </div>
 

@@ -211,13 +211,14 @@ export function CapsuleOverview({
           </span>
           {isDraft && (
             // Non-blocking pill. Click jumps the page down to the
-            // activate panel so the organiser knows where to go
-            // when they're ready.
+            // send panel so the organiser knows where to go when
+            // they're ready. Softer copy — "not yet shared" reads
+            // as a state of the gift, not a product status.
             <a
               href="#activate"
               className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] font-bold text-amber bg-amber-tint px-2 py-0.5 rounded hover:bg-amber/30 transition-colors"
             >
-              Draft · invites not sent
+              Not yet shared
             </a>
           )}
         </div>
@@ -226,15 +227,31 @@ export function CapsuleOverview({
           {capsule.title}
         </h1>
 
-        <p className="mt-2 text-[15px] text-ink-mid">
-          For {capsule.recipientName}
-          {capsule.recipientEmail && (
-            <> · {capsule.recipientEmail}</>
-          )}
-          {!capsule.recipientEmail && capsule.recipientPhone && (
-            <> · {capsule.recipientPhone}</>
-          )}
-        </p>
+        {/* Emotional sub-header, draft-only. Tells the organiser
+            exactly what's about to happen in human terms —
+            "people will add memories for Evelyn, they'll open
+            them all at once on May 20" — so the page reads as a
+            shared experience being built, not a form in
+            progress. Live capsules show contact meta instead. */}
+        {isDraft ? (
+          <p className="mt-2 text-[15px] text-ink-mid leading-[1.5]">
+            People will add memories for {capsule.recipientName}.
+            <br />
+            They&rsquo;ll open them all at once on{" "}
+            <span className="font-semibold text-navy">
+              {formatLong(capsule.revealDate)}
+            </span>
+            .
+          </p>
+        ) : (
+          <p className="mt-2 text-[15px] text-ink-mid">
+            For {capsule.recipientName}
+            {capsule.recipientEmail && <> · {capsule.recipientEmail}</>}
+            {!capsule.recipientEmail && capsule.recipientPhone && (
+              <> · {capsule.recipientPhone}</>
+            )}
+          </p>
+        )}
 
         <div className="mt-4 text-sm text-ink-light leading-[1.7]">
           <div>
@@ -270,12 +287,12 @@ export function CapsuleOverview({
         )}
       </section>
 
-      {/* Your contribution — the first thing the organiser does.
+      {/* Your message — the first thing the organiser does.
           Inline editor (collapsed) → preview card after writing. */}
-      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8">
-        <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-mid mb-3">
-          Your contribution
-        </h2>
+      <section
+        id="your-message"
+        className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8"
+      >
         <OwnContribution
           capsuleId={capsule.id}
           recipientName={capsule.recipientName}
@@ -284,13 +301,22 @@ export function CapsuleOverview({
         />
       </section>
 
-      {/* Contributors. STAGED rows show a "Will send when you
-          activate" hint. PENDING / ACTIVE rows behave as today. */}
-      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8">
-        <div className="flex items-center justify-between mb-3 gap-3 flex-wrap">
-          <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-mid">
-            Contributors · {invites.length}
+      {/* Invite people — collapsed by default on drafts with no
+          contributors yet so the page doesn't open as a wall of
+          empty forms. Expands with a click; auto-opens once any
+          invites exist or once the organiser saves their own
+          message (handled in OwnContribution via the ref). */}
+      <section
+        id="invite-people"
+        className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8"
+      >
+        <div className="mb-3">
+          <h2 className="text-[17px] font-bold text-navy tracking-[-0.2px]">
+            Invite people
           </h2>
+          <p className="mt-0.5 text-sm text-ink-mid">
+            Add a few people — or skip for now.
+          </p>
         </div>
 
         <ContributorsPanel
@@ -357,12 +383,15 @@ export function CapsuleOverview({
           className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10"
         >
           <div className="rounded-2xl border border-amber/25 bg-amber-tint/40 px-6 py-6 space-y-3">
-            <h2 className="text-lg font-extrabold text-navy">
-              Ready to go live?
+            <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px]">
+              Send this to everyone who loves {capsule.recipientName}
             </h2>
             <p className="text-sm text-ink-mid leading-[1.6]">
-              Activating sends invites to your contributors and schedules
-              the reveal day email to {capsule.recipientName}.
+              We&rsquo;ll send invites and deliver everything on{" "}
+              {formatLong(capsule.revealDate)}.
+            </p>
+            <p className="text-xs italic text-ink-light">
+              Takes less than 2 minutes. No subscription.
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-1">
               <button
@@ -370,17 +399,17 @@ export function CapsuleOverview({
                 onClick={() => setActivateOpen(true)}
                 className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
               >
-                Pay $9.99 and activate →
+                Send to everyone — $9.99 →
               </button>
               <Link
                 href={`/capsule/${capsule.id}/open?t=${capsule.accessToken}&preview=1`}
                 className="text-sm font-medium text-ink-mid hover:text-navy transition-colors"
               >
-                Preview capsule →
+                See what they&rsquo;ll experience →
               </Link>
             </div>
-            <p className="text-xs italic text-ink-light">
-              One-time payment · No subscription
+            <p className="text-sm italic text-navy/70">
+              They&rsquo;ll open it all at once.
             </p>
           </div>
         </section>
@@ -433,7 +462,7 @@ export function CapsuleOverview({
           href={`/capsule/${capsule.id}/open?t=${capsule.accessToken}&preview=1`}
           className="text-sm font-medium text-ink-mid hover:text-navy transition-colors"
         >
-          Preview capsule →
+          See what they&rsquo;ll experience →
         </Link>
       </section>
 
@@ -579,12 +608,24 @@ function OwnContribution({
         };
         throw new Error(data.error ?? "Couldn't save.");
       }
-      if (!id) {
+      const wasFirstSave = !id;
+      if (wasFirstSave) {
         const json = (await res.json()) as { id?: string };
         if (json.id) setContributionId(json.id);
       }
       setEditing(false);
       router.refresh();
+      // Momentum stacking: after the organiser writes their
+      // first message, scroll straight to "Invite people" so
+      // the next step is obvious and the page doesn't feel
+      // over after a single action.
+      if (wasFirstSave && typeof window !== "undefined") {
+        requestAnimationFrame(() => {
+          document
+            .getElementById("invite-people")
+            ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -764,11 +805,10 @@ function OwnContribution({
         </div>
         <div>
           <div className="text-[15px] font-bold text-navy">
-            Write something for {recipientName} →
+            Start with your message →
           </div>
           <div className="text-xs text-ink-mid italic mt-0.5">
-            Your own message — title, text, photo, voice, or video — ready
-            to seal alongside everyone else&rsquo;s.
+            Write the first note — others will follow your lead.
           </div>
         </div>
       </div>
@@ -888,8 +928,7 @@ function ContributorsPanel({
     <div className="rounded-2xl border border-navy/[0.07] bg-white px-5 py-5">
       {isDraft && (
         <p className="mb-4 text-xs italic text-ink-light">
-          Add contributors now — invites will send when you activate the
-          capsule.
+          Invites go out when you send the capsule.
         </p>
       )}
 
@@ -928,7 +967,11 @@ function ContributorsPanel({
               </div>
               {/* Per-row approval toggle sits to the right of the
                   email, matching the spec. Drops below the email
-                  on narrow layouts via flex-wrap. */}
+                  on narrow layouts via flex-wrap. Full label
+                  ("Approve contributions before reveal") so the
+                  organiser understands the toggle without a
+                  tooltip; shortened to "Approve before reveal"
+                  on small screens via responsive spans. */}
               <label className="shrink-0 inline-flex items-center gap-2 min-h-[48px] px-2 text-[13px] text-navy cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -938,7 +981,10 @@ function ContributorsPanel({
                   }
                   className="accent-amber"
                 />
-                <span>Review</span>
+                <span className="hidden sm:inline">
+                  Approve contributions before reveal
+                </span>
+                <span className="sm:hidden">Approve before reveal</span>
               </label>
               {rows.length > 1 && (
                 <button
@@ -1217,11 +1263,11 @@ function ActivationModal({
         <div className="px-7 py-5 border-b border-navy/[0.08] flex items-start justify-between gap-3">
           <div>
             <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-1">
-              {step === "pay" ? "Step 1 of 2 · Payment" : "Step 2 of 2 · Recipient"}
+              {step === "pay" ? "Step 1 of 2" : "Step 2 of 2"}
             </div>
-            <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px]">
+            <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] leading-[1.25]">
               {step === "pay"
-                ? "Activate your capsule"
+                ? `Send this to everyone who loves ${recipientName}`
                 : `How should we reach ${recipientName}?`}
             </h2>
           </div>
@@ -1252,14 +1298,15 @@ function ActivationModal({
               </p>
             </div>
             <p className="text-sm text-ink-mid leading-[1.6]">
-              Next, we&rsquo;ll ask how to reach {recipientName} on reveal
-              day. Then we&rsquo;ll send the invites you&rsquo;ve already
-              staged
+              We&rsquo;ll send the invites you&rsquo;ve added
               {invitesStaged > 0 && (
-                <> ({invitesStaged.toLocaleString()} contributor
-                {invitesStaged === 1 ? "" : "s"})</>
-              )}
-              .
+                <> ({invitesStaged.toLocaleString()}{" "}
+                {invitesStaged === 1 ? "person" : "people"})</>
+              )}{" "}
+              and deliver everything to {recipientName} on reveal day.
+            </p>
+            <p className="text-xs italic text-ink-light">
+              Takes less than 2 minutes. No subscription.
             </p>
             {error && (
               <p className="text-sm text-red-600" role="alert">
@@ -1271,15 +1318,16 @@ function ActivationModal({
               onClick={confirmPayment}
               className="w-full bg-amber text-white py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
-              Confirm $9.99 →
+              Send to everyone — $9.99 →
             </button>
+            <p className="text-sm italic text-navy/70 text-center">
+              They&rsquo;ll open it all at once.
+            </p>
           </div>
         ) : (
           <form onSubmit={saveAndActivate} className="p-6 space-y-4">
             <p className="text-sm text-ink-mid leading-[1.6]">
-              Add at least one way to reach them. Email is what we use
-              today; phone is captured so we can text the reveal link
-              when SMS is live.
+              Add an email, a phone number, or both — either works.
             </p>
             <label className="block">
               <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
@@ -1296,7 +1344,7 @@ function ActivationModal({
             </label>
             <label className="block">
               <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
-                Recipient phone (optional for now)
+                Recipient phone
               </span>
               <input
                 type="tel"
@@ -1317,7 +1365,7 @@ function ActivationModal({
                 disabled={busy}
                 className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
               >
-                {busy ? "Activating…" : "Save & activate →"}
+                {busy ? "Sending…" : "Send it →"}
               </button>
               <button
                 type="button"
