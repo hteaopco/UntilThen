@@ -1,6 +1,3 @@
-import { auth } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
-
 import { CapsuleCreationFlow } from "./CapsuleCreationFlow";
 
 export const metadata = {
@@ -10,8 +7,10 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export default async function NewCapsulePage() {
-  const { userId } = auth();
-  if (!userId) redirect("/sign-in?redirect_url=/capsules/new");
+// The page itself is public — visitors from the landing page's
+// pricing CTA should be able to fill out step 1 before being
+// asked to sign up. Step 2 (which hits the API) triggers the
+// sign-up hand-off inside CapsuleCreationFlow.
+export default function NewCapsulePage() {
   return <CapsuleCreationFlow />;
 }

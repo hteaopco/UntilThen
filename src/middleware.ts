@@ -12,6 +12,10 @@ const isPublicRoute = createRouteMatcher([
   "/invite/(.*)",
   // Memory Capsule public surfaces — contributor invite links
   // and the recipient reveal flow are both accountless by design.
+  // /capsules/new is public too so visitors landing from the
+  // pricing CTA can fill out step 1 before being asked to
+  // sign up. The API routes still gate on Clerk.
+  "/capsules/new",
   "/contribute/capsule/(.*)",
   "/capsule/(.*)/open",
   "/api/contribute/capsule/(.*)",

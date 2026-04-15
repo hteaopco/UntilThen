@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 
+// Namespaced sessionStorage key. Used to suppress the splash
+// on same-tab back-nav (e.g. "back to home" from /dashboard)
+// while still letting it replay on an explicit reload — a hard
+// refresh should always restore the intro beat.
+const SESSION_KEY = "untilthen:intro-shown";
+
 const TARGET = "untilThen.";
 const UNTIL_LENGTH = 5; // "until"
 
@@ -24,22 +30,58 @@ type Phase =
   | "fading"
   | "hidden";
 
+function isReloadNavigation(): boolean {
+  try {
+    const entries = performance.getEntriesByType(
+      "navigation",
+    ) as PerformanceNavigationTiming[];
+    return entries[0]?.type === "reload";
+  } catch {
+    return false;
+  }
+}
+
 export function IntroSplash() {
   const [text, setText] = useState("");
   const [phase, setPhase] = useState<Phase>("waiting");
 
-  // Only one suppression path: prefers-reduced-motion. The splash
-  // used to also skip on same-tab returns via sessionStorage, but
-  // that felt broken once the app was on a stable production URL
-  // — reloading the page left the splash as a one-frame cursor
-  // blink instead of playing the typewriter animation.
+  // Suppression rules:
+  //   1. prefers-reduced-motion → skip.
+  //   2. sessionStorage flag present + the navigation isn't a
+  //      reload → skip. This covers back-nav from other routes
+  //      inside the app without stealing the replay when the
+  //      user hits refresh.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    if (reduce) setPhase("hidden");
+    if (reduce) {
+      setPhase("hidden");
+      return;
+    }
+    let alreadyShown = false;
+    try {
+      alreadyShown = window.sessionStorage.getItem(SESSION_KEY) === "1";
+    } catch {
+      /* private mode — fall through */
+    }
+    if (alreadyShown && !isReloadNavigation()) {
+      setPhase("hidden");
+    }
   }, []);
+
+  // Stamp the session once we actually play (fade or hidden).
+  // Subsequent back-nav in this tab will then skip unless the
+  // user triggers a reload.
+  useEffect(() => {
+    if (phase !== "fading" && phase !== "hidden") return;
+    try {
+      window.sessionStorage.setItem(SESSION_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+  }, [phase]);
 
   useEffect(() => {
     if (phase === "waiting") {

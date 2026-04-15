@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { ArrowLeft, Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,6 +17,22 @@ import {
 // user's draft is auto-deleted after 7 days, we pre-fill the
 // title when they come back (per spec v1.1 clarification #3).
 const DRAFT_TITLE_KEY = "untilthen:capsule-draft-title";
+
+// A full step-1 snapshot is stashed here when an anonymous
+// visitor clicks "Continue →" and we hand them off to sign-up.
+// After they land back on /capsules/new signed-in, we rehydrate
+// the form so they don't lose the emotional investment of
+// filling it out (per the brief's "don't gate the flow early"
+// principle).
+const PENDING_STEP1_KEY = "untilthen:capsule-pending-step1";
+
+type PendingStep1 = {
+  title: string;
+  recipientName: string;
+  recipientEmail: string;
+  occasionType: string;
+  revealDate: string;
+};
 
 type OccasionType =
   | "BIRTHDAY"
@@ -38,6 +55,7 @@ type Step = 1 | 2 | 3;
 
 export function CapsuleCreationFlow() {
   const router = useRouter();
+  const { isLoaded: authLoaded, isSignedIn } = useAuth();
 
   const [step, setStep] = useState<Step>(1);
   const [capsuleId, setCapsuleId] = useState<string | null>(null);
@@ -61,9 +79,28 @@ export function CapsuleCreationFlow() {
   const [requiresApproval, setRequiresApproval] = useState(false);
   const [contributorDeadline, setContributorDeadline] = useState("");
 
-  // Rehydrate any previously-saved title so an expired draft
-  // doesn't feel like starting from nothing.
+  // Rehydrate on mount:
+  //   1. A pending step-1 snapshot (anonymous visitor bounced
+  //      through sign-up) takes priority — those fields are the
+  //      freshest user intent.
+  //   2. Failing that, a remembered title from an auto-expired
+  //      draft shows an "expired — start again" banner.
   useEffect(() => {
+    try {
+      const pendingRaw = window.localStorage.getItem(PENDING_STEP1_KEY);
+      if (pendingRaw) {
+        const pending = JSON.parse(pendingRaw) as Partial<PendingStep1>;
+        if (pending.title) setTitle(pending.title);
+        if (pending.recipientName) setRecipientName(pending.recipientName);
+        if (pending.recipientEmail) setRecipientEmail(pending.recipientEmail);
+        if (pending.occasionType)
+          setOccasionType(pending.occasionType as OccasionType);
+        if (pending.revealDate) setRevealDate(pending.revealDate);
+        return;
+      }
+    } catch {
+      /* ignore */
+    }
     try {
       const remembered = window.localStorage.getItem(DRAFT_TITLE_KEY);
       if (remembered && !title) {
@@ -71,7 +108,7 @@ export function CapsuleCreationFlow() {
         setShowExpiredNotice(true);
       }
     } catch {
-      /* storage unavailable — skip */
+      /* ignore */
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -80,6 +117,34 @@ export function CapsuleCreationFlow() {
     e.preventDefault();
     if (saving) return;
     setError(null);
+
+    // Anonymous path: stash the full form snapshot and hand off
+    // to Clerk sign-up. Once the new account lands back here
+    // (Clerk's afterSignUpUrl), the rehydrate effect replays
+    // step 1 into the fields and submitStep1 fires cleanly on
+    // the next click.
+    if (authLoaded && !isSignedIn) {
+      const snapshot: PendingStep1 = {
+        title: title.trim(),
+        recipientName: recipientName.trim(),
+        recipientEmail: recipientEmail.trim(),
+        occasionType,
+        revealDate,
+      };
+      try {
+        window.localStorage.setItem(
+          PENDING_STEP1_KEY,
+          JSON.stringify(snapshot),
+        );
+      } catch {
+        /* storage unavailable — sign-up still works, form just
+           resets. */
+      }
+      const redirect = encodeURIComponent("/capsules/new");
+      router.push(`/sign-up?redirect_url=${redirect}`);
+      return;
+    }
+
     setSaving(true);
     try {
       const res = await fetch("/api/capsules", {
@@ -104,6 +169,7 @@ export function CapsuleCreationFlow() {
       setCapsuleId(data.id);
       try {
         window.localStorage.setItem(DRAFT_TITLE_KEY, title.trim());
+        window.localStorage.removeItem(PENDING_STEP1_KEY);
       } catch {
         /* ignore */
       }
@@ -358,7 +424,9 @@ export function CapsuleCreationFlow() {
               {saving ? "Saving…" : "Continue →"}
             </button>
             <p className="text-center text-xs italic text-ink-light">
-              No payment yet. We save your capsule as a draft.
+              {authLoaded && !isSignedIn
+                ? "No payment yet. We'll ask you to create a free account to save your capsule."
+                : "No payment yet. We save your capsule as a draft."}
             </p>
           </form>
         )}
