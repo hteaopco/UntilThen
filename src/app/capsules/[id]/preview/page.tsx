@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 import { findOwnedCapsule } from "@/lib/capsules";
+import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
 import { PreviewExperience, type PreviewContribution } from "./PreviewExperience";
 
@@ -47,13 +48,34 @@ export default async function CapsulePreviewPage({
   });
   if (!capsule) redirect("/dashboard");
 
-  const contributions: PreviewContribution[] = capsule.contributions.map(
-    (c) => ({
-      id: c.id,
-      authorName: c.authorName,
-      type: c.type,
-      title: c.title,
-      body: c.body,
+  // Resolve R2 signed URLs for any media attachments so the preview
+  // can render photos / voice notes / videos in the reveal scene.
+  // Skips gracefully when R2 isn't configured (local dev without
+  // credentials) — contributions just render without media instead
+  // of erroring.
+  const r2 = r2IsConfigured();
+  const contributions: PreviewContribution[] = await Promise.all(
+    capsule.contributions.map(async (c) => {
+      const media =
+        r2 && c.mediaUrls.length > 0
+          ? await Promise.all(
+              c.mediaUrls.map(async (key, i) => ({
+                url: await signGetUrl(key),
+                kind: (c.mediaTypes[i] ?? "photo") as
+                  | "photo"
+                  | "voice"
+                  | "video",
+              })),
+            )
+          : [];
+      return {
+        id: c.id,
+        authorName: c.authorName,
+        type: c.type,
+        title: c.title,
+        body: c.body,
+        media,
+      };
     }),
   );
 

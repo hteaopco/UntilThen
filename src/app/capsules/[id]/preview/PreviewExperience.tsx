@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { captureEvent } from "@/components/PosthogProvider";
+import { MediaDisplay, type MediaItem } from "@/components/editor/MediaDisplay";
 import { triggerCelebration } from "@/lib/confetti";
 import { formatLong } from "@/lib/dateFormatters";
 
@@ -24,6 +25,9 @@ export type PreviewContribution = {
   type: "TEXT" | "PHOTO" | "VOICE" | "VIDEO";
   title: string | null;
   body: string | null;
+  /** R2-signed media attachments for this contribution. Empty
+      array when none are attached or R2 isn't configured. */
+  media: MediaItem[];
 };
 
 type Capsule = {
@@ -75,6 +79,7 @@ export function PreviewExperience({
         type: "TEXT" as const,
         title: null,
         body: "Your contributors' messages will appear here once they add them.",
+        media: [],
       },
     ];
   }, [contributions]);
@@ -345,15 +350,24 @@ function ContributionScene({
               {contribution.title}
             </h2>
           )}
-          {contribution.body && (
+          {/* Body + media sit inside the same cream card so a
+              contribution that's photo-or-voice-only (body === null)
+              still reads as an intentional card rather than an
+              empty frame. */}
+          {(contribution.body || contribution.media.length > 0) && (
             <div
-              className="tiptap-editor text-[17px] leading-[1.9] text-white/90"
+              className="rounded-2xl bg-[#fdfbf5] px-7 py-8 lg:px-9 lg:py-10 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)] text-navy"
               style={{ color: "#2c2420" }}
             >
-              <div
-                className="rounded-2xl bg-[#fdfbf5] px-7 py-8 lg:px-9 lg:py-10 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.5)]"
-                dangerouslySetInnerHTML={{ __html: contribution.body }}
-              />
+              {contribution.body && (
+                <div
+                  className="tiptap-editor text-[17px] leading-[1.75] text-ink-mid"
+                  dangerouslySetInnerHTML={{ __html: contribution.body }}
+                />
+              )}
+              {contribution.media.length > 0 && (
+                <MediaDisplay items={contribution.media} />
+              )}
             </div>
           )}
         </article>
