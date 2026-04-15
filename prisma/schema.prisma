@@ -10,9 +10,11 @@ datasource db {
   // app stays cold-start-friendly and benefits from edge caching.
   url       = env("PRISMA_ACCELERATE_URL")
   // Migrations and `prisma db push` need a direct Postgres connection
-  // — Accelerate is query-only. Railway exposes the underlying
-  // Postgres connection string as DATABASE_URL.
-  directUrl = env("DATABASE_URL")
+  // — Accelerate is query-only. On Railway, DATABASE_URL is set to
+  // the Accelerate string (prisma+postgres://…), so migrations must
+  // read a separate DIRECT_URL pointing at the real Postgres
+  // instance (set it to ${{Postgres.DATABASE_URL}} in Railway).
+  directUrl = env("DIRECT_URL")
 }
 
 // ── Waitlist ───────────────────────────────────────────────
