@@ -8,9 +8,8 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
-
-import { WaveformDisplay } from "@/components/ui/WaveformDisplay";
 
 /**
  * "Choose your vault" — the two-path introduction that sits between
@@ -228,143 +227,37 @@ function Bullet({
 
 // ───── Illustrative card visuals ─────────────────────────────
 //
-// Pure CSS/HTML compositions — no external images. Each visual is
-// a ~200–220px tall container with absolutely-positioned children:
-// a handwritten letter/envelope, a warm photo placeholder, and a
-// voice-note pill. Values are hand-tuned to match the designer's
-// layered feel rather than tracking a strict grid.
+// The artwork for each card now comes from a designer-supplied PNG
+// dropped into /public (write now.png, create gift.png). Previous
+// CSS-composed letter / sticky / photo elements are gone — the
+// images already contain the full composition.
 
 function FutureVaultVisual() {
   return (
-    <div
-      aria-hidden="true"
-      className="relative h-[220px] mb-6 -mx-1 select-none pointer-events-none"
-    >
-      {/* Letter card — cream, rotated -2deg, handwritten text. */}
-      <div
-        className="absolute left-2 top-2 w-[200px] p-4 rounded-lg bg-white"
-        style={{
-          transform: "rotate(-2deg)",
-          boxShadow: "0 6px 20px rgba(15,31,61,0.08)",
-          border: "1px solid rgba(15,31,61,0.04)",
-        }}
-      >
-        <p
-          className="text-[12px] text-navy leading-[1.55] italic"
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-        >
-          To Ellie,
-          <br />
-          I hope you always know
-          <br />
-          how deeply you&rsquo;re loved.
-          <br />
-          I believe in you more
-          <br />
-          than you know&hellip;
-        </p>
-        <p
-          className="text-[13px] text-amber mt-2"
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-        >
-          ♡
-        </p>
-      </div>
-
-      {/* Warm photo placeholder — amber/gold gradient, rotated +3deg. */}
-      <div
-        className="absolute right-2 top-6 w-[120px] h-[90px] rounded-lg"
-        style={{
-          transform: "rotate(3deg)",
-          background:
-            "linear-gradient(135deg, #f4c47a 0%, #e09a5a 55%, #c47a3a 100%)",
-          boxShadow: "0 6px 20px rgba(196,122,58,0.2)",
-          border: "3px solid #ffffff",
-        }}
+    <div className="mb-6 -mx-1 select-none pointer-events-none">
+      <Image
+        src="/write%20now.png"
+        alt=""
+        width={493}
+        height={343}
+        priority={false}
+        className="w-full h-auto"
       />
-
-      {/* Voice-note pill — centred bottom. */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-0">
-        <WaveformDisplay duration="2:34" color="#c47a3a" />
-      </div>
     </div>
   );
 }
 
 function SharedGiftVisual() {
   return (
-    <div
-      aria-hidden="true"
-      className="relative h-[220px] mb-6 -mx-1 select-none pointer-events-none"
-    >
-      {/* Envelope / card — sage/olive tint, rotated -1deg. */}
-      <div
-        className="absolute left-2 top-4 w-[180px] h-[110px] rounded-lg flex items-center justify-center px-4"
-        style={{
-          transform: "rotate(-1deg)",
-          background: "linear-gradient(135deg, #e6ebd8 0%, #c7cfa8 100%)",
-          boxShadow: "0 6px 20px rgba(15,31,61,0.06)",
-          border: "1px solid rgba(15,31,61,0.05)",
-        }}
-      >
-        <p
-          className="text-[12px] text-navy/80 leading-[1.4] italic text-center"
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-        >
-          Thank you for
-          <br />
-          believing in us!
-        </p>
-      </div>
-
-      {/* Sticky note — yellow/warm, rotated +2deg, overlapping. */}
-      <div
-        className="absolute left-[120px] top-0 w-[120px] h-[88px] p-3 rounded-sm"
-        style={{
-          transform: "rotate(2deg)",
-          background: "linear-gradient(135deg, #fff3b5 0%, #ffe88a 100%)",
-          boxShadow: "0 6px 18px rgba(15,31,61,0.1)",
-        }}
-      >
-        <p
-          className="text-[12px] text-navy leading-[1.4]"
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-        >
-          You made a
-          <br />
-          difference!
-        </p>
-        <p
-          className="text-[13px] text-amber mt-1"
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-        >
-          ♡
-        </p>
-      </div>
-
-      {/* Cool photo placeholder with jersey-number overlay. */}
-      <div
-        className="absolute right-2 top-[58px] w-[120px] h-[90px] rounded-lg flex items-center justify-center"
-        style={{
-          transform: "rotate(-3deg)",
-          background:
-            "linear-gradient(135deg, #5b7199 0%, #3c4a6b 55%, #2c3a5a 100%)",
-          boxShadow: "0 6px 20px rgba(15,31,61,0.22)",
-          border: "3px solid #ffffff",
-        }}
-      >
-        <p
-          className="text-white/85 font-bold tracking-[0.18em] text-[13px]"
-          style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
-        >
-          13 | 13 | 22 | 22
-        </p>
-      </div>
-
-      {/* Voice-note pill — bottom, navy-toned for this card. */}
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-0">
-        <WaveformDisplay duration="1:18" color="#4a5568" />
-      </div>
+    <div className="mb-6 -mx-1 select-none pointer-events-none">
+      <Image
+        src="/create%20gift.png"
+        alt=""
+        width={498}
+        height={328}
+        priority={false}
+        className="w-full h-auto"
+      />
     </div>
   );
 }
