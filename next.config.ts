@@ -51,18 +51,19 @@ export default withSentryConfig(nextConfig, {
   // not in the browser.
   sourcemaps: { deleteSourcemapsAfterUpload: true },
 
-  // Sentry v10 moved these two options under `webpack.*` — the
-  // previous top-level placements log deprecation warnings at
-  // build time now. Keeping them nested matches the current
-  // SentryBuildOptions shape.
-  //
-  // - automaticVercelMonitors: we deploy on Railway, so nothing
-  //   to wire up here.
-  // - treeshake.removeDebugLogging: tree-shakes Sentry's debug
-  //   logger out of production bundles for a smaller payload
-  //   (replaces the deprecated top-level `disableLogger`).
-  webpack: {
-    automaticVercelMonitors: false,
-    treeshake: { removeDebugLogging: true },
-  },
+  // We're on Railway, not Vercel — disable the cron-monitor
+  // wiring that only makes sense on Vercel deployments.
+  // NOTE: v10 logs a deprecation warning pointing at
+  // `webpack.automaticVercelMonitors`; leaving it at the top
+  // level anyway — nesting it under `webpack` produced a 100%
+  // healthcheck-fail startup regression (commit 38a0279). The
+  // warning is cosmetic; the behaviour at this top level is
+  // correct.
+  automaticVercelMonitors: false,
+
+  // Tree-shake Sentry's debug logger out of the production
+  // bundle for a smaller payload. Same warning + same reason
+  // as above — stays at the top level until we can reproduce
+  // the nested shape safely.
+  disableLogger: true,
 });
