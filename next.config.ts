@@ -51,11 +51,18 @@ export default withSentryConfig(nextConfig, {
   // not in the browser.
   sourcemaps: { deleteSourcemapsAfterUpload: true },
 
-  // We're on Railway, not Vercel — disable the cron-monitor
-  // wiring that only makes sense on Vercel deployments.
-  automaticVercelMonitors: false,
-
-  // Tree-shake Sentry's debug logger out of the production
-  // bundle for a smaller payload.
-  disableLogger: true,
+  // Sentry v10 moved these two options under `webpack.*` — the
+  // previous top-level placements log deprecation warnings at
+  // build time now. Keeping them nested matches the current
+  // SentryBuildOptions shape.
+  //
+  // - automaticVercelMonitors: we deploy on Railway, so nothing
+  //   to wire up here.
+  // - treeshake.removeDebugLogging: tree-shakes Sentry's debug
+  //   logger out of production bundles for a smaller payload
+  //   (replaces the deprecated top-level `disableLogger`).
+  webpack: {
+    automaticVercelMonitors: false,
+    treeshake: { removeDebugLogging: true },
+  },
 });

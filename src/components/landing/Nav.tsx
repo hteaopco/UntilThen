@@ -174,7 +174,7 @@ function RightAction() {
       <SignedIn>
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1 bg-navy text-white px-3.5 py-2 rounded-lg text-[13px] font-bold tracking-[0.01em] hover:bg-navy-mid transition-colors"
+          className="inline-flex items-center gap-1 bg-amber text-white px-3.5 py-2 rounded-lg text-[13px] font-bold tracking-[0.01em] hover:bg-amber-dark transition-colors"
         >
           Dashboard →
         </Link>
