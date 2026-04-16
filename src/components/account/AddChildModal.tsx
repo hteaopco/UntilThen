@@ -63,13 +63,30 @@ const pillGreenInactive =
 const pillDisabled =
   "bg-[#f5f5f5] border-navy/8 text-ink-light cursor-not-allowed opacity-50";
 
-export function AddChildModal({ onClose }: { onClose: () => void }) {
+export type EditModeProps = {
+  childId: string;
+  firstName: string;
+  lastName: string;
+  dob: string;
+  revealDate: string;
+};
+
+export function AddChildModal({
+  onClose,
+  editMode,
+}: {
+  onClose: () => void;
+  editMode?: EditModeProps;
+}) {
+  const isEdit = Boolean(editMode);
   const router = useRouter();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [dob, setDob] = useState("");
-  const [revealDate, setRevealDate] = useState("");
-  const [revealCategory, setRevealCategory] = useState<RevealCategory>(null);
+  const [firstName, setFirstName] = useState(editMode?.firstName ?? "");
+  const [lastName, setLastName] = useState(editMode?.lastName ?? "");
+  const [dob, setDob] = useState(editMode?.dob ?? "");
+  const [revealDate, setRevealDate] = useState(editMode?.revealDate ?? "");
+  const [revealCategory, setRevealCategory] = useState<RevealCategory>(
+    editMode?.revealDate ? "quick" : null,
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [weddingDate, setWeddingDate] = useState("");
@@ -82,7 +99,7 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
   // Reveal is "set" if a date is picked, or user explicitly chose
   // "leave blank" / "remind me later" / "fill in later".
   const revealResolved =
-    revealDate.length > 0 || leaveBlank || dateKnown === false;
+    revealDate.length > 0 || leaveBlank || dateKnown === false || isEdit;
 
   const canSubmit = firstName.trim().length > 0 && revealResolved && !saving;
 
@@ -108,8 +125,11 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch("/api/account/children", {
-        method: "POST",
+      const url = isEdit
+        ? `/api/account/children/${editMode!.childId}`
+        : "/api/account/children";
+      const res = await fetch(url, {
+        method: isEdit ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           firstName: firstName.trim(),
@@ -172,8 +192,14 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
       <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl shadow-[0_24px_48px_-8px_rgba(15,31,61,0.4)] w-full max-w-[520px] max-h-[92vh] overflow-y-auto">
         <div className="px-7 py-5 border-b border-navy/[0.08] flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px]">Add Another Time Capsule</h2>
-            <p className="mt-1 text-sm text-ink-mid">Create a new capsule. Start writing as soon as it&rsquo;s made.</p>
+            <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px]">
+              {isEdit ? "Edit Time Capsule" : "Add Another Time Capsule"}
+            </h2>
+            <p className="mt-1 text-sm text-ink-mid">
+              {isEdit
+                ? "Update capsule details below."
+                : "Create a new capsule. Start writing as soon as it\u2019s made."}
+            </p>
           </div>
           <button type="button" onClick={onClose} disabled={saving} className="text-ink-mid hover:text-navy" aria-label="Close">
             <X size={20} strokeWidth={1.75} aria-hidden="true" />
@@ -388,7 +414,7 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
           <button type="button" onClick={onClose} disabled={saving} className="text-sm font-semibold text-ink-mid hover:text-navy px-3 py-2 disabled:opacity-50">Cancel</button>
           <button type="submit" disabled={!canSubmit}
             className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors ${canSubmit ? "bg-amber text-white hover:bg-amber-dark" : "bg-navy/10 text-ink-light cursor-not-allowed"}`}>
-            {saving ? "Creating\u2026" : "Create Capsule"}
+            {saving ? (isEdit ? "Saving\u2026" : "Creating\u2026") : (isEdit ? "Save Changes" : "Create Capsule")}
           </button>
         </div>
       </form>

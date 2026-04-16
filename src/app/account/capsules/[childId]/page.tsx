@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { ChildEditForm } from "@/components/account/ChildEditForm";
 
 export const metadata = {
-  title: "Edit vault — untilThen",
+  title: "Time Capsule Details — untilThen",
 };
 
 export const dynamic = "force-dynamic";
