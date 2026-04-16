@@ -126,7 +126,7 @@ export function ProfileForm({
 
           <Field
             label="Display name"
-            hint="How you appear to contributors and on entries — e.g. “Mum” or “Dad”."
+            hint=”How you appear to contributors and on entries — e.g. &ldquo;Mom&rdquo; or &ldquo;Dad&rdquo;.”
           >
             <input
               type="text"
