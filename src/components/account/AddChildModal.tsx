@@ -136,6 +136,9 @@ export function AddChildModal({
           lastName: lastName.trim(),
           dateOfBirth: dob || null,
           revealDate: revealDate || null,
+          timezone: typeof window !== "undefined"
+            ? Intl.DateTimeFormat().resolvedOptions().timeZone
+            : "America/Chicago",
         }),
       });
       if (!res.ok) {

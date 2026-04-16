@@ -13,6 +13,8 @@ type PatchBody = {
   trusteeName?: string | null;
   trusteeEmail?: string | null;
   trusteePhone?: string | null;
+  deliveryTime?: string;
+  timezone?: string;
 };
 
 async function requireOwnership(clerkUserId: string, childId: string) {
@@ -107,18 +109,30 @@ export async function PATCH(
   const { prisma } = await import("@/lib/prisma");
   await prisma.child.update({ where: { id }, data: childData });
 
-  // Reveal date lives on the vault; update separately when provided.
-  if ("revealDate" in body && result.child.vault) {
-    const d = parseDate(body.revealDate);
-    if (d === undefined)
-      return NextResponse.json(
-        { error: "Invalid reveal date." },
-        { status: 400 },
-      );
-    await prisma.vault.update({
-      where: { id: result.child.vault.id },
-      data: { revealDate: d },
-    });
+  // Vault fields (reveal date, delivery time, timezone).
+  if (result.child.vault) {
+    const vaultData: Record<string, unknown> = {};
+    if ("revealDate" in body) {
+      const d = parseDate(body.revealDate);
+      if (d === undefined)
+        return NextResponse.json(
+          { error: "Invalid reveal date." },
+          { status: 400 },
+        );
+      vaultData.revealDate = d;
+    }
+    if (typeof body.deliveryTime === "string" && /^\d{2}:\d{2}$/.test(body.deliveryTime)) {
+      vaultData.deliveryTime = body.deliveryTime;
+    }
+    if (typeof body.timezone === "string" && body.timezone.trim()) {
+      vaultData.timezone = body.timezone.trim();
+    }
+    if (Object.keys(vaultData).length > 0) {
+      await prisma.vault.update({
+        where: { id: result.child.vault.id },
+        data: vaultData,
+      });
+    }
   }
 
   revalidatePath("/account/capsules");

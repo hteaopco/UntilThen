@@ -58,8 +58,13 @@ export function CapsuleCreationFlow() {
   const [occasionType, setOccasionType] = useState<OccasionType>("BIRTHDAY");
   const [otherOccasion, setOtherOccasion] = useState("");
   const [revealDate, setRevealDate] = useState("");
+  const [deliveryTime, setDeliveryTime] = useState("09:00");
   const [showExpiredNotice, setShowExpiredNotice] = useState(false);
   const [dateAlert, setDateAlert] = useState(false);
+
+  const browserTimezone = typeof window !== "undefined"
+    ? Intl.DateTimeFormat().resolvedOptions().timeZone
+    : "America/Chicago";
 
   const maxDateIso = yyyymmdd(new Date(Date.now() + CAPSULE_MAX_HORIZON_MS));
   const minDateIso = yyyymmdd(new Date(Date.now() + 86400000));
@@ -133,6 +138,8 @@ export function CapsuleCreationFlow() {
           recipientPronoun,
           occasionType,
           revealDate,
+          deliveryTime,
+          timezone: browserTimezone,
           requiresApproval: false,
         }),
       });
@@ -270,6 +277,36 @@ export function CapsuleCreationFlow() {
               They&rsquo;ll open everything at once on this day.
             </p>
           </div>
+
+          {revealDate && (
+            <div>
+              <Label>What time should we deliver this?</Label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {([
+                  { value: "09:00", label: "Morning (9am)" },
+                  { value: "14:00", label: "Afternoon (2pm)" },
+                  { value: "19:00", label: "Evening (7pm)" },
+                  { value: "00:00", label: "Midnight" },
+                ] as const).map((t) => (
+                  <button key={t.value} type="button" onClick={() => setDeliveryTime(t.value)}
+                    className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
+                      deliveryTime === t.value
+                        ? "bg-amber text-white border-amber"
+                        : "bg-white border-navy/15 text-ink-mid hover:border-navy hover:text-navy"
+                    }`}>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <div className="mt-3">
+                <label className="flex items-center gap-2 text-sm text-ink-mid">
+                  <span className="text-[11px] font-bold tracking-[0.06em] uppercase">Or pick your own:</span>
+                  <input type="time" value={deliveryTime} onChange={(e) => setDeliveryTime(e.target.value)}
+                    className="account-input w-auto" />
+                </label>
+              </div>
+            </div>
+          )}
 
           {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
 
