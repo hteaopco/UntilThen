@@ -8,47 +8,95 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 
+import {
+  SwipeableExampleCards,
+  type ExampleCard,
+} from "@/components/marketing/SwipeableExampleCards";
+
 /**
- * "Choose your vault" — the two-path introduction that sits between
- * the hero and the "How it works" section on the landing page.
+ * "Two ways to do it" — the two-path introduction between the hero
+ * and the "How it works" section. Each card now contains an inner
+ * swipeable stack of example entries so visitors immediately see
+ * what the product feels like, before scrolling further.
  *
- * Marketing names intentionally differ from the product codenames:
- *   Future Vault = Child Vault   → /sign-up              ($3.99/mo)
- *   Shared Gift  = Memory Capsule → /sign-up?path=capsule ($9.99 one-time)
- *
- * Don't rename in-product — these labels live only on the landing
- * page so the two creation paths feel like parallel versions of the
- * same core product instead of competing CTAs.
+ * Product names
+ *   Time Capsule  = private, one-to-one ($3.99/mo)
+ *   Gift Capsule  = shared, multi-contributor ($9.99 one-time)
  */
+
+// ── Example card data ─────────────────────────────────────────
+
+const TIME_CAPSULE_EXAMPLES: ExampleCard[] = [
+  {
+    eyebrow: "To Ellie, age 18",
+    title: "The night before your first day of school",
+    preview:
+      "You picked the backpack with tiny stars. I watched you pack it three times\u2026",
+    badge: "Unlocks Sept 2038",
+    badgeColor: "amber",
+  },
+  {
+    eyebrow: "\uD83C\uDFA4 Voice note",
+    title: "2:34 \u00B7 recorded on a rainy Sunday",
+    badge: "Sealed",
+    badgeColor: "gold",
+  },
+  {
+    eyebrow: "Always",
+    title: "The day we brought you home",
+    preview: "\uD83D\uDCF7 47 photos \u00B7 with a letter",
+    badge: "Sealed",
+    badgeColor: "gold",
+  },
+];
+
+const GIFT_CAPSULE_EXAMPLES: ExampleCard[] = [
+  {
+    eyebrow: "Dad\u2019s 60th Birthday",
+    title: "Happy birthday, Dad.",
+    preview:
+      "We all wrote you something. Open when you\u2019re ready\u2026",
+    badge: "Sealed",
+    badgeColor: "gold",
+  },
+  {
+    eyebrow: "From Sarah",
+    title: "I still remember the fishing trips.",
+    badge: "Sealed",
+    badgeColor: "gold",
+  },
+  {
+    eyebrow: "From James & the kids",
+    title: "\uD83C\uDFA4 1:18 \u00B7 voice note",
+    badge: "Sealed",
+    badgeColor: "gold",
+  },
+];
+
+// ── Section ───────────────────────────────────────────────────
+
 export function ChooseYourVault() {
   return (
     <section className="bg-cream">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-20 lg:py-24">
-        {/* Header block: eyebrow pill + heading + subheading, centred. */}
+        {/* Header */}
         <div className="text-center max-w-[640px] mx-auto mb-12 lg:mb-14">
           <div className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.12em] uppercase text-amber bg-amber-tint px-[14px] py-1.5 rounded-md mb-6">
             <span aria-hidden="true">✦</span>
-            Choose your vault
+            Two ways to do it
           </div>
           <h2 className="text-[clamp(36px,4vw,52px)] font-extrabold leading-[1.1] tracking-[-1.5px] text-navy">
             What would you like to create?
           </h2>
-          <p className="mt-4 text-[18px] text-ink-mid leading-[1.55]">
-            Two ways to save love. Both last a lifetime.
-          </p>
         </div>
 
-        {/* Card grid — equal-height side-by-side on desktop, stacked
-            with Future Vault first on mobile. */}
         <div className="grid gap-5 sm:gap-8 lg:grid-cols-2 items-stretch max-w-[960px] mx-auto">
-          <FutureVaultCard />
-          <SharedGiftCard />
+          <TimeCapsuleCard />
+          <GiftCapsuleCard />
         </div>
 
-        {/* Bottom note */}
         <p className="mt-10 text-center text-[15px] text-ink-mid">
           Not sure?{" "}
           <Link
@@ -63,16 +111,11 @@ export function ChooseYourVault() {
   );
 }
 
-/**
- * Future Vault card — primary, amber-tinted. "Write now. They'll
- * open later." Carries the MOST POPULAR pill and links to the child
- * vault sign-up path.
- */
-function FutureVaultCard() {
+// ── Time Capsule card ─────────────────────────────────────────
+
+function TimeCapsuleCard() {
   return (
-    <Link
-      href="/sign-up"
-      aria-label="Start a Time Capsule"
+    <div
       className="group relative flex flex-col rounded-[20px] border-[1.5px] p-7 lg:p-8 transition-all duration-150 hover:-translate-y-[3px] hover:shadow-[0_8px_32px_rgba(196,122,58,0.18)]"
       style={{
         background: "#fef6ec",
@@ -80,25 +123,24 @@ function FutureVaultCard() {
         boxShadow: "0 4px 24px rgba(196,122,58,0.1)",
       }}
     >
-      {/* The "Most popular" pill lives inside the designer
-          composition at the top-left of /write now.png, so we don't
-          render a second one on the card frame. */}
-
-      <FutureVaultVisual />
+      <SwipeableExampleCards
+        cards={TIME_CAPSULE_EXAMPLES}
+        colorScheme="amber"
+      />
 
       <CardLabel icon={CalendarDays} color="amber">
         Time Capsule
       </CardLabel>
       <h3 className="text-[22px] font-extrabold text-navy tracking-[-0.5px] leading-[1.25]">
-        Write now. They&rsquo;ll open later.
+        Write now. They&rsquo;ll open it later.
       </h3>
-      <p className="text-[15px] text-ink-mid leading-[1.6]">
+      <p className="text-[15px] text-ink-mid leading-[1.6] mt-1.5">
         A private capsule between you and one other person — letters,
-        voice notes, photos, and videos they&rsquo;ll unlock on a
-        birthday, graduation, or any milestone you choose.
+        voice notes, photos, and videos they&rsquo;ll unlock on a day
+        you choose.
       </p>
 
-      <ul className="space-y-2 mt-1">
+      <ul className="space-y-2 mt-3">
         <Bullet icon={CalendarDays} color="amber">
           Choose the reveal date
         </Bullet>
@@ -111,26 +153,22 @@ function FutureVaultCard() {
       </ul>
 
       <div className="mt-auto pt-5">
-        {/* Inner CTA — visually prominent but the whole card is the
-            link. The nested button is styled but inherits the link's
-            click; keep as a span so it doesn't become a nested anchor. */}
-        <span className="block w-full text-center bg-amber text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors group-hover:bg-amber-dark">
+        <Link
+          href="/sign-up"
+          className="block w-full text-center bg-amber text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors hover:bg-amber-dark"
+        >
           Start a Time Capsule →
-        </span>
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }
 
-/**
- * Gift Capsule card — secondary, cool-toned. "Collect messages.
- * Create a gift." Links to the capsule path.
- */
-function SharedGiftCard() {
+// ── Gift Capsule card ─────────────────────────────────────────
+
+function GiftCapsuleCard() {
   return (
-    <Link
-      href="/sign-up?path=capsule"
-      aria-label="Create a Gift Capsule"
+    <div
       className="group relative flex flex-col rounded-[20px] border-[1.5px] p-7 lg:p-8 transition-all duration-150 hover:-translate-y-[3px] hover:shadow-[0_8px_32px_rgba(15,31,61,0.12)]"
       style={{
         background: "#f0f4fa",
@@ -138,21 +176,23 @@ function SharedGiftCard() {
         boxShadow: "0 4px 24px rgba(15,31,61,0.06)",
       }}
     >
-      <SharedGiftVisual />
+      <SwipeableExampleCards
+        cards={GIFT_CAPSULE_EXAMPLES}
+        colorScheme="navy"
+      />
 
       <CardLabel icon={Gift} color="navy">
         Gift Capsule
       </CardLabel>
       <h3 className="text-[22px] font-extrabold text-navy tracking-[-0.5px] leading-[1.25]">
-        Collect messages. Create a gift.
+        Collect messages. Give it together.
       </h3>
-      <p className="text-[15px] text-ink-mid leading-[1.6]">
-        Invite others to add letters, voice notes, photos, and videos.
-        Perfect for birthdays, teachers, coaches, anniversaries,
-        retirements, and special celebrations.
+      <p className="text-[15px] text-ink-mid leading-[1.6] mt-1.5">
+        Invite friends and family to contribute. Perfect for birthdays,
+        celebrations, and moments that matter.
       </p>
 
-      <ul className="space-y-2 mt-1">
+      <ul className="space-y-2 mt-3">
         <Bullet icon={Users} color="navy">
           Invite friends &amp; family to contribute
         </Bullet>
@@ -164,16 +204,33 @@ function SharedGiftCard() {
         </Bullet>
       </ul>
 
-      <div className="mt-auto pt-5">
-        <span className="block w-full text-center bg-navy text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors group-hover:bg-navy-mid">
-          Create a Gift Capsule →
-        </span>
+      {/* Occasion tags */}
+      <div className="flex flex-wrap gap-2 mt-4">
+        {["Anniversaries", "Birthdays", "Retirement", "Just Because"].map(
+          (tag) => (
+            <span
+              key={tag}
+              className="text-[11px] font-semibold text-navy/70 bg-white border border-navy/10 px-2.5 py-1 rounded-full"
+            >
+              {tag}
+            </span>
+          ),
+        )}
       </div>
-    </Link>
+
+      <div className="mt-auto pt-5">
+        <Link
+          href="/sign-up?path=capsule"
+          className="block w-full text-center bg-navy text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors hover:bg-navy-mid"
+        >
+          Create a Gift Capsule →
+        </Link>
+      </div>
+    </div>
   );
 }
 
-// ───── Shared primitives ─────────────────────────────────────
+// ── Shared primitives ─────────────────────────────────────────
 
 function CardLabel({
   icon: Icon,
@@ -184,13 +241,11 @@ function CardLabel({
   color: "amber" | "navy";
   children: React.ReactNode;
 }) {
-  const klass =
-    color === "amber"
-      ? "text-amber"
-      : "text-navy";
   return (
     <div
-      className={`inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.14em] uppercase ${klass}`}
+      className={`inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.14em] uppercase ${
+        color === "amber" ? "text-amber" : "text-navy"
+      }`}
     >
       <Icon size={14} strokeWidth={1.5} aria-hidden="true" />
       {children}
@@ -207,53 +262,17 @@ function Bullet({
   color: "amber" | "navy";
   children: React.ReactNode;
 }) {
-  const iconClass = color === "amber" ? "text-amber" : "text-navy";
   return (
-    <li className="flex items-center gap-2 text-[15px] text-ink-mid leading-[1.5]">
+    <li
+      className="flex items-center gap-2 text-[15px] text-ink-mid leading-[1.5]"
+    >
       <Icon
         size={16}
         strokeWidth={1.5}
         aria-hidden="true"
-        className={`shrink-0 ${iconClass}`}
+        className={`shrink-0 ${color === "amber" ? "text-amber" : "text-navy"}`}
       />
       {children}
     </li>
-  );
-}
-
-// ───── Illustrative card visuals ─────────────────────────────
-//
-// The artwork for each card now comes from a designer-supplied PNG
-// dropped into /public (write now.png, create gift.png). Previous
-// CSS-composed letter / sticky / photo elements are gone — the
-// images already contain the full composition.
-
-function FutureVaultVisual() {
-  return (
-    <div className="mb-6 -mx-1 select-none pointer-events-none">
-      <Image
-        src="/write%20now.png"
-        alt=""
-        width={493}
-        height={343}
-        priority={false}
-        className="w-full h-auto"
-      />
-    </div>
-  );
-}
-
-function SharedGiftVisual() {
-  return (
-    <div className="mb-6 -mx-1 select-none pointer-events-none">
-      <Image
-        src="/create%20gift.png"
-        alt=""
-        width={498}
-        height={328}
-        priority={false}
-        className="w-full h-auto"
-      />
-    </div>
   );
 }
