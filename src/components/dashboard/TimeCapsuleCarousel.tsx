@@ -69,7 +69,7 @@ export function TimeCapsuleCarousel({
         })}
         {/* "Add a capsule" card */}
         <CarouselSlot offset={items.length - activeIndex} onClick={() => goTo(items.length)}>
-          <AddCapsuleCard active={items.length === activeIndex} />
+          <AddCapsuleCard active={items.length === activeIndex} capsuleCount={items.length} />
         </CarouselSlot>
       </div>
 
@@ -228,7 +228,7 @@ function CapsuleCard({
   );
 }
 
-function AddCapsuleCard({ active }: { active: boolean }) {
+function AddCapsuleCard({ active, capsuleCount }: { active: boolean; capsuleCount: number }) {
   return (
     <div
       className="flex flex-col items-center justify-center rounded-[20px] border-2 border-dashed"
@@ -253,7 +253,7 @@ function AddCapsuleCard({ active }: { active: boolean }) {
         <p className="text-[13px] text-ink-light mb-5">
           Start writing to someone new.
         </p>
-        <NewVaultButton variant="primary" label="New Time Capsule →" capsuleCount={items.length} />
+        <NewVaultButton variant="primary" label="New Time Capsule →" capsuleCount={capsuleCount} />
       </div>
     </div>
   );
