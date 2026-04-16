@@ -161,7 +161,7 @@ function RightAction() {
             href="/sign-in"
             className="text-[14px] font-medium text-navy/85 hover:text-navy transition-colors"
           >
-            Sign in
+            Sign in →
           </Link>
           <Link
             href="/sign-up"
