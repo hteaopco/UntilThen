@@ -77,7 +77,7 @@ export function RevealDatePicker({
   disabled?: boolean;
   minDate?: string;
   /**
-   * Optional ceiling — used by Memory Capsules to enforce the
+   * Optional ceiling — used by Gift Capsules to enforce the
    * 60-day reveal horizon so users can't short-circuit the
    * child-vault product via a long-horizon capsule.
    */

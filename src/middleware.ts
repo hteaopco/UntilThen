@@ -14,7 +14,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/invite/(.*)",
-  // Memory Capsule public surfaces — contributor invite links
+  // Gift Capsule public surfaces — contributor invite links
   // and the recipient reveal flow are both accountless by design.
   // /capsules/new is public too so visitors landing from the
   // pricing CTA can fill out step 1 before being asked to

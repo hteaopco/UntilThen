@@ -131,7 +131,7 @@ export async function PATCH(
     if (parsed.getTime() > ceiling) {
       return NextResponse.json(
         {
-          error: `Memory Capsules reveal within ${CAPSULE_MAX_HORIZON_DAYS} days of creation.`,
+          error: `Gift Capsules reveal within ${CAPSULE_MAX_HORIZON_DAYS} days of creation.`,
         },
         { status: 400 },
       );

@@ -228,7 +228,7 @@ export function OnboardingForm({
 
             <PathCard
               icon="capsule"
-              title="Create a Memory Capsule"
+              title="Create a Gift Capsule"
               body="Collect memories from friends and family for a birthday, anniversary, retirement or any milestone."
               price="$9.99 one-time · No subscription"
               cta="Create a capsule →"

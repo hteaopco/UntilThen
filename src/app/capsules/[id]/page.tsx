@@ -8,7 +8,7 @@ import { r2IsConfigured, signGetUrl, type MediaKind } from "@/lib/r2";
 import { CapsuleOverview } from "./CapsuleOverview";
 
 export const metadata = {
-  title: "Memory Capsule — untilThen",
+  title: "Gift Capsule — untilThen",
 };
 
 export const dynamic = "force-dynamic";

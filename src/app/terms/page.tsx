@@ -37,7 +37,7 @@ export default function TermsPage() {
         opened at a milestone date chosen by the parent.
       </p>
       <p>
-        <strong>Memory Capsule</strong> — a one-time service that allows
+        <strong>Gift Capsule</strong> — a one-time service that allows
         anyone to create a sealed collection of memories contributed by
         multiple people, to be opened by a recipient on a chosen date within
         60 days of creation.
@@ -116,7 +116,7 @@ export default function TermsPage() {
         trial period.
       </p>
 
-      <h3>3.2 Memory Capsule</h3>
+      <h3>3.2 Gift Capsule</h3>
       <ul>
         <li>
           <strong>One-time payment:</strong> $9.99 per capsule
@@ -270,7 +270,7 @@ export default function TermsPage() {
       <h3>5.1 Account Creator Age Requirement</h3>
       <p>
         Only adults aged 18 or older may create untilThen accounts as parents,
-        guardians, contributors, or Memory Capsule organisers. Children are
+        guardians, contributors, or Gift Capsule organisers. Children are
         recipients of vaults — they do not create accounts to manage or
         contribute to vaults. When a child&rsquo;s reveal date arrives they
         may create an account to access and save their vault content, at

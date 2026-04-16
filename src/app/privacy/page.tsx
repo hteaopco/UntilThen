@@ -101,9 +101,9 @@ export default function PrivacyPage() {
         subject to this same Privacy Policy.
       </p>
 
-      <h3>2.5 Memory Capsule Recipients</h3>
+      <h3>2.5 Gift Capsule Recipients</h3>
       <p>
-        For Memory Capsules, we collect the recipient&rsquo;s name and email
+        For Gift Capsules, we collect the recipient&rsquo;s name and email
         address to deliver the capsule on the reveal date. Recipients who
         create accounts to save their capsule are subject to this Privacy
         Policy.
@@ -158,7 +158,7 @@ export default function PrivacyPage() {
       </p>
       <p>
         <strong>Account creators</strong> — parents, guardians, contributors,
-        and Memory Capsule organisers — must be 18 or older. They create and
+        and Gift Capsule organisers — must be 18 or older. They create and
         manage vaults on behalf of their children.
       </p>
       <p>
@@ -399,7 +399,7 @@ export default function PrivacyPage() {
           months after cancellation, then deleted with 30 days notice
         </li>
         <li>
-          <strong>Memory Capsule drafts:</strong> Deleted after 7 days if not
+          <strong>Gift Capsule drafts:</strong> Deleted after 7 days if not
           activated
         </li>
         <li>

@@ -17,7 +17,7 @@ export const dynamic = "force-dynamic";
  *    We create User → Child → Vault in one transaction (the
  *    historical behaviour).
  *
- * 2. Memory Capsule — name-only body. We create just the User
+ * 2. Gift Capsule — name-only body. We create just the User
  *    record so the organiser can proceed to `/capsules/new`
  *    without a child on file. `userType` is stamped based on
  *    which path arrived.

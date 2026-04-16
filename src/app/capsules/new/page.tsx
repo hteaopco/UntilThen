@@ -1,7 +1,7 @@
 import { CapsuleCreationFlow } from "./CapsuleCreationFlow";
 
 export const metadata = {
-  title: "Create a Memory Capsule — untilThen",
+  title: "Create a Gift Capsule — untilThen",
 };
 
 export const dynamic = "force-dynamic";

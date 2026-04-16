@@ -60,7 +60,7 @@ enum ContributorStatus {
 /// changing the role-based access model.
 ///
 /// - PARENT    — signed up to write to a child (child vault path)
-/// - ORGANISER — signed up to run a Memory Capsule
+/// - ORGANISER — signed up to run a Gift Capsule
 /// - BOTH      — has created both a vault and a capsule
 enum UserType {
   PARENT
@@ -191,7 +191,7 @@ model Entry {
   @@index([vaultId, isSealed])
 }
 
-// ── Memory Capsules ───────────────────────────────────────
+// ── Gift Capsules ───────────────────────────────────────
 //
 // Second product type: a one-time, occasion-based capsule
 // (birthday, anniversary, retirement, etc.). Separate from the

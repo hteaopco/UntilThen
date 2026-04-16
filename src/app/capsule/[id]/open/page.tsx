@@ -1,7 +1,7 @@
 import { CapsuleRevealClient } from "./CapsuleRevealClient";
 
 export const metadata = {
-  title: "Your Memory Capsule — untilThen",
+  title: "Your Gift Capsule — untilThen",
 };
 
 export const dynamic = "force-dynamic";

@@ -85,7 +85,7 @@ export function CapsuleContributeForm({
       <header className="px-6 py-5 flex items-center justify-between max-w-[560px] mx-auto">
         <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
           <Sparkles size={14} strokeWidth={1.75} aria-hidden="true" />
-          Memory Capsule
+          Gift Capsule
         </span>
         <LogoSvg variant="dark" width={100} height={20} />
       </header>

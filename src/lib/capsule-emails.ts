@@ -1,4 +1,4 @@
-// Resend email helpers for Memory Capsules. Best-effort — failed
+// Resend email helpers for Gift Capsules. Best-effort — failed
 // sends log and move on, never fail the parent request.
 
 const FROM = "untilThen <hello@untilthenapp.io>";
@@ -100,10 +100,10 @@ export async function sendCapsuleDraftSaved(params: {
 }): Promise<void> {
   await send({
     to: params.to,
-    subject: `Your Memory Capsule is saved — complete setup to send invites`,
+    subject: `Your Gift Capsule is saved — complete setup to send invites`,
     html: wrap(`
       <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-        Your Memory Capsule is saved.
+        Your Gift Capsule is saved.
       </h1>
       <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 20px;">
         ${escapeHtml(params.title)} is waiting. Add contributors and
@@ -124,7 +124,7 @@ export async function sendCapsuleDraftExpiring(params: {
 }): Promise<void> {
   await send({
     to: params.to,
-    subject: `Your Memory Capsule draft expires tomorrow`,
+    subject: `Your Gift Capsule draft expires tomorrow`,
     html: wrap(`
       <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
         Tomorrow&rsquo;s the last day to finish ${escapeHtml(params.title)}.
@@ -151,10 +151,10 @@ export async function sendCapsuleActivated(params: {
 }): Promise<void> {
   await send({
     to: params.to,
-    subject: `Your Memory Capsule is live — invites sent`,
+    subject: `Your Gift Capsule is live — invites sent`,
     html: wrap(`
       <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-        Your Memory Capsule is live.
+        Your Gift Capsule is live.
       </h1>
       <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
         ${params.contributorCount} ${params.contributorCount === 1 ? "invite" : "invites"}
@@ -231,7 +231,7 @@ export async function sendCapsuleRevealDay(params: {
   const url = `${baseUrl()}/capsule/${params.capsuleId}/open?t=${params.accessToken}`;
   await send({
     to: params.to,
-    subject: `Your Memory Capsule is ready, ${params.recipientName}`,
+    subject: `Your Gift Capsule is ready, ${params.recipientName}`,
     html: wrap(`
       <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
         Hi ${escapeHtml(params.recipientName)},

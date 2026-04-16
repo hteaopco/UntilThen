@@ -1,4 +1,4 @@
-// Shared helpers for Memory Capsule routes + pages. Keeps
+// Shared helpers for Gift Capsule routes + pages. Keeps
 // ownership checks, token resolution, and status-transition
 // logic in one place so every route applies the same rules.
 

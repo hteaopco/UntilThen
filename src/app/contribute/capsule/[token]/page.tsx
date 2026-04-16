@@ -5,7 +5,7 @@ import { effectiveStatus } from "@/lib/capsules";
 import { CapsuleContributeForm } from "./CapsuleContributeForm";
 
 export const metadata = {
-  title: "Contribute to a Memory Capsule — untilThen",
+  title: "Contribute to a Gift Capsule — untilThen",
 };
 
 export const dynamic = "force-dynamic";

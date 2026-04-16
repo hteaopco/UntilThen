@@ -124,7 +124,7 @@ export async function POST(req: Request) {
   if (revealDate.getTime() - Date.now() > CAPSULE_MAX_HORIZON_MS) {
     return NextResponse.json(
       {
-        error: `Memory Capsules reveal within ${CAPSULE_MAX_HORIZON_DAYS} days. For longer timeframes, write into a child Vault instead.`,
+        error: `Gift Capsules reveal within ${CAPSULE_MAX_HORIZON_DAYS} days. For longer timeframes, write into a child Vault instead.`,
       },
       { status: 400 },
     );

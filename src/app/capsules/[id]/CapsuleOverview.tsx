@@ -97,6 +97,9 @@ export function CapsuleOverview({
 
   const isDraft = capsule.rawStatus === "DRAFT";
   const pronoun = recipientPronounOf(capsule);
+  const subjectPronoun = pronoun === "her" ? "she" : pronoun === "him" ? "he" : "they";
+  const possessivePronoun = pronoun === "her" ? "her" : pronoun === "him" ? "his" : "their";
+  const subjectCapitalized = subjectPronoun.charAt(0).toUpperCase() + subjectPronoun.slice(1);
   const pending = contributions.filter(
     (c) => c.approvalStatus === "PENDING_REVIEW",
   );
@@ -209,7 +212,7 @@ export function CapsuleOverview({
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.14em] uppercase text-amber">
             <Sparkles size={14} strokeWidth={1.75} aria-hidden="true" />
-            Memory Capsule · {OCCASION_LABELS[capsule.occasionType]}
+            Gift Capsule · {OCCASION_LABELS[capsule.occasionType]}
           </span>
           {isDraft && (
             // Non-blocking pill. Click jumps the page down to the
@@ -229,22 +232,23 @@ export function CapsuleOverview({
           {capsule.title}
         </h1>
 
-        {/* Emotional sub-header, draft-only. Tells the organiser
-            exactly what's about to happen in human terms —
-            "people will add memories for Evelyn, they'll open
-            them all at once on May 20" — so the page reads as a
-            shared experience being built, not a form in
-            progress. Live capsules show contact meta instead. */}
+        <h2 className="mt-3 text-[20px] lg:text-[24px] font-bold text-navy/80 leading-[1.2] tracking-[-0.3px]">
+          Everyone who loves {pronoun}, in one place.
+        </h2>
+
         {isDraft ? (
-          <p className="mt-2 text-[15px] text-ink-mid leading-[1.5]">
-            People will add memories for {capsule.recipientName}.
-            <br />
-            They&rsquo;ll open them all at once on{" "}
-            <span className="font-semibold text-navy">
-              {formatLong(capsule.revealDate)}
-            </span>
-            .
-          </p>
+          <>
+            <p className="mt-2 text-[15px] text-ink-mid leading-[1.5]">
+              A gift {subjectPronoun}&rsquo;ll open all at once &mdash; on{" "}
+              <span className="font-semibold text-navy">
+                {formatLong(capsule.revealDate)}
+              </span>
+              .
+            </p>
+            <p className="mt-1.5 text-[13px] italic text-ink-light">
+              {subjectCapitalized} won&rsquo;t expect this.
+            </p>
+          </>
         ) : (
           <p className="mt-2 text-[15px] text-ink-mid">
             For {capsule.recipientName}
@@ -298,6 +302,7 @@ export function CapsuleOverview({
         <OwnContribution
           capsuleId={capsule.id}
           recipientName={capsule.recipientName}
+          possessivePronoun={possessivePronoun}
           contribution={ownContribution ?? null}
           initialAttachments={ownAttachments}
         />
@@ -314,10 +319,10 @@ export function CapsuleOverview({
       >
         <div className="mb-3">
           <h2 className="text-[17px] font-bold text-navy tracking-[-0.2px]">
-            Invite people
+            Add contributors (optional)
           </h2>
           <p className="mt-0.5 text-sm text-ink-mid">
-            Add a few people — or skip for now.
+            You&rsquo;ll send invites after unlocking your capsule.
           </p>
         </div>
 
@@ -394,46 +399,29 @@ export function CapsuleOverview({
               Invite everyone who loves {pronoun}
             </h2>
             <p className="text-sm text-ink-mid leading-[1.6]">
-              We&rsquo;ll send invites now so they can add messages.
-              Everything will be delivered to {capsule.recipientName} on{" "}
-              {formatLong(capsule.revealDate)}.
+              They&rsquo;ll each add something &mdash; a message, a memory, a voice note.
+              <br />
+              {subjectCapitalized}&rsquo;ll open it all at once.
             </p>
             <button
               type="button"
               onClick={() => setActivateOpen(true)}
               className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
-              {invites.length === 0
-                ? "Unlock your capsule — $9.99 →"
-                : "Unlock & send invites — $9.99 →"}
+              Send invites &mdash; $9.99 &rarr;
             </button>
-            <p className="text-sm text-ink-mid leading-[1.55]">
-              {invites.length === 0 ? (
-                <>
-                  You can invite people after unlocking, or keep it just
-                  from you.
-                </>
-              ) : (
-                <>
-                  Invites go to contributors now. {capsule.recipientName}{" "}
-                  receives everything on {formatLong(capsule.revealDate)}.
-                </>
-              )}
+            <p className="text-sm font-semibold text-navy">
+              Nothing is sent yet. You&rsquo;ll review everything before delivery.
             </p>
             <p className="text-xs italic text-ink-light">
               Takes less than 2 minutes. No subscription.
-            </p>
-            {/* Confidence line — the single reassurance that payment
-                does NOT fire anything off to the recipient yet. */}
-            <p className="text-sm font-semibold text-navy">
-              Nothing is sent to {capsule.recipientName} yet.
             </p>
             <div className="pt-1">
               <Link
                 href={`/capsules/${capsule.id}/preview`}
                 className="text-sm font-medium text-ink-mid hover:text-navy transition-colors"
               >
-                Preview their moment →
+                Preview their moment &rarr;
               </Link>
             </div>
           </div>
@@ -525,11 +513,13 @@ export function CapsuleOverview({
 function OwnContribution({
   capsuleId,
   recipientName,
+  possessivePronoun,
   contribution,
   initialAttachments,
 }: {
   capsuleId: string;
   recipientName: string;
+  possessivePronoun: string;
   contribution: ContributionRow | null;
   initialAttachments: Attachment[];
 }) {
@@ -821,10 +811,13 @@ function OwnContribution({
         </div>
         <div>
           <div className="text-[15px] font-bold text-navy">
-            Start with your message →
+            Start {possessivePronoun} first message &rarr;
           </div>
           <div className="text-xs text-ink-mid italic mt-0.5">
-            Write the first note — others will follow your lead.
+            Write the first note &mdash; others will follow your lead.
+          </div>
+          <div className="text-[11px] font-semibold text-navy/60 mt-1">
+            Nothing is sent yet.
           </div>
         </div>
       </div>
@@ -1336,7 +1329,7 @@ function ActivationModal({
             <div className="rounded-xl border border-navy/[0.08] bg-warm-surface/60 px-5 py-4 space-y-2">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="text-[11px] uppercase tracking-[0.1em] font-bold text-ink-light">
-                  Memory Capsule
+                  Gift Capsule
                 </span>
                 <span className="text-sm font-semibold text-navy">$9.99</span>
               </div>
@@ -1345,20 +1338,8 @@ function ActivationModal({
               </p>
             </div>
             <p className="text-sm text-ink-mid leading-[1.6]">
-              We&rsquo;ll send invites now to the{" "}
-              {invitesStaged > 0 ? (
-                <>
-                  {invitesStaged.toLocaleString()}{" "}
-                  {invitesStaged === 1 ? "person" : "people"} you&rsquo;ve added
-                </>
-              ) : (
-                <>contributors you add</>
-              )}{" "}
-              so they can add messages. Everything will be delivered to{" "}
-              {recipientName} on reveal day.
-            </p>
-            <p className="text-xs italic text-ink-light">
-              Takes less than 2 minutes. No subscription.
+              They&rsquo;ll each add something &mdash; a message, a memory, a voice note.
+              {recipientName} will open it all at once.
             </p>
             {error && (
               <p className="text-sm text-red-600" role="alert">
@@ -1370,15 +1351,13 @@ function ActivationModal({
               onClick={confirmPayment}
               className="w-full bg-amber text-white py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
-              {invitesStaged === 0
-                ? "Unlock your capsule — $9.99 →"
-                : "Unlock & send invites — $9.99 →"}
+              Send invites &mdash; $9.99 &rarr;
             </button>
-            {/* Confidence line — payment does not fire anything off
-                to the recipient; reassurance the user needs before
-                handing over $9.99. */}
             <p className="text-sm font-semibold text-navy text-center">
-              Nothing is sent to {recipientName} yet.
+              Nothing is sent yet. You&rsquo;ll review everything before delivery.
+            </p>
+            <p className="text-xs italic text-ink-light text-center">
+              Takes less than 2 minutes. No subscription.
             </p>
           </div>
         ) : (
