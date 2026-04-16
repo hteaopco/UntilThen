@@ -368,7 +368,7 @@ async function CapsuleDetailView({
   const pending: PendingEntry[] = pendingEntries.map((e: Record<string, unknown>) => ({
     id: e.id as string,
     title: e.title as string | null,
-    type: e.type as string,
+    type: e.type as "TEXT" | "PHOTO" | "VOICE" | "VIDEO",
     createdAt: (e.createdAt as Date).toISOString(),
     contributorName:
       ((e as Record<string, unknown>).contributor as Record<string, unknown> | null)?.name as string ??
