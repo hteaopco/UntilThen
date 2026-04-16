@@ -460,10 +460,6 @@ function DashboardHeader() {
           <LogoSvg variant="dark" width={130} height={26} />
         </Link>
         <div className="flex items-center gap-5">
-          <ul className="hidden lg:flex items-center gap-5 text-sm text-ink-mid">
-            <li><Link href="/blog" className="hover:text-navy transition-colors font-medium">Blog</Link></li>
-            <li><Link href="/faq" className="hover:text-navy transition-colors font-medium">FAQ</Link></li>
-          </ul>
           <Avatar />
         </div>
       </div>

@@ -10,7 +10,6 @@ import { LogoSvg } from "@/components/ui/LogoSvg";
 const LINKS = [
   { href: "/#how", label: "How it works" },
   { href: "/#pricing", label: "Pricing" },
-  { href: "/faq", label: "FAQ" },
 ] as const;
 
 /**
