@@ -10,7 +10,6 @@ import { LogoSvg } from "@/components/ui/LogoSvg";
 const LINKS = [
   { href: "/#how", label: "How it works" },
   { href: "/#pricing", label: "Pricing" },
-  { href: "/blog", label: "Blog" },
   { href: "/faq", label: "FAQ" },
 ] as const;
 
@@ -167,7 +166,7 @@ function RightAction() {
             href="/sign-up"
             className="inline-flex items-center bg-amber text-white px-3.5 py-2 rounded-lg text-[13px] font-bold tracking-[0.01em] hover:bg-amber-dark transition-colors"
           >
-            Sign up
+            Get Started
           </Link>
         </div>
       </SignedOut>

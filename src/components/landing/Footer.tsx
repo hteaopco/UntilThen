@@ -35,6 +35,14 @@ export function Footer() {
               Help
             </a>
           </li>
+          <li>
+            <Link
+              href="/blog"
+              className="text-[13px] text-white/90 hover:text-white transition-colors"
+            >
+              Blog
+            </Link>
+          </li>
         </ul>
       </div>
     </footer>

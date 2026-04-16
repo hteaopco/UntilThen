@@ -3,11 +3,6 @@ export function Hero() {
     <section id="top" className="bg-cream overflow-hidden">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-[120px] pb-10 flex flex-col items-center text-center">
         <div className="relative z-[2] max-w-[640px]">
-          <div className="hero-tag inline-flex items-center gap-2 text-xs font-bold tracking-[0.12em] uppercase text-amber bg-amber-tint px-[14px] py-1.5 rounded-md mb-6">
-            <span aria-hidden="true">✦</span>
-            Now taking early access
-          </div>
-
           <h1 className="hero-headline text-[clamp(40px,5vw,64px)] font-extrabold leading-[1.05] tracking-[-2px] text-navy mb-5">
             Say it now.
             <br />
