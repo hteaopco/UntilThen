@@ -11,6 +11,11 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 
+import {
+  CardSwipePanel,
+  type StackCard,
+} from "@/components/marketing/CardSwipePanel";
+
 /**
  * "Choose your vault" — the two-path introduction that sits between
  * the hero and the "How it works" section on the landing page.
@@ -63,16 +68,71 @@ export function ChooseYourVault() {
   );
 }
 
-/**
- * Future Vault card — primary, amber-tinted. "Write now. They'll
- * open later." Carries the MOST POPULAR pill and links to the child
- * vault sign-up path.
- */
+// ── Example card data ─────────────────────────────────────────
+
+const TIME_CAPSULE_STACK: StackCard[] = [
+  {
+    eyebrow: "To Ellie, age 18",
+    title: "The night before your first day of school",
+    preview:
+      "You picked the backpack with tiny stars. I watched you pack it three times\u2026",
+    badge: "Unlocks Sept 2038",
+    badgeColor: "amber",
+  },
+  {
+    eyebrow: "For when you fall in love",
+    title: "A voice note from Dad",
+    preview: "\uD83C\uDFA4 2:34 \u00B7 recorded on a rainy Sunday",
+    badge: "Sealed",
+    badgeColor: "gold",
+  },
+  {
+    eyebrow: "Always",
+    title: "The day we brought you home",
+    preview: "\uD83D\uDCF7 47 photos \u00B7 with a letter",
+    badge: "Sealed",
+    badgeColor: "gold",
+  },
+];
+
+const GIFT_CAPSULE_STACK: StackCard[] = [
+  {
+    eyebrow: "Dad\u2019s 60th Birthday",
+    title: "Happy birthday, Dad.",
+    preview:
+      "We all wrote you something. Open when you\u2019re ready\u2026",
+    badge: "Sealed",
+    badgeColor: "gold",
+  },
+  {
+    eyebrow: "From Sarah \u00B7 Dad\u2019s 60th",
+    title: "I still remember the fishing trips.",
+    preview:
+      "Every Sunday morning, without fail. That\u2019s the kind of dad you are.",
+    badge: "Sealed",
+    badgeColor: "gold",
+  },
+  {
+    eyebrow: "From James & the kids \u00B7 Dad\u2019s 60th",
+    title: "\uD83C\uDFA4 Voice note",
+    preview: "1:18 \u00B7 recorded at the kitchen table",
+    badge: "Sealed",
+    badgeColor: "gold",
+  },
+];
+
+const GIFT_OCCASION_PILLS = [
+  "Birthdays",
+  "Anniversaries",
+  "Retirement",
+  "Just Because",
+];
+
+// ── Cards ─────────────────────────────────────────────────────
+
 function FutureVaultCard() {
   return (
-    <Link
-      href="/sign-up"
-      aria-label="Start a Time Capsule"
+    <div
       className="group relative flex flex-col rounded-[20px] border-[1.5px] p-7 lg:p-8 transition-all duration-150 hover:-translate-y-[3px] hover:shadow-[0_8px_32px_rgba(196,122,58,0.18)]"
       style={{
         background: "#fef6ec",
@@ -80,11 +140,10 @@ function FutureVaultCard() {
         boxShadow: "0 4px 24px rgba(196,122,58,0.1)",
       }}
     >
-      {/* The "Most popular" pill lives inside the designer
-          composition at the top-left of /write now.png, so we don't
-          render a second one on the card frame. */}
-
-      <FutureVaultVisual />
+      <CardSwipePanel
+        defaultPanel={<FutureVaultVisual />}
+        cards={TIME_CAPSULE_STACK}
+      />
 
       <CardLabel icon={CalendarDays} color="amber">
         Time Capsule
@@ -111,26 +170,20 @@ function FutureVaultCard() {
       </ul>
 
       <div className="mt-auto pt-5">
-        {/* Inner CTA — visually prominent but the whole card is the
-            link. The nested button is styled but inherits the link's
-            click; keep as a span so it doesn't become a nested anchor. */}
-        <span className="block w-full text-center bg-amber text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors group-hover:bg-amber-dark">
+        <Link
+          href="/sign-up"
+          className="block w-full text-center bg-amber text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors hover:bg-amber-dark"
+        >
           Start a Time Capsule →
-        </span>
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }
 
-/**
- * Gift Capsule card — secondary, cool-toned. "Collect messages.
- * Create a gift." Links to the capsule path.
- */
 function SharedGiftCard() {
   return (
-    <Link
-      href="/sign-up?path=capsule"
-      aria-label="Create a Gift Capsule"
+    <div
       className="group relative flex flex-col rounded-[20px] border-[1.5px] p-7 lg:p-8 transition-all duration-150 hover:-translate-y-[3px] hover:shadow-[0_8px_32px_rgba(15,31,61,0.12)]"
       style={{
         background: "#f0f4fa",
@@ -138,7 +191,11 @@ function SharedGiftCard() {
         boxShadow: "0 4px 24px rgba(15,31,61,0.06)",
       }}
     >
-      <SharedGiftVisual />
+      <CardSwipePanel
+        defaultPanel={<SharedGiftVisual />}
+        cards={GIFT_CAPSULE_STACK}
+        pills={GIFT_OCCASION_PILLS}
+      />
 
       <CardLabel icon={Gift} color="navy">
         Gift Capsule
@@ -165,11 +222,14 @@ function SharedGiftCard() {
       </ul>
 
       <div className="mt-auto pt-5">
-        <span className="block w-full text-center bg-navy text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors group-hover:bg-navy-mid">
+        <Link
+          href="/sign-up?path=capsule"
+          className="block w-full text-center bg-navy text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors hover:bg-navy-mid"
+        >
           Create a Gift Capsule →
-        </span>
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }
 

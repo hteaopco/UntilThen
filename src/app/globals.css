@@ -57,6 +57,15 @@ html {
   50%, 100% { opacity: 0; }
 }
 
+/* Subtle left-nudge hint on the Choose Your Vault card panels.
+   Fires once on first scroll-into-view to signal "swipe me". */
+@keyframes nudgeLeft {
+  0%   { transform: translateX(0); }
+  30%  { transform: translateX(-10px); }
+  60%  { transform: translateX(3px); }
+  100% { transform: translateX(0); }
+}
+
 @keyframes confettiFall {
   0%   { transform: translateY(-24px) rotate(0deg); opacity: 0; }
   8%   { opacity: 0.8; }

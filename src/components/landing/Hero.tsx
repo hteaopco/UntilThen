@@ -1,10 +1,8 @@
-import { HeroLetterStack } from "./HeroLetterStack";
-
 export function Hero() {
   return (
     <section id="top" className="bg-cream overflow-hidden">
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-[120px] pb-20 grid lg:grid-cols-2 gap-12 lg:gap-20 items-center lg:min-h-[100vh]">
-        <div className="relative z-[2]">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-[120px] pb-20 flex flex-col items-center text-center lg:min-h-[80vh] justify-center">
+        <div className="relative z-[2] max-w-[640px]">
           <div className="hero-tag inline-flex items-center gap-2 text-xs font-bold tracking-[0.12em] uppercase text-amber bg-amber-tint px-[14px] py-1.5 rounded-md mb-6">
             <span aria-hidden="true">✦</span>
             Now taking early access
@@ -17,13 +15,7 @@ export function Hero() {
             <span className="font-light italic text-amber">open later.</span>
           </h1>
 
-          {/* The single emotional line the rest of the page earns
-              the right to make. Kept deliberately short. */}
-          <p className="hero-sub text-[19px] lg:text-[21px] font-medium italic text-amber/90 leading-[1.4] mb-5 max-w-[440px]">
-            Your voice will find them again, one day.
-          </p>
-
-          <p className="hero-sub text-[17px] font-normal leading-[1.7] text-ink-mid max-w-[440px] mb-10">
+          <p className="hero-sub text-[17px] font-normal leading-[1.7] text-ink-mid max-w-[480px] mx-auto mb-10">
             Write letters, record your voice, and save moments they&rsquo;ll
             open years from now — on their 18th birthday, or any day you
             choose. Or{" "}
@@ -46,10 +38,6 @@ export function Hero() {
               Start your Time Capsules today →
             </a>
           </div>
-        </div>
-
-        <div className="hero-right">
-          <HeroLetterStack />
         </div>
       </div>
     </section>
