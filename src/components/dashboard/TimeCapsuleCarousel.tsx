@@ -179,15 +179,15 @@ function CapsuleCard({
           className="absolute inset-0 z-10"
           style={{
             background:
-              "linear-gradient(180deg, #fef6ec 0%, transparent 30%)",
+              "linear-gradient(180deg, #fef6ec 0%, transparent 40%)",
           }}
         />
         <Image
-          src="/write%20now.png"
+          src="/smallchild1.png"
           alt=""
-          width={493}
-          height={343}
-          className="w-full h-full object-cover object-top"
+          width={1672}
+          height={941}
+          className="w-full h-full object-cover object-center"
           priority={false}
         />
       </div>
