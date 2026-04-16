@@ -48,7 +48,7 @@ function ConfettiOverlay() {
   );
 }
 
-type PlanVariant = "featured" | "gift" | "plain";
+type PlanVariant = "featured" | "gift";
 
 function Plan({
   variant,
@@ -81,9 +81,7 @@ function Plan({
 
   const cardClasses = featured
     ? "border-amber/40 shadow-[0_12px_32px_-10px_rgba(196,122,58,0.3)]"
-    : gift
-      ? "bg-[#fdf6e8] border-gold/25 shadow-[0_10px_30px_-10px_rgba(201,168,76,0.22)]"
-      : "bg-white border-navy/[0.08] hover:shadow-[0_8px_24px_rgba(15,31,61,0.08)]";
+    : "bg-[#fdf6e8] border-gold/25 shadow-[0_10px_30px_-10px_rgba(201,168,76,0.22)]";
 
   // Featured plan uses a soft top-lit amber gradient so the card has
   // depth and warmth instead of reading as a flat block of colour.
@@ -96,32 +94,18 @@ function Plan({
       }
     : undefined;
 
-  const tagColor = featured
-    ? "text-white/85"
-    : gift
-      ? "text-gold"
-      : "text-amber";
+  const tagColor = featured ? "text-white/85" : "text-gold";
 
   const nameColor = featured ? "text-white" : "text-navy";
   const priceColor = featured ? "text-white" : "text-navy";
-  const priceUnitColor = featured
-    ? "text-white/65"
-    : gift
-      ? "text-ink-mid/90"
-      : "text-ink-light";
-  const priceNoteColor = featured
-    ? "text-white/70"
-    : gift
-      ? "text-gold"
-      : "text-ink-light";
+  const priceUnitColor = featured ? "text-white/65" : "text-ink-mid/90";
+  const priceNoteColor = featured ? "text-white/70" : "text-gold";
   const featureTextColor = featured ? "text-white/85" : "text-ink-mid";
   const featureBulletColor = featured ? "text-white/70" : "text-gold";
 
   const ctaClasses = featured
     ? "bg-white text-amber hover:bg-amber-tint"
-    : gift
-      ? "bg-gold text-navy hover:bg-gold-light"
-      : "bg-amber text-white hover:bg-amber-dark";
+    : "bg-gold text-navy hover:bg-gold-light";
 
   return (
     <div
@@ -208,44 +192,6 @@ const GIFT_CAPSULE_FEATURES = [
   "Save forever with a free account",
 ];
 
-const CAPSULE_FEATURES = [
-  "Any occasion",
-  "Unlimited contributors",
-  "Text, photos, voice & video",
-  "Reveal within 60 days",
-  "No account needed to open",
-  "Save forever with a free account",
-];
-
-// Subtle cameo of multiple contributors, shown alongside the
-// Memory Capsule card. Keeps the card from reading as a lone
-// plain option while making it obvious the product is social.
-function ContributorsCameo() {
-  const people = [
-    { initial: "S", tone: "bg-amber text-white" },
-    { initial: "J", tone: "bg-gold text-navy" },
-    { initial: "E", tone: "bg-navy text-white" },
-    { initial: "D", tone: "bg-amber-tint text-amber" },
-  ];
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex -space-x-2">
-        {people.map((p) => (
-          <span
-            key={p.initial}
-            aria-hidden="true"
-            className={`inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-white text-[11px] font-bold ${p.tone}`}
-          >
-            {p.initial}
-          </span>
-        ))}
-      </div>
-      <span className="text-xs italic text-ink-mid">
-        Four people wrote to Margaret for her 60th.
-      </span>
-    </div>
-  );
-}
 
 export function Pricing() {
   return (
@@ -291,46 +237,6 @@ export function Pricing() {
           />
         </div>
 
-        <p className="mt-10 text-center text-sm text-ink-mid">
-          Have more than one child? Add a vault for{" "}
-          <span className="font-semibold text-navy">$1.99/month</span> each.
-        </p>
-
-        {/* Memory Capsule — secondary product. A single plain
-            card in its own row beneath the two flagship plans,
-            so the child-vault hierarchy stays obvious. A quiet
-            contributors cameo sits alongside on desktop to hint
-            that the product is inherently social. */}
-        <div className="mt-14 max-w-[760px] mx-auto">
-          <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-2.5">
-            Also available
-          </p>
-          <h3 className="text-[clamp(22px,2.5vw,28px)] font-extrabold tracking-[-0.8px] text-navy mb-5 leading-[1.1]">
-            A one-time Memory Capsule for any milestone.
-          </h3>
-          <div className="grid gap-6 lg:grid-cols-[1fr,280px] items-center">
-            <Plan
-              variant="plain"
-              tag="One-time"
-              name="Memory Capsule"
-              price="9.99"
-              priceUnit="one-time"
-              features={CAPSULE_FEATURES}
-              cta="Create a capsule →"
-              ctaHref="/capsules/new"
-            />
-            <div className="rounded-2xl border border-navy/[0.08] bg-white px-6 py-6 space-y-4">
-              <div className="text-[10px] uppercase tracking-[0.14em] font-bold text-amber">
-                Margaret&rsquo;s 60th Birthday
-              </div>
-              <ContributorsCameo />
-              <p className="text-xs text-ink-light italic leading-[1.6]">
-                &ldquo;Happy birthday Mum. I remember the day you taught me
-                how to drive…&rdquo; — Sarah
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );
