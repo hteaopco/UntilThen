@@ -460,8 +460,6 @@ function DashboardHeader() {
           <LogoSvg variant="dark" width={130} height={26} />
         </Link>
         <ul className="hidden lg:flex items-center gap-7 text-sm text-ink-mid">
-          <li><Link href="/#how" className="hover:text-navy transition-colors font-medium">How it works</Link></li>
-          <li><Link href="/#pricing" className="hover:text-navy transition-colors font-medium">Pricing</Link></li>
           <li><Link href="/blog" className="hover:text-navy transition-colors font-medium">Blog</Link></li>
           <li><Link href="/faq" className="hover:text-navy transition-colors font-medium">FAQ</Link></li>
         </ul>

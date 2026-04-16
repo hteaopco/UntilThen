@@ -3,7 +3,7 @@
 import { Lock, PlusCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { NewVaultButton } from "@/components/dashboard/NewVaultButton";
 
@@ -15,117 +15,71 @@ export type TimeCapsuleItem = {
   vaultId: string;
 };
 
+/**
+ * State-based carousel with overlap. Center card sits on top
+ * (z-10, full size), side cards peek from behind at 0.82 scale
+ * with blur + dim. Swipe gestures and click-to-select cycle
+ * through the cards. "Add a capsule" card always at the end.
+ */
 export function TimeCapsuleCarousel({
   items,
 }: {
   items: TimeCapsuleItem[];
 }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const totalCards = items.length + 1; // +1 for "add" card
   const [activeIndex, setActiveIndex] = useState(0);
+  const touchStartX = useRef(0);
 
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    function onScroll() {
-      if (!el) return;
-      const center = el.scrollLeft + el.clientWidth / 2;
-      let closest = 0;
-      let minDist = Infinity;
-      const children = el.children;
-      for (let i = 0; i < children.length; i++) {
-        const child = children[i] as HTMLElement;
-        if (!child.offsetWidth) continue;
-        const childCenter = child.offsetLeft + child.offsetWidth / 2;
-        const dist = Math.abs(center - childCenter);
-        if (dist < minDist) {
-          minDist = dist;
-          closest = i;
-        }
-      }
-      setActiveIndex(closest);
+  const goTo = useCallback(
+    (idx: number) => {
+      if (idx < 0) idx = 0;
+      if (idx >= totalCards) idx = totalCards - 1;
+      setActiveIndex(idx);
+    },
+    [totalCards],
+  );
+
+  // Swipe detection.
+  function onTouchStart(e: React.TouchEvent) {
+    touchStartX.current = e.touches[0]?.clientX ?? 0;
+  }
+  function onTouchEnd(e: React.TouchEvent) {
+    const dx = (e.changedTouches[0]?.clientX ?? 0) - touchStartX.current;
+    if (Math.abs(dx) > 50) {
+      goTo(dx < 0 ? activeIndex + 1 : activeIndex - 1);
     }
-    el.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => el.removeEventListener("scroll", onScroll);
-  }, [items.length]);
-
-  // Scroll a card into center view by index.
-  const scrollToIndex = useCallback((index: number) => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const child = el.children[index] as HTMLElement | undefined;
-    if (!child) return;
-    const childCenter = child.offsetLeft + child.offsetWidth / 2;
-    const scrollTarget = childCenter - el.clientWidth / 2;
-    el.scrollTo({ left: scrollTarget, behavior: "smooth" });
-  }, []);
-
-  const totalCards = items.length + 1;
+  }
 
   return (
-    <div className="relative -mx-6 lg:-mx-10">
-      <div
-        ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scroll-smooth px-6 lg:px-10 pb-4"
-        style={{
-          scrollSnapType: "x mandatory",
-          scrollPaddingInline: "24px",
-          WebkitOverflowScrolling: "touch",
-          msOverflowStyle: "none",
-          scrollbarWidth: "none",
-        }}
-      >
-        {items.map((item, i) => (
-          <CapsuleCard
-            key={item.childId}
-            item={item}
-            active={i === activeIndex}
-            onActivate={() => scrollToIndex(i)}
-          />
-        ))}
+    <div
+      className="relative"
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* Cards container — stacked, overflow visible so sides peek. */}
+      <div className="relative flex items-center justify-center" style={{ minHeight: 460 }}>
+        {items.map((item, i) => {
+          const offset = i - activeIndex;
+          return (
+            <CarouselSlot key={item.childId} offset={offset} onClick={() => goTo(i)}>
+              <CapsuleCard item={item} active={offset === 0} />
+            </CarouselSlot>
+          );
+        })}
         {/* "Add a capsule" card */}
-        <div
-          onClick={() => scrollToIndex(items.length)}
-          className="shrink-0 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-all duration-200 cursor-pointer"
-          style={{
-            width: "min(320px, 80vw)",
-            scrollSnapAlign: "center",
-            minHeight: "380px",
-            borderColor:
-              activeIndex === items.length
-                ? "rgba(196,122,58,0.4)"
-                : "rgba(196,122,58,0.2)",
-            background:
-              activeIndex === items.length ? "#fef6ec" : "#fdf8f2",
-            transform:
-              activeIndex === items.length ? "scale(1)" : "scale(0.88)",
-            opacity: activeIndex === items.length ? 1 : 0.5,
-            filter:
-              activeIndex === items.length ? "none" : "blur(1px)",
-          }}
-        >
-          <div className="text-center px-6">
-            <div className="w-12 h-12 rounded-full bg-amber-tint text-amber flex items-center justify-center mx-auto mb-4">
-              <PlusCircle size={24} strokeWidth={1.5} />
-            </div>
-            <p className="text-[17px] font-bold text-navy mb-1">
-              Add a capsule
-            </p>
-            <p className="text-[13px] text-ink-light mb-5">
-              Start writing to someone new.
-            </p>
-            <NewVaultButton variant="primary" label="New Time Capsule →" />
-          </div>
-        </div>
+        <CarouselSlot offset={items.length - activeIndex} onClick={() => goTo(items.length)}>
+          <AddCapsuleCard active={items.length === activeIndex} />
+        </CarouselSlot>
       </div>
 
+      {/* Dots */}
       {totalCards > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-2">
+        <div className="flex items-center justify-center gap-2 mt-4">
           {Array.from({ length: totalCards }).map((_, i) => (
             <button
               key={i}
               type="button"
-              onClick={() => scrollToIndex(i)}
+              onClick={() => goTo(i)}
               className={`w-2 h-2 rounded-full transition-colors ${
                 i === activeIndex ? "bg-amber" : "bg-navy/15"
               }`}
@@ -138,47 +92,65 @@ export function TimeCapsuleCarousel({
   );
 }
 
+/**
+ * Positions a card in the carousel based on its offset from center.
+ * offset=0 → center (z-10, scale 1, full opacity)
+ * offset=±1 → peeking from side (z-5, scale 0.82, blurred, dimmed)
+ * offset=±2+ → hidden
+ */
+function CarouselSlot({
+  offset,
+  onClick,
+  children,
+}: {
+  offset: number;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  const isCenter = offset === 0;
+  const isAdjacent = Math.abs(offset) === 1;
+  const isVisible = Math.abs(offset) <= 1;
+
+  if (!isVisible) return null;
+
+  // Side cards: shift 65% of card width + overlap behind center.
+  const translateX = isCenter ? 0 : offset * 68;
+  const scale = isCenter ? 1 : 0.82;
+  const zIndex = isCenter ? 10 : 5;
+
+  return (
+    <div
+      role={isCenter ? undefined : "button"}
+      onClick={isCenter ? undefined : onClick}
+      className="absolute transition-all duration-300 ease-out"
+      style={{
+        width: "min(360px, 85vw)",
+        transform: `translateX(${translateX}%) scale(${scale})`,
+        zIndex,
+        opacity: isCenter ? 1 : 0.45,
+        filter: isCenter ? "none" : "blur(2px)",
+        cursor: isCenter ? "default" : "pointer",
+        pointerEvents: isCenter ? "auto" : "auto",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 function CapsuleCard({
   item,
   active,
-  onActivate,
 }: {
   item: TimeCapsuleItem;
   active: boolean;
-  onActivate: () => void;
 }) {
   const revealLabel = item.revealDate
     ? formatRevealDate(item.revealDate)
     : null;
 
-  // Side cards: click scrolls them to center. Active card: navigates.
-  function handleClick(e: React.MouseEvent) {
-    if (!active) {
-      e.preventDefault();
-      onActivate();
-    }
-  }
-
-  return (
-    <Link
-      href={`/dashboard?vault=${item.childId}`}
-      onClick={handleClick}
-      className="shrink-0 block rounded-2xl border-[1.5px] overflow-hidden transition-all duration-200"
-      style={{
-        width: "min(320px, 80vw)",
-        scrollSnapAlign: "center",
-        background: "#fef6ec",
-        borderColor: active
-          ? "rgba(196,122,58,0.4)"
-          : "rgba(196,122,58,0.15)",
-        boxShadow: active
-          ? "0 12px 32px -8px rgba(196,122,58,0.2)"
-          : "0 4px 16px -4px rgba(196,122,58,0.08)",
-        transform: active ? "scale(1)" : "scale(0.88)",
-        opacity: active ? 1 : 0.5,
-        filter: active ? "none" : "blur(1px)",
-      }}
-    >
+  const inner = (
+    <>
       <div className="p-5">
         <div className="flex items-center gap-2.5 mb-3">
           <div className="w-8 h-8 rounded-lg bg-gold-tint flex items-center justify-center">
@@ -201,7 +173,7 @@ function CapsuleCard({
         </p>
       </div>
 
-      <div className="relative h-[180px] overflow-hidden">
+      <div className="relative h-[200px] overflow-hidden">
         <div
           className="absolute inset-0 z-10"
           style={{
@@ -224,7 +196,68 @@ function CapsuleCard({
           Write to {item.firstName} →
         </span>
       </div>
-    </Link>
+    </>
+  );
+
+  if (active) {
+    return (
+      <Link
+        href={`/dashboard?vault=${item.childId}`}
+        className="block rounded-[20px] overflow-hidden"
+        style={{
+          background: "#fef6ec",
+          border: "2px solid rgba(196,122,58,0.35)",
+          boxShadow:
+            "0 16px 48px -12px rgba(196,122,58,0.25), 0 0 0 1px rgba(196,122,58,0.08)",
+        }}
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <div
+      className="rounded-[20px] overflow-hidden"
+      style={{
+        background: "#fef6ec",
+        border: "1.5px solid rgba(196,122,58,0.15)",
+        boxShadow: "0 4px 16px -4px rgba(196,122,58,0.08)",
+      }}
+    >
+      {inner}
+    </div>
+  );
+}
+
+function AddCapsuleCard({ active }: { active: boolean }) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center rounded-[20px] border-2 border-dashed"
+      style={{
+        minHeight: "420px",
+        borderColor: active
+          ? "rgba(196,122,58,0.4)"
+          : "rgba(196,122,58,0.2)",
+        background: active ? "#fef6ec" : "#fdf8f2",
+        boxShadow: active
+          ? "0 16px 48px -12px rgba(196,122,58,0.15)"
+          : "none",
+      }}
+    >
+      <div className="text-center px-6">
+        <div className="w-12 h-12 rounded-full bg-amber-tint text-amber flex items-center justify-center mx-auto mb-4">
+          <PlusCircle size={24} strokeWidth={1.5} />
+        </div>
+        <p className="text-[17px] font-bold text-navy mb-1">
+          Add a capsule
+        </p>
+        <p className="text-[13px] text-ink-light mb-5">
+          Start writing to someone new.
+        </p>
+        <NewVaultButton variant="primary" label="New Time Capsule →" />
+      </div>
+    </div>
   );
 }
 
