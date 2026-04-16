@@ -27,7 +27,8 @@ export function TimeCapsuleCarousel({
   items: TimeCapsuleItem[];
 }) {
   const totalCards = items.length + 1; // +1 for "add" card
-  const [activeIndex, setActiveIndex] = useState(0);
+  const middleIndex = Math.floor(items.length / 2);
+  const [activeIndex, setActiveIndex] = useState(middleIndex);
   const touchStartX = useRef(0);
 
   const goTo = useCallback(
