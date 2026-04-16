@@ -144,26 +144,33 @@ export function CardSwipePanel({ defaultPanel, cards, pills }: Props) {
 // hero. Each card is ~300px wide and the stack is ~440px tall.
 
 function FannedStack({ cards }: { cards: StackCard[] }) {
+  // Layout matches the original HeroLetterStack — cards are
+  // "tossed on a table" with different rotations and offsets,
+  // overlapping organically. Front card (index 0) has the highest
+  // z-index and covers the others.
+  const positions = [
+    { top: 0, left: 20, width: 300, rotate: -1.5 },
+    { top: 140, left: 0, width: 280, rotate: 1.2 },
+    { top: 260, left: 50, width: 260, rotate: -0.8 },
+  ];
+
   return (
-    <div className="relative w-full h-[420px]">
+    <div className="relative w-full h-[440px]">
       {cards.map((card, i) => {
-        const top = i * 80;
-        const left = 8 + i * 20;
-        const rotate = i === 0 ? -1.5 : i === 1 ? 1.2 : -0.8;
+        const pos = positions[i] ?? positions[0]!;
         const zIndex = cards.length - i;
-        const width = 300 - i * 14;
 
         return (
           <div
             key={i}
             className="absolute rounded-2xl border border-navy/[0.08] bg-white px-7 py-6"
             style={{
-              top,
-              left,
-              width,
-              maxWidth: `calc(100% - ${left + 8}px)`,
+              top: pos.top,
+              left: pos.left,
+              width: pos.width,
+              maxWidth: `calc(100% - ${pos.left + 8}px)`,
               zIndex,
-              transform: `rotate(${rotate}deg)`,
+              transform: `rotate(${pos.rotate}deg)`,
               boxShadow:
                 "0 4px 24px rgba(15,31,61,0.08), 0 1px 4px rgba(15,31,61,0.04)",
             }}
