@@ -43,6 +43,8 @@ function rateLimitKindFor(
   // Health probes — never throttle, Railway/uptime monitors hit
   // them on a tight schedule.
   if (path.startsWith("/api/health")) return null;
+  // Cron jobs — self-auth via bearer token, never rate-limited.
+  if (path.startsWith("/api/cron")) return null;
   // Sentry tunnel route — never throttle.
   if (path.startsWith("/monitoring")) return null;
 
@@ -116,6 +118,10 @@ export default clerkMiddleware(async (auth, req) => {
   // /api/admin/* routes self-guard via the same cookie check inside
   // each handler. Don't let Clerk intercept them.
   if (pathname.startsWith("/api/admin")) {
+    return NextResponse.next();
+  }
+  // Cron endpoints self-guard via bearer token.
+  if (pathname.startsWith("/api/cron")) {
     return NextResponse.next();
   }
 
