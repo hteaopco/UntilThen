@@ -118,7 +118,6 @@ export default async function DashboardPage({
         child={selectedChild}
         vault={selectedChild.vault}
         userId={userId}
-        prisma={prisma}
       />
     );
   }
@@ -315,15 +314,13 @@ async function CapsuleDetailView({
   child,
   vault,
   userId,
-  prisma,
 }: {
   user: { id: string; firstName: string };
   child: { id: string; firstName: string; dateOfBirth: Date | null };
   vault: { id: string; revealDate: Date | null };
   userId: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  prisma: any;
 }) {
+  const { prisma } = await import("@/lib/prisma");
   const vaultRevealDate = vault.revealDate?.toISOString() ?? null;
 
   const [vaultEntries, vaultCollections, contributorRecords, pendingEntries, latestDraft] =
