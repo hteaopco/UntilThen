@@ -1,7 +1,7 @@
 export function Hero() {
   return (
     <section id="top" className="bg-cream overflow-hidden">
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-[120px] pb-20 flex flex-col items-center text-center lg:min-h-[80vh] justify-center">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-[120px] pb-10 flex flex-col items-center text-center">
         <div className="relative z-[2] max-w-[640px]">
           <div className="hero-tag inline-flex items-center gap-2 text-xs font-bold tracking-[0.12em] uppercase text-amber bg-amber-tint px-[14px] py-1.5 rounded-md mb-6">
             <span aria-hidden="true">✦</span>
@@ -15,7 +15,7 @@ export function Hero() {
             <span className="font-light italic text-amber">open later.</span>
           </h1>
 
-          <p className="hero-sub text-[17px] font-normal leading-[1.7] text-ink-mid max-w-[480px] mx-auto mb-10">
+          <p className="hero-sub text-[17px] font-normal leading-[1.7] text-ink-mid max-w-[480px] mx-auto mb-6">
             Write letters, record your voice, and save moments they&rsquo;ll
             open years from now — on their 18th birthday, or any day you
             choose. Or{" "}
