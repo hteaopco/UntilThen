@@ -113,7 +113,7 @@ export default async function AccountBillingPage() {
             type="button"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-navy/15 text-sm font-semibold text-navy hover:border-navy transition-colors"
           >
-            Add payment method →
+            Add payment method
           </button>
         </div>
       </section>

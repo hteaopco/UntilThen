@@ -49,7 +49,7 @@ export function SealMomentActions({
     }
   }
 
-  const buttonLabel = isSealed ? "Save changes" : "Seal Moment →";
+  const buttonLabel = isSealed ? "Save changes" : "Seal Moment";
 
   const modal =
     open && mounted

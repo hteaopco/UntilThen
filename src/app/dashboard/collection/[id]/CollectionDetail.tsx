@@ -132,8 +132,8 @@ export function CollectionDetail({
   }
 
   const primaryCtaLabel = hasEntries
-    ? "Add a memory →"
-    : "Add your first memory →";
+    ? "Add a memory"
+    : "Add your first memory";
 
   // Tail on the "Started {month year}" line. Empty collections
   // show the anticipatory "Your first memory" hint; once there's

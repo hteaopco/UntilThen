@@ -71,7 +71,7 @@ export function ContributorEntryForm({
             disabled={!canSubmit}
             className="bg-amber text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-50"
           >
-            {saving ? "Sealing…" : "Seal Moment →"}
+            {saving ? "Sealing…" : "Seal Moment"}
           </button>
         </div>
       </header>

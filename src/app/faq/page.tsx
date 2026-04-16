@@ -159,13 +159,13 @@ export default function FAQPage() {
                 href={`mailto:${SUPPORT_EMAIL}`}
                 className="inline-block px-6 py-3 rounded-lg text-sm font-bold border-[1.5px] border-navy text-navy hover:bg-navy hover:text-white transition-colors"
               >
-                Email us →
+                Email us
               </a>
               <Link
                 href="/sign-up"
                 className="inline-block px-6 py-3 rounded-lg text-sm font-bold bg-amber text-white hover:bg-amber-dark transition-colors"
               >
-                Start your first capsule &rarr;
+                Start your first capsule
               </Link>
             </div>
           </div>

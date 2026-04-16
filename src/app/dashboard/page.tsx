@@ -101,7 +101,7 @@ export default async function DashboardPage({
 
   const childrenWithVaults = user.children.filter((c) => c.vault !== null);
 
-  // If a vault param is present → render the "inside a capsule"
+  // If a vault param is present render the "inside a capsule"
   // detail view. Otherwise render the carousel dashboard.
   const selectedChild = vaultParam
     ? childrenWithVaults.find((c) => c.id === vaultParam) ?? null
@@ -170,7 +170,7 @@ export default async function DashboardPage({
             <p className="text-sm text-ink-mid leading-[1.5]">
               Start writing to someone you love.
             </p>
-            <NewVaultButton variant="primary" label="Start a Time Capsule →" />
+            <NewVaultButton variant="primary" label="Start a Time Capsule" />
           </div>
         )}
 

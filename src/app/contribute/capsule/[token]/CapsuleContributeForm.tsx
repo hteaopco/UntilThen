@@ -149,7 +149,7 @@ export function CapsuleContributeForm({
             disabled={saving || !name.trim() || !message.trim()}
             className="w-full bg-amber text-white py-3.5 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
           >
-            {saving ? "Saving…" : "Submit my contribution →"}
+            {saving ? "Saving…" : "Submit my contribution"}
           </button>
           <p className="text-center text-xs italic text-ink-light">
             {capsule.recipientName} won&rsquo;t see this until{" "}

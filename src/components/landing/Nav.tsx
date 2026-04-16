@@ -83,20 +83,22 @@ export function Nav() {
             spec's gap-16. */}
         <div className="lg:hidden flex items-center gap-4">
           <RightAction />
-          <button
-            type="button"
-            onClick={() => setOpen((v) => !v)}
-            aria-label={open ? "Close menu" : "Open menu"}
-            aria-expanded={open}
-            aria-controls="mobile-nav-panel"
-            className="text-navy/70 hover:text-navy transition-colors p-1"
-          >
-            {open ? (
-              <X size={24} strokeWidth={1.5} aria-hidden="true" />
-            ) : (
-              <Menu size={24} strokeWidth={1.5} aria-hidden="true" />
-            )}
-          </button>
+          <SignedOut>
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-label={open ? "Close menu" : "Open menu"}
+              aria-expanded={open}
+              aria-controls="mobile-nav-panel"
+              className="text-navy/70 hover:text-navy transition-colors p-1"
+            >
+              {open ? (
+                <X size={24} strokeWidth={1.5} aria-hidden="true" />
+              ) : (
+                <Menu size={24} strokeWidth={1.5} aria-hidden="true" />
+              )}
+            </button>
+          </SignedOut>
         </div>
       </div>
 
@@ -135,8 +137,8 @@ export function Nav() {
 /**
  * The right-side action — same component on desktop and mobile.
  *
- *   Signed out → "Sign in →" text link + "Sign up" amber button
- *   Signed in  → "Dashboard →" navy button
+ *   Signed out → "Sign in" text link + "Sign up" amber button
+ *   Signed in  → "Your Vault" amber button
  *
  * Sign in / Dashboard-when-on-it-already stay quiet; the primary
  * action is always styled as a filled button so it's visible from
@@ -168,7 +170,7 @@ function RightAction() {
           href="/dashboard"
           className="inline-flex items-center gap-1 bg-amber text-white px-3.5 py-2 rounded-lg text-[13px] font-bold tracking-[0.01em] hover:bg-amber-dark transition-colors"
         >
-          Your Vault →
+          Your Vault
         </Link>
       </SignedIn>
     </>

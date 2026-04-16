@@ -172,7 +172,7 @@ export function ListScreen({
                     disabled={saving}
                     className="inline-flex items-center gap-2 bg-gold text-navy px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-gold-light transition-colors disabled:opacity-60"
                   >
-                    {saving ? "Saving…" : "Save my capsule →"}
+                    {saving ? "Saving…" : "Save my capsule"}
                   </button>
                 </SignedIn>
                 <SignedOut>
@@ -181,7 +181,7 @@ export function ListScreen({
                       type="button"
                       className="inline-flex items-center gap-2 bg-gold text-navy px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-gold-light transition-colors"
                     >
-                      Save my capsule →
+                      Save my capsule
                     </button>
                   </SignUpButton>
                   <SignInButton mode="modal">
@@ -223,7 +223,7 @@ export function ListScreen({
                 }}
                 className="inline-flex items-center gap-2 bg-white text-navy px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-white/90 transition-colors"
               >
-                Start writing →
+                Start writing
               </Link>
               <span className="text-xs italic text-white/55">
                 Free 7-day trial · $3.99/month

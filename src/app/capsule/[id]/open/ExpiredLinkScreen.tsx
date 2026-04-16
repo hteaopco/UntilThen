@@ -80,7 +80,7 @@ export function ExpiredLinkScreen({ capsuleId }: { capsuleId: string }) {
               disabled={sending || !email.trim()}
               className="w-full bg-amber text-white py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
             >
-              {sending ? "Sending…" : "Send me a new link →"}
+              {sending ? "Sending…" : "Send me a new link"}
             </button>
           </form>
         )}

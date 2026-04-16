@@ -15,7 +15,7 @@ export function CtaSection() {
           href="/sign-up"
           className="inline-block bg-amber text-white px-8 py-4 rounded-lg text-[16px] font-bold hover:bg-amber-dark transition-colors"
         >
-          Start your first capsule &rarr;
+          Start your first capsule
         </Link>
       </div>
     </section>

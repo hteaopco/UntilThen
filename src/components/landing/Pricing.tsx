@@ -231,7 +231,7 @@ export function Pricing() {
             price="9.99"
             priceUnit="one-time"
             features={GIFT_CAPSULE_FEATURES}
-            cta="Create a Gift Capsule →"
+            cta="Create a Gift Capsule"
             ctaHref="/capsules/new"
             overlay={<ConfettiOverlay />}
           />

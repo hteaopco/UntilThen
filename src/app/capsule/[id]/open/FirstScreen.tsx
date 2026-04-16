@@ -90,7 +90,7 @@ export function FirstScreen({
           onClick={onOpen}
           className="inline-flex items-center gap-2 bg-gold text-navy px-7 py-3.5 rounded-lg text-[15px] font-bold hover:bg-gold-light transition-colors"
         >
-          Open your capsule →
+          Open your capsule
         </button>
       </div>
     </main>

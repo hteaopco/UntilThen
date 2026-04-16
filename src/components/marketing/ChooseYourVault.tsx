@@ -156,7 +156,7 @@ export function ChooseYourVault() {
                       href="/sign-up"
                       className="block w-full text-center bg-amber text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors hover:bg-amber-dark"
                     >
-                      Start a Time Capsule →
+                      Start a Time Capsule
                     </Link>
                   </div>
                 </div>
@@ -215,7 +215,7 @@ export function ChooseYourVault() {
                       href="/sign-up?path=capsule"
                       className="block w-full text-center bg-navy text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors hover:bg-navy-mid"
                     >
-                      Create a Gift Capsule →
+                      Create a Gift Capsule
                     </Link>
                   </div>
                 </div>

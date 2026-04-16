@@ -313,7 +313,7 @@ export function CapsuleCreationFlow() {
           <button type="submit"
             disabled={saving || !title.trim() || !recipientFirstName.trim() || !revealDate}
             className="w-full bg-amber text-white py-3.5 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60">
-            {saving ? "Saving\u2026" : "Continue \u2192"}
+            {saving ? "Saving\u2026" : "Continue"}
           </button>
           <p className="text-center text-xs italic text-ink-light">
             {authLoaded && !isSignedIn

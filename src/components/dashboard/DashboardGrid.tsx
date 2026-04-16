@@ -88,7 +88,7 @@ export function DashboardGrid({
             <p className="text-sm text-ink-mid leading-[1.5]">
               Start writing to someone you love.
             </p>
-            <NewVaultButton variant="primary" label="Start a Time Capsule →" />
+            <NewVaultButton variant="primary" label="Start a Time Capsule" />
           </div>
         ) : (
           vaults.map((v) => (

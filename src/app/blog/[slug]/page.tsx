@@ -153,7 +153,7 @@ function CtaCard() {
         href="/sign-up"
         className="inline-block bg-amber text-white px-6 py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
       >
-        Start your first capsule &rarr;
+        Start your first capsule
       </Link>
     </div>
   );

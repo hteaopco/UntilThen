@@ -85,7 +85,7 @@ export async function sendCapsuleInvite(params: {
         until the day.
       </p>
       <p style="margin:24px 0;">
-        <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Add my contribution &rarr;</a>
+        <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Add my contribution</a>
       </p>
     `),
   });
@@ -110,7 +110,7 @@ export async function sendCapsuleDraftSaved(params: {
         activate it to start collecting memories.
       </p>
       <p style="margin:24px 0;">
-        <a href="${params.dashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Continue setup &rarr;</a>
+        <a href="${params.dashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Continue setup</a>
       </p>
     `),
   });
@@ -134,7 +134,7 @@ export async function sendCapsuleDraftExpiring(params: {
         one to keep it.
       </p>
       <p style="margin:24px 0;">
-        <a href="${params.dashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Finish setup &rarr;</a>
+        <a href="${params.dashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Finish setup</a>
       </p>
     `),
   });
@@ -163,7 +163,7 @@ export async function sendCapsuleActivated(params: {
         ${escapeHtml(formatLong(params.revealDate))}.
       </p>
       <p style="margin:24px 0;">
-        <a href="${params.dashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open your capsule &rarr;</a>
+        <a href="${params.dashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open your capsule</a>
       </p>
     `),
   });
@@ -187,7 +187,7 @@ export async function sendCapsuleContributionSubmitted(params: {
         Their message is in ${escapeHtml(params.title)}.
       </p>
       <p style="margin:24px 0;">
-        <a href="${params.dashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">View capsule &rarr;</a>
+        <a href="${params.dashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">View capsule</a>
       </p>
     `),
   });
@@ -214,7 +214,7 @@ export async function sendCapsuleContributorReminder(params: {
         won&rsquo;t see anything unless you finish now.
       </p>
       <p style="margin:24px 0;">
-        <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Add my contribution &rarr;</a>
+        <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Add my contribution</a>
       </p>
     `),
   });
@@ -241,7 +241,7 @@ export async function sendCapsuleRevealDay(params: {
         Today&rsquo;s the day.
       </p>
       <p style="margin:24px 0;">
-        <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open my capsule &rarr;</a>
+        <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open my capsule</a>
       </p>
       <p style="font-size:13px;color:#8896a5;line-height:1.6;margin:16px 0 0;font-style:italic;">
         This link is just for you.
@@ -270,7 +270,7 @@ export async function sendCapsuleNewLink(params: {
         Click to open ${escapeHtml(params.title)}.
       </p>
       <p style="margin:24px 0;">
-        <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open my capsule &rarr;</a>
+        <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open my capsule</a>
       </p>
     `),
   });

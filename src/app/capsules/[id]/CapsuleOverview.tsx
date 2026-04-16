@@ -121,7 +121,7 @@ export function CapsuleOverview({
     ? daysUntil(capsule.contributorDeadline)
     : null;
 
-  // Activation now goes through a 2-step modal (pay → contact).
+  // Activation now goes through a 2-step modal (pay contact).
   // The single /activate request fires at the end with the
   // collected contact payload so contact + payment + invite
   // dispatch all land in one server transaction.
@@ -294,7 +294,7 @@ export function CapsuleOverview({
       </section>
 
       {/* Your message — the first thing the organiser does.
-          Inline editor (collapsed) → preview card after writing. */}
+          Inline editor (collapsed) preview card after writing. */}
       <section
         id="your-message"
         className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8"
@@ -408,7 +408,7 @@ export function CapsuleOverview({
               onClick={() => setActivateOpen(true)}
               className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
-              Send invites &mdash; $9.99 &rarr;
+              Send invites &mdash; $9.99
             </button>
             <p className="text-sm font-semibold text-navy">
               Nothing is sent yet. You&rsquo;ll review everything before delivery.
@@ -421,7 +421,7 @@ export function CapsuleOverview({
                 href={`/capsules/${capsule.id}/preview`}
                 className="text-sm font-medium text-ink-mid hover:text-navy transition-colors"
               >
-                Preview their moment &rarr;
+                Preview their moment
               </Link>
             </div>
           </div>
@@ -776,7 +776,7 @@ function OwnContribution({
               ? "Saving…"
               : contribution
                 ? "Save changes"
-                : "Save my message →"}
+                : "Save my message"}
           </button>
           <button
             type="button"
@@ -811,7 +811,7 @@ function OwnContribution({
         </div>
         <div>
           <div className="text-[15px] font-bold text-navy">
-            Start {possessivePronoun} first message &rarr;
+            Start {possessivePronoun} first message
           </div>
           <div className="text-xs text-ink-mid italic mt-0.5">
             Write the first note &mdash; others will follow your lead.
@@ -1051,8 +1051,8 @@ function ContributorsPanel({
             {saving
               ? "Saving…"
               : rows.length > 1
-                ? `Add ${rows.length} contributors →`
-                : "Add contributor →"}
+                ? `Add ${rows.length} contributors`
+                : "Add contributor"}
           </button>
         </div>
 
@@ -1351,7 +1351,7 @@ function ActivationModal({
               onClick={confirmPayment}
               className="w-full bg-amber text-white py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
-              Send invites &mdash; $9.99 &rarr;
+              Send invites &mdash; $9.99
             </button>
             <p className="text-sm font-semibold text-navy text-center">
               Nothing is sent yet. You&rsquo;ll review everything before delivery.
@@ -1401,7 +1401,7 @@ function ActivationModal({
                 disabled={busy}
                 className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
               >
-                {busy ? "Sending…" : "Send it →"}
+                {busy ? "Sending…" : "Send it"}
               </button>
               <button
                 type="button"

@@ -253,7 +253,7 @@ function AddCapsuleCard({ active, capsuleCount }: { active: boolean; capsuleCoun
         <p className="text-[13px] text-ink-light mb-5">
           Start writing to someone new.
         </p>
-        <NewVaultButton variant="primary" label="New Time Capsule →" capsuleCount={capsuleCount} />
+        <NewVaultButton variant="primary" label="New Time Capsule" capsuleCount={capsuleCount} />
       </div>
     </div>
   );

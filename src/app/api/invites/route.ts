@@ -224,7 +224,7 @@ export async function POST(req: Request) {
     ${escapeHtml(user.firstName)} has invited you to contribute a letter, photo, voice note, or video to ${escapeHtml(child?.firstName ?? "their child")}&rsquo;s vault &mdash; a collection of memories they&rsquo;ll open on ${escapeHtml(revealLabel)}.
   </p>
   <p style="margin: 24px 0;">
-    <a href="${inviteUrl}" style="display: inline-block; background: #0f1f3d; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px;">Accept invitation &rarr;</a>
+    <a href="${inviteUrl}" style="display: inline-block; background: #0f1f3d; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px;">Accept invitation</a>
   </p>
   <p style="font-size: 12px; color: #8896a5; margin-top: 32px; font-style: italic;">
     If the button doesn&rsquo;t work, paste this link into your browser: ${inviteUrl}

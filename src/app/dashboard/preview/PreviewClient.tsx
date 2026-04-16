@@ -166,7 +166,7 @@ export function PreviewClient({
                   prefetch={false}
                   className="inline-block bg-gold text-navy px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-gold-light transition-colors"
                 >
-                  Write your first letter →
+                  Write your first letter
                 </Link>
               </div>
             ) : (
@@ -211,7 +211,7 @@ export function PreviewClient({
                           </p>
                         )}
                         <p className="mt-3 text-[13px] font-semibold text-amber">
-                          Open Journal →
+                          Open Journal
                         </p>
                       </div>
                     </div>

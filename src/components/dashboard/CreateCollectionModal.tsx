@@ -226,7 +226,7 @@ export function CreateCollectionModal({
             disabled={!title.trim() || saving}
             className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
           >
-            {saving ? "Creating…" : "Create Collection →"}
+            {saving ? "Creating…" : "Create Collection"}
           </button>
         </div>
       </form>

@@ -65,7 +65,7 @@ export async function sendInviteAccepted(params: {
       ${escapeHtml(params.childFirstName)}&rsquo;s vault.
     </p>
     <p style="margin:24px 0;">
-      <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open dashboard &rarr;</a>
+      <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open dashboard</a>
     </p>
   `);
   await send({
@@ -95,7 +95,7 @@ export async function sendEntryNeedsReview(params: {
       Review it before it joins the vault.
     </p>
     <p style="margin:24px 0;">
-      <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Review entry &rarr;</a>
+      <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Review entry</a>
     </p>
   `);
   await send({
@@ -124,7 +124,7 @@ export async function sendEntryApproved(params: {
       Thanks for writing, ${escapeHtml(params.contributorName)}.
     </p>
     <p style="margin:24px 0;">
-      <a href="${params.contributorDashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open your dashboard &rarr;</a>
+      <a href="${params.contributorDashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open your dashboard</a>
     </p>
   `);
   await send({
@@ -155,7 +155,7 @@ export async function sendEntryRejected(params: {
       You can edit and resubmit from your dashboard.
     </p>
     <p style="margin:24px 0;">
-      <a href="${params.contributorDashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open your dashboard &rarr;</a>
+      <a href="${params.contributorDashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open your dashboard</a>
     </p>
   `);
   await send({

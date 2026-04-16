@@ -192,7 +192,7 @@ export function OnboardingForm({
               disabled={!firstName.trim() || loading}
               className="w-full bg-amber text-white py-3.5 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
             >
-              {loading ? "Saving…" : "Continue →"}
+              {loading ? "Saving…" : "Continue"}
             </button>
           </form>
         )}
@@ -213,7 +213,7 @@ export function OnboardingForm({
               title="Write to my child"
               body="Seal memories, letters and voice notes in a vault they open when they're ready."
               price="$3.99/month — 7-day free trial"
-              cta="Get started →"
+              cta="Get started"
               onClick={() => {
                 // Vault path: keep the name on the wizard and
                 // advance to child details. We don't hit the API
@@ -231,7 +231,7 @@ export function OnboardingForm({
               title="Create a Gift Capsule"
               body="Collect memories from friends and family for a birthday, anniversary, retirement or any milestone."
               price="$9.99 one-time · No subscription"
-              cta="Create a capsule →"
+              cta="Create a capsule"
               onClick={() => saveName("capsule")}
               disabled={loading}
             />
@@ -323,7 +323,7 @@ export function OnboardingForm({
               }
               className="w-full bg-amber text-white py-3.5 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
             >
-              {loading ? "Creating…" : "Create their vault →"}
+              {loading ? "Creating…" : "Create their vault"}
             </button>
 
             {!addVaultOnly && (
