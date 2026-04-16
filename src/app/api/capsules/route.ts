@@ -100,14 +100,8 @@ export async function POST(req: Request) {
       ? new Date(body.contributorDeadline)
       : null;
   const requiresApproval = body.requiresApproval === true;
-  const deliveryTime =
-    typeof body.deliveryTime === "string" && /^\d{2}:\d{2}$/.test(body.deliveryTime)
-      ? body.deliveryTime
-      : "09:00";
-  const timezone =
-    typeof body.timezone === "string" && body.timezone.trim()
-      ? body.timezone.trim()
-      : "America/Chicago";
+  // NOTE: deliveryTime + timezone accepted but not persisted right
+  // now — unmapped in schema while Accelerate cache catches up.
 
   if (!title)
     return NextResponse.json(
@@ -170,8 +164,6 @@ export async function POST(req: Request) {
         revealDate,
         contributorDeadline,
         requiresApproval,
-        deliveryTime,
-        timezone,
       },
     });
 
