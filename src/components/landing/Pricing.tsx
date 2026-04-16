@@ -189,12 +189,11 @@ function Plan({
 }
 
 const BASE_FEATURES = [
-  "1 child vault included",
+  "3 time capsules included",
   "Unlimited text entries",
   "Photo uploads",
   "Voice note recording",
   "Video messages",
-  "Multi-contributor invites",
   "Reveal by age or date",
   "Smart writing prompts",
   "Milestone reminders",
@@ -269,8 +268,8 @@ export function Pricing() {
         <div className="grid gap-4 lg:gap-5 lg:grid-cols-2 max-w-[760px] mx-auto">
           <Plan
             variant="featured"
-            tag="Monthly"
-            name="Base"
+            tag="Time Capsules"
+            name="Time Capsules"
             price="3.99"
             priceUnit="per month"
             priceNote="Save with annual billing at checkout"
