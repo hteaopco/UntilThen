@@ -199,12 +199,13 @@ const BASE_FEATURES = [
   "Milestone reminders",
 ];
 
-const GIFT_FEATURES = [
-  "Full Base plan, gifted",
-  "12 months of access",
-  "Beautiful gift email",
-  "Perfect for baby showers & new parents",
-  "No auto-renewal — recipient chooses to continue",
+const GIFT_CAPSULE_FEATURES = [
+  "Any occasion",
+  "Unlimited contributors",
+  "Text, photos, voice & video",
+  "Reveal within 60 days",
+  "No account needed to open or contribute",
+  "Save forever with a free account",
 ];
 
 const CAPSULE_FEATURES = [
@@ -279,13 +280,13 @@ export function Pricing() {
           />
           <Plan
             variant="gift"
-            tag="Give as a gift"
-            name="Gift"
-            price="39.99"
-            priceUnit="one year"
-            priceNote="no auto-renewal"
-            features={GIFT_FEATURES}
-            cta="Give the gift →"
+            tag="Gift Capsules"
+            name="One-time Purchase"
+            price="9.99"
+            priceUnit="one-time"
+            features={GIFT_CAPSULE_FEATURES}
+            cta="Create a Gift Capsule →"
+            ctaHref="/capsules/new"
             overlay={<ConfettiOverlay />}
           />
         </div>
