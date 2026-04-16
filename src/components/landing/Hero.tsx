@@ -11,17 +11,9 @@ export function Hero() {
           </h1>
 
           <p className="hero-sub text-[17px] font-normal leading-[1.7] text-ink-mid max-w-[480px] mx-auto mb-6">
-            Write letters, record your voice, and save moments they&rsquo;ll
-            open years from now — on their 18th birthday, or any day you
-            choose. Or{" "}
-            <a
-              href="#pricing"
-              className="text-amber font-semibold hover:text-amber-dark transition-colors"
-            >
-              invite others to add messages for a birthday, retirement, or
-              milestone
-            </a>
-            .
+            Create time capsules filled with letters, voice notes, photos,
+            and videos they&rsquo;ll open years from now — or invite others
+            to contribute messages for a meaningful moment.
           </p>
 
           <div className="hero-actions">
@@ -30,7 +22,7 @@ export function Hero() {
               className="inline-block bg-amber text-white px-7 py-3.5 rounded-lg text-[15px] font-bold tracking-[0.01em] hover:bg-amber-dark hover:-translate-y-0.5 transition-all"
               style={{ boxShadow: "0 4px 16px rgba(15,31,61,0.2)" }}
             >
-              Start your Time Capsules today →
+              Start a time capsule →
             </a>
           </div>
         </div>

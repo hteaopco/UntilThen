@@ -94,10 +94,10 @@ export function ChooseYourVault() {
         <div className="text-center max-w-[640px] mx-auto mb-12 lg:mb-14">
           <div className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.12em] uppercase text-amber bg-amber-tint px-[14px] py-1.5 rounded-md mb-6">
             <span aria-hidden="true">✦</span>
-            Choose your vault
+            Start Something Meaningful
           </div>
           <h2 className="text-[clamp(36px,4vw,52px)] font-extrabold leading-[1.1] tracking-[-1.5px] text-navy">
-            What would you like to create?
+            What will you create?
           </h2>
           <p className="mt-4 text-[18px] text-ink-mid leading-[1.55]">
             Two ways to save love. Both last a lifetime.
