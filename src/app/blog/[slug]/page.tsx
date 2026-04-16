@@ -150,10 +150,10 @@ function CtaCard() {
         Your child&rsquo;s vault is waiting.
       </p>
       <Link
-        href="/#cta"
+        href="/sign-up"
         className="inline-block bg-amber text-white px-6 py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
       >
-        Join the waitlist →
+        Start your first capsule &rarr;
       </Link>
     </div>
   );

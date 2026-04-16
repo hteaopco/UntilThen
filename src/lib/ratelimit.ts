@@ -42,8 +42,8 @@ const limiters: Record<LimiterKind, Ratelimit | null> = {
   // runaway client loops.
   authenticated: buildLimiter("rl:auth", 100, "1 m"),
 
-  // Sign-in / sign-up / waitlist — anything that creates an
-  // account or attempts credentials.
+  // Sign-in / sign-up — anything that creates an account or
+  // attempts credentials.
   auth: buildLimiter("rl:auth-strict", 5, "1 m"),
 
   // Anything that triggers an email send. 10 in 10 minutes gives a

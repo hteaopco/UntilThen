@@ -1,4 +1,4 @@
-import { WaitlistForm } from "@/components/landing/WaitlistForm";
+import Link from "next/link";
 
 export function CtaSection() {
   return (
@@ -11,12 +11,12 @@ export function CtaSection() {
         <p className="text-base lg:text-[17px] text-ink-mid max-w-[520px] mx-auto mb-10">
           It takes five minutes. They&rsquo;ll have it forever.
         </p>
-        <div className="mx-auto max-w-[520px]">
-          <WaitlistForm submitLabel="Start writing →" />
-          <p className="text-xs italic text-ink-light mt-3.5">
-            Join the waitlist for early access
-          </p>
-        </div>
+        <Link
+          href="/sign-up"
+          className="inline-block bg-amber text-white px-8 py-4 rounded-lg text-[16px] font-bold hover:bg-amber-dark transition-colors"
+        >
+          Start your first capsule &rarr;
+        </Link>
       </div>
     </section>
   );

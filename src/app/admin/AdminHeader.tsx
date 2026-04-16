@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/app/admin/SignOutButton";
 
 const TABS: Array<{ href: string; label: string }> = [
-  { href: "/admin", label: "Waitlist" },
   { href: "/admin/users", label: "Users" },
 ];
 

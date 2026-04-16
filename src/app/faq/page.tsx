@@ -162,10 +162,10 @@ export default function FAQPage() {
                 Email us →
               </a>
               <Link
-                href="/#cta"
+                href="/sign-up"
                 className="inline-block px-6 py-3 rounded-lg text-sm font-bold bg-amber text-white hover:bg-amber-dark transition-colors"
               >
-                Join the waitlist →
+                Start your first capsule &rarr;
               </Link>
             </div>
           </div>

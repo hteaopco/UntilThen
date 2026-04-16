@@ -71,7 +71,7 @@ function Plan({
   priceNote?: string;
   features: string[];
   cta: string;
-  /** Destination for the plan CTA; defaults to the waitlist anchor. */
+  /** Destination for the plan CTA; defaults to sign-up. */
   ctaHref?: string;
   ctaNote?: string;
   overlay?: ReactNode;

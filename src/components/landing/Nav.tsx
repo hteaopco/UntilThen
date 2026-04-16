@@ -13,12 +13,6 @@ const LINKS = [
 ] as const;
 
 /**
- * Pre-launch / waitlist nav. Calm + premium — three elements
- * only on mobile (Logo · Sign in → · Hamburger). The desktop
- * variant keeps the inline nav links so the marketing pages
- * are still discoverable, but drops the amber "Get started"
- * CTA so it doesn't compete with the hero CTA underneath.
- *
  * Scroll behaviour: transparent over the cream page at the top,
  * a soft blurred surface once the page has scrolled past ~12px.
  */

@@ -17,21 +17,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ── Waitlist ───────────────────────────────────────────────
-
-model Waitlist {
-  id          String    @id @default(cuid())
-  email       String    @unique
-  firstName   String
-  lastName    String
-  phone       String?
-  dateOfBirth DateTime?
-  numChildren Int
-  hearAboutUs String?
-  createdAt   DateTime  @default(now())
-  ipAddress   String?
-}
-
 // ── Auth + vaults ──────────────────────────────────────────
 
 enum Role {

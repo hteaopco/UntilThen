@@ -25,7 +25,6 @@ const isPublicRoute = createRouteMatcher([
   "/api/contribute/capsule/(.*)",
   "/api/capsules/open/(.*)",
   "/api/capsules/(.*)/refresh-token",
-  "/api/waitlist(.*)",
   "/api/health(.*)",
   "/api/invites/(.*)",
 ]);
@@ -57,8 +56,7 @@ function rateLimitKindFor(
   )
     return "email";
 
-  // Auth-strict — account creation + waitlist signup
-  if (method === "POST" && path === "/api/waitlist") return "auth";
+  // Auth-strict — account creation
   if (method === "POST" && path === "/api/onboarding") return "auth";
 
   // Public anonymous surfaces
