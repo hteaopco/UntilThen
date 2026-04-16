@@ -18,10 +18,6 @@ import {
   CollectionsSection,
   type CollectionRow,
 } from "@/components/dashboard/CollectionsSection";
-import {
-  ContributorsSection,
-  type ContributorRow,
-} from "@/components/dashboard/ContributorsSection";
 import { EntryList, type EntryRow } from "@/components/dashboard/EntryList";
 import { MemoryStarter } from "@/components/dashboard/MemoryStarter";
 import { VaultHero } from "@/components/dashboard/VaultHero";
@@ -178,11 +174,6 @@ export default async function DashboardPage({
           </div>
         )}
 
-        {childrenWithVaults.length > 0 && (
-          <div className="flex justify-center mt-4 mb-10">
-            <NewVaultButton />
-          </div>
-        )}
 
         {/* ── Gift Capsules (secondary) ──────────────────── */}
         <section className="pt-8 border-t border-navy/[0.06] mb-10">
@@ -323,7 +314,7 @@ async function CapsuleDetailView({
   const { prisma } = await import("@/lib/prisma");
   const vaultRevealDate = vault.revealDate?.toISOString() ?? null;
 
-  const [vaultEntries, vaultCollections, contributorRecords, pendingEntries, latestDraft] =
+  const [vaultEntries, vaultCollections, pendingEntries, latestDraft] =
     await Promise.all([
       prisma.entry.findMany({
         where: {
@@ -340,10 +331,6 @@ async function CapsuleDetailView({
         },
         orderBy: { createdAt: "desc" },
       }),
-      prisma.contributor.findMany({
-        where: { vaultId: vault.id, status: { not: "REVOKED" } },
-        orderBy: { createdAt: "desc" },
-      }),
       prisma.entry.findMany({
         where: { vaultId: vault.id, isSealed: true, approvalStatus: "PENDING_REVIEW" },
         include: { contributor: true },
@@ -355,15 +342,6 @@ async function CapsuleDetailView({
         select: { id: true, title: true, updatedAt: true },
       }),
     ]);
-
-  const contributors: ContributorRow[] = contributorRecords.map((c: Record<string, unknown>) => ({
-    id: c.id as string,
-    name: c.name as string | null,
-    email: c.email as string,
-    role: c.role as ContributorRow["role"],
-    status: c.status as ContributorRow["status"],
-    requiresApproval: c.requiresApproval as boolean,
-  }));
 
   const pending: PendingEntry[] = pendingEntries.map((e: Record<string, unknown>) => ({
     id: e.id as string,
@@ -463,12 +441,6 @@ async function CapsuleDetailView({
             childFirstName={child.firstName}
             revealDate={vaultRevealDate}
             vaultId={vault.id}
-          />
-
-          <ContributorsSection
-            contributors={contributors}
-            vaultId={vault.id}
-            childFirstName={child.firstName}
           />
         </div>
       </div>

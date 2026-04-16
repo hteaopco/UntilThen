@@ -1,9 +1,11 @@
 "use client";
 
-import { Lock } from "lucide-react";
+import { Lock, PlusCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+
+import { NewVaultButton } from "@/components/dashboard/NewVaultButton";
 
 export type TimeCapsuleItem = {
   childId: string;
@@ -15,8 +17,9 @@ export type TimeCapsuleItem = {
 
 /**
  * Horizontal snap-scroll carousel of Time Capsule cards. Center
- * card is active (scale 1.0); side cards peek at ~0.92 scale.
- * Tapping a card navigates to the capsule view.
+ * card is active (scale 1.0, full opacity); side cards are tucked
+ * behind at 0.88 scale with blur. Always shows an "Add a capsule"
+ * card at the end.
  */
 export function TimeCapsuleCarousel({
   items,
@@ -26,7 +29,6 @@ export function TimeCapsuleCarousel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // Track which card is closest to center on scroll.
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -35,8 +37,10 @@ export function TimeCapsuleCarousel({
       const center = el.scrollLeft + el.clientWidth / 2;
       let closest = 0;
       let minDist = Infinity;
-      for (let i = 0; i < el.children.length; i++) {
-        const child = el.children[i] as HTMLElement;
+      const children = el.children;
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i] as HTMLElement;
+        if (!child.offsetWidth) continue;
         const childCenter = child.offsetLeft + child.offsetWidth / 2;
         const dist = Math.abs(center - childCenter);
         if (dist < minDist) {
@@ -51,7 +55,8 @@ export function TimeCapsuleCarousel({
     return () => el.removeEventListener("scroll", onScroll);
   }, [items.length]);
 
-  if (items.length === 0) return null;
+  // Total cards = items + 1 "add" card
+  const totalCards = items.length + 1;
 
   return (
     <div className="relative -mx-6 lg:-mx-10">
@@ -73,12 +78,45 @@ export function TimeCapsuleCarousel({
             active={i === activeIndex}
           />
         ))}
+        {/* "Add a capsule" placeholder card */}
+        <div
+          className="shrink-0 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-all duration-200"
+          style={{
+            width: "min(320px, 80vw)",
+            scrollSnapAlign: "center",
+            minHeight: "380px",
+            borderColor:
+              activeIndex === items.length
+                ? "rgba(196,122,58,0.4)"
+                : "rgba(196,122,58,0.2)",
+            background:
+              activeIndex === items.length ? "#fef6ec" : "#fdf8f2",
+            transform:
+              activeIndex === items.length ? "scale(1)" : "scale(0.88)",
+            opacity: activeIndex === items.length ? 1 : 0.5,
+            filter:
+              activeIndex === items.length ? "none" : "blur(1px)",
+          }}
+        >
+          <div className="text-center px-6">
+            <div className="w-12 h-12 rounded-full bg-amber-tint text-amber flex items-center justify-center mx-auto mb-4">
+              <PlusCircle size={24} strokeWidth={1.5} />
+            </div>
+            <p className="text-[17px] font-bold text-navy mb-1">
+              Add a capsule
+            </p>
+            <p className="text-[13px] text-ink-light mb-5">
+              Start writing to someone new.
+            </p>
+            <NewVaultButton variant="primary" label="New Time Capsule →" />
+          </div>
+        </div>
       </div>
 
       {/* Dot indicators */}
-      {items.length > 1 && (
+      {totalCards > 1 && (
         <div className="flex items-center justify-center gap-2 mt-2">
-          {items.map((_, i) => (
+          {Array.from({ length: totalCards }).map((_, i) => (
             <span
               key={i}
               className={`w-2 h-2 rounded-full transition-colors ${
@@ -106,7 +144,7 @@ function CapsuleCard({
   return (
     <Link
       href={`/dashboard?vault=${item.childId}`}
-      className="shrink-0 block rounded-2xl border-[1.5px] overflow-hidden transition-transform duration-200"
+      className="shrink-0 block rounded-2xl border-[1.5px] overflow-hidden transition-all duration-200"
       style={{
         width: "min(320px, 80vw)",
         scrollSnapAlign: "center",
@@ -117,12 +155,12 @@ function CapsuleCard({
         boxShadow: active
           ? "0 12px 32px -8px rgba(196,122,58,0.2)"
           : "0 4px 16px -4px rgba(196,122,58,0.08)",
-        transform: active ? "scale(1)" : "scale(0.92)",
+        transform: active ? "scale(1)" : "scale(0.88)",
+        opacity: active ? 1 : 0.5,
+        filter: active ? "none" : "blur(1px)",
       }}
     >
-      {/* Card content */}
       <div className="p-5">
-        {/* Top: lock + name */}
         <div className="flex items-center gap-2.5 mb-3">
           <div className="w-8 h-8 rounded-lg bg-gold-tint flex items-center justify-center">
             <Lock size={16} strokeWidth={1.5} className="text-gold" />
@@ -132,7 +170,6 @@ function CapsuleCard({
           </h3>
         </div>
 
-        {/* Meta */}
         {revealLabel && (
           <p className="text-[14px] text-ink-mid leading-[1.5]">
             They&rsquo;ll open this on{" "}
@@ -145,7 +182,6 @@ function CapsuleCard({
         </p>
       </div>
 
-      {/* Embedded visual — write now.png with soft fade */}
       <div className="relative h-[180px] overflow-hidden">
         <div
           className="absolute inset-0 z-10"
@@ -164,7 +200,6 @@ function CapsuleCard({
         />
       </div>
 
-      {/* CTA */}
       <div className="px-5 pb-5 pt-3">
         <span className="block w-full text-center bg-amber text-white font-bold text-[15px] py-3 rounded-lg transition-colors hover:bg-amber-dark">
           Write to {item.firstName} →
@@ -175,10 +210,15 @@ function CapsuleCard({
 }
 
 function formatRevealDate(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return iso;
+  }
 }
