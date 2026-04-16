@@ -157,17 +157,14 @@ function CapsuleCard({
           <div className="w-8 h-8 rounded-lg bg-gold-tint flex items-center justify-center">
             <Lock size={16} strokeWidth={1.5} className="text-gold" />
           </div>
-          <h3 className="text-[20px] font-extrabold text-navy tracking-[-0.3px]">
-            {item.firstName}
+          <h3 className="text-[18px] font-extrabold text-navy tracking-[-0.3px]">
+            {item.firstName}&rsquo;s Time Capsule
           </h3>
         </div>
 
-        {revealLabel && (
-          <p className="text-[14px] text-ink-mid leading-[1.5]">
-            They&rsquo;ll open this on{" "}
-            <span className="font-semibold text-navy">{revealLabel}</span>
-          </p>
-        )}
+        <p className="text-[14px] text-ink-mid leading-[1.5]">
+          They&rsquo;ll read this when it matters most.
+        </p>
         <p className="text-[13px] text-ink-light mt-0.5">
           {item.memoriesCount.toLocaleString()}{" "}
           {item.memoriesCount === 1 ? "memory" : "memories"} waiting
@@ -194,7 +191,7 @@ function CapsuleCard({
 
       <div className="px-5 pb-5 pt-3">
         <span className="block w-full text-center bg-amber text-white font-bold text-[15px] py-3 rounded-lg transition-colors hover:bg-amber-dark">
-          Write to {item.firstName} →
+          Open {item.firstName}&rsquo;s capsule →
         </span>
       </div>
     </>
