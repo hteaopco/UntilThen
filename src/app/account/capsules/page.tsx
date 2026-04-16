@@ -61,8 +61,9 @@ export default async function AccountChildrenPage() {
         </p>
       </section>
 
+      {/* Included capsules (first 3) */}
       <ul className="space-y-3">
-        {user.children.map((child) => {
+        {user.children.slice(0, 3).map((child) => {
           const sealed = child.vault?._count.entries ?? 0;
           const reveal = child.vault?.revealDate?.toISOString() ?? null;
           return (
@@ -102,15 +103,71 @@ export default async function AccountChildrenPage() {
           );
         })}
 
-        <li>
-          <AddChildButton />
-        </li>
+        {user.children.length < 3 && (
+          <li>
+            <AddChildButton />
+          </li>
+        )}
       </ul>
 
-      <p className="text-xs italic text-ink-light">
-        Additional time capsules will be $0.99 / month each when billing is
-        live. No charge during the current beta.
-      </p>
+      {/* Additional capsules (4+) — visual break */}
+      {user.children.length >= 3 && (
+        <section className="mt-10 pt-8 border-t border-navy/[0.06]">
+          <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-2">
+            Additional Capsules
+          </p>
+          <p className="text-xs italic text-ink-light mb-5">
+            Additional time capsules will be $0.99 / month each when billing is
+            live. No charge during the current beta.
+          </p>
+
+          <ul className="space-y-3">
+            {user.children.slice(3).map((child) => {
+              const sealed = child.vault?._count.entries ?? 0;
+              const reveal = child.vault?.revealDate?.toISOString() ?? null;
+              return (
+                <li key={child.id}>
+                  <Link
+                    href={`/account/capsules/${child.id}`}
+                    prefetch={false}
+                    className="group flex items-start gap-4 rounded-2xl border border-navy/[0.08] bg-white px-5 py-4 hover:border-amber/30 hover:shadow-[0_6px_20px_rgba(15,31,61,0.06)] transition-all"
+                  >
+                    <div
+                      aria-hidden="true"
+                      className="shrink-0 w-11 h-11 rounded-full bg-amber-tint text-amber flex items-center justify-center"
+                    >
+                      <UsersRound size={18} strokeWidth={1.5} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[17px] font-bold text-navy tracking-[-0.2px]">
+                        {child.firstName} {child.lastName}
+                      </div>
+                      <div className="text-sm text-ink-mid mt-0.5">
+                        {reveal
+                          ? `Time capsule opens ${formatLong(reveal)}`
+                          : "Reveal date not set"}{" "}
+                        ·{" "}
+                        {sealed.toLocaleString()}{" "}
+                        {sealed === 1 ? "moment" : "moments"} sealed
+                      </div>
+                    </div>
+                    <ChevronRight
+                      size={18}
+                      strokeWidth={1.5}
+                      className="text-ink-light group-hover:text-amber transition-colors mt-2"
+                      aria-hidden="true"
+                    />
+                  </Link>
+                </li>
+              );
+            })}
+
+            <li>
+              <AddChildButton />
+            </li>
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

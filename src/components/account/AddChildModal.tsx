@@ -189,7 +189,7 @@ export function AddChildModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/40 backdrop-blur-sm" role="dialog" aria-modal="true" onClick={onClose}>
-      <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl shadow-[0_24px_48px_-8px_rgba(15,31,61,0.4)] w-full max-w-[520px] lg:max-w-[620px] max-h-[92vh] overflow-y-auto">
+      <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl shadow-[0_24px_48px_-8px_rgba(15,31,61,0.4)] w-full max-w-[620px] lg:max-w-[720px] max-h-[92vh] overflow-y-auto">
         <div className="px-7 py-5 border-b border-navy/[0.08] flex items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px]">
