@@ -45,7 +45,7 @@ export function NewVaultButton({
       {/* Subscription prompt for 3+ capsules */}
       {showUpgrade && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
           role="dialog"
           aria-modal="true"
           onClick={() => setShowUpgrade(false)}
