@@ -13,7 +13,7 @@ const UNTIL_LENGTH = 5; // "until"
 
 // Timings
 const BLINK_WAIT_MS = 1300; // initial cursor blink before typing starts
-const CHAR_INTERVAL_MS = 155; // per-character typing cadence (slower)
+const CHAR_INTERVAL_MS = 110; // per-character typing cadence
 const PAUSE_AFTER_PERIOD_MS = 720; // longer beat after typing "."
 const PAUSE_AFTER_BACKSPACE_MS = 540; // pause to let the erasure land
 const HOLD_AFTER_MS = 1700; // hold after comma lands before fading
