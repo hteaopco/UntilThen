@@ -3,7 +3,7 @@
 import { Lock, PlusCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { NewVaultButton } from "@/components/dashboard/NewVaultButton";
 
@@ -15,12 +15,6 @@ export type TimeCapsuleItem = {
   vaultId: string;
 };
 
-/**
- * Horizontal snap-scroll carousel of Time Capsule cards. Center
- * card is active (scale 1.0, full opacity); side cards are tucked
- * behind at 0.88 scale with blur. Always shows an "Add a capsule"
- * card at the end.
- */
 export function TimeCapsuleCarousel({
   items,
 }: {
@@ -55,7 +49,17 @@ export function TimeCapsuleCarousel({
     return () => el.removeEventListener("scroll", onScroll);
   }, [items.length]);
 
-  // Total cards = items + 1 "add" card
+  // Scroll a card into center view by index.
+  const scrollToIndex = useCallback((index: number) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const child = el.children[index] as HTMLElement | undefined;
+    if (!child) return;
+    const childCenter = child.offsetLeft + child.offsetWidth / 2;
+    const scrollTarget = childCenter - el.clientWidth / 2;
+    el.scrollTo({ left: scrollTarget, behavior: "smooth" });
+  }, []);
+
   const totalCards = items.length + 1;
 
   return (
@@ -76,11 +80,13 @@ export function TimeCapsuleCarousel({
             key={item.childId}
             item={item}
             active={i === activeIndex}
+            onActivate={() => scrollToIndex(i)}
           />
         ))}
-        {/* "Add a capsule" placeholder card */}
+        {/* "Add a capsule" card */}
         <div
-          className="shrink-0 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-all duration-200"
+          onClick={() => scrollToIndex(items.length)}
+          className="shrink-0 flex flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-all duration-200 cursor-pointer"
           style={{
             width: "min(320px, 80vw)",
             scrollSnapAlign: "center",
@@ -113,15 +119,17 @@ export function TimeCapsuleCarousel({
         </div>
       </div>
 
-      {/* Dot indicators */}
       {totalCards > 1 && (
         <div className="flex items-center justify-center gap-2 mt-2">
           {Array.from({ length: totalCards }).map((_, i) => (
-            <span
+            <button
               key={i}
+              type="button"
+              onClick={() => scrollToIndex(i)}
               className={`w-2 h-2 rounded-full transition-colors ${
                 i === activeIndex ? "bg-amber" : "bg-navy/15"
               }`}
+              aria-label={`Go to card ${i + 1}`}
             />
           ))}
         </div>
@@ -133,17 +141,28 @@ export function TimeCapsuleCarousel({
 function CapsuleCard({
   item,
   active,
+  onActivate,
 }: {
   item: TimeCapsuleItem;
   active: boolean;
+  onActivate: () => void;
 }) {
   const revealLabel = item.revealDate
     ? formatRevealDate(item.revealDate)
     : null;
 
+  // Side cards: click scrolls them to center. Active card: navigates.
+  function handleClick(e: React.MouseEvent) {
+    if (!active) {
+      e.preventDefault();
+      onActivate();
+    }
+  }
+
   return (
     <Link
       href={`/dashboard?vault=${item.childId}`}
+      onClick={handleClick}
       className="shrink-0 block rounded-2xl border-[1.5px] overflow-hidden transition-all duration-200"
       style={{
         width: "min(320px, 80vw)",
