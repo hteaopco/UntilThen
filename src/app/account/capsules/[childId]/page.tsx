@@ -32,7 +32,7 @@ export default async function AccountChildEditPage({
     where: { id: childId },
     include: { vault: true },
   });
-  if (!child || child.parentId !== user.id) redirect("/account/children");
+  if (!child || child.parentId !== user.id) redirect("/account/capsules");
 
   return (
     <ChildEditForm

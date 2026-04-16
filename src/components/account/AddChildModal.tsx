@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle, X } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
@@ -12,8 +13,18 @@ type RevealCategory =
   | "anniversary"
   | null;
 
+// Use local date parts to avoid UTC off-by-one.
 function yyyymmdd(d: Date): string {
-  return d.toISOString().split("T")[0] ?? "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+// Parse a yyyy-mm-dd string as LOCAL midnight (not UTC).
+function parseLocal(iso: string): Date {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y!, (m ?? 1) - 1, d);
 }
 
 function addMonths(date: Date, months: number): Date {
@@ -32,22 +43,25 @@ function ordinal(n: number): string {
   return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0] ?? "th"}`;
 }
 
+const MIN_DAYS = 90;
+
 // ── Pill styles ───────────────────────────────────────────────
 const pillBase =
   "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-bold uppercase tracking-[0.06em] transition-colors";
 const pillPrimaryActive = "bg-amber text-white border-amber";
 const pillPrimaryInactive =
   "bg-white border-navy/15 text-ink-mid hover:border-navy hover:text-navy";
-// Secondary (sub-options) — smaller text, amber-tint bg
 const pillSecBase =
   "inline-flex items-center gap-1 px-2.5 py-1 rounded-full border text-[10px] font-bold uppercase tracking-[0.06em] transition-colors";
 const pillSecActive = "bg-amber text-white border-amber";
 const pillSecInactive =
   "bg-amber-tint border-amber/25 text-amber hover:border-amber";
-// Green confirmation state for yes/no choices
 const pillGreenActive = "bg-sage text-white border-sage";
 const pillGreenInactive =
   "bg-white border-navy/15 text-ink-mid hover:border-sage hover:text-sage";
+// Disabled / past milestone
+const pillDisabled =
+  "bg-[#f5f5f5] border-navy/8 text-ink-light cursor-not-allowed opacity-50";
 
 export function AddChildModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
@@ -63,8 +77,30 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
   const [dateKnown, setDateKnown] = useState<boolean | null>(null);
   const [leaveBlank, setLeaveBlank] = useState(false);
   const [showWriteIn, setShowWriteIn] = useState(false);
+  const [dateAlert, setDateAlert] = useState(false);
 
-  const canSubmit = firstName.trim().length > 0 && !saving;
+  // Reveal is "set" if a date is picked, or user explicitly chose
+  // "leave blank" / "remind me later" / "fill in later".
+  const revealResolved =
+    revealDate.length > 0 || leaveBlank || dateKnown === false;
+
+  const canSubmit = firstName.trim().length > 0 && revealResolved && !saving;
+
+  const minDateIso = yyyymmdd(addMonths(new Date(), 3)); // 90 days ≈ 3 months
+
+  function validateAndSetDate(iso: string) {
+    if (!iso) { setRevealDate(""); return; }
+    const picked = parseLocal(iso);
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() + MIN_DAYS);
+    if (picked < cutoff) {
+      setDateAlert(true);
+      setRevealDate("");
+      return;
+    }
+    setDateAlert(false);
+    setRevealDate(iso);
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -101,21 +137,25 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
     setDateKnown(null);
     setLeaveBlank(false);
     setShowWriteIn(false);
+    setDateAlert(false);
   }
 
   function pickBirthdayAge(age: number) {
     if (!dob) return;
-    const d = new Date(dob);
+    const d = parseLocal(dob);
     d.setFullYear(d.getFullYear() + age);
     setRevealDate(yyyymmdd(d));
     setShowWriteIn(false);
+    setDateAlert(false);
   }
 
   function pickAnniversaryYear(years: number) {
     if (!weddingDate) return;
-    const d = new Date(weddingDate);
+    const d = parseLocal(weddingDate);
     d.setFullYear(d.getFullYear() + years);
     setRevealDate(yyyymmdd(d));
+    setLeaveBlank(false);
+    setDateAlert(false);
   }
 
   const today = new Date();
@@ -128,25 +168,12 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
   const gradOptions = ["Middle School", "High School", "College", "Med School"];
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/40 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      onClick={onClose}
-    >
-      <form
-        onSubmit={submit}
-        onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl shadow-[0_24px_48px_-8px_rgba(15,31,61,0.4)] w-full max-w-[520px] max-h-[92vh] overflow-y-auto"
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy/40 backdrop-blur-sm" role="dialog" aria-modal="true" onClick={onClose}>
+      <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl shadow-[0_24px_48px_-8px_rgba(15,31,61,0.4)] w-full max-w-[520px] max-h-[92vh] overflow-y-auto">
         <div className="px-7 py-5 border-b border-navy/[0.08] flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px]">
-              Add Another Time Capsule
-            </h2>
-            <p className="mt-1 text-sm text-ink-mid">
-              Create a new capsule. Start writing as soon as it&rsquo;s made.
-            </p>
+            <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px]">Add Another Time Capsule</h2>
+            <p className="mt-1 text-sm text-ink-mid">Create a new capsule. Start writing as soon as it&rsquo;s made.</p>
           </div>
           <button type="button" onClick={onClose} disabled={saving} className="text-ink-mid hover:text-navy" aria-label="Close">
             <X size={20} strokeWidth={1.75} aria-hidden="true" />
@@ -154,7 +181,6 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="px-7 py-5 space-y-5">
-          {/* Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="First name">
               <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} autoFocus required className="account-input" />
@@ -164,9 +190,8 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
             </Field>
           </div>
 
-          {/* DOB */}
           <Field label="Date of birth (optional)">
-            <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} max={new Date().toISOString().split("T")[0]} className="account-input" />
+            <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} max={yyyymmdd(today)} className="account-input" />
           </Field>
 
           {/* ── Reveal date ─────────────────────────────────── */}
@@ -175,7 +200,6 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
               Reveal date
             </span>
 
-            {/* Primary category pills — white bg, grey text */}
             <div className="flex flex-wrap gap-2">
               {([
                 ["quick", "Quick Pick"],
@@ -184,20 +208,24 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
                 ["wedding", "Wedding Date"],
                 ["anniversary", "Anniversary"],
               ] as [RevealCategory, string][]).map(([cat, label]) => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => selectCategory(cat)}
-                  className={`${pillBase} ${revealCategory === cat ? pillPrimaryActive : pillPrimaryInactive}`}
-                >
-                  {label}
-                </button>
+                <button key={cat} type="button" onClick={() => selectCategory(cat)}
+                  className={`${pillBase} ${revealCategory === cat ? pillPrimaryActive : pillPrimaryInactive}`}>{label}</button>
               ))}
             </div>
 
-            {/* Divider between primary and secondary */}
-            {revealCategory && (
-              <hr className="border-navy/[0.06] my-3" />
+            {revealCategory && <hr className="border-navy/[0.06] my-3" />}
+
+            {/* 90-day alert */}
+            {dateAlert && (
+              <div className="rounded-lg bg-amber-tint border border-amber/30 px-3 py-2 mb-3">
+                <p className="text-xs text-navy font-semibold">Time capsules must have a reveal date at least 90 days from today.</p>
+                <p className="text-xs text-ink-mid mt-1">
+                  Need something sooner?{" "}
+                  <Link href="/capsules/new" className="text-amber font-semibold hover:text-amber-dark">
+                    Use a Gift Capsule instead →
+                  </Link>
+                </p>
+              </div>
             )}
 
             {/* ── Quick picks ────────────────────────────── */}
@@ -205,32 +233,17 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-2">
                   {quickPicks.map((q) => (
-                    <button
-                      key={q.label}
-                      type="button"
-                      onClick={() => { setRevealDate(q.iso); setLeaveBlank(false); setShowWriteIn(false); }}
-                      className={`${pillSecBase} ${revealDate === q.iso && !leaveBlank ? pillSecActive : pillSecInactive}`}
-                    >
-                      {q.label}
-                    </button>
+                    <button key={q.label} type="button"
+                      onClick={() => { setRevealDate(q.iso); setLeaveBlank(false); setShowWriteIn(false); setDateAlert(false); }}
+                      className={`${pillSecBase} ${revealDate === q.iso && !leaveBlank ? pillSecActive : pillSecInactive}`}>{q.label}</button>
                   ))}
-                  <button
-                    type="button"
-                    onClick={() => { setShowWriteIn(true); setLeaveBlank(false); setRevealDate(""); }}
-                    className={`${pillSecBase} ${showWriteIn ? pillSecActive : pillSecInactive}`}
-                  >
-                    Write in Date
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => { setLeaveBlank(true); setRevealDate(""); setShowWriteIn(false); }}
-                    className={`${pillSecBase} ${leaveBlank ? pillGreenActive : pillGreenInactive}`}
-                  >
-                    Leave Blank for Now
-                  </button>
+                  <button type="button" onClick={() => { setShowWriteIn(true); setLeaveBlank(false); setRevealDate(""); setDateAlert(false); }}
+                    className={`${pillSecBase} ${showWriteIn ? pillSecActive : pillSecInactive}`}>Write in Date</button>
+                  <button type="button" onClick={() => { setLeaveBlank(true); setRevealDate(""); setShowWriteIn(false); setDateAlert(false); }}
+                    className={`${pillSecBase} ${leaveBlank ? pillGreenActive : pillGreenInactive}`}>Leave Blank for Now</button>
                 </div>
                 {showWriteIn && (
-                  <input type="date" value={revealDate} onChange={(e) => setRevealDate(e.target.value)} min={yyyymmdd(new Date(Date.now() + 86400000))} className="account-input" />
+                  <input type="date" value={revealDate} onChange={(e) => validateAndSetDate(e.target.value)} min={minDateIso} className="account-input" />
                 )}
               </div>
             )}
@@ -238,34 +251,28 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
             {/* ── Birthday ───────────────────────────────── */}
             {revealCategory === "birthday" && (
               <div className="space-y-2">
-                {!dob && (
-                  <p className="text-xs text-ink-light italic">Enter a date of birth above to calculate milestone ages.</p>
-                )}
+                {!dob && <p className="text-xs text-ink-light italic">Enter a date of birth above to calculate milestone ages.</p>}
                 {dob && (
                   <div className="flex flex-wrap gap-2">
                     {[12, 18, 21, 30, 40, 50].map((age) => {
-                      const d = new Date(dob);
+                      const d = parseLocal(dob);
                       d.setFullYear(d.getFullYear() + age);
                       const iso = yyyymmdd(d);
+                      const inFuture = d.getTime() > Date.now();
                       return (
-                        <button key={age} type="button" onClick={() => pickBirthdayAge(age)}
-                          className={`${pillSecBase} ${revealDate === iso && !showWriteIn ? pillSecActive : pillSecInactive}`}
-                        >
-                          {ordinal(age)}
-                        </button>
+                        <button key={age} type="button"
+                          onClick={() => inFuture && pickBirthdayAge(age)}
+                          disabled={!inFuture}
+                          className={`${pillSecBase} ${!inFuture ? pillDisabled : revealDate === iso && !showWriteIn ? pillSecActive : pillSecInactive}`}
+                        >{ordinal(age)}</button>
                       );
                     })}
-                    <button
-                      type="button"
-                      onClick={() => { setShowWriteIn(true); setRevealDate(""); }}
-                      className={`${pillSecBase} ${showWriteIn ? pillSecActive : pillSecInactive}`}
-                    >
-                      Write in Date
-                    </button>
+                    <button type="button" onClick={() => { setShowWriteIn(true); setRevealDate(""); setDateAlert(false); }}
+                      className={`${pillSecBase} ${showWriteIn ? pillSecActive : pillSecInactive}`}>Write in Date</button>
                   </div>
                 )}
                 {showWriteIn && (
-                  <input type="date" value={revealDate} onChange={(e) => setRevealDate(e.target.value)} min={yyyymmdd(new Date(Date.now() + 86400000))} className="account-input" />
+                  <input type="date" value={revealDate} onChange={(e) => validateAndSetDate(e.target.value)} min={minDateIso} className="account-input" />
                 )}
               </div>
             )}
@@ -276,11 +283,8 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
                 <div className="flex flex-wrap gap-2">
                   {gradOptions.map((g) => (
                     <button key={g} type="button"
-                      onClick={() => { setGradSelection(g); setDateKnown(null); setRevealDate(""); }}
-                      className={`${pillSecBase} ${gradSelection === g ? pillSecActive : pillSecInactive}`}
-                    >
-                      {g}
-                    </button>
+                      onClick={() => { setGradSelection(g); setDateKnown(null); setRevealDate(""); setDateAlert(false); }}
+                      className={`${pillSecBase} ${gradSelection === g ? pillSecActive : pillSecInactive}`}>{g}</button>
                   ))}
                 </div>
                 {gradSelection && dateKnown === null && (
@@ -288,20 +292,14 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
                     <p className="text-xs text-ink-mid">Do you know the {gradSelection.toLowerCase()} graduation date?</p>
                     <div className="flex gap-2">
                       <button type="button" onClick={() => setDateKnown(true)}
-                        className={`${pillSecBase} ${dateKnown === true ? pillGreenActive : pillGreenInactive}`}
-                      >
-                        Yes, enter date
-                      </button>
+                        className={`${pillSecBase} ${pillGreenInactive}`}>Yes, enter date</button>
                       <button type="button" onClick={() => setDateKnown(false)}
-                        className={`${pillSecBase} ${dateKnown === false ? pillGreenActive : pillGreenInactive}`}
-                      >
-                        Not yet — remind me later
-                      </button>
+                        className={`${pillSecBase} ${pillGreenInactive}`}>Not yet — remind me later</button>
                     </div>
                   </div>
                 )}
                 {gradSelection && dateKnown === true && (
-                  <input type="date" value={revealDate} onChange={(e) => setRevealDate(e.target.value)} min={yyyymmdd(new Date(Date.now() + 86400000))} className="account-input" />
+                  <input type="date" value={revealDate} onChange={(e) => validateAndSetDate(e.target.value)} min={minDateIso} className="account-input" />
                 )}
                 {gradSelection && dateKnown === false && (
                   <p className="text-xs text-sage font-semibold">Got it — we&rsquo;ll remind you to set the exact date later.</p>
@@ -317,20 +315,14 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
                     <p className="text-xs text-ink-mid">Do you know the wedding date?</p>
                     <div className="flex gap-2">
                       <button type="button" onClick={() => setDateKnown(true)}
-                        className={`${pillSecBase} ${dateKnown === true ? pillGreenActive : pillGreenInactive}`}
-                      >
-                        Yes, enter date
-                      </button>
+                        className={`${pillSecBase} ${pillGreenInactive}`}>Yes, enter date</button>
                       <button type="button" onClick={() => setDateKnown(false)}
-                        className={`${pillSecBase} ${dateKnown === false ? pillGreenActive : pillGreenInactive}`}
-                      >
-                        Not yet — remind me later
-                      </button>
+                        className={`${pillSecBase} ${pillGreenInactive}`}>Not yet — remind me later</button>
                     </div>
                   </div>
                 )}
                 {dateKnown === true && (
-                  <input type="date" value={revealDate} onChange={(e) => setRevealDate(e.target.value)} min={yyyymmdd(new Date(Date.now() + 86400000))} className="account-input" />
+                  <input type="date" value={revealDate} onChange={(e) => validateAndSetDate(e.target.value)} min={minDateIso} className="account-input" />
                 )}
                 {dateKnown === false && (
                   <p className="text-xs text-sage font-semibold">Got it — we&rsquo;ll remind you to set the date later.</p>
@@ -343,31 +335,27 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
               <div className="space-y-3">
                 <Field label="Wedding date">
                   <input type="date" value={weddingDate}
-                    onChange={(e) => { setWeddingDate(e.target.value); setRevealDate(""); setLeaveBlank(false); }}
-                    max={new Date().toISOString().split("T")[0]} className="account-input"
-                  />
+                    onChange={(e) => { setWeddingDate(e.target.value); setRevealDate(""); setLeaveBlank(false); setDateAlert(false); }}
+                    max={yyyymmdd(today)} className="account-input" />
                 </Field>
                 {weddingDate && (
                   <div className="flex flex-wrap gap-2">
-                    {[10, 15, 20, 30, 40, 50].map((years) => {
-                      const d = new Date(weddingDate);
+                    {[5, 10, 15, 20, 30, 40, 50].map((years) => {
+                      const d = parseLocal(weddingDate);
                       d.setFullYear(d.getFullYear() + years);
                       const iso = yyyymmdd(d);
-                      if (d.getTime() <= Date.now()) return null;
+                      const inFuture = d.getTime() > Date.now();
                       return (
-                        <button key={years} type="button" onClick={() => { pickAnniversaryYear(years); setLeaveBlank(false); }}
-                          className={`${pillSecBase} ${revealDate === iso && !leaveBlank ? pillSecActive : pillSecInactive}`}
-                        >
-                          {ordinal(years)}
-                        </button>
+                        <button key={years} type="button"
+                          onClick={() => inFuture && pickAnniversaryYear(years)}
+                          disabled={!inFuture}
+                          className={`${pillSecBase} ${!inFuture ? pillDisabled : revealDate === iso && !leaveBlank ? pillSecActive : pillSecInactive}`}
+                        >{ordinal(years)}</button>
                       );
                     })}
                     <button type="button"
-                      onClick={() => { setLeaveBlank(true); setRevealDate(""); }}
-                      className={`${pillSecBase} ${leaveBlank ? pillGreenActive : pillGreenInactive}`}
-                    >
-                      Fill in later
-                    </button>
+                      onClick={() => { setLeaveBlank(true); setRevealDate(""); setDateAlert(false); }}
+                      className={`${pillSecBase} ${leaveBlank ? pillGreenActive : pillGreenInactive}`}>Fill in later</button>
                   </div>
                 )}
               </div>
@@ -378,7 +366,7 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
               <p className="text-xs text-ink-mid mt-2">
                 Opens{" "}
                 <span className="font-semibold text-navy">
-                  {new Date(revealDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                  {parseLocal(revealDate).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                 </span>
               </p>
             )}
@@ -397,10 +385,9 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
         </div>
 
         <div className="px-7 py-4 border-t border-navy/[0.08] flex items-center justify-end gap-3">
-          <button type="button" onClick={onClose} disabled={saving} className="text-sm font-semibold text-ink-mid hover:text-navy px-3 py-2 disabled:opacity-50">
-            Cancel
-          </button>
-          <button type="submit" disabled={!canSubmit} className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60">
+          <button type="button" onClick={onClose} disabled={saving} className="text-sm font-semibold text-ink-mid hover:text-navy px-3 py-2 disabled:opacity-50">Cancel</button>
+          <button type="submit" disabled={!canSubmit}
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors ${canSubmit ? "bg-amber text-white hover:bg-amber-dark" : "bg-navy/10 text-ink-light cursor-not-allowed"}`}>
             {saving ? "Creating\u2026" : "Create Capsule"}
           </button>
         </div>

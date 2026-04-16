@@ -47,7 +47,7 @@ export function ChildEditForm({
     setState("saving");
     setError(null);
     try {
-      const res = await fetch(`/api/account/children/${childId}`, {
+      const res = await fetch(`/api/account/capsules/${childId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -76,14 +76,14 @@ export function ChildEditForm({
       return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/account/children/${childId}`, {
+      const res = await fetch(`/api/account/capsules/${childId}`, {
         method: "DELETE",
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Couldn't delete vault.");
       }
-      router.push("/account/children");
+      router.push("/account/capsules");
       router.refresh();
     } catch (err) {
       window.alert((err as Error).message);
@@ -94,7 +94,7 @@ export function ChildEditForm({
   return (
     <div className="space-y-10">
       <Link
-        href="/account/children"
+        href="/account/capsules"
         prefetch={false}
         className="inline-flex items-center gap-2 text-sm text-ink-mid hover:text-navy transition-colors"
       >

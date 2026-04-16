@@ -111,8 +111,8 @@ export async function PATCH(
     });
   }
 
-  revalidatePath("/account/children");
-  revalidatePath(`/account/children/${id}`);
+  revalidatePath("/account/capsules");
+  revalidatePath(`/account/capsules/${id}`);
   revalidatePath("/dashboard");
   return NextResponse.json({ success: true });
 }
@@ -152,7 +152,7 @@ export async function DELETE(
   }
   await prisma.child.delete({ where: { id } });
 
-  revalidatePath("/account/children");
+  revalidatePath("/account/capsules");
   revalidatePath("/dashboard");
   return NextResponse.json({ success: true });
 }

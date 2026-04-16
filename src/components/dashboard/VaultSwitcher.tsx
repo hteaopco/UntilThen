@@ -172,7 +172,7 @@ export function VaultSwitcher({
           })}
           <div className="border-t border-navy/[0.06] mt-1 pt-1">
             <Link
-              href="/account/children"
+              href="/account/capsules"
               prefetch={false}
               onClick={() => setOpen(false)}
               className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-amber hover:bg-amber-tint transition-colors"

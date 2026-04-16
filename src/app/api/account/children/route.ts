@@ -142,7 +142,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     });
 
     revalidatePath("/dashboard");
-    revalidatePath("/account/children");
+    revalidatePath("/account/capsules");
     return NextResponse.json({ success: true, id: child.id });
   } catch (err) {
     console.error("[account/children POST] error:", err);

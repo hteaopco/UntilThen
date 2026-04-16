@@ -7,7 +7,7 @@ import { AddChildButton } from "@/components/account/AddChildButton";
 import { formatLong } from "@/lib/dateFormatters";
 
 export const metadata = {
-  title: "Children & Vaults — untilThen",
+  title: "Time Capsules — untilThen",
 };
 
 export const dynamic = "force-dynamic";
@@ -68,7 +68,7 @@ export default async function AccountChildrenPage() {
           return (
             <li key={child.id}>
               <Link
-                href={`/account/children/${child.id}`}
+                href={`/account/capsules/${child.id}`}
                 prefetch={false}
                 className="group flex items-start gap-4 rounded-2xl border border-navy/[0.08] bg-white px-5 py-4 hover:border-amber/30 hover:shadow-[0_6px_20px_rgba(15,31,61,0.06)] transition-all"
               >
