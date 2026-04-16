@@ -130,7 +130,7 @@ export default async function AccountBillingPage() {
           />
           <PlanOption
             icon={PlusCircle}
-            title="Add a time capsule"
+            title="Add Time Capsule"
             subtitle="$0.99 / month per capsule."
           />
           <PlanOption
