@@ -86,7 +86,7 @@ export function Nav() {
         </ul>
 
         {/* Mobile: three elements only — Logo (above), then
-            Sign in → and the hamburger. Spacing matches the
+            Sign in and the hamburger. Spacing matches the
             spec's gap-16. */}
         <div className="lg:hidden flex items-center gap-4">
           <RightAction />
@@ -160,7 +160,7 @@ function RightAction() {
             href="/sign-in"
             className="text-[14px] font-medium text-navy/85 hover:text-navy transition-colors"
           >
-            Sign in →
+            Sign in
           </Link>
           <Link
             href="/sign-up"
