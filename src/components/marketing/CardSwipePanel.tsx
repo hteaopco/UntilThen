@@ -108,7 +108,7 @@ export function CardSwipePanel({ defaultPanel, cards, pills }: Props) {
         <div className="w-full shrink-0 flex flex-col items-center justify-center px-2 py-4">
           <FannedStack cards={cards} />
           {pills && pills.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-5 justify-center">
+            <div className="flex flex-wrap gap-2 mt-8 justify-center">
               {pills.map((p) => (
                 <span
                   key={p}
@@ -155,7 +155,7 @@ function FannedStack({ cards }: { cards: StackCard[] }) {
   ];
 
   return (
-    <div className="relative w-full h-[440px]">
+    <div className="relative w-full h-[480px]">
       {cards.map((card, i) => {
         const pos = positions[i] ?? positions[0]!;
         const zIndex = cards.length - i;
