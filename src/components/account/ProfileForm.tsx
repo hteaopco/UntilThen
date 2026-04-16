@@ -132,7 +132,7 @@ export function ProfileForm({
               type="text"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Mum"
+              placeholder="Mom"
               className="account-input"
               maxLength={40}
             />

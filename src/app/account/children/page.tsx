@@ -49,13 +49,13 @@ export default async function AccountChildrenPage() {
     <div className="space-y-8">
       <section>
         <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
-          Children &amp; Vaults
+          Time Capsules
         </p>
         <h2 className="text-2xl font-extrabold text-navy tracking-[-0.3px] mb-2">
           Who you&rsquo;re writing for
         </h2>
         <p className="text-sm text-ink-mid">
-          Manage each child&rsquo;s vault, reveal date, and the trusted person
+          Manage each capsule, reveal date, and the trusted person
           who can request transfer if you&rsquo;re ever unable to access your
           account.
         </p>
@@ -84,7 +84,7 @@ export default async function AccountChildrenPage() {
                   </div>
                   <div className="text-sm text-ink-mid mt-0.5">
                     {reveal
-                      ? `Vault opens ${formatLong(reveal)}`
+                      ? `Time capsule opens ${formatLong(reveal)}`
                       : "Reveal date not set"}{" "}
                     ·{" "}
                     {sealed.toLocaleString()}{" "}
@@ -108,7 +108,7 @@ export default async function AccountChildrenPage() {
       </ul>
 
       <p className="text-xs italic text-ink-light">
-        Additional child vaults will be $1.99 / month each when billing is
+        Additional time capsules will be $0.99 / month each when billing is
         live. No charge during the current beta.
       </p>
     </div>

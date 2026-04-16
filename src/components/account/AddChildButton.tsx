@@ -28,9 +28,9 @@ export function AddChildButton() {
             <Plus size={18} strokeWidth={1.75} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-semibold text-navy">Add another child</div>
+            <div className="font-semibold text-navy">Add another time capsule</div>
             <div className="text-sm text-ink-mid mt-0.5">
-              Create a new vault for another child. Invite contributors and
+              Create a new time capsule and
               start writing in minutes.
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { Gift, PlusCircle, TrendingUp } from "lucide-react";
+import { Gift, PlusCircle, Sparkles, TrendingUp } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { BillingActions } from "@/components/account/BillingActions";
@@ -94,8 +94,8 @@ export default async function AccountBillingPage() {
           Usage
         </div>
         <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <UsageCell label="Child vaults" value={`${childCount} of 1 incl.`} />
-          <UsageCell label="Photos" value={`${photoCount} of 500`} />
+          <UsageCell label="Time capsules" value={`${childCount}`} />
+          <UsageCell label="Photos" value={`${photoCount}`} />
           <UsageCell label="Voice notes" value={`${voiceCount}`} />
           <UsageCell label="Video clips" value={`${videoCount}`} />
         </dl>
@@ -130,13 +130,13 @@ export default async function AccountBillingPage() {
           />
           <PlanOption
             icon={PlusCircle}
-            title="Add a child vault"
-            subtitle="$1.99 / month per additional child."
+            title="Add a time capsule"
+            subtitle="$0.99 / month per capsule."
           />
           <PlanOption
-            icon={Gift}
-            title="Give untilThen as a gift"
-            subtitle="$39.99 one-time — no auto-renewal."
+            icon={Sparkles}
+            title="Add Gift Capsule"
+            subtitle="$9.99 one-time — for special events or just because."
           />
         </ul>
       </section>

@@ -90,6 +90,15 @@ export function NotificationsForm({ initial }: { initial: Prefs }) {
     setPrefs(next);
   }
 
+  const toggleKeys = TOGGLES.map((t) => t.key);
+  const allOn = toggleKeys.every((k) => prefs[k]);
+
+  function setAll(on: boolean) {
+    const next = { ...prefs };
+    for (const k of toggleKeys) next[k] = on;
+    setPrefs(next);
+  }
+
   async function submit(e: FormEvent) {
     e.preventDefault();
     await savePrefs(prefs);
@@ -142,6 +151,16 @@ export function NotificationsForm({ initial }: { initial: Prefs }) {
       )}
 
       <section>
+        <div className="flex items-center justify-end mb-3">
+          <button
+            type="button"
+            onClick={() => setAll(!allOn)}
+            disabled={saving}
+            className="text-[12px] font-semibold text-amber hover:text-amber-dark transition-colors disabled:opacity-50"
+          >
+            {allOn ? "Turn all off" : "Turn all on"}
+          </button>
+        </div>
         <ul className="space-y-3">
           {TOGGLES.map((t) => (
             <li

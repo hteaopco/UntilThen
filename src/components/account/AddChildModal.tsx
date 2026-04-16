@@ -73,8 +73,7 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
               Add another child
             </h2>
             <p className="mt-1 text-sm text-ink-mid">
-              Create a new vault. You can invite contributors and start
-              writing as soon as it&rsquo;s made.
+              Create a new time capsule and start writing in minutes.
             </p>
           </div>
           <button
