@@ -13,30 +13,21 @@ export type StackCard = {
 };
 
 type Props = {
-  /** Panel 0 — the default visual (existing card image/content). */
+  /** Panel 0 — the full original card content (image + copy + CTA). */
   defaultPanel: React.ReactNode;
-  /** The 3 stacked example cards shown on swipe-right (panel 1). */
+  /** Panel 1 — the stacked example cards shown on swipe. */
   cards: StackCard[];
   /** Optional pills shown below the stack (Gift Capsule occasions). */
   pills?: string[];
 };
 
-// ── Constants ─────────────────────────────────────────────────
-
 const SWIPE_THRESHOLD = 40;
 
-// ── Component ─────────────────────────────────────────────────
-
 /**
- * Two-panel swipeable area that sits at the top of a Choose Your
- * Vault card. Panel 0 is the existing visual (PNG). Panel 1 is a
- * fanned 3-card stack of example entries.
- *
- * - 2 dot indicators (left = default, right = stack view)
- * - On first scroll-into-view the panel nudges left briefly to
- *   hint that swiping is possible
- * - Captures pointer events so the parent card link doesn't fire
- *   mid-swipe
+ * Full-card two-panel swipe. The ENTIRE card content flips between
+ * panel 0 (original) and panel 1 (fanned stack). Dots sit at the
+ * very bottom of the card. On first scroll-into-view the whole
+ * panel nudges left briefly to hint at swipeability.
  */
 export function CardSwipePanel({ defaultPanel, cards, pills }: Props) {
   const [panel, setPanel] = useState<0 | 1>(0);
@@ -57,16 +48,15 @@ export function CardSwipePanel({ defaultPanel, cards, pills }: Props) {
           obs.disconnect();
         }
       },
-      { threshold: 0.5 },
+      { threshold: 0.3 },
     );
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
 
-  // Swipe handlers.
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (e.button !== 0) return;
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
     startX.current = e.clientX;
     dragX.current = 0;
     setDragging(true);
@@ -91,19 +81,19 @@ export function CardSwipePanel({ defaultPanel, cards, pills }: Props) {
   return (
     <div
       ref={containerRef}
-      className="mb-5 select-none overflow-hidden"
+      className="select-none overflow-hidden flex flex-col"
       style={{ touchAction: "pan-y" }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      {/* Sliding track — holds both panels side-by-side. */}
+      {/* Sliding track — both panels side-by-side. */}
       <div
-        className="flex transition-transform duration-300 ease-out"
+        className="flex flex-1 transition-transform duration-300 ease-out"
         style={{ transform: `translateX(${panel === 0 ? "0" : "-100"}%)` }}
       >
-        {/* Panel 0 — existing visual. */}
+        {/* Panel 0 — full original card content. */}
         <div
           className={`w-full shrink-0 ${
             hinted && panel === 0
@@ -115,10 +105,10 @@ export function CardSwipePanel({ defaultPanel, cards, pills }: Props) {
         </div>
 
         {/* Panel 1 — fanned 3-card stack + optional pills. */}
-        <div className="w-full shrink-0 px-1">
+        <div className="w-full shrink-0 flex flex-col items-center justify-center px-2 py-4">
           <FannedStack cards={cards} />
           {pills && pills.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-4 justify-center">
+            <div className="flex flex-wrap gap-2 mt-5 justify-center">
               {pills.map((p) => (
                 <span
                   key={p}
@@ -132,8 +122,8 @@ export function CardSwipePanel({ defaultPanel, cards, pills }: Props) {
         </div>
       </div>
 
-      {/* Dot indicators */}
-      <div className="flex items-center justify-center gap-2 mt-3">
+      {/* Dot indicators — sit at the very bottom of the card. */}
+      <div className="flex items-center justify-center gap-2 pt-4 pb-1">
         <span
           className={`w-2 h-2 rounded-full transition-colors ${
             panel === 0 ? "bg-amber" : "bg-navy/15"
@@ -150,44 +140,44 @@ export function CardSwipePanel({ defaultPanel, cards, pills }: Props) {
 }
 
 // ── Fanned 3-card stack ───────────────────────────────────────
+// Full-height layout so the cards feel as big as they did in the
+// hero. Each card is ~300px wide and the stack is ~440px tall.
 
 function FannedStack({ cards }: { cards: StackCard[] }) {
   return (
-    <div className="relative h-[280px]">
+    <div className="relative w-full h-[420px]">
       {cards.map((card, i) => {
-        // Fan from top-left → middle → bottom-right, each one
-        // offset + rotated so they overlap like a hand of cards.
-        const top = i * 60;
-        const left = i * 16;
+        const top = i * 80;
+        const left = 8 + i * 20;
         const rotate = i === 0 ? -1.5 : i === 1 ? 1.2 : -0.8;
         const zIndex = cards.length - i;
-        const width = 280 - i * 12;
+        const width = 300 - i * 14;
 
         return (
           <div
             key={i}
-            className="absolute rounded-2xl border border-navy/[0.08] bg-white px-6 py-5"
+            className="absolute rounded-2xl border border-navy/[0.08] bg-white px-7 py-6"
             style={{
               top,
               left,
               width,
-              maxWidth: `calc(100% - ${left}px)`,
+              maxWidth: `calc(100% - ${left + 8}px)`,
               zIndex,
               transform: `rotate(${rotate}deg)`,
               boxShadow:
                 "0 4px 24px rgba(15,31,61,0.08), 0 1px 4px rgba(15,31,61,0.04)",
             }}
           >
-            <div className="text-[10px] uppercase tracking-[0.1em] text-amber font-bold mb-1.5">
+            <div className="text-[11px] uppercase tracking-[0.12em] text-amber font-bold mb-2">
               {card.eyebrow}
             </div>
-            <h4 className="text-sm font-bold text-navy leading-[1.3] mb-1.5">
+            <h4 className="text-[16px] font-bold text-navy leading-[1.3] mb-2">
               {card.title}
             </h4>
-            <p className="text-xs text-ink-light leading-[1.6]">
+            <p className="text-[14px] text-ink-light leading-[1.6]">
               {card.preview}
             </p>
-            <div className="mt-3 pt-3 border-t border-navy/[0.08] flex items-center gap-1.5 text-[10px] uppercase tracking-[0.08em] font-bold text-gold">
+            <div className="mt-4 pt-3 border-t border-navy/[0.08] flex items-center gap-1.5 text-[10px] uppercase tracking-[0.1em] font-bold text-gold">
               <span
                 className={`inline-block w-[5px] h-[5px] rounded-full ${
                   card.badgeColor === "gold" ? "bg-gold" : "bg-amber"
