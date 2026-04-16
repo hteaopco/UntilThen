@@ -16,10 +16,17 @@ export function Hero() {
           </h1>
 
           <p className="hero-sub text-[17px] font-normal leading-[1.7] text-ink-mid max-w-[480px] mx-auto mb-6">
-            untilThen is a place to write letters, record voice notes, and
-            seal memories in a vault your child opens when they&rsquo;re
-            ready. Write your first letter today — it takes five minutes,
-            and they&rsquo;ll have it forever.
+            Write letters, record your voice, and save moments they&rsquo;ll
+            open years from now — on their 18th birthday, or any day you
+            choose. Or{" "}
+            <a
+              href="#pricing"
+              className="text-amber font-semibold hover:text-amber-dark transition-colors"
+            >
+              invite others to add messages for a birthday, retirement, or
+              milestone
+            </a>
+            .
           </p>
 
           <div className="hero-actions">
