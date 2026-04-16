@@ -83,13 +83,22 @@ export async function POST(req: Request) {
             where: { id: child.parentId },
           });
           if (parent) {
-            const { sendEntryNeedsReview } = await import("@/lib/emails");
-            await sendEntryNeedsReview({
-              parentEmail: "",
-              contributorName: contributor.name ?? contributor.email,
-              childFirstName: child.firstName,
-              entryTitle: title || "Untitled",
-            });
+            const { clerkClient } = await import("@clerk/nextjs/server");
+            const clerk = await clerkClient();
+            const clerkUser = await clerk.users.getUser(parent.clerkId);
+            const parentEmail =
+              clerkUser.primaryEmailAddress?.emailAddress ??
+              clerkUser.emailAddresses[0]?.emailAddress ??
+              "";
+            if (parentEmail) {
+              const { sendEntryNeedsReview } = await import("@/lib/emails");
+              await sendEntryNeedsReview({
+                parentEmail,
+                contributorName: contributor.name ?? contributor.email,
+                childFirstName: child.firstName,
+                entryTitle: title || "Untitled",
+              });
+            }
           }
         }
       } catch (err) {

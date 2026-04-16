@@ -31,6 +31,7 @@ export function ChildEditForm({
   revealDate: initialReveal,
   trusteeName: initialTrusteeName,
   trusteeEmail: initialTrusteeEmail,
+  trusteePhone: initialTrusteePhone,
 }: {
   childId: string;
   firstName: string;
@@ -38,6 +39,7 @@ export function ChildEditForm({
   revealDate: string | null;
   trusteeName: string;
   trusteeEmail: string;
+  trusteePhone: string;
 }) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
@@ -45,7 +47,7 @@ export function ChildEditForm({
   // Trustee fields stay editable inline (not in the modal).
   const [trusteeName, setTrusteeName] = useState(initialTrusteeName);
   const [trusteeEmail, setTrusteeEmail] = useState(initialTrusteeEmail);
-  const [trusteePhone, setTrusteePhone] = useState("");
+  const [trusteePhone, setTrusteePhone] = useState(initialTrusteePhone);
   const [trusteeState, setTrusteeState] = useState<SaveState>("idle");
   const [trusteeError, setTrusteeError] = useState<string | null>(null);
 
@@ -70,6 +72,7 @@ export function ChildEditForm({
           revealDate: initialReveal ? toDateInput(initialReveal) : null,
           trusteeName: trusteeName.trim() || null,
           trusteeEmail: trusteeEmail.trim() || null,
+          trusteePhone: trusteePhone.trim() || null,
         }),
       });
       if (!res.ok) {

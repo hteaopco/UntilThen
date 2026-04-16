@@ -7,10 +7,12 @@ export const dynamic = "force-dynamic";
 
 type PatchBody = {
   firstName?: string;
+  lastName?: string;
   dateOfBirth?: string | null;
   revealDate?: string | null;
   trusteeName?: string | null;
   trusteeEmail?: string | null;
+  trusteePhone?: string | null;
 };
 
 async function requireOwnership(clerkUserId: string, childId: string) {
@@ -74,6 +76,9 @@ export async function PATCH(
       );
     childData.firstName = v;
   }
+  if (typeof body.lastName === "string") {
+    childData.lastName = body.lastName.trim();
+  }
   if ("dateOfBirth" in body) {
     const d = parseDate(body.dateOfBirth);
     if (d === undefined)
@@ -92,6 +97,11 @@ export async function PATCH(
     const v =
       typeof body.trusteeEmail === "string" ? body.trusteeEmail.trim() : "";
     childData.trusteeEmail = v.length > 0 ? v : null;
+  }
+  if ("trusteePhone" in body) {
+    const v =
+      typeof body.trusteePhone === "string" ? body.trusteePhone.trim() : "";
+    childData.trusteePhone = v.length > 0 ? v : null;
   }
 
   const { prisma } = await import("@/lib/prisma");

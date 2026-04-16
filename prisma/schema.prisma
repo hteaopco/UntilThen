@@ -93,6 +93,7 @@ model Child {
   parentId     String
   trusteeName  String?
   trusteeEmail String?
+  trusteePhone String?
   createdAt    DateTime  @default(now())
 
   parent User   @relation(fields: [parentId], references: [id])
