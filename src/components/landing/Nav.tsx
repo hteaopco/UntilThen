@@ -176,7 +176,7 @@ function RightAction() {
           href="/dashboard"
           className="inline-flex items-center gap-1 bg-amber text-white px-3.5 py-2 rounded-lg text-[13px] font-bold tracking-[0.01em] hover:bg-amber-dark transition-colors"
         >
-          Dashboard →
+          Your Vault →
         </Link>
       </SignedIn>
     </>

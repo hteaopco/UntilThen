@@ -18,7 +18,7 @@ import { AddChildModal } from "@/components/account/AddChildModal";
  */
 export function NewVaultButton({
   variant = "outline",
-  label = "New vault",
+  label = "New Time Capsule",
 }: {
   variant?: "outline" | "primary";
   label?: string;

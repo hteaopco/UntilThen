@@ -80,15 +80,15 @@ export function DashboardGrid({
     <div className="grid gap-4 sm:grid-cols-2 sm:gap-5">
       <div className="flex flex-col gap-3">
         <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
-          Vaults · {vaults.length}
+          Time Capsules · {vaults.length}
         </h2>
 
         {vaults.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-navy/10 bg-warm-surface/60 px-5 py-6 text-center">
             <p className="text-sm text-ink-mid leading-[1.5]">
-              Want to write to a child over years?
+              Start writing to someone you love.
             </p>
-            <NewVaultButton variant="primary" label="Create a vault →" />
+            <NewVaultButton variant="primary" label="Start a Time Capsule →" />
           </div>
         ) : (
           vaults.map((v) => (
@@ -132,20 +132,20 @@ export function DashboardGrid({
 
       <div className="flex flex-col gap-3">
         <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
-          Capsules · {capsules.length}
+          Gift Capsules · {capsules.length}
         </h2>
 
         {capsules.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-navy/10 bg-warm-surface/60 px-5 py-6 text-center">
             <p className="text-sm text-ink-mid leading-[1.5]">
-              Collect memories for any milestone occasion.
+              Create a moment someone will never forget.
             </p>
             <Link
               href="/capsules/new"
               className="mt-4 inline-flex items-center gap-2 bg-amber text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
               <Sparkles size={14} strokeWidth={1.75} aria-hidden="true" />
-              New capsule
+              New Gift Capsule
             </Link>
           </div>
         ) : (
@@ -195,7 +195,7 @@ export function DashboardGrid({
           className="mt-1 inline-flex items-center justify-center gap-1.5 py-2.5 rounded-lg border border-amber/40 text-amber text-sm font-bold hover:bg-amber-tint transition-colors"
         >
           <PlusCircle size={14} strokeWidth={1.75} aria-hidden="true" />
-          New capsule
+          New Gift Capsule
         </Link>
       </div>
     </div>

@@ -32,7 +32,7 @@ import { LogoSvg } from "@/components/ui/LogoSvg";
 import { effectiveStatus } from "@/lib/capsules";
 
 export const metadata = {
-  title: "Your dashboard — untilThen",
+  title: "Your Vault — untilThen",
 };
 
 export const dynamic = "force-dynamic";

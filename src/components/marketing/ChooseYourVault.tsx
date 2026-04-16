@@ -72,7 +72,7 @@ function FutureVaultCard() {
   return (
     <Link
       href="/sign-up"
-      aria-label="Start a future vault"
+      aria-label="Start a Time Capsule"
       className="group relative flex flex-col rounded-[20px] border-[1.5px] p-7 lg:p-8 transition-all duration-150 hover:-translate-y-[3px] hover:shadow-[0_8px_32px_rgba(196,122,58,0.18)]"
       style={{
         background: "#fef6ec",
@@ -87,15 +87,15 @@ function FutureVaultCard() {
       <FutureVaultVisual />
 
       <CardLabel icon={CalendarDays} color="amber">
-        For their future
+        Time Capsule
       </CardLabel>
       <h3 className="text-[22px] font-extrabold text-navy tracking-[-0.5px] leading-[1.25]">
         Write now. They&rsquo;ll open later.
       </h3>
       <p className="text-[15px] text-ink-mid leading-[1.6]">
-        Create a private vault of letters, voice notes, photos, and videos
-        for someone you love. They&rsquo;ll unlock it on a birthday,
-        graduation, or any milestone you choose.
+        A private capsule between you and one other person — letters,
+        voice notes, photos, and videos they&rsquo;ll unlock on a
+        birthday, graduation, or any milestone you choose.
       </p>
 
       <ul className="space-y-2 mt-1">
@@ -115,7 +115,7 @@ function FutureVaultCard() {
             link. The nested button is styled but inherits the link's
             click; keep as a span so it doesn't become a nested anchor. */}
         <span className="block w-full text-center bg-amber text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors group-hover:bg-amber-dark">
-          Start a future vault →
+          Start a Time Capsule →
         </span>
       </div>
     </Link>
@@ -123,14 +123,14 @@ function FutureVaultCard() {
 }
 
 /**
- * Shared Gift card — secondary, cool-toned. "Collect messages.
+ * Gift Capsule card — secondary, cool-toned. "Collect messages.
  * Create a gift." Links to the capsule path.
  */
 function SharedGiftCard() {
   return (
     <Link
       href="/sign-up?path=capsule"
-      aria-label="Create a shared gift"
+      aria-label="Create a Gift Capsule"
       className="group relative flex flex-col rounded-[20px] border-[1.5px] p-7 lg:p-8 transition-all duration-150 hover:-translate-y-[3px] hover:shadow-[0_8px_32px_rgba(15,31,61,0.12)]"
       style={{
         background: "#f0f4fa",
@@ -141,7 +141,7 @@ function SharedGiftCard() {
       <SharedGiftVisual />
 
       <CardLabel icon={Gift} color="navy">
-        Shared gift vault
+        Gift Capsule
       </CardLabel>
       <h3 className="text-[22px] font-extrabold text-navy tracking-[-0.5px] leading-[1.25]">
         Collect messages. Create a gift.
@@ -166,7 +166,7 @@ function SharedGiftCard() {
 
       <div className="mt-auto pt-5">
         <span className="block w-full text-center bg-navy text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors group-hover:bg-navy-mid">
-          Create a shared gift →
+          Create a Gift Capsule →
         </span>
       </div>
     </Link>
