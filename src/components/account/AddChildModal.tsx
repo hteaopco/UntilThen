@@ -22,6 +22,14 @@ function addMonths(date: Date, months: number): Date {
   return r;
 }
 
+function ordinal(n: number): string {
+  if (n === 21) return "21st";
+  if (n === 12) return "12th";
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return `${n}${s[(v - 20) % 10] ?? s[v] ?? s[0] ?? "th"}`;
+}
+
 export function AddChildModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const [firstName, setFirstName] = useState("");
@@ -31,9 +39,9 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
   const [revealCategory, setRevealCategory] = useState<RevealCategory>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Anniversary flow needs the wedding date first.
   const [weddingDate, setWeddingDate] = useState("");
+  const [gradSelection, setGradSelection] = useState<string | null>(null);
+  const [showGradDate, setShowGradDate] = useState(false);
 
   const canSubmit = firstName.trim().length > 0 && !saving;
 
@@ -68,6 +76,8 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
   function selectCategory(cat: RevealCategory) {
     setRevealCategory(cat === revealCategory ? null : cat);
     setRevealDate("");
+    setGradSelection(null);
+    setShowGradDate(false);
   }
 
   function pickBirthdayAge(age: number) {
@@ -91,20 +101,14 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
     { label: "1 Year", iso: yyyymmdd(addMonths(today, 12)) },
   ];
 
-  // Graduation rough dates — May of year.
-  const thisYear = today.getFullYear();
-  const gradOptions = [
-    { label: "Middle School", hint: "~Age 14" },
-    { label: "High School", hint: "~Age 18" },
-    { label: "College", hint: "~Age 22" },
-    { label: "Med School", hint: "~Age 26" },
-  ];
+  const gradOptions = ["Middle School", "High School", "College", "Med School"];
 
+  // ── Pill styles ─────────────────────────────────────────────
   const pillBase =
     "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[11px] font-bold uppercase tracking-[0.06em] transition-colors";
   const pillActive = "bg-amber text-white border-amber";
-  const pillInactive =
-    "bg-white border-navy/15 text-ink-mid hover:border-navy hover:text-navy";
+  const pillSecondary =
+    "bg-amber-tint border-amber/25 text-amber hover:border-amber hover:bg-amber-tint";
 
   return (
     <div
@@ -161,7 +165,7 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
             </Field>
           </div>
 
-          {/* DOB — fully optional, no auto-populate behavior */}
+          {/* DOB */}
           <Field label="Date of birth (optional)">
             <input
               type="date"
@@ -172,13 +176,16 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
             />
           </Field>
 
-          {/* Reveal date — expanded options */}
+          {/* ── Divider ─────────────────────────────────────── */}
+          <hr className="border-navy/[0.06]" />
+
+          {/* Reveal date */}
           <div>
             <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-3">
               Reveal date (optional)
             </span>
 
-            {/* Category pills */}
+            {/* Primary category pills */}
             <div className="flex flex-wrap gap-2 mb-3">
               {(
                 [
@@ -194,7 +201,7 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
                   type="button"
                   onClick={() => selectCategory(cat)}
                   className={`${pillBase} ${
-                    revealCategory === cat ? pillActive : pillInactive
+                    revealCategory === cat ? pillActive : pillSecondary
                   }`}
                 >
                   {label}
@@ -202,7 +209,7 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
               ))}
             </div>
 
-            {/* Quick picks */}
+            {/* ── Quick picks ──────────────────────────────── */}
             {revealCategory === "quick" && (
               <div className="flex flex-wrap gap-2 mb-3">
                 {quickPicks.map((q) => (
@@ -211,16 +218,37 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
                     type="button"
                     onClick={() => setRevealDate(q.iso)}
                     className={`${pillBase} ${
-                      revealDate === q.iso ? pillActive : pillInactive
+                      revealDate === q.iso ? pillActive : pillSecondary
                     }`}
                   >
                     {q.label}
                   </button>
                 ))}
+                <button
+                  type="button"
+                  onClick={() => setRevealDate("")}
+                  className={`${pillBase} ${
+                    revealCategory === "quick" && !quickPicks.some((q) => q.iso === revealDate) && revealDate
+                      ? pillActive
+                      : pillSecondary
+                  }`}
+                >
+                  Write in Date
+                </button>
+                {/* Show date picker if "Write in Date" or no quick pick matched */}
+                <div className="w-full mt-2">
+                  <input
+                    type="date"
+                    value={quickPicks.some((q) => q.iso === revealDate) ? "" : revealDate}
+                    onChange={(e) => setRevealDate(e.target.value)}
+                    min={yyyymmdd(new Date(Date.now() + 86400000))}
+                    className="account-input"
+                  />
+                </div>
               </div>
             )}
 
-            {/* Birthday — age milestones */}
+            {/* ── Birthday ─────────────────────────────────── */}
             {revealCategory === "birthday" && (
               <div className="space-y-2 mb-3">
                 {!dob && (
@@ -240,48 +268,15 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
                           type="button"
                           onClick={() => pickBirthdayAge(age)}
                           className={`${pillBase} ${
-                            revealDate === iso ? pillActive : pillInactive
+                            revealDate === iso ? pillActive : pillSecondary
                           }`}
                         >
-                          {age}th
+                          {ordinal(age)}
                         </button>
                       );
                     })}
                   </div>
                 )}
-                <div>
-                  <input
-                    type="date"
-                    value={revealDate}
-                    onChange={(e) => setRevealDate(e.target.value)}
-                    min={yyyymmdd(new Date(Date.now() + 86400000))}
-                    className="account-input"
-                    placeholder="Select your own"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Graduation */}
-            {revealCategory === "graduation" && (
-              <div className="space-y-2 mb-3">
-                <div className="flex flex-wrap gap-2">
-                  {gradOptions.map((g) => (
-                    <button
-                      key={g.label}
-                      type="button"
-                      onClick={() => {
-                        // If DOB known, estimate; otherwise just prompt.
-                      }}
-                      className={`${pillBase} ${pillInactive}`}
-                    >
-                      {g.label}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-xs text-ink-light italic">
-                  We&rsquo;ll remind you to set the exact date later.
-                </p>
                 <input
                   type="date"
                   value={revealDate}
@@ -292,7 +287,66 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
               </div>
             )}
 
-            {/* Wedding Date */}
+            {/* ── Graduation ───────────────────────────────── */}
+            {revealCategory === "graduation" && (
+              <div className="space-y-2 mb-3">
+                <div className="flex flex-wrap gap-2">
+                  {gradOptions.map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => {
+                        setGradSelection(g);
+                        setShowGradDate(false);
+                        setRevealDate("");
+                      }}
+                      className={`${pillBase} ${
+                        gradSelection === g ? pillActive : pillSecondary
+                      }`}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+                {gradSelection && !showGradDate && (
+                  <div className="space-y-2">
+                    <p className="text-xs text-ink-mid">
+                      Do you know the {gradSelection.toLowerCase()} graduation date?
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowGradDate(true)}
+                        className={`${pillBase} ${pillSecondary}`}
+                      >
+                        Yes, enter date
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRevealDate("");
+                          setShowGradDate(false);
+                        }}
+                        className={`${pillBase} ${pillSecondary}`}
+                      >
+                        Not yet — remind me later
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {gradSelection && showGradDate && (
+                  <input
+                    type="date"
+                    value={revealDate}
+                    onChange={(e) => setRevealDate(e.target.value)}
+                    min={yyyymmdd(new Date(Date.now() + 86400000))}
+                    className="account-input"
+                  />
+                )}
+              </div>
+            )}
+
+            {/* ── Wedding Date ─────────────────────────────── */}
             {revealCategory === "wedding" && (
               <div className="space-y-2 mb-3">
                 <input
@@ -305,14 +359,14 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
                 <button
                   type="button"
                   onClick={() => setRevealDate("")}
-                  className="text-xs font-medium text-ink-light hover:text-navy transition-colors"
+                  className={`${pillBase} ${pillSecondary}`}
                 >
                   Fill in later
                 </button>
               </div>
             )}
 
-            {/* Anniversary */}
+            {/* ── Anniversary ──────────────────────────────── */}
             {revealCategory === "anniversary" && (
               <div className="space-y-3 mb-3">
                 <Field label="Wedding date">
@@ -340,10 +394,10 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
                           type="button"
                           onClick={() => pickAnniversaryYear(years)}
                           className={`${pillBase} ${
-                            revealDate === iso ? pillActive : pillInactive
+                            revealDate === iso ? pillActive : pillSecondary
                           }`}
                         >
-                          {years}th
+                          {ordinal(years)}
                         </button>
                       );
                     })}
@@ -355,14 +409,14 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
                     setRevealDate("");
                     setWeddingDate("");
                   }}
-                  className="text-xs font-medium text-ink-light hover:text-navy transition-colors"
+                  className={`${pillBase} ${pillSecondary}`}
                 >
                   Fill in later
                 </button>
               </div>
             )}
 
-            {/* Selected date confirmation */}
+            {/* Date confirmation */}
             {revealDate && (
               <p className="text-xs text-ink-mid mt-1">
                 Opens{" "}
@@ -376,9 +430,8 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
               </p>
             )}
 
-            <p className="mt-1.5 text-xs italic text-ink-light">
-              The date the capsule will open. Change it any time later from
-              the capsule&rsquo;s edit page.
+            <p className="mt-1.5 text-xs italic text-ink-light whitespace-nowrap">
+              The date the capsule will open. Change it any time from the capsule&rsquo;s edit page.
             </p>
           </div>
 
@@ -393,6 +446,7 @@ export function AddChildModal({ onClose }: { onClose: () => void }) {
           )}
         </div>
 
+        {/* ── Divider + footer ──────────────────────────────── */}
         <div className="px-7 py-4 border-t border-navy/[0.08] flex items-center justify-end gap-3">
           <button
             type="button"
