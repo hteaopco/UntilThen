@@ -459,11 +459,13 @@ function DashboardHeader() {
         <Link href="/dashboard" className="flex items-center shrink-0" aria-label="Your Vault">
           <LogoSvg variant="dark" width={130} height={26} />
         </Link>
-        <ul className="hidden lg:flex items-center gap-7 text-sm text-ink-mid">
-          <li><Link href="/blog" className="hover:text-navy transition-colors font-medium">Blog</Link></li>
-          <li><Link href="/faq" className="hover:text-navy transition-colors font-medium">FAQ</Link></li>
-        </ul>
-        <Avatar />
+        <div className="flex items-center gap-5">
+          <ul className="hidden lg:flex items-center gap-5 text-sm text-ink-mid">
+            <li><Link href="/blog" className="hover:text-navy transition-colors font-medium">Blog</Link></li>
+            <li><Link href="/faq" className="hover:text-navy transition-colors font-medium">FAQ</Link></li>
+          </ul>
+          <Avatar />
+        </div>
       </div>
     </header>
   );
