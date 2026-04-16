@@ -378,7 +378,7 @@ async function CapsuleDetailView({
 
   const entries: EntryRow[] = vaultEntries.map((e: Record<string, unknown>) => ({
     id: e.id as string,
-    type: e.type as string,
+    type: e.type as "TEXT" | "PHOTO" | "VOICE" | "VIDEO",
     title: e.title as string | null,
     body: e.body as string | null,
     createdAt: (e.createdAt as Date).toISOString(),
