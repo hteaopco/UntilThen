@@ -35,7 +35,7 @@ const TOGGLES: Toggle[] = [
   },
   {
     key: "vaultAnniversary",
-    label: "Vault anniversary",
+    label: "Time capsule anniversary",
     description: "Annual reminder of how long you've been writing.",
   },
   {
