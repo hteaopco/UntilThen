@@ -41,7 +41,7 @@ function isReloadNavigation(): boolean {
   }
 }
 
-export function IntroSplash() {
+export function IntroSplash({ onComplete }: { onComplete?: () => void } = {}) {
   const [text, setText] = useState("");
   const [phase, setPhase] = useState<Phase>("waiting");
 
@@ -130,6 +130,10 @@ export function IntroSplash() {
       return () => clearTimeout(t);
     }
   }, [phase, text.length]);
+
+  useEffect(() => {
+    if (phase === "hidden" && onComplete) onComplete();
+  }, [phase, onComplete]);
 
   if (phase === "hidden") return null;
 

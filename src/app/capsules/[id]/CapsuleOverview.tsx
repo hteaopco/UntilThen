@@ -326,7 +326,7 @@ export function CapsuleOverview({
         />
       </section>
 
-      {capsule.requiresApproval && pending.length > 0 && (
+      {pending.length > 0 && (
         <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8">
           <div className="rounded-2xl border border-gold/25 bg-gold-tint/40 px-5 py-5">
             <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-gold mb-3">

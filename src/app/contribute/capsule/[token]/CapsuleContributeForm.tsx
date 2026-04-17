@@ -2,16 +2,31 @@
 
 import { Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
 import { TiptapEditor } from "@/components/editor/TiptapEditor";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import { Typewriter } from "@/components/ui/Typewriter";
+import { IntroSplash } from "@/components/landing/IntroSplash";
 import { PublicMediaAttachments } from "@/app/contribute/capsule/[token]/PublicMediaAttachments";
 import { formatLong } from "@/lib/dateFormatters";
 import { OCCASION_LABELS } from "@/lib/capsules";
 
-type Phase = "invite" | "editor" | "thankyou-typing" | "thankyou";
+type Phase = "splash" | "invite" | "editor" | "thankyou-typing" | "thankyou";
+
+function derivePronouns(recipientName: string) {
+  const isCouple = recipientName.includes("&");
+  const parts = recipientName.split("&");
+  const firstName1 = (parts[0] ?? "").trim().split(" ")[0] ?? "";
+  const firstName2 = isCouple && parts.length > 1 ? (parts[1] ?? "").trim().split(" ")[0] ?? "" : "";
+  const displayName = isCouple && firstName2
+    ? `${firstName1} & ${firstName2}`
+    : firstName1;
+  const pronoun = isCouple ? "them" : "her";
+  const possessive = isCouple ? "their" : "her";
+  const subjectContraction = isCouple ? "they'll" : "she'll";
+  return { isCouple, firstName1, firstName2, displayName, pronoun, possessive, subjectContraction };
+}
 
 export function CapsuleContributeForm({
   token,
@@ -28,13 +43,15 @@ export function CapsuleContributeForm({
   };
   invite: { name: string };
 }) {
-  const [phase, setPhase] = useState<Phase>("invite");
+  const r = derivePronouns(capsule.recipientName);
+  const [phase, setPhase] = useState<Phase>("splash");
   const [name, setName] = useState(invite.name);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [contributionId, setContributionId] = useState<string | null>(null);
+  const [showCta, setShowCta] = useState(false);
   const mediaKeysRef = useRef<string[]>([]);
   const mediaTypesRef = useRef<string[]>([]);
   const stateRef = useRef({ name, title, body, contributionId });
@@ -131,68 +148,78 @@ export function CapsuleContributeForm({
     }
   }
 
-  // ── Phase 1: Invite message (typewriter) ──────────────────
+  // ── Phase 1: Brand splash ────────────────────────────────
+  if (phase === "splash") {
+    return <IntroSplash onComplete={() => setPhase("invite")} />;
+  }
+
+  // ── Phase 2: Invite message ──────────────────────────────
   if (phase === "invite") {
     return (
       <main className="min-h-screen bg-cream flex flex-col items-center justify-center px-6">
+        <div className="fixed top-8 left-0 right-0 flex justify-center z-10">
+          <LogoSvg variant="dark" width={100} height={20} />
+        </div>
         <div className="max-w-[440px] text-center">
-          <div className="mb-6 opacity-30">
-            <LogoSvg variant="dark" width={100} height={20} />
-          </div>
-          <h1 className="text-[22px] lg:text-[28px] font-extrabold text-navy tracking-[-0.5px] leading-[1.2] mb-3">
+          <h1 className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
             <Typewriter
-              text={`You've been invited to leave something for ${capsule.recipientName}.`}
-              speed={50}
-              startDelay={600}
+              text="Someone wants you to be part of this moment."
+              speed={45}
+              startDelay={500}
+            />
+          </h1>
+          <p className="mt-4 text-[15px] text-ink-mid leading-[1.5]">
+            <Typewriter
+              text={`You've been invited to leave something ${r.subjectContraction} keep forever.`}
+              speed={40}
+              startDelay={3200}
               onComplete={() => {
                 setTimeout(() => setPhase("editor"), 2000);
               }}
             />
-          </h1>
-          <p className="text-[13px] italic text-ink-light mt-4 opacity-0 animate-fadeIn" style={{ animationDelay: "2.5s", animationFillMode: "forwards" }}>
-            {capsule.title}
           </p>
         </div>
       </main>
     );
   }
 
-  // ── Phase 4: Thank you (typewriter → CTA) ─────────────────
+  // ── Phase 4: Thank you ───────────────────────────────────
   if (phase === "thankyou-typing" || phase === "thankyou") {
     return (
       <main className="min-h-screen bg-cream flex flex-col items-center justify-center px-6">
+        <div className="fixed top-8 left-0 right-0 flex justify-center z-10">
+          <LogoSvg variant="dark" width={100} height={20} />
+        </div>
         <div className="max-w-[440px] text-center">
-          <div className="mb-6 opacity-30">
-            <LogoSvg variant="dark" width={100} height={20} />
-          </div>
-
           {phase === "thankyou-typing" ? (
-            <h1 className="text-[22px] lg:text-[28px] font-extrabold text-navy tracking-[-0.5px] leading-[1.2]">
+            <h1 className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
               <Typewriter
-                text={`Thank you. ${capsule.recipientName} is going to love this.`}
-                speed={55}
+                text={`That's going to mean everything to ${r.pronoun}. You just created something ${r.subjectContraction} keep forever.`}
+                speed={45}
                 startDelay={400}
                 onComplete={() => {
-                  setTimeout(() => setPhase("thankyou"), 1500);
+                  setTimeout(() => {
+                    setPhase("thankyou");
+                    setTimeout(() => setShowCta(true), 1500);
+                  }, 1000);
                 }}
               />
             </h1>
           ) : (
             <>
-              <h1 className="text-[22px] lg:text-[28px] font-extrabold text-navy tracking-[-0.5px] leading-[1.2] mb-6">
-                Thank you. {capsule.recipientName} is going to love this.
+              <h1 className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3] mb-8">
+                That&rsquo;s going to mean everything to {r.pronoun}. You just created something {r.subjectContraction} keep forever.
               </h1>
-              <div className="animate-fadeIn">
-                <p className="text-[15px] text-ink-mid leading-[1.6] mb-6">
-                  Want to create your own time capsule for someone you love?
-                </p>
-                <Link
-                  href="/"
-                  className="inline-block bg-amber text-white px-6 py-3 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors"
-                >
-                  Discover untilThen
-                </Link>
-              </div>
+              {showCta && (
+                <div className="animate-fadeIn">
+                  <Link
+                    href="/"
+                    className="inline-block bg-amber text-white px-6 py-3 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors"
+                  >
+                    Start one for someone you love
+                  </Link>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -200,7 +227,11 @@ export function CapsuleContributeForm({
     );
   }
 
-  // ── Phase 3: Editor ───────────────────────────────────────
+  // ── Phase 3: Editor ──────────────────────────────────────
+  const dearLine = r.isCouple
+    ? `Dear ${r.firstName1} & ${r.firstName2},`
+    : `Dear ${r.firstName1},`;
+
   return (
     <main className="min-h-screen bg-cream">
       <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
@@ -218,7 +249,7 @@ export function CapsuleContributeForm({
           {capsule.title}
         </h1>
         <p className="mt-2 text-[15px] text-ink-mid leading-[1.5]">
-          Add your message for {capsule.recipientName}. They&rsquo;ll open everything at once on{" "}
+          Add your message for {r.displayName}. {r.subjectContraction.charAt(0).toUpperCase() + r.subjectContraction.slice(1)} open everything at once on{" "}
           <span className="font-semibold text-navy">{formatLong(capsule.revealDate)}</span>.
         </p>
         {capsule.contributorDeadline && (
@@ -258,7 +289,7 @@ export function CapsuleContributeForm({
               <TiptapEditor
                 initialContent={body}
                 onUpdate={setBody}
-                placeholder={`Dear ${capsule.recipientName},`}
+                placeholder={dearLine}
               />
             </div>
 
@@ -284,7 +315,7 @@ export function CapsuleContributeForm({
               {saving ? "Submitting\u2026" : "Submit my contribution"}
             </button>
             <p className="text-xs italic text-ink-light">
-              {capsule.recipientName} won&rsquo;t see this until the reveal date.
+              {r.displayName} won&rsquo;t see this until the reveal date.
             </p>
           </div>
         </form>
