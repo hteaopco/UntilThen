@@ -69,10 +69,10 @@ export function VaultPinScreen() {
 
   return (
     <div
-      className={`fixed inset-0 z-[60] flex flex-col items-center pt-[12vh] ${isUnlocking ? "pin-fadeout" : ""}`}
+      className={`fixed inset-0 z-[60] flex flex-col items-center pt-[12vh] bg-cream ${isUnlocking ? "pin-fadeout" : ""}`}
       style={{
-        background:
-          "radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.07) 0%, #fdf8f2 70%)",
+        backgroundImage:
+          "radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.07) 0%, transparent 70%)",
       }}
     >
       {isUnlocking && (
