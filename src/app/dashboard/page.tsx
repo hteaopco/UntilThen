@@ -119,7 +119,7 @@ export default async function DashboardPage({
   }
 
   // ── Carousel dashboard ────────────────────────────────────
-  const [capsuleRecords, contributingToRecords, receivedRecords] =
+  const [capsuleRecords, contributingToRecords, receivedRecords, pendingContributions] =
     await Promise.all([
       prisma.memoryCapsule.findMany({
         where: { organiserId: user.id },
@@ -142,6 +142,15 @@ export default async function DashboardPage({
         include: { _count: { select: { contributions: true } } },
         orderBy: { revealDate: "asc" },
       }),
+      prisma.capsuleContribution.findMany({
+        where: {
+          capsule: { organiserId: user.id },
+          approvalStatus: "PENDING_REVIEW",
+        },
+        include: { capsule: { select: { id: true, title: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
     ]);
 
   const carouselItems: TimeCapsuleItem[] = childrenWithVaults.map((c) => ({
@@ -158,6 +167,27 @@ export default async function DashboardPage({
 
       <div className="mx-auto max-w-[980px] w-full px-6 lg:px-10 pt-8 pb-6 flex-1">
         {/* ── Your Vault heading ─────────────────────────── */}
+        {/* ── Pending review notifications ───────────────── */}
+        {pendingContributions.length > 0 && (
+          <div className="mb-6 space-y-2">
+            {pendingContributions.map((c) => (
+              <Link
+                key={c.id}
+                href={`/capsules/${c.capsule.id}`}
+                className="flex items-start gap-3 rounded-xl border border-amber/25 bg-amber-tint/50 px-4 py-3 hover:bg-amber-tint transition-colors"
+              >
+                <Sparkles size={16} strokeWidth={1.75} className="text-amber shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-navy">
+                    New submission for &ldquo;{c.capsule.title}&rdquo; by {c.authorName}
+                  </p>
+                  <p className="text-xs text-ink-mid mt-0.5">Click to review</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+
         <h1 className="text-[32px] lg:text-[40px] font-extrabold text-navy tracking-[-1px] text-center mb-8">
           Your Vault
         </h1>
