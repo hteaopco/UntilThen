@@ -164,3 +164,25 @@ export async function sendEntryRejected(params: {
     html,
   });
 }
+
+export async function sendAccountDeleted(params: {
+  to: string;
+  firstName: string;
+}): Promise<void> {
+  const html = wrapper(`
+    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
+      Your account has been deleted.
+    </h1>
+    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 16px;">
+      Hi ${escapeHtml(params.firstName)}, your untilThen account and all associated data have been permanently removed.
+    </p>
+    <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0;">
+      If you didn&rsquo;t request this, please contact us immediately at hello@untilthenapp.io.
+    </p>
+  `);
+  await send({
+    to: params.to,
+    subject: "Your untilThen account has been deleted",
+    html,
+  });
+}

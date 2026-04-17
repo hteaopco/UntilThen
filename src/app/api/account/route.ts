@@ -110,9 +110,78 @@ export async function DELETE(): Promise<NextResponse> {
     );
   }
 
-  // TODO: queue a 30-day retention job + confirmation email via Resend.
-  // For now we leave the records in place and rely on the Clerk sign-out
-  // to immediately revoke access. A future migration will introduce a
-  // `User.deletedAt` field to make this a true soft-delete.
-  return NextResponse.json({ success: true });
+  try {
+    const { prisma } = await import("@/lib/prisma");
+    const user = await prisma.user.findUnique({
+      where: { clerkId: userId },
+    });
+    if (!user)
+      return NextResponse.json({ error: "User not found." }, { status: 404 });
+
+    const id = user.id;
+
+    await prisma.$transaction(async (tx) => {
+      await tx.notificationPreferences.deleteMany({ where: { userId: id } });
+
+      await tx.entry.deleteMany({ where: { authorId: id } });
+
+      const children = await tx.child.findMany({
+        where: { parentId: id },
+        select: { id: true },
+      });
+      const childIds = children.map((c) => c.id);
+      if (childIds.length > 0) {
+        const vaults = await tx.vault.findMany({
+          where: { childId: { in: childIds } },
+          select: { id: true },
+        });
+        const vaultIds = vaults.map((v) => v.id);
+        if (vaultIds.length > 0) {
+          await tx.entry.deleteMany({ where: { vaultId: { in: vaultIds } } });
+          await tx.collection.deleteMany({ where: { vaultId: { in: vaultIds } } });
+          await tx.contributor.deleteMany({ where: { vaultId: { in: vaultIds } } });
+          await tx.vault.deleteMany({ where: { id: { in: vaultIds } } });
+        }
+        await tx.child.deleteMany({ where: { id: { in: childIds } } });
+      }
+
+      await tx.memoryCapsule.deleteMany({ where: { organiserId: id } });
+
+      await tx.user.delete({ where: { id } });
+    });
+
+    try {
+      const { clerkClient } = await import("@clerk/nextjs/server");
+      const clerk = await clerkClient();
+      await clerk.users.deleteUser(userId);
+    } catch (err) {
+      console.error("[account DELETE] clerk delete failed:", err);
+    }
+
+    try {
+      const { sendAccountDeleted } = await import("@/lib/emails");
+      const { clerkClient } = await import("@clerk/nextjs/server");
+      const clerk = await clerkClient();
+      const clerkUser = await clerk.users.getUser(userId).catch(() => null);
+      const email =
+        clerkUser?.primaryEmailAddress?.emailAddress ??
+        clerkUser?.emailAddresses[0]?.emailAddress;
+      if (email) {
+        await sendAccountDeleted({
+          to: email,
+          firstName: user.firstName,
+        });
+      }
+    } catch (err) {
+      console.error("[account DELETE] confirmation email failed:", err);
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("[account DELETE] error:", err);
+    return NextResponse.json(
+      { error: "Failed to delete account." },
+      { status: 500 },
+    );
+  }
 }
