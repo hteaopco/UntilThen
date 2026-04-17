@@ -6,56 +6,112 @@ All emails send from `hello@untilthenapp.io` with reply-to `hello@untilthenapp.i
 
 ---
 
+## System Principle
+
+Every email does ONE job:
+- **Pull back in** (re-engage)
+- **Push forward** (next action)
+- **Deepen emotion** (attachment → long-term retention)
+
+---
+
+## Behavioral Funnel
+
+### 1. Acquisition (Viral Loop)
+- #1 Invite Contributor
+- #20 Vault Contributor Invite (API)
+- #21 Resend Invite
+
+### 2. Activation (First Action)
+- #10 Contributor Confirmation
+- #5 Contribution Submitted
+- #2 Draft Saved
+- #9 Capsule Saved
+
+### 3. Completion (Revenue Moment)
+- #3 Draft Expiring
+- #4 Capsule Activated
+
+### 4. Engagement (Ongoing Use)
+- #18 Writing Reminder
+- #6 Contributor Reminder
+- #13 Invite Accepted
+- #14 Entry Needs Review
+- #15 Approved
+- #16 Rejected
+
+### 5. Anticipation (Emotional Build)
+- #19 Countdown
+- #7 Reveal Day
+
+### 6. Retention / Loop
+- #8 New Link
+- #11 Contributor Approved
+- #12 Contributor Rejected
+- #17 Account Deleted (last touchpoint)
+
+---
+
 ## Gift Capsule Emails
 
-*Source: `src/lib/capsule-emails.ts`*
+*Source: `src/lib/capsule-emails.ts` — 12 templates*
 
-| # | Function | Subject | Trigger |
-|---|----------|---------|---------|
-| 1 | `sendCapsuleInvite` | You're invited to contribute to {title} | Contributor invited |
-| 2 | `sendCapsuleDraftSaved` | Your Gift Capsule is saved — complete setup to send invites | Organiser creates draft |
-| 3 | `sendCapsuleDraftExpiring` | Your Gift Capsule draft expires tomorrow | Day 6 warning *(cron — not wired)* |
-| 4 | `sendCapsuleActivated` | Your Gift Capsule is live — invites sent | Organiser activates/pays |
-| 5 | `sendCapsuleContributionSubmitted` | New contribution to {title} | Contributor submits → sent to organiser |
-| 6 | `sendCapsuleContributorReminder` | Reminder: contribute to {title} | 48hr deadline *(cron — not wired)* |
-| 7 | `sendCapsuleRevealDay` | Your Gift Capsule is ready, {name} | Reveal date → magic link to recipient |
-| 8 | `sendCapsuleNewLink` | Here's your new link, {name} | Recipient requests fresh link |
-| 9 | `sendCapsuleSaved` | Your capsule is saved, {name} | Recipient creates account after opening |
-| 10 | `sendContributorConfirmation` | Your contribution to "{title}" is saved | Contributor submits → sent to contributor with message preview + edit link |
-| 11 | `sendContributorApproved` | Approved: your contribution to "{title}" | Organiser/admin approves → sent to contributor with edit link |
-| 12 | `sendContributorRejected` | Changes requested: your contribution to "{title}" | Organiser/admin rejects → sent to contributor with edit link |
+| # | Function | Subject | CTA |
+|---|----------|---------|-----|
+| 1 | `sendCapsuleInvite` | {name} will read this one day. | Leave your message |
+| 2 | `sendCapsuleDraftSaved` | You started something meaningful. | Continue building |
+| 3 | `sendCapsuleDraftExpiring` | Don't lose this. | Finish your capsule |
+| 4 | `sendCapsuleActivated` | It's happening. | View your capsule |
+| 5 | `sendCapsuleContributionSubmitted` | Someone just added something for {name} | Review contribution |
+| 6 | `sendCapsuleContributorReminder` | Don't miss this. | Leave your message |
+| 7 | `sendCapsuleRevealDay` | It's time. | Open your capsule |
+| 8 | `sendCapsuleNewLink` | Here's your new link | Open your capsule |
+| 9 | `sendCapsuleSaved` | This is yours now. | Go to your vault |
+| 10 | `sendContributorConfirmation` | This is going to mean everything to them. | Edit your message |
+| 11 | `sendContributorApproved` | Your message is in. | View your message |
+| 12 | `sendContributorRejected` | Small update needed | Edit your message |
 
 ---
 
 ## Vault & Account Emails
 
-*Source: `src/lib/emails.ts`*
+*Source: `src/lib/emails.ts` — 7 templates*
 
-| # | Function | Subject | Trigger |
-|---|----------|---------|---------|
-| 13 | `sendInviteAccepted` | Contributor accepted your invite | Vault contributor accepts → sent to parent |
-| 14 | `sendEntryNeedsReview` | New entry needs review | Vault contributor seals entry → sent to parent |
-| 15 | `sendEntryApproved` | Your entry was approved | Parent approves → sent to vault contributor |
-| 16 | `sendEntryRejected` | Your contribution needs a small update | Parent rejects → sent to vault contributor |
-| 17 | `sendAccountDeleted` | Your untilThen account has been deleted | User deletes account |
-| 18 | `sendWritingReminder` | {child} is waiting for your next memory | Weekly cron — no entry in 30+ days |
-| 19 | `sendRevealCountdown` | {days} days to go. {child}'s capsule opens {date} | Daily cron — 30/7/1 day countdown |
+| # | Function | Subject | CTA |
+|---|----------|---------|-----|
+| 13 | `sendInviteAccepted` | Someone just joined you | View your capsule |
+| 14 | `sendEntryNeedsReview` | Something new is waiting | Review entry |
+| 15 | `sendEntryApproved` | It's been added | View your message |
+| 16 | `sendEntryRejected` | Almost there | Edit entry |
+| 17 | `sendAccountDeleted` | Your account has been deleted | — |
+| 18 | `sendWritingReminder` | Don't forget this version of them. | Write a memory |
+| 19 | `sendRevealCountdown` | Tomorrow changes everything / One week to go / One month from now | View your capsule |
 
 ---
 
 ## Inline API Route Emails
 
-| # | File | Trigger |
-|---|------|---------|
-| 20 | `src/app/api/invites/route.ts` | Vault contributor invite |
-| 21 | `src/app/api/account/contributors/[id]/resend/route.ts` | Re-send vault contributor invite |
+| # | File | Subject | CTA |
+|---|------|---------|-----|
+| 20 | `src/app/api/invites/route.ts` | {name} will read this one day. | Leave your message |
+| 21 | `src/app/api/account/contributors/[id]/resend/route.ts` | Just a reminder | Leave your message |
 
 ---
 
-## Not Yet Wired
+## Couples Logic
 
-- **#3** `sendCapsuleDraftExpiring` — needs a cron job to check 6-day-old drafts
-- **#6** `sendCapsuleContributorReminder` — needs a cron job to check 48hr deadline
+All recipient-facing emails derive pronouns from the recipient name:
+- Single: "she'll" / "her" / "she"
+- Couple (name contains "&"): "they'll" / "them" / "they"
+- First name mentioned once, then pronouns thereafter
+- Display name: "Ann" (single) or "Ann & Bob" (couple)
+
+---
+
+## Not Yet Wired to Triggers
+
+- **#3** `sendCapsuleDraftExpiring` — needs cron job for 6-day-old drafts
+- **#6** `sendCapsuleContributorReminder` — needs cron job for 48hr deadline
 
 ---
 

@@ -47,7 +47,11 @@ function wrapper(body: string): string {
   return `<div style="font-family:'DM Sans',-apple-system,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;color:#0f1f3d;">${body}</div>`;
 }
 
-// ── Invite accepted (parent notified) ──────────────────────────
+function cta(href: string, label: string): string {
+  return `<p style="margin:24px 0;"><a href="${href}" style="display:inline-block;background:#c47a3a;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">${label}</a></p>`;
+}
+
+// #13 — Invite Accepted (→ Parent)
 export async function sendInviteAccepted(params: {
   parentEmail: string;
   parentFirstName: string;
@@ -56,26 +60,22 @@ export async function sendInviteAccepted(params: {
   dashboardUrl?: string;
 }): Promise<void> {
   const url = params.dashboardUrl ?? `${baseUrl()}/dashboard`;
-  const html = wrapper(`
-    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-      ${escapeHtml(params.contributorName)} accepted your invitation.
-    </h1>
-    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 20px;">
-      They can now add letters, voice notes, photos, and videos to
-      ${escapeHtml(params.childFirstName)}&rsquo;s vault.
-    </p>
-    <p style="margin:24px 0;">
-      <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open dashboard</a>
-    </p>
-  `);
   await send({
     to: params.parentEmail,
-    subject: `${params.contributorName} accepted your invitation`,
-    html,
+    subject: "Someone just joined you",
+    html: wrapper(`
+      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
+        ${escapeHtml(params.contributorName)} accepted your invite.
+      </h1>
+      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+        They&rsquo;re about to add something meaningful to ${escapeHtml(params.childFirstName)}&rsquo;s capsule.
+      </p>
+      ${cta(url, "View your capsule")}
+    `),
   });
 }
 
-// ── Entry needs review (parent notified) ───────────────────────
+// #14 — Entry Needs Review
 export async function sendEntryNeedsReview(params: {
   parentEmail: string;
   contributorName: string;
@@ -84,28 +84,22 @@ export async function sendEntryNeedsReview(params: {
   dashboardUrl?: string;
 }): Promise<void> {
   const url = params.dashboardUrl ?? `${baseUrl()}/dashboard`;
-  const html = wrapper(`
-    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-      ${escapeHtml(params.contributorName)} added something to ${escapeHtml(params.childFirstName)}&rsquo;s vault.
-    </h1>
-    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 8px;">
-      &ldquo;${escapeHtml(params.entryTitle)}&rdquo;
-    </p>
-    <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0 0 20px;">
-      Review it before it joins the vault.
-    </p>
-    <p style="margin:24px 0;">
-      <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Review entry</a>
-    </p>
-  `);
   await send({
     to: params.parentEmail,
-    subject: `${params.contributorName} added something to ${params.childFirstName}'s vault`,
-    html,
+    subject: "Something new is waiting",
+    html: wrapper(`
+      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
+        A new entry has been added.
+      </h1>
+      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+        Take a moment to review it before it&rsquo;s sealed.
+      </p>
+      ${cta(url, "Review entry")}
+    `),
   });
 }
 
-// ── Entry approved (contributor notified) ──────────────────────
+// #15 — Entry Approved
 export async function sendEntryApproved(params: {
   contributorEmail: string;
   contributorName: string;
@@ -113,28 +107,22 @@ export async function sendEntryApproved(params: {
   entryTitle: string;
   contributorDashboardUrl: string;
 }): Promise<void> {
-  const html = wrapper(`
-    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-      Your contribution is in the vault.
-    </h1>
-    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 8px;">
-      &ldquo;${escapeHtml(params.entryTitle)}&rdquo; is now sealed in ${escapeHtml(params.childFirstName)}&rsquo;s vault.
-    </p>
-    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 20px;">
-      Thanks for writing, ${escapeHtml(params.contributorName)}.
-    </p>
-    <p style="margin:24px 0;">
-      <a href="${params.contributorDashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open your dashboard</a>
-    </p>
-  `);
   await send({
     to: params.contributorEmail,
-    subject: `Your contribution is in the vault`,
-    html,
+    subject: "It\u2019s been added",
+    html: wrapper(`
+      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
+        Your entry has been approved.
+      </h1>
+      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+        It&rsquo;s now part of what they&rsquo;ll open one day.
+      </p>
+      ${cta(params.contributorDashboardUrl, "View your message")}
+    `),
   });
 }
 
-// ── Entry rejected (contributor notified) ──────────────────────
+// #16 — Entry Rejected
 export async function sendEntryRejected(params: {
   contributorEmail: string;
   contributorName: string;
@@ -142,78 +130,66 @@ export async function sendEntryRejected(params: {
   entryTitle: string;
   contributorDashboardUrl: string;
 }): Promise<void> {
-  const html = wrapper(`
-    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-      Your contribution needs a small update.
-    </h1>
-    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
-      ${escapeHtml(params.childFirstName)}&rsquo;s parent reviewed
-      &ldquo;${escapeHtml(params.entryTitle)}&rdquo; and asked for
-      changes before it joins the vault.
-    </p>
-    <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0 0 20px;">
-      You can edit and resubmit from your dashboard.
-    </p>
-    <p style="margin:24px 0;">
-      <a href="${params.contributorDashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open your dashboard</a>
-    </p>
-  `);
   await send({
     to: params.contributorEmail,
-    subject: `Your contribution needs a small update`,
-    html,
+    subject: "Almost there",
+    html: wrapper(`
+      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
+        Your entry needs a quick update.
+      </h1>
+      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+        Make the change and resubmit.
+      </p>
+      ${cta(params.contributorDashboardUrl, "Edit entry")}
+    `),
   });
 }
 
+// #17 — Account Deleted
 export async function sendAccountDeleted(params: {
   to: string;
   firstName: string;
 }): Promise<void> {
-  const html = wrapper(`
-    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-      Your account has been deleted.
-    </h1>
-    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 16px;">
-      Hi ${escapeHtml(params.firstName)}, your untilThen account and all associated data have been permanently removed.
-    </p>
-    <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0;">
-      If you didn&rsquo;t request this, please contact us immediately at hello@untilthenapp.io.
-    </p>
-  `);
   await send({
     to: params.to,
-    subject: "Your untilThen account has been deleted",
-    html,
+    subject: "Your account has been deleted",
+    html: wrapper(`
+      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
+        Your account has been successfully deleted.
+      </h1>
+      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+        If you ever decide to return, we&rsquo;ll be here.
+      </p>
+      <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0;">
+        If you didn&rsquo;t request this, contact us at hello@untilthenapp.io.
+      </p>
+    `),
   });
 }
 
+// #18 — Writing Reminder (30+ Days)
 export async function sendWritingReminder(params: {
   to: string;
   parentName: string;
   childName: string;
 }): Promise<void> {
   const url = `${baseUrl()}/dashboard`;
-  const html = wrapper(`
-    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-      It&rsquo;s been a while, ${escapeHtml(params.parentName)}.
-    </h1>
-    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 8px;">
-      You haven&rsquo;t written to ${escapeHtml(params.childName)}&rsquo;s vault in over 30 days. Even a short note means the world.
-    </p>
-    <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0 0 20px;">
-      What are they doing right now that you never want to forget?
-    </p>
-    <a href="${url}" style="display:inline-block;background:#c47a3a;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">
-      Write a memory
-    </a>
-  `);
   await send({
     to: params.to,
-    subject: `${params.childName} is waiting for your next memory`,
-    html,
+    subject: "Don\u2019t forget this version of them.",
+    html: wrapper(`
+      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
+        It&rsquo;s been a while since your last memory.
+      </h1>
+      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+        Take a minute to write something &mdash; even small moments matter.
+      </p>
+      ${cta(url, "Write a memory")}
+    `),
   });
 }
 
+// #19 — Reveal Countdown
 export async function sendRevealCountdown(params: {
   to: string;
   parentName: string;
@@ -222,33 +198,25 @@ export async function sendRevealCountdown(params: {
   revealDate: string;
 }): Promise<void> {
   const url = `${baseUrl()}/dashboard`;
-  const dateStr = new Date(params.revealDate).toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-  const urgency = params.daysLeft === 1
-    ? "Tomorrow is the day."
-    : `${params.daysLeft} days to go.`;
-  const html = wrapper(`
-    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-      ${urgency}
-    </h1>
-    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 8px;">
-      ${escapeHtml(params.childName)}&rsquo;s time capsule opens on ${dateStr}.
-    </p>
-    <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0 0 20px;">
-      ${params.daysLeft <= 7
-        ? "Last chance to add anything before it opens."
-        : "Still time to add more memories before the big reveal."}
-    </p>
-    <a href="${url}" style="display:inline-block;background:#c47a3a;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">
-      Open your vault
-    </a>
-  `);
+  const subject =
+    params.daysLeft === 1 ? "Tomorrow changes everything"
+    : params.daysLeft === 7 ? "One week to go"
+    : "One month from now";
   await send({
     to: params.to,
-    subject: `${urgency} ${params.childName}'s capsule opens ${dateStr}`,
-    html,
+    subject,
+    html: wrapper(`
+      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
+        ${params.daysLeft === 1
+          ? "It&rsquo;s almost time."
+          : params.daysLeft === 7
+            ? "They&rsquo;re about to see it all."
+            : "They&rsquo;ll open everything."}
+      </h1>
+      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+        ${escapeHtml(params.childName)}&rsquo;s capsule ${params.daysLeft === 1 ? "opens tomorrow" : `opens in ${params.daysLeft} days`}.
+      </p>
+      ${cta(url, "View your capsule")}
+    `),
   });
 }

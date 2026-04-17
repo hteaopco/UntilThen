@@ -214,20 +214,20 @@ export async function POST(req: Request) {
           from: "untilThen <hello@untilthenapp.io>",
           replyTo: "hello@untilthenapp.io",
           to: email,
-          subject: `You've been invited to write to ${child?.firstName ?? "their child"}`,
+          subject: `${child?.firstName ?? "They"} will read this one day.`,
           html: `
-<div style="font-family: 'DM Sans', -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 24px; color: #0f1f3d;">
-  <h1 style="font-size: 24px; font-weight: 800; color: #0f1f3d; margin: 0 0 12px; letter-spacing: -0.5px;">
-    You&rsquo;ve been invited to write to ${escapeHtml(child?.firstName ?? "their child")}.
+<div style="font-family:'DM Sans',-apple-system,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;color:#0f1f3d;">
+  <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
+    You&rsquo;ve been invited to leave something for ${escapeHtml(child?.firstName ?? "their child")}.
   </h1>
-  <p style="font-size: 16px; color: #4a5568; line-height: 1.7; margin: 0 0 20px;">
-    ${escapeHtml(user.firstName)} has invited you to contribute a letter, photo, voice note, or video to ${escapeHtml(child?.firstName ?? "their child")}&rsquo;s vault &mdash; a collection of memories they&rsquo;ll open on ${escapeHtml(revealLabel)}.
+  <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+    A message. A memory. A moment they&rsquo;ll open in the future.
   </p>
-  <p style="margin: 24px 0;">
-    <a href="${inviteUrl}" style="display: inline-block; background: #0f1f3d; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px;">Accept invitation</a>
+  <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0 0 12px;">
+    Take a minute to write something they&rsquo;ll never forget.
   </p>
-  <p style="font-size: 12px; color: #8896a5; margin-top: 32px; font-style: italic;">
-    If the button doesn&rsquo;t work, paste this link into your browser: ${inviteUrl}
+  <p style="margin:24px 0;">
+    <a href="${inviteUrl}" style="display:inline-block;background:#c47a3a;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Leave your message</a>
   </p>
 </div>`,
         });

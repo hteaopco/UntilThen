@@ -21,6 +21,45 @@ function wrap(body: string): string {
   return `<div style="font-family:'DM Sans',-apple-system,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;color:#0f1f3d;">${body}</div>`;
 }
 
+function cta(href: string, label: string): string {
+  return `<p style="margin:24px 0;"><a href="${href}" style="display:inline-block;background:#c47a3a;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">${label}</a></p>`;
+}
+
+function firstName(name: string): string {
+  return name.split("&")[0]?.trim().split(" ")[0] ?? name;
+}
+
+function isCouple(name: string): boolean {
+  return name.includes("&");
+}
+
+function pronoun(name: string, form: "object" | "subject" | "possessive" | "contraction"): string {
+  if (isCouple(name)) {
+    return form === "object" ? "them" : form === "subject" ? "they" : form === "possessive" ? "their" : "they\u2019ll";
+  }
+  return form === "object" ? "her" : form === "subject" ? "she" : form === "possessive" ? "her" : "she\u2019ll";
+}
+
+function displayName(name: string): string {
+  if (!isCouple(name)) return firstName(name);
+  const parts = name.split("&");
+  const n1 = (parts[0] ?? "").trim().split(" ")[0] ?? "";
+  const n2 = (parts[1] ?? "").trim().split(" ")[0] ?? "";
+  return `${n1} &amp; ${n2}`;
+}
+
+function body(text: string): string {
+  return `<p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">${text}</p>`;
+}
+
+function muted(text: string): string {
+  return `<p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0 0 12px;">${text}</p>`;
+}
+
+function heading(text: string): string {
+  return `<h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">${text}</h1>`;
+}
+
 async function send(opts: {
   to: string;
   subject: string;
@@ -42,15 +81,7 @@ async function send(opts: {
   }
 }
 
-function formatLong(d: Date): string {
-  return d.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-// ── Contributor invite ─────────────────────────────────────
+// #1 — Invite Contributor
 export async function sendCapsuleInvite(params: {
   to: string;
   contributorName: string | null;
@@ -61,37 +92,19 @@ export async function sendCapsuleInvite(params: {
   inviteToken: string;
 }): Promise<void> {
   const url = `${baseUrl()}/contribute/capsule/${params.inviteToken}`;
-  const hello = params.contributorName
-    ? `Hi ${escapeHtml(params.contributorName)},`
-    : "Hello,";
   await send({
     to: params.to,
-    subject: `You're invited to contribute to ${params.title}`,
+    subject: `${displayName(params.recipientName)} will read this one day.`,
     html: wrap(`
-      <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-        You&rsquo;re invited to contribute to ${escapeHtml(params.title)}.
-      </h1>
-      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
-        ${hello}
-      </p>
-      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
-        ${escapeHtml(params.organiserName)} is putting together a Memory
-        Capsule for ${escapeHtml(params.recipientName)}. It opens on
-        ${escapeHtml(formatLong(params.revealDate))}.
-      </p>
-      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 20px;">
-        Add your message, a photo, or a voice note — it takes a minute.
-        ${escapeHtml(params.recipientName)} won&rsquo;t see anything
-        until the day.
-      </p>
-      <p style="margin:24px 0;">
-        <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Add my contribution</a>
-      </p>
+      ${heading("You&rsquo;ve been invited to leave something for " + displayName(params.recipientName) + ".")}
+      ${body("A message. A memory. A moment " + pronoun(params.recipientName, "contraction") + " open in the future.")}
+      ${muted("Take a minute to write something " + pronoun(params.recipientName, "contraction") + " never forget.")}
+      ${cta(url, "Leave your message")}
     `),
   });
 }
 
-// ── Draft saved (free; before payment) ─────────────────────
+// #2 — Draft Saved (Organiser)
 export async function sendCapsuleDraftSaved(params: {
   to: string;
   organiserName: string;
@@ -100,23 +113,16 @@ export async function sendCapsuleDraftSaved(params: {
 }): Promise<void> {
   await send({
     to: params.to,
-    subject: `Your Gift Capsule is saved — complete setup to send invites`,
+    subject: "You started something meaningful.",
     html: wrap(`
-      <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-        Your Gift Capsule is saved.
-      </h1>
-      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 20px;">
-        ${escapeHtml(params.title)} is waiting. Add contributors and
-        activate it to start collecting memories.
-      </p>
-      <p style="margin:24px 0;">
-        <a href="${params.dashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Continue setup</a>
-      </p>
+      ${heading("Your capsule is saved.")}
+      ${body("Come back anytime to finish it &mdash; invite people, add memories, and make it something they&rsquo;ll never forget.")}
+      ${cta(params.dashboardUrl, "Continue building")}
     `),
   });
 }
 
-// ── Draft expiry warning (day 6 / before auto-delete) ──────
+// #3 — Draft Expiring (Day 6)
 export async function sendCapsuleDraftExpiring(params: {
   to: string;
   title: string;
@@ -124,23 +130,17 @@ export async function sendCapsuleDraftExpiring(params: {
 }): Promise<void> {
   await send({
     to: params.to,
-    subject: `Your Gift Capsule draft expires tomorrow`,
+    subject: "Don\u2019t lose this.",
     html: wrap(`
-      <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-        Tomorrow&rsquo;s the last day to finish ${escapeHtml(params.title)}.
-      </h1>
-      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 20px;">
-        Draft capsules are cleared after seven days. Activate this
-        one to keep it.
-      </p>
-      <p style="margin:24px 0;">
-        <a href="${params.dashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Finish setup</a>
-      </p>
+      ${heading("Your capsule expires tomorrow.")}
+      ${body("You&rsquo;ve already started something meaningful &mdash; don&rsquo;t let it disappear.")}
+      ${muted("Finish it now so it&rsquo;s there when it matters most.")}
+      ${cta(params.dashboardUrl, "Finish your capsule")}
     `),
   });
 }
 
-// ── Capsule activated (payment settled; invites sent) ──────
+// #4 — Capsule Activated (Payment)
 export async function sendCapsuleActivated(params: {
   to: string;
   title: string;
@@ -151,25 +151,17 @@ export async function sendCapsuleActivated(params: {
 }): Promise<void> {
   await send({
     to: params.to,
-    subject: `Your Gift Capsule is live — invites sent`,
+    subject: "It\u2019s happening.",
     html: wrap(`
-      <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-        Your Gift Capsule is live.
-      </h1>
-      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
-        ${params.contributorCount} ${params.contributorCount === 1 ? "invite" : "invites"}
-        just went out for ${escapeHtml(params.title)}.
-        ${escapeHtml(params.recipientName)} will open it on
-        ${escapeHtml(formatLong(params.revealDate))}.
-      </p>
-      <p style="margin:24px 0;">
-        <a href="${params.dashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open your capsule</a>
-      </p>
+      ${heading("Your capsule is live.")}
+      ${body("Invites are going out. People are about to start writing.")}
+      ${muted("This is becoming something they&rsquo;ll open one day.")}
+      ${cta(params.dashboardUrl, "View your capsule")}
     `),
   });
 }
 
-// ── Contribution submitted (organiser notified) ────────────
+// #5 — Contribution Submitted → Organiser
 export async function sendCapsuleContributionSubmitted(params: {
   to: string;
   contributorName: string;
@@ -178,22 +170,16 @@ export async function sendCapsuleContributionSubmitted(params: {
 }): Promise<void> {
   await send({
     to: params.to,
-    subject: `${params.contributorName} added something to ${params.title}`,
+    subject: `Someone just added something for ${params.title.split(" ")[0]}`,
     html: wrap(`
-      <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-        ${escapeHtml(params.contributorName)} just contributed.
-      </h1>
-      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 20px;">
-        Their message is in ${escapeHtml(params.title)}.
-      </p>
-      <p style="margin:24px 0;">
-        <a href="${params.dashboardUrl}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">View capsule</a>
-      </p>
+      ${heading("A new memory was added to your capsule.")}
+      ${body("You can review it, edit it, or approve it before it&rsquo;s sealed.")}
+      ${cta(params.dashboardUrl, "Review contribution")}
     `),
   });
 }
 
-// ── Contributor deadline reminder (48hrs) ──────────────────
+// #6 — Contributor Reminder (48hr Deadline)
 export async function sendCapsuleContributorReminder(params: {
   to: string;
   contributorName: string | null;
@@ -204,23 +190,16 @@ export async function sendCapsuleContributorReminder(params: {
   const url = `${baseUrl()}/contribute/capsule/${params.inviteToken}`;
   await send({
     to: params.to,
-    subject: `Last chance to contribute to ${params.title}`,
+    subject: "Don\u2019t miss this.",
     html: wrap(`
-      <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-        Last chance to add to ${escapeHtml(params.title)}.
-      </h1>
-      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 20px;">
-        Contributions close soon. ${escapeHtml(params.recipientName)}
-        won&rsquo;t see anything unless you finish now.
-      </p>
-      <p style="margin:24px 0;">
-        <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Add my contribution</a>
-      </p>
+      ${heading("You were invited to leave a message for " + displayName(params.recipientName) + ".")}
+      ${body("Take a minute to write something " + pronoun(params.recipientName, "contraction") + " keep forever.")}
+      ${cta(url, "Leave your message")}
     `),
   });
 }
 
-// ── Reveal day (recipient notified) ────────────────────────
+// #7 — Reveal Day (Recipient)
 export async function sendCapsuleRevealDay(params: {
   to: string;
   recipientName: string;
@@ -231,26 +210,16 @@ export async function sendCapsuleRevealDay(params: {
   const url = `${baseUrl()}/capsule/${params.capsuleId}/open?t=${params.accessToken}`;
   await send({
     to: params.to,
-    subject: `Your Gift Capsule is ready, ${params.recipientName}`,
+    subject: "It\u2019s time.",
     html: wrap(`
-      <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-        Hi ${escapeHtml(params.recipientName)},
-      </h1>
-      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 20px;">
-        The people who love you have been writing to you.
-        Today&rsquo;s the day.
-      </p>
-      <p style="margin:24px 0;">
-        <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open my capsule</a>
-      </p>
-      <p style="font-size:13px;color:#8896a5;line-height:1.6;margin:16px 0 0;font-style:italic;">
-        This link is just for you.
-      </p>
+      ${heading("Today is the day.")}
+      ${body("There are messages waiting for you &mdash; written in the past, meant for right now.")}
+      ${cta(url, "Open your capsule")}
     `),
   });
 }
 
-// ── Fresh magic link ───────────────────────────────────────
+// #8 — New Link Requested
 export async function sendCapsuleNewLink(params: {
   to: string;
   recipientName: string;
@@ -261,22 +230,16 @@ export async function sendCapsuleNewLink(params: {
   const url = `${baseUrl()}/capsule/${params.capsuleId}/open?t=${params.accessToken}`;
   await send({
     to: params.to,
-    subject: `Here's your new link to ${params.title}`,
+    subject: "Here\u2019s your new link",
     html: wrap(`
-      <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-        A fresh link for ${escapeHtml(params.recipientName)}.
-      </h1>
-      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 20px;">
-        Click to open ${escapeHtml(params.title)}.
-      </p>
-      <p style="margin:24px 0;">
-        <a href="${url}" style="display:inline-block;background:#0f1f3d;color:white;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Open my capsule</a>
-      </p>
+      ${heading("Your messages are waiting.")}
+      ${body("We&rsquo;ve generated a new link for you. Whenever you&rsquo;re ready, everything is waiting.")}
+      ${cta(url, "Open your capsule")}
     `),
   });
 }
 
-// ── Recipient saved capsule (organiser notified) ───────────
+// #9 — Capsule Saved (Recipient Account Created)
 export async function sendCapsuleSaved(params: {
   to: string;
   recipientName: string;
@@ -284,18 +247,16 @@ export async function sendCapsuleSaved(params: {
 }): Promise<void> {
   await send({
     to: params.to,
-    subject: `${params.recipientName} saved their capsule`,
+    subject: "This is yours now.",
     html: wrap(`
-      <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-        ${escapeHtml(params.recipientName)} saved ${escapeHtml(params.title)}.
-      </h1>
-      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 20px;">
-        They created an account so they can revisit it any time.
-      </p>
+      ${heading("Your capsule is saved to your account.")}
+      ${body("You can return anytime to revisit what was written for you.")}
+      ${cta(baseUrl() + "/dashboard", "Go to your vault")}
     `),
   });
 }
 
+// #10 — Contributor Confirmation
 export async function sendContributorConfirmation(params: {
   to: string;
   contributorName: string;
@@ -310,28 +271,20 @@ export async function sendContributorConfirmation(params: {
         <p style="font-size:14px;color:#0f1f3d;line-height:1.6;margin:0;">${escapeHtml(params.messagePreview.slice(0, 500))}</p>
       </div>`
     : "";
-  const html = wrap(`
-    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-      Your contribution is saved, ${escapeHtml(params.contributorName)}.
-    </h1>
-    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 8px;">
-      You added something to <strong>${escapeHtml(params.capsuleTitle)}</strong> for ${escapeHtml(params.recipientName)}.
-    </p>
-    ${preview}
-    <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:16px 0;">
-      Want to make changes? You can edit your contribution before the reveal date.
-    </p>
-    <a href="${params.editUrl}" style="display:inline-block;background:#c47a3a;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">
-      Edit my contribution
-    </a>
-  `);
   await send({
     to: params.to,
-    subject: `Your contribution to "${params.capsuleTitle}" is saved`,
-    html,
+    subject: "This is going to mean everything to them.",
+    html: wrap(`
+      ${heading("Your message is saved.")}
+      ${body("One day, " + pronoun(params.recipientName, "contraction") + " read this.")}
+      ${preview}
+      ${muted("You can still edit it before it&rsquo;s sealed.")}
+      ${cta(params.editUrl, "Edit your message")}
+    `),
   });
 }
 
+// #11 — Contributor Approved
 export async function sendContributorApproved(params: {
   to: string;
   contributorName: string;
@@ -339,50 +292,31 @@ export async function sendContributorApproved(params: {
   capsuleTitle: string;
   editUrl: string;
 }): Promise<void> {
-  const html = wrap(`
-    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-      Your contribution has been approved!
-    </h1>
-    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 8px;">
-      Great news, ${escapeHtml(params.contributorName)} &mdash; your message for <strong>${escapeHtml(params.capsuleTitle)}</strong> has been approved by the organiser.
-    </p>
-    <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0 0 20px;">
-      ${escapeHtml(params.recipientName)} will see it on the reveal date. You can still make edits before then.
-    </p>
-    <a href="${params.editUrl}" style="display:inline-block;background:#c47a3a;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">
-      View or edit my contribution
-    </a>
-  `);
   await send({
     to: params.to,
-    subject: `Approved: your contribution to "${params.capsuleTitle}"`,
-    html,
+    subject: "Your message is in.",
+    html: wrap(`
+      ${heading("Your contribution has been approved.")}
+      ${body("It&rsquo;s now part of what " + pronoun(params.recipientName, "contraction") + " open one day.")}
+      ${cta(params.editUrl, "View your message")}
+    `),
   });
 }
 
+// #12 — Contributor Rejected
 export async function sendContributorRejected(params: {
   to: string;
   contributorName: string;
   capsuleTitle: string;
   editUrl: string;
 }): Promise<void> {
-  const html = wrap(`
-    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
-      Your contribution needs a revision.
-    </h1>
-    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 8px;">
-      Hi ${escapeHtml(params.contributorName)} &mdash; the organiser of <strong>${escapeHtml(params.capsuleTitle)}</strong> has requested changes to your message.
-    </p>
-    <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0 0 20px;">
-      No worries &mdash; you can edit your contribution or start fresh using the link below.
-    </p>
-    <a href="${params.editUrl}" style="display:inline-block;background:#c47a3a;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">
-      Edit my contribution
-    </a>
-  `);
   await send({
     to: params.to,
-    subject: `Changes requested: your contribution to "${params.capsuleTitle}"`,
-    html,
+    subject: "Small update needed",
+    html: wrap(`
+      ${heading("Your message needs a quick update before it&rsquo;s approved.")}
+      ${body("Take a moment to revise it.")}
+      ${cta(params.editUrl, "Edit your message")}
+    `),
   });
 }
