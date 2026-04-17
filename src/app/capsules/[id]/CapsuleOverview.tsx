@@ -389,7 +389,7 @@ export function CapsuleOverview({
               Send invites &mdash; $9.99
             </button>
             <p className="text-sm font-semibold text-navy">
-              Nothing is sent yet. You&rsquo;ll review everything before delivery.
+              Nothing is sent to {capsule.recipientName.split(" ")[0]} yet. You&rsquo;ll review everything before delivery.
             </p>
             <div className="pt-1">
               <Link
@@ -472,6 +472,7 @@ export function CapsuleOverview({
           initialEmail={capsule.recipientEmail}
           initialPhone={capsule.recipientPhone}
           invitesStaged={invites.filter((i) => i.status === "STAGED").length}
+          stagedInvites={invites.filter((i) => i.status === "STAGED")}
           onClose={() => setActivateOpen(false)}
           onDone={() => {
             setActivateOpen(false);
@@ -717,7 +718,7 @@ function OwnContribution({
           <TiptapEditor
             initialContent={body}
             onUpdate={setBody}
-            placeholder={`Dear ${recipientName},`}
+            placeholder={`Dear ${recipientName.split(" ")[0]},`}
           />
         </div>
 
@@ -792,7 +793,7 @@ function OwnContribution({
             Write the first note &mdash; others will follow your lead.
           </div>
           <div className="text-[11px] font-semibold text-navy/60 mt-1">
-            Nothing is sent yet.
+            Nothing is sent to {recipientName.split(" ")[0]} yet.
           </div>
         </div>
       </div>
@@ -1047,63 +1048,37 @@ function ContributorsPanel({
             {invites.map((i) => (
               <li
                 key={i.id}
-                className="rounded-xl border border-navy/[0.08] px-4 py-2.5 flex items-center gap-3"
+                className="rounded-xl border border-navy/[0.08] px-4 py-3"
               >
-                <Mail
-                  size={14}
-                  strokeWidth={1.5}
-                  className="text-ink-light shrink-0"
-                  aria-hidden="true"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-navy truncate">
-                    {i.name || i.email}
-                  </div>
-                  {i.name && (
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-semibold text-navy truncate">
+                      {i.name || "—"}
+                    </div>
                     <div className="text-xs text-ink-light truncate">
                       {i.email}
                     </div>
-                  )}
-                </div>
-                {i.requiresApproval && (
-                  <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.12em] font-bold text-amber bg-amber-tint px-2 py-0.5 rounded">
-                    Review
-                  </span>
-                )}
-                {/* STAGED = pre-payment draft state; label spells
-                    out *why* nothing has left yet so the organiser
-                    isn't confused that the row is "stuck". Other
-                    statuses keep the tight uppercase pill. */}
-                {i.status === "STAGED" ? (
-                  <span className="text-[11px] font-semibold text-amber bg-amber-tint px-2 py-0.5 rounded whitespace-nowrap">
-                    Pending — invites send after payment
-                  </span>
-                ) : (
-                  <span
-                    className={`text-[10px] uppercase tracking-[0.12em] font-bold px-2 py-0.5 rounded ${
-                      i.status === "ACTIVE"
-                        ? "text-green-700 bg-green-50"
-                        : i.status === "REVOKED"
-                          ? "text-ink-light bg-[#f1f5f9]"
-                          : "text-gold bg-gold-tint"
-                    }`}
+                    <div className="mt-1 flex items-center gap-1 text-xs">
+                      {i.requiresApproval ? (
+                        <span className="inline-flex items-center gap-1 text-green-600 font-semibold">
+                          <Check size={12} strokeWidth={2.5} aria-hidden="true" />
+                          Review prior
+                        </span>
+                      ) : (
+                        <span className="text-ink-light">&mdash; No review</span>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onRemove(i.id)}
+                    disabled={busyId === i.id}
+                    aria-label={`Remove ${i.email}`}
+                    className="shrink-0 text-ink-light hover:text-red-600 transition-colors disabled:opacity-50 mt-0.5"
                   >
-                    {i.status === "ACTIVE"
-                      ? "Contributed"
-                      : i.status === "REVOKED"
-                        ? "Removed"
-                        : "Invited"}
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={() => onRemove(i.id)}
-                  disabled={busyId === i.id}
-                  aria-label={`Remove ${i.email}`}
-                  className="text-ink-light hover:text-red-600 transition-colors disabled:opacity-50"
-                >
-                  <X size={16} strokeWidth={1.75} aria-hidden="true" />
-                </button>
+                    <X size={16} strokeWidth={1.75} aria-hidden="true" />
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
@@ -1197,6 +1172,7 @@ function ActivationModal({
   initialEmail,
   initialPhone,
   invitesStaged,
+  stagedInvites,
   onClose,
   onDone,
 }: {
@@ -1206,6 +1182,7 @@ function ActivationModal({
   initialEmail: string | null;
   initialPhone: string | null;
   invitesStaged: number;
+  stagedInvites: InviteRow[];
   onClose: () => void;
   onDone: () => void;
 }) {
@@ -1280,10 +1257,10 @@ function ActivationModal({
             <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-1">
               {step === "pay" ? "Step 1 of 2" : "Step 2 of 2"}
             </div>
-            <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] leading-[1.25]">
+            <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] leading-[1.25] whitespace-nowrap">
               {step === "pay"
                 ? `Invite everyone who loves ${recipientPronoun}`
-                : `How should we reach ${recipientName}?`}
+                : `How should we reach ${recipientName.split(" ")[0]}?`}
             </h2>
           </div>
           <button
@@ -1309,13 +1286,31 @@ function ActivationModal({
                 <span className="text-sm font-semibold text-navy">$9.99</span>
               </div>
               <p className="text-xs italic text-ink-light">
-                One-time payment · No subscription · No credit card saved
+                One-time payment · No subscription required · No credit card saved · Takes less than 2 minutes.
               </p>
             </div>
             <p className="text-sm text-ink-mid leading-[1.6]">
-              They&rsquo;ll each add something &mdash; a message, a memory, a voice note.
-              {recipientName} will open it all at once.
+              They&rsquo;ll each add something &mdash; a message, a memory, a voice note. {recipientName.split(" ")[0]} will open it all at once.
             </p>
+            {stagedInvites.length > 0 && (
+              <ul className="space-y-1.5 rounded-lg border border-navy/[0.06] bg-warm-surface/40 px-4 py-3">
+                {stagedInvites.map((inv) => (
+                  <li key={inv.id} className="flex items-center justify-between gap-2 text-sm">
+                    <div className="min-w-0">
+                      <span className="font-semibold text-navy">{inv.name || "—"}</span>
+                      <span className="text-ink-light ml-2 text-xs">{inv.email}</span>
+                    </div>
+                    {inv.requiresApproval ? (
+                      <span className="shrink-0 inline-flex items-center gap-1 text-green-600 text-xs font-semibold">
+                        <Check size={12} strokeWidth={2.5} aria-hidden="true" />
+                      </span>
+                    ) : (
+                      <span className="shrink-0 text-ink-light text-xs">&mdash;</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
             {error && (
               <p className="text-sm text-red-600" role="alert">
                 {error}
@@ -1329,10 +1324,7 @@ function ActivationModal({
               Send invites &mdash; $9.99
             </button>
             <p className="text-sm font-semibold text-navy text-center">
-              Nothing is sent yet. You&rsquo;ll review everything before delivery.
-            </p>
-            <p className="text-xs italic text-ink-light text-center">
-              Takes less than 2 minutes. No subscription.
+              Nothing is sent to {recipientName.split(" ")[0]} yet. You&rsquo;ll review everything before delivery.
             </p>
           </div>
         ) : (
