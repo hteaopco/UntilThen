@@ -8,14 +8,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (!process.env.ADMIN_PASSWORD || auth !== process.env.ADMIN_PASSWORD)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = (await req.json().catch(() => ({}))) as { to?: string };
+  const body = (await req.json().catch(() => ({}))) as { to?: string; only?: string[] };
   const to = typeof body.to === "string" ? body.to.trim() : "";
   if (!to) return NextResponse.json({ error: "Missing 'to' email." }, { status: 400 });
+  const only = Array.isArray(body.only) ? new Set(body.only) : null;
 
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
   const results: { name: string; ok: boolean; error?: string }[] = [];
 
-  async function fire(name: string, fn: () => Promise<void>) {
+  async function fire(id: string, name: string, fn: () => Promise<void>) {
+    if (only && !only.has(id)) return;
     try {
       await fn();
       results.push({ name, ok: true });
@@ -50,7 +52,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   } = await import("@/lib/emails");
 
   // #1 — Invite Contributor
-  await fire("#1 Invite Contributor", () =>
+  await fire("capsule-invite", "#1 Invite Contributor", () =>
     sendCapsuleInvite({
       to,
       contributorName: "Sarah",
@@ -63,7 +65,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #2 — Draft Saved
-  await fire("#2 Draft Saved", () =>
+  await fire("draft-saved", "#2 Draft Saved", () =>
     sendCapsuleDraftSaved({
       to,
       organiserName: "Jett",
@@ -73,7 +75,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #3 — Draft Expiring
-  await fire("#3 Draft Expiring", () =>
+  await fire("draft-expiring", "#3 Draft Expiring", () =>
     sendCapsuleDraftExpiring({
       to,
       title: "Mom's 60th Birthday",
@@ -82,7 +84,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #4 — Capsule Activated
-  await fire("#4 Capsule Activated", () =>
+  await fire("capsule-activated", "#4 Capsule Activated", () =>
     sendCapsuleActivated({
       to,
       title: "Mom's 60th Birthday",
@@ -94,7 +96,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #5 — Contribution Submitted
-  await fire("#5 Contribution Submitted", () =>
+  await fire("contribution-submitted", "#5 Contribution Submitted", () =>
     sendCapsuleContributionSubmitted({
       to,
       contributorName: "Sarah",
@@ -104,7 +106,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #6 — Contributor Reminder
-  await fire("#6 Contributor Reminder", () =>
+  await fire("contributor-reminder", "#6 Contributor Reminder", () =>
     sendCapsuleContributorReminder({
       to,
       contributorName: "Sarah",
@@ -115,7 +117,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #7 — Reveal Day
-  await fire("#7 Reveal Day", () =>
+  await fire("reveal-day", "#7 Reveal Day", () =>
     sendCapsuleRevealDay({
       to,
       recipientName: "Margaret",
@@ -126,7 +128,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #8 — New Link
-  await fire("#8 New Link", () =>
+  await fire("new-link", "#8 New Link", () =>
     sendCapsuleNewLink({
       to,
       recipientName: "Margaret",
@@ -137,7 +139,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #9 — Capsule Saved
-  await fire("#9 Capsule Saved", () =>
+  await fire("capsule-saved", "#9 Capsule Saved", () =>
     sendCapsuleSaved({
       to,
       recipientName: "Margaret",
@@ -146,7 +148,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #10 — Contributor Confirmation
-  await fire("#10 Contributor Confirmation", () =>
+  await fire("contributor-confirmation", "#10 Contributor Confirmation", () =>
     sendContributorConfirmation({
       to,
       contributorName: "Sarah",
@@ -158,7 +160,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #11 — Contributor Approved
-  await fire("#11 Contributor Approved", () =>
+  await fire("contributor-approved", "#11 Contributor Approved", () =>
     sendContributorApproved({
       to,
       contributorName: "Sarah",
@@ -169,7 +171,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #12 — Contributor Rejected
-  await fire("#12 Contributor Rejected", () =>
+  await fire("contributor-rejected", "#12 Contributor Rejected", () =>
     sendContributorRejected({
       to,
       contributorName: "Sarah",
@@ -179,7 +181,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #13 — Invite Accepted
-  await fire("#13 Invite Accepted", () =>
+  await fire("invite-accepted", "#13 Invite Accepted", () =>
     sendInviteAccepted({
       parentEmail: to,
       parentFirstName: "Jett",
@@ -190,7 +192,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #14 — Entry Needs Review
-  await fire("#14 Entry Needs Review", () =>
+  await fire("entry-needs-review", "#14 Entry Needs Review", () =>
     sendEntryNeedsReview({
       parentEmail: to,
       contributorName: "Grandma Rose",
@@ -201,7 +203,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #15 — Entry Approved
-  await fire("#15 Entry Approved", () =>
+  await fire("entry-approved", "#15 Entry Approved", () =>
     sendEntryApproved({
       contributorEmail: to,
       contributorName: "Grandma Rose",
@@ -212,7 +214,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #16 — Entry Rejected
-  await fire("#16 Entry Rejected", () =>
+  await fire("entry-rejected", "#16 Entry Rejected", () =>
     sendEntryRejected({
       contributorEmail: to,
       contributorName: "Grandma Rose",
@@ -223,17 +225,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #17 — Account Deleted
-  await fire("#17 Account Deleted", () =>
+  await fire("account-deleted", "#17 Account Deleted", () =>
     sendAccountDeleted({ to, firstName: "Jett" }),
   );
 
   // #18 — Writing Reminder
-  await fire("#18 Writing Reminder", () =>
+  await fire("writing-reminder", "#18 Writing Reminder", () =>
     sendWritingReminder({ to, parentName: "Jett", childName: "Olivia" }),
   );
 
   // #19a — Countdown 30 days
-  await fire("#19a Countdown 30 days", () =>
+  await fire("countdown-30", "#19a Countdown 30 days", () =>
     sendRevealCountdown({
       to,
       parentName: "Jett",
@@ -244,7 +246,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #19b — Countdown 7 days
-  await fire("#19b Countdown 7 days", () =>
+  await fire("countdown-7", "#19b Countdown 7 days", () =>
     sendRevealCountdown({
       to,
       parentName: "Jett",
@@ -255,7 +257,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #19c — Countdown 1 day
-  await fire("#19c Countdown 1 day", () =>
+  await fire("countdown-1", "#19c Countdown 1 day", () =>
     sendRevealCountdown({
       to,
       parentName: "Jett",
@@ -266,7 +268,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   // #1 Couple variant
-  await fire("#1 Invite (Couple)", () =>
+  await fire("couple-invite", "#1 Invite (Couple)", () =>
     sendCapsuleInvite({
       to,
       contributorName: "Sarah",
