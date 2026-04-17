@@ -199,12 +199,12 @@ export function CapsuleContributeForm({
             <h1 className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
               <Typewriter
                 text={`That's going to mean everything to ${r.pronoun}. You just created something ${r.subjectContraction} keep forever.`}
-                speed={45}
+                speed={61}
                 startDelay={400}
                 onComplete={() => {
                   setTimeout(() => {
                     setPhase("thankyou");
-                    setTimeout(() => setShowCta(true), 1500);
+                    setTimeout(() => setShowCta(true), 500);
                   }, 1000);
                 }}
               />
@@ -214,16 +214,17 @@ export function CapsuleContributeForm({
               <h1 className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3] mb-8">
                 That&rsquo;s going to mean everything to {r.pronoun}. You just created something {r.subjectContraction} keep forever.
               </h1>
-              {showCta && (
-                <div className="animate-fadeIn">
-                  <Link
-                    href="/"
-                    className="inline-block bg-amber text-white px-6 py-3 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors"
-                  >
-                    Start one for someone you love
-                  </Link>
-                </div>
-              )}
+              <div
+                className="transition-opacity duration-700 ease-out"
+                style={{ opacity: showCta ? 1 : 0 }}
+              >
+                <Link
+                  href="/"
+                  className="inline-block bg-amber text-white px-6 py-3 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors"
+                >
+                  Start one for someone you love
+                </Link>
+              </div>
             </>
           )}
         </div>
