@@ -70,11 +70,15 @@ export function VaultPinScreen() {
   return (
     <div
       className={`fixed inset-0 z-[60] flex flex-col items-center pt-[12vh] bg-cream ${isUnlocking ? "pin-fadeout" : ""}`}
-      style={{
-        backgroundImage:
-          "radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.07) 0%, transparent 70%)",
-      }}
     >
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.07) 0%, transparent 70%)",
+        }}
+      />
+
       {isUnlocking && (
         <div
           className="pin-ripple"
@@ -82,7 +86,7 @@ export function VaultPinScreen() {
         />
       )}
 
-      <div className="mb-8 opacity-30">
+      <div className="relative mb-8 opacity-30">
         <LogoSvg variant="dark" width={80} height={16} />
       </div>
 
@@ -145,7 +149,7 @@ export function VaultPinScreen() {
         })}
       </div>
 
-      <div className="grid grid-cols-3 gap-3 w-full max-w-[260px] px-4">
+      <div className="grid grid-cols-3 gap-3 w-full max-w-[300px] px-4">
         {["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "del"].map(
           (key) => {
             if (key === "") return <div key="empty" />;
@@ -156,17 +160,17 @@ export function VaultPinScreen() {
                 type="button"
                 onClick={() => (isDel ? deleteDigit() : addDigit(key))}
                 disabled={state !== "locked"}
-                className="aspect-square rounded-full flex items-center justify-center transition-all duration-100 active:scale-[0.89] active:border-amber active:text-amber disabled:opacity-40 select-none"
+                className="aspect-square rounded-full flex items-center justify-center transition-all duration-100 active:scale-[0.89] active:text-amber disabled:opacity-40 select-none"
                 style={{
-                  fontSize: isDel ? undefined : 22,
+                  fontSize: isDel ? undefined : 26,
                   fontWeight: 300,
                   color: "rgba(44,36,32,0.65)",
                   background: "rgba(255,255,255,0.6)",
-                  border: "1px solid rgba(201,168,76,0.12)",
+                  border: "1.5px solid rgba(196,122,58,0.25)",
                 }}
               >
                 {isDel ? (
-                  <Delete size={20} strokeWidth={1.5} aria-label="Delete" />
+                  <Delete size={22} strokeWidth={1.5} aria-label="Delete" />
                 ) : (
                   key
                 )}
