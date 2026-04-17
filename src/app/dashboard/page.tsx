@@ -239,8 +239,8 @@ export default async function DashboardPage({
             Contributing To · {contributingToRecords.length}
           </h2>
           {contributingToRecords.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-navy/8 bg-white/60 px-4 py-5 text-center">
-              <p className="text-[13px] text-ink-light">
+            <div className="rounded-xl border border-dashed border-navy/8 bg-white/60 px-4 py-5">
+              <p className="text-[13px] text-ink-light italic">
                 You haven&rsquo;t been invited to contribute yet.
               </p>
             </div>
@@ -270,7 +270,7 @@ export default async function DashboardPage({
             Received · {receivedRecords.length}
           </h2>
           {receivedRecords.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-navy/8 bg-white/60 px-4 py-5 text-center">
+            <div className="rounded-xl border border-dashed border-navy/8 bg-white/60 px-4 py-5">
               <p className="text-[13px] text-ink-light italic">
                 Someone&rsquo;s writing to you. You just don&rsquo;t know it yet.
               </p>
