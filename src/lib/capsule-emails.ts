@@ -2,7 +2,7 @@
 // sends log and move on, never fail the parent request.
 
 const FROM = "untilThen <hello@untilthenapp.io>";
-const REPLY_TO = "support@untilthenapp.io";
+const REPLY_TO = "hello@untilthenapp.io";
 
 function escapeHtml(input: string): string {
   return input

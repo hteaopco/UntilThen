@@ -212,7 +212,7 @@ export async function POST(req: Request) {
           : "the reveal date";
         await resend.emails.send({
           from: "untilThen <hello@untilthenapp.io>",
-          replyTo: "support@untilthenapp.io",
+          replyTo: "hello@untilthenapp.io",
           to: email,
           subject: `You've been invited to write to ${child?.firstName ?? "their child"}`,
           html: `
