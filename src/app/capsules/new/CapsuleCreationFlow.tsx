@@ -492,8 +492,8 @@ export function CapsuleCreationFlow() {
               <button type="button" onClick={() => submit()} disabled={saving}
                 className={`flex-1 py-3 rounded-lg text-[14px] font-bold transition-colors ${
                   saving
-                    ? "bg-green-700 text-white"
-                    : "bg-sage/60 text-white hover:bg-sage"
+                    ? "bg-green-800 text-white"
+                    : "bg-green-700 text-white hover:bg-green-800"
                 }`}>
                 {saving ? "Creating\u2026" : "Create"}
               </button>
