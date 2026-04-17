@@ -94,17 +94,23 @@ export async function POST(
         from: "untilThen <hello@untilthenapp.io>",
         replyTo: "hello@untilthenapp.io",
         to: refreshed.email,
-        subject: "Just a reminder",
+        subject: `Add your message for ${child.firstName}.`,
         html: `
 <div style="font-family:'DM Sans',-apple-system,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;color:#0f1f3d;">
   <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
-    You were invited to something meaningful.
+    You&rsquo;ve been invited to contribute to a time capsule for ${escapeHtml(child.firstName)}.
   </h1>
   <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
-    We wanted to remind you &mdash; you&rsquo;ve been invited to contribute to ${escapeHtml(child.firstName)}&rsquo;s capsule.
+    ${escapeHtml(user.displayName ?? user.firstName)} invited you to be part of this.
   </p>
-  <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0 0 12px;">
-    Take a moment to leave something they&rsquo;ll never forget.
+  <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+    <strong>A message. A memory.</strong> Something they&rsquo;ll open and experience in the future.
+  </p>
+  <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+    You can write a note, record a voice message, or share a photo or video.
+  </p>
+  <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 20px;">
+    It only takes a minute &mdash; and it&rsquo;s something they&rsquo;ll keep forever.
   </p>
   <p style="margin:24px 0;">
     <a href="${inviteUrl}" style="display:inline-block;background:#c47a3a;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Leave your message</a>

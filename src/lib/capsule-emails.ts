@@ -48,6 +48,14 @@ function displayName(name: string): string {
   return `${n1} &amp; ${n2}`;
 }
 
+function displayNamePlain(name: string): string {
+  if (!isCouple(name)) return firstName(name);
+  const parts = name.split("&");
+  const n1 = (parts[0] ?? "").trim().split(" ")[0] ?? "";
+  const n2 = (parts[1] ?? "").trim().split(" ")[0] ?? "";
+  return `${n1} & ${n2}`;
+}
+
 function body(text: string): string {
   return `<p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">${text}</p>`;
 }
@@ -94,11 +102,13 @@ export async function sendCapsuleInvite(params: {
   const url = `${baseUrl()}/contribute/capsule/${params.inviteToken}`;
   await send({
     to: params.to,
-    subject: `${displayName(params.recipientName)} will read this one day.`,
+    subject: `Add your message for ${displayNamePlain(params.recipientName)}.`,
     html: wrap(`
-      ${heading("You&rsquo;ve been invited to leave something for " + displayName(params.recipientName) + ".")}
-      ${body("A message. A memory. A moment " + pronoun(params.recipientName, "contraction") + " open in the future.")}
-      ${muted("Take a minute to write something " + pronoun(params.recipientName, "contraction") + " never forget.")}
+      ${heading("You&rsquo;ve been invited to contribute to a gift capsule for " + displayName(params.recipientName) + ".")}
+      ${body(escapeHtml(params.organiserName) + " invited you to be part of this.")}
+      ${body("<strong>A message. A memory.</strong> Something " + pronoun(params.recipientName, "contraction") + " open and experience in the future.")}
+      ${body("You can write a note, record a voice message, or share a photo or video.")}
+      ${body("It only takes a minute &mdash; and it&rsquo;s something " + pronoun(params.recipientName, "contraction") + " keep forever.")}
       ${cta(url, "Leave your message")}
     `),
   });
