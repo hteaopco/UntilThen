@@ -526,8 +526,15 @@ html {
 }
 .account-input[type="date"],
 .account-input[type="time"] {
-  -webkit-appearance: textfield;
-  appearance: textfield;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 44px;
+  padding: 0 14px;
+  line-height: 44px;
+}
+.account-input[type="date"]::-webkit-date-and-time-value,
+.account-input[type="time"]::-webkit-date-and-time-value {
+  text-align: left;
 }
 
 /* iOS Safari zoom-on-focus safety net. On touch devices, force
