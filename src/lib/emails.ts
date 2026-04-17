@@ -186,3 +186,69 @@ export async function sendAccountDeleted(params: {
     html,
   });
 }
+
+export async function sendWritingReminder(params: {
+  to: string;
+  parentName: string;
+  childName: string;
+}): Promise<void> {
+  const url = `${baseUrl()}/dashboard`;
+  const html = wrapper(`
+    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
+      It&rsquo;s been a while, ${escapeHtml(params.parentName)}.
+    </h1>
+    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 8px;">
+      You haven&rsquo;t written to ${escapeHtml(params.childName)}&rsquo;s vault in over 30 days. Even a short note means the world.
+    </p>
+    <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0 0 20px;">
+      What are they doing right now that you never want to forget?
+    </p>
+    <a href="${url}" style="display:inline-block;background:#c47a3a;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">
+      Write a memory
+    </a>
+  `);
+  await send({
+    to: params.to,
+    subject: `${params.childName} is waiting for your next memory`,
+    html,
+  });
+}
+
+export async function sendRevealCountdown(params: {
+  to: string;
+  parentName: string;
+  childName: string;
+  daysLeft: number;
+  revealDate: string;
+}): Promise<void> {
+  const url = `${baseUrl()}/dashboard`;
+  const dateStr = new Date(params.revealDate).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+  const urgency = params.daysLeft === 1
+    ? "Tomorrow is the day."
+    : `${params.daysLeft} days to go.`;
+  const html = wrapper(`
+    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
+      ${urgency}
+    </h1>
+    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 8px;">
+      ${escapeHtml(params.childName)}&rsquo;s time capsule opens on ${dateStr}.
+    </p>
+    <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0 0 20px;">
+      ${params.daysLeft <= 7
+        ? "Last chance to add anything before it opens."
+        : "Still time to add more memories before the big reveal."}
+    </p>
+    <a href="${url}" style="display:inline-block;background:#c47a3a;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">
+      Open your vault
+    </a>
+  `);
+  await send({
+    to: params.to,
+    subject: `${urgency} ${params.childName}'s capsule opens ${dateStr}`,
+    html,
+  });
+}
