@@ -7,12 +7,11 @@ import { useCallback, useRef, useState, type FormEvent } from "react";
 import { TiptapEditor } from "@/components/editor/TiptapEditor";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import { Typewriter } from "@/components/ui/Typewriter";
-import { IntroSplash } from "@/components/landing/IntroSplash";
 import { PublicMediaAttachments } from "@/app/contribute/capsule/[token]/PublicMediaAttachments";
 import { formatLong } from "@/lib/dateFormatters";
 import { OCCASION_LABELS } from "@/lib/capsules";
 
-type Phase = "splash" | "invite" | "editor" | "thankyou-typing" | "thankyou";
+type Phase = "invite" | "editor" | "thankyou-typing" | "thankyou";
 
 export function CapsuleContributeForm({
   token,
@@ -29,7 +28,7 @@ export function CapsuleContributeForm({
   };
   invite: { name: string };
 }) {
-  const [phase, setPhase] = useState<Phase>("splash");
+  const [phase, setPhase] = useState<Phase>("invite");
   const [name, setName] = useState(invite.name);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
@@ -132,17 +131,7 @@ export function CapsuleContributeForm({
     }
   }
 
-  // ── Phase 1: IntroSplash ──────────────────────────────────
-  if (phase === "splash") {
-    return (
-      <div onClick={() => setPhase("invite")}>
-        <IntroSplash />
-        <div className="fixed inset-0 z-40" />
-      </div>
-    );
-  }
-
-  // ── Phase 2: Invite message (typewriter) ──────────────────
+  // ── Phase 1: Invite message (typewriter) ──────────────────
   if (phase === "invite") {
     return (
       <main className="min-h-screen bg-cream flex flex-col items-center justify-center px-6">
