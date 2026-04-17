@@ -118,6 +118,8 @@ model Vault {
   entries      Entry[]
   collections  Collection[]
   contributors Contributor[]
+
+  @@index([revealDate])
 }
 
 model Collection {
@@ -197,6 +199,7 @@ model Entry {
   @@index([contributorId])
   @@index([approvalStatus])
   @@index([vaultId, isSealed])
+  @@index([authorId, createdAt])
 }
 
 // ── Gift Capsules ───────────────────────────────────────
@@ -298,6 +301,7 @@ model CapsuleContribution {
 
   @@index([capsuleId])
   @@index([clerkUserId])
+  @@index([approvalStatus])
 }
 
 model CapsuleInvite {

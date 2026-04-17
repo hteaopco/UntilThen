@@ -29,7 +29,7 @@ export const metadata = {
   title: "Your Vault — untilThen",
 };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 export const runtime = "nodejs";
 
 // ── Helpers ───────────────────────────────────────────────────

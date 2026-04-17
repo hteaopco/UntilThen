@@ -4,6 +4,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const MILESTONES = [30, 7, 1] as const;
+const BATCH_SIZE = 50;
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const secret = req.headers.get("authorization")?.replace("Bearer ", "");
@@ -24,56 +25,68 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const windowEnd = new Date(targetDate);
     windowEnd.setHours(23, 59, 59, 999);
 
-    const vaults = await prisma.vault.findMany({
-      where: {
-        revealDate: { gte: windowStart, lte: windowEnd },
-        unlockedAt: null,
-      },
-      include: {
-        child: {
-          include: {
-            parent: {
-              include: {
-                notificationPreferences: { select: { revealCountdown: true, pausedUntil: true } },
+    let cursor: string | undefined;
+
+    while (true) {
+      const vaults = await prisma.vault.findMany({
+        take: BATCH_SIZE,
+        ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+        where: {
+          revealDate: { gte: windowStart, lte: windowEnd },
+          unlockedAt: null,
+        },
+        include: {
+          child: {
+            include: {
+              parent: {
+                include: {
+                  notificationPreferences: { select: { revealCountdown: true, pausedUntil: true } },
+                },
               },
             },
           },
         },
-      },
-    });
+        orderBy: { id: "asc" },
+      });
 
-    for (const vault of vaults) {
-      const parent = vault.child.parent;
-      const prefs = parent.notificationPreferences;
+      if (vaults.length === 0) break;
+      cursor = vaults[vaults.length - 1]!.id;
 
-      if (prefs?.pausedUntil && prefs.pausedUntil > now) { skipped++; continue; }
-      if (prefs && !prefs.revealCountdown) { skipped++; continue; }
+      for (const vault of vaults) {
+        const parent = vault.child.parent;
+        const prefs = parent.notificationPreferences;
 
-      try {
-        const { clerkClient } = await import("@clerk/nextjs/server");
-        const clerk = await clerkClient();
-        const clerkUser = await clerk.users.getUser(parent.clerkId);
-        const email =
-          clerkUser.primaryEmailAddress?.emailAddress ??
-          clerkUser.emailAddresses[0]?.emailAddress;
+        if (prefs?.pausedUntil && prefs.pausedUntil > now) { skipped++; continue; }
+        if (prefs && !prefs.revealCountdown) { skipped++; continue; }
 
-        if (email) {
-          const { sendRevealCountdown } = await import("@/lib/emails");
-          await sendRevealCountdown({
-            to: email,
-            parentName: parent.firstName,
-            childName: vault.child.firstName,
-            daysLeft: days,
-            revealDate: vault.revealDate!.toISOString(),
-          });
-          sent++;
-        } else {
+        try {
+          const { clerkClient } = await import("@clerk/nextjs/server");
+          const clerk = await clerkClient();
+          const clerkUser = await clerk.users.getUser(parent.clerkId);
+          const email =
+            clerkUser.primaryEmailAddress?.emailAddress ??
+            clerkUser.emailAddresses[0]?.emailAddress;
+
+          if (email) {
+            const { sendRevealCountdown } = await import("@/lib/emails");
+            await sendRevealCountdown({
+              to: email,
+              parentName: parent.firstName,
+              childName: vault.child.firstName,
+              daysLeft: days,
+              revealDate: vault.revealDate!.toISOString(),
+            });
+            sent++;
+          } else {
+            skipped++;
+          }
+        } catch (err) {
+          console.error(`[cron/countdowns] failed for vault ${vault.id}:`, err);
           skipped++;
         }
-      } catch (err) {
-        console.error(`[cron/countdowns] failed for vault ${vault.id}:`, err);
-        skipped++;
       }
+
+      if (vaults.length < BATCH_SIZE) break;
     }
   }
 
