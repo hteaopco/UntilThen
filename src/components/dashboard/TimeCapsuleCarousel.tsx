@@ -53,11 +53,12 @@ export function TimeCapsuleCarousel({
 
   return (
     <div
-      className="relative"
+      className="relative overflow-hidden"
+      style={{ touchAction: "pan-y" }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* Cards container — stacked, overflow visible so sides peek. */}
+      {/* Cards container — stacked, overflow hidden so side cards don't widen the page. */}
       <div className="relative flex items-center justify-center" style={{ minHeight: 460 }}>
         {items.map((item, i) => {
           const offset = i - activeIndex;
@@ -191,7 +192,7 @@ function CapsuleCard({
 
       <div className="px-5 pb-5 pt-3">
         <span className="block w-full text-center bg-amber text-white font-bold text-[15px] py-3 rounded-lg transition-colors hover:bg-amber-dark">
-          Open {item.firstName}&rsquo;s capsule →
+          Open {item.firstName}&rsquo;s capsule
         </span>
       </div>
     </>

@@ -193,7 +193,7 @@ export function AddChildModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" onClick={onClose}>
       <form onSubmit={submit} onClick={(e) => e.stopPropagation()} className="bg-white rounded-2xl shadow-[0_24px_48px_-8px_rgba(15,31,61,0.4)] w-full max-h-[92vh] overflow-y-auto text-left" style={{ maxWidth: 720 }}>
-        <div className="px-7 py-5 border-b border-navy/[0.08] flex items-center justify-between gap-4">
+        <div className="px-4 sm:px-7 py-5 border-b border-navy/[0.08] flex items-center justify-between gap-4">
           <div>
             <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px]">
               {isEdit ? "Edit Time Capsule" : "Add Another Time Capsule"}
@@ -209,7 +209,7 @@ export function AddChildModal({
           </button>
         </div>
 
-        <div className="px-7 py-5 space-y-5">
+        <div className="px-4 sm:px-7 py-5 space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="First name">
               <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} autoFocus required className="account-input" />
@@ -400,7 +400,7 @@ export function AddChildModal({
               </p>
             )}
 
-            <p className="mt-1.5 text-xs italic text-ink-light whitespace-nowrap">
+            <p className="mt-1.5 text-xs italic text-ink-light">
               The date the capsule will open. Change it any time from the capsule&rsquo;s edit page.
             </p>
           </div>
@@ -413,7 +413,7 @@ export function AddChildModal({
           )}
         </div>
 
-        <div className="px-7 py-4 border-t border-navy/[0.08] flex items-center justify-end gap-3">
+        <div className="px-4 sm:px-7 py-4 border-t border-navy/[0.08] flex items-center justify-end gap-3">
           <button type="button" onClick={onClose} disabled={saving} className="text-sm font-semibold text-ink-mid hover:text-navy px-3 py-2 disabled:opacity-50">Cancel</button>
           <button type="submit" disabled={!canSubmit}
             className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors ${canSubmit ? "bg-amber text-white hover:bg-amber-dark" : "bg-navy/10 text-ink-light cursor-not-allowed"}`}>
