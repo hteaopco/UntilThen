@@ -93,7 +93,9 @@ model Child {
   parentId     String
   trusteeName  String?
   trusteeEmail String?
-  trusteePhone String?
+  // trusteePhone — column exists in DB but unmapped until
+  // Accelerate cache sees it. Do NOT restore without explicit
+  // confirmation.
   createdAt    DateTime  @default(now())
 
   parent User   @relation(fields: [parentId], references: [id])

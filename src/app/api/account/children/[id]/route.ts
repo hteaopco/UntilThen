@@ -100,10 +100,9 @@ export async function PATCH(
       typeof body.trusteeEmail === "string" ? body.trusteeEmail.trim() : "";
     childData.trusteeEmail = v.length > 0 ? v : null;
   }
+  // trusteePhone — skipped until Accelerate sees the column
   if ("trusteePhone" in body) {
-    const v =
-      typeof body.trusteePhone === "string" ? body.trusteePhone.trim() : "";
-    childData.trusteePhone = v.length > 0 ? v : null;
+    // intentionally skipped
   }
 
   const { prisma } = await import("@/lib/prisma");
