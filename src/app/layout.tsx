@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { DM_Sans } from "next/font/google";
+import { DM_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { PosthogProvider } from "@/components/PosthogProvider";
 
@@ -8,6 +8,13 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800", "900"],
   variable: "--font-dm-sans",
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-playfair",
   display: "swap",
 });
 
@@ -74,7 +81,7 @@ export default function RootLayout({
         },
       }}
     >
-      <html lang="en" className={dmSans.variable}>
+      <html lang="en" className={`${dmSans.variable} ${playfair.variable}`}>
         <body className="font-sans bg-white text-navy antialiased">
           <PosthogProvider>{children}</PosthogProvider>
         </body>

@@ -6,7 +6,9 @@ import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/app/admin/SignOutButton";
 
 const TABS: Array<{ href: string; label: string }> = [
+  { href: "/admin", label: "Dashboard" },
   { href: "/admin/users", label: "Users" },
+  { href: "/admin/moderation", label: "Moderation" },
 ];
 
 export function AdminHeader({ actions }: { actions?: React.ReactNode }) {
@@ -30,7 +32,7 @@ export function AdminHeader({ actions }: { actions?: React.ReactNode }) {
           const active =
             tab.href === "/admin"
               ? pathname === "/admin"
-              : pathname.startsWith(tab.href);
+              : pathname === tab.href || pathname.startsWith(tab.href + "/");
           return (
             <Link
               key={tab.href}

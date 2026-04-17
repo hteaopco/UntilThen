@@ -163,8 +163,8 @@ export function IntroSplash() {
           <span
             className="text-amber"
             style={{
-              fontFamily: "'Times New Roman', Times, serif",
-              fontWeight: 700,
+              fontFamily: "var(--font-playfair), 'Playfair Display', serif",
+              fontWeight: 400,
             }}
           >
             ,
