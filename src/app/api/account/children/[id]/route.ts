@@ -120,12 +120,7 @@ export async function PATCH(
         );
       vaultData.revealDate = d;
     }
-    if (typeof body.deliveryTime === "string" && /^\d{2}:\d{2}$/.test(body.deliveryTime)) {
-      vaultData.deliveryTime = body.deliveryTime;
-    }
-    if (typeof body.timezone === "string" && body.timezone.trim()) {
-      vaultData.timezone = body.timezone.trim();
-    }
+    // deliveryTime + timezone — skipped until Accelerate sees columns
     if (Object.keys(vaultData).length > 0) {
       await prisma.vault.update({
         where: { id: result.child.vault.id },

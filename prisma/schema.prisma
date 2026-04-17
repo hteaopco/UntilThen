@@ -106,8 +106,9 @@ model Vault {
   id           String    @id @default(cuid())
   childId      String    @unique
   revealDate   DateTime?
-  deliveryTime String    @default("08:00")
-  timezone     String    @default("America/Chicago")
+  // deliveryTime + timezone — columns exist in DB but unmapped
+  // until Accelerate cache sees them. Do NOT restore without
+  // explicit confirmation.
   unlockedAt   DateTime?
   createdAt    DateTime  @default(now())
 
@@ -248,8 +249,8 @@ model MemoryCapsule {
   // Tracks whether the recipient has completed the first-open
   // sequential reveal. Return visits then get the browseable
   // list instead of the guided sequence.
-  deliveryTime        String        @default("09:00")
-  timezone            String        @default("America/Chicago")
+  // deliveryTime + timezone — same as Vault, unmapped until
+  // Accelerate confirms.
   firstOpenedAt       DateTime?
   // NOTE: recipientCompletedAt column exists in the database
   // (added by migrations 20260415080000 + 20260415090000) but

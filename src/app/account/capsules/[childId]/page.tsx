@@ -43,7 +43,7 @@ export default async function AccountChildEditPage({
       trusteeName={child.trusteeName ?? ""}
       trusteeEmail={child.trusteeEmail ?? ""}
       trusteePhone={""}
-      deliveryTime={child.vault?.deliveryTime ?? "08:00"}
+      deliveryTime={"08:00"}
     />
   );
 }
