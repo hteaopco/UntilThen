@@ -4,7 +4,7 @@ import { useAuth } from "@clerk/nextjs";
 import { ArrowLeft, Check, ChevronLeft, Home, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState } from "react";
 
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import { CAPSULE_MAX_HORIZON_MS } from "@/lib/capsules";
@@ -168,8 +168,7 @@ export function CapsuleCreationFlow() {
     if (step > 0) setStep(step - 1);
   }
 
-  async function submit(e: FormEvent) {
-    e.preventDefault();
+  async function submit() {
     if (saving) return;
     setError(null);
 
@@ -266,7 +265,7 @@ export function CapsuleCreationFlow() {
           Gift Capsule
         </div>
 
-        <form onSubmit={submit}>
+        <div>
           {/* ── Step 1: Who's it for? ──────────────────── */}
           {step === 0 && (
             <div className="space-y-5">
@@ -490,13 +489,13 @@ export function CapsuleCreationFlow() {
                 Next
               </button>
             ) : (
-              <button type="submit" disabled={saving}
+              <button type="button" onClick={() => submit()} disabled={saving}
                 className={`flex-1 py-3 rounded-lg text-[14px] font-bold transition-colors ${
                   saving
                     ? "bg-green-700 text-white"
                     : "bg-sage/60 text-white hover:bg-sage"
                 }`}>
-                {saving ? "Creating\u2026" : "Create Gift Capsule"}
+                {saving ? "Creating\u2026" : "Create"}
               </button>
             )}
           </div>
@@ -506,7 +505,7 @@ export function CapsuleCreationFlow() {
               ? STEP_BLURBS[step]
               : "No payment yet. Payment takes place prior to final recipient information entered or contributors invited."}
           </p>
-        </form>
+        </div>
       </section>
     </main>
   );
