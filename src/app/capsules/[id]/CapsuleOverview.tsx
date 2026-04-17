@@ -232,10 +232,6 @@ export function CapsuleOverview({
           {capsule.title}
         </h1>
 
-        <h2 className="mt-3 text-[20px] lg:text-[24px] font-bold text-navy/80 leading-[1.2] tracking-[-0.3px]">
-          Everyone who loves {pronoun}, in one place.
-        </h2>
-
         {isDraft ? (
           <>
             <p className="mt-2 text-[15px] text-ink-mid leading-[1.5]">
@@ -259,32 +255,19 @@ export function CapsuleOverview({
           </p>
         )}
 
-        <div className="mt-4 text-sm text-ink-light leading-[1.7]">
-          <div>
-            Opens{" "}
+        {capsule.contributorDeadline && deadlineDays !== null && (
+          <div className="mt-4 text-sm text-ink-light leading-[1.7]">
+            Contributions close{" "}
             <span className="font-semibold text-navy">
-              {formatLong(capsule.revealDate)}
+              {formatLong(capsule.contributorDeadline)}
             </span>{" "}
             — in{" "}
             <span className="font-bold text-navy tabular-nums">
-              {revealDays}
+              {deadlineDays}
             </span>{" "}
-            {revealDays === 1 ? "day" : "days"}
+            {deadlineDays === 1 ? "day" : "days"}
           </div>
-          {capsule.contributorDeadline && deadlineDays !== null && (
-            <div>
-              Contributions close{" "}
-              <span className="font-semibold text-navy">
-                {formatLong(capsule.contributorDeadline)}
-              </span>{" "}
-              — in{" "}
-              <span className="font-bold text-navy tabular-nums">
-                {deadlineDays}
-              </span>{" "}
-              {deadlineDays === 1 ? "day" : "days"}
-            </div>
-          )}
-        </div>
+        )}
 
         {error && (
           <p className="mt-4 text-sm text-red-600" role="alert">
@@ -321,9 +304,6 @@ export function CapsuleOverview({
           <h2 className="text-[17px] font-bold text-navy tracking-[-0.2px]">
             Add contributors (optional)
           </h2>
-          <p className="mt-0.5 text-sm text-ink-mid">
-            You&rsquo;ll send invites after unlocking your capsule.
-          </p>
         </div>
 
         <ContributorsPanel
@@ -399,9 +379,7 @@ export function CapsuleOverview({
               Invite everyone who loves {pronoun}
             </h2>
             <p className="text-sm text-ink-mid leading-[1.6]">
-              They&rsquo;ll each add something &mdash; a message, a memory, a voice note.
-              <br />
-              {subjectCapitalized}&rsquo;ll open it all at once.
+              They&rsquo;ll each add something &mdash; a message, a memory, a voice note &mdash; and {subjectPronoun}&rsquo;ll open it all at once.
             </p>
             <button
               type="button"
@@ -413,13 +391,10 @@ export function CapsuleOverview({
             <p className="text-sm font-semibold text-navy">
               Nothing is sent yet. You&rsquo;ll review everything before delivery.
             </p>
-            <p className="text-xs italic text-ink-light">
-              Takes less than 2 minutes. No subscription.
-            </p>
             <div className="pt-1">
               <Link
                 href={`/capsules/${capsule.id}/preview`}
-                className="text-sm font-medium text-ink-mid hover:text-navy transition-colors"
+                className="inline-block px-4 py-2 rounded-lg text-[13px] font-semibold border border-amber/30 text-amber/80 hover:text-amber hover:border-amber transition-colors"
               >
                 Preview their moment
               </Link>
@@ -950,7 +925,7 @@ function ContributorsPanel({
     <div className="rounded-2xl border border-navy/[0.07] bg-white px-5 py-5">
       {isDraft && (
         <p className="mb-4 text-xs italic text-ink-light">
-          Invites will be sent after you unlock your capsule.
+          Invites will be sent after you unlock your capsule. Takes less than 2 minutes. No subscription.
         </p>
       )}
       {justAdded > 0 && (
@@ -973,7 +948,7 @@ function ContributorsPanel({
             <div className="flex flex-wrap items-end gap-2">
               <div className="flex-1 min-w-[140px]">
                 <label className="block text-[10px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-1.5">
-                  Name (optional)
+                  Name
                 </label>
                 <input
                   type="text"
@@ -1012,10 +987,10 @@ function ContributorsPanel({
                   className="accent-amber"
                 />
                 <span className="hidden sm:inline">
-                  Review contributions before {recipientName} sees them
+                  Review before {recipientName.split(" ")[0]} sees
                 </span>
                 <span className="sm:hidden">
-                  Review before {recipientName} sees
+                  Review before {recipientName.split(" ")[0]} sees
                 </span>
               </label>
               {rows.length > 1 && (
