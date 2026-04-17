@@ -74,7 +74,8 @@ model User {
   firstName   String
   lastName    String
   displayName String?
-  pinHash     String?
+  // pinHash — column exists in DB (migration 20260417_add_pin_hash)
+  // but unmapped until Accelerate cache sees it.
   role        Role     @default(PARENT)
   userType    UserType @default(PARENT)
   createdAt   DateTime @default(now())
