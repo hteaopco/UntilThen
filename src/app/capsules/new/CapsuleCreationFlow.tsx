@@ -9,7 +9,6 @@ import { useEffect, useState, type FormEvent } from "react";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import { CAPSULE_MAX_HORIZON_MS } from "@/lib/capsules";
 
-const DRAFT_TITLE_KEY = "untilthen:capsule-draft-title";
 const PENDING_STEP1_KEY = "untilthen:capsule-pending-step1";
 
 type PendingStep1 = {
@@ -37,6 +36,24 @@ const OCCASIONS: { value: OccasionType; label: string }[] = [
   { value: "OTHER", label: "Other" },
 ];
 
+const TIME_PRESETS = [
+  { value: "09:00", label: "Morning (9am)" },
+  { value: "14:00", label: "Afternoon (2pm)" },
+  { value: "19:00", label: "Evening (7pm)" },
+  { value: "00:00", label: "Midnight" },
+] as const;
+
+const COMMON_TIMEZONES = [
+  { value: "America/New_York", label: "Eastern (ET)" },
+  { value: "America/Chicago", label: "Central (CT)" },
+  { value: "America/Denver", label: "Mountain (MT)" },
+  { value: "America/Los_Angeles", label: "Pacific (PT)" },
+  { value: "America/Anchorage", label: "Alaska (AKT)" },
+  { value: "Pacific/Honolulu", label: "Hawaii (HT)" },
+  { value: "Europe/London", label: "London (GMT)" },
+  { value: "Europe/Paris", label: "Central Europe (CET)" },
+] as const;
+
 function yyyymmdd(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -44,32 +61,40 @@ function yyyymmdd(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+function detectTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch {
+    return "America/New_York";
+  }
+}
+
+const pillActive = "bg-amber text-white border-amber";
+const pillInactive =
+  "bg-white border-navy/15 text-ink-mid hover:border-amber/40 hover:text-navy";
+
 export function CapsuleCreationFlow() {
   const router = useRouter();
   const { isLoaded: authLoaded, isSignedIn } = useAuth();
 
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [occasionAlert, setOccasionAlert] = useState(false);
 
   const [title, setTitle] = useState("");
   const [recipientFirstName, setRecipientFirstName] = useState("");
   const [recipientLastName, setRecipientLastName] = useState("");
   const [recipientGender, setRecipientGender] = useState<"male" | "female">("female");
-  const [occasionType, setOccasionType] = useState<OccasionType>("BIRTHDAY");
+  const [occasionType, setOccasionType] = useState<OccasionType | null>(null);
   const [otherOccasion, setOtherOccasion] = useState("");
   const [revealDate, setRevealDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState("09:00");
-  const [showExpiredNotice, setShowExpiredNotice] = useState(false);
+  const [timezone, setTimezone] = useState(detectTimezone);
   const [dateAlert, setDateAlert] = useState(false);
-
-  const browserTimezone = typeof window !== "undefined"
-    ? Intl.DateTimeFormat().resolvedOptions().timeZone
-    : "America/Chicago";
 
   const maxDateIso = yyyymmdd(new Date(Date.now() + CAPSULE_MAX_HORIZON_MS));
   const minDateIso = yyyymmdd(new Date(Date.now() + 86400000));
 
-  // Map gender to pronoun for the API
   const recipientPronoun = recipientGender === "female" ? "her" : "him";
   const recipientName = `${recipientFirstName.trim()} ${recipientLastName.trim()}`.trim();
 
@@ -83,20 +108,15 @@ export function CapsuleCreationFlow() {
         if (pending.recipientLastName) setRecipientLastName(pending.recipientLastName);
         if (pending.occasionType) setOccasionType(pending.occasionType as OccasionType);
         if (pending.revealDate) setRevealDate(pending.revealDate);
-        return;
       }
     } catch { /* ignore */ }
-    try {
-      const remembered = window.localStorage.getItem(DRAFT_TITLE_KEY);
-      if (remembered && !title) {
-        setTitle(remembered);
-        setShowExpiredNotice(true);
-      }
-    } catch { /* ignore */ }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleRevealDate(iso: string) {
+    if (!occasionType) {
+      setOccasionAlert(true);
+      return;
+    }
     if (!iso) { setRevealDate(""); setDateAlert(false); return; }
     const picked = new Date(iso + "T00:00:00");
     const maxDate = new Date(Date.now() + CAPSULE_MAX_HORIZON_MS);
@@ -119,7 +139,7 @@ export function CapsuleCreationFlow() {
         title: title.trim(),
         recipientFirstName: recipientFirstName.trim(),
         recipientLastName: recipientLastName.trim(),
-        occasionType,
+        occasionType: occasionType ?? "OTHER",
         revealDate,
       };
       try { window.localStorage.setItem(PENDING_STEP1_KEY, JSON.stringify(snapshot)); } catch { /* */ }
@@ -136,10 +156,10 @@ export function CapsuleCreationFlow() {
           title: title.trim(),
           recipientName,
           recipientPronoun,
-          occasionType,
+          occasionType: occasionType ?? "OTHER",
           revealDate,
           deliveryTime,
-          timezone: browserTimezone,
+          timezone,
           requiresApproval: false,
         }),
       });
@@ -148,10 +168,7 @@ export function CapsuleCreationFlow() {
         throw new Error(data.error ?? "Couldn't save the capsule.");
       }
       const data = (await res.json()) as { id: string };
-      try {
-        window.localStorage.setItem(DRAFT_TITLE_KEY, title.trim());
-        window.localStorage.removeItem(PENDING_STEP1_KEY);
-      } catch { /* */ }
+      try { window.localStorage.removeItem(PENDING_STEP1_KEY); } catch { /* */ }
       router.push(`/capsules/${data.id}`);
     } catch (err) {
       setError((err as Error).message);
@@ -179,20 +196,11 @@ export function CapsuleCreationFlow() {
         </div>
       </header>
 
-      <section className="mx-auto max-w-[560px] px-6 lg:px-10 pt-10 pb-24">
+      <section className="mx-auto max-w-[560px] px-6 lg:px-10 pt-10 pb-24 overflow-hidden">
         <div className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.14em] uppercase text-amber mb-4">
           <Sparkles size={14} strokeWidth={1.75} aria-hidden="true" />
           Gift Capsule
         </div>
-
-        {showExpiredNotice && (
-          <div className="mb-6 rounded-xl border border-amber/30 bg-amber-tint/60 px-4 py-3 text-sm text-navy">
-            <p className="font-semibold">Your last draft expired.</p>
-            <p className="mt-0.5 text-ink-mid">
-              Drafts are cleared after seven days. We pre-filled the title so you can start again.
-            </p>
-          </div>
-        )}
 
         <form onSubmit={submitStep1} className="space-y-5">
           <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
@@ -226,10 +234,8 @@ export function CapsuleCreationFlow() {
                 { value: "male" as const, label: "Male" },
               ]).map((g) => (
                 <button key={g.value} type="button" onClick={() => setRecipientGender(g.value)}
-                  className={`rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors ${
-                    recipientGender === g.value
-                      ? "bg-amber text-white border-amber"
-                      : "bg-white border-navy/15 text-ink-mid hover:border-navy hover:text-navy"
+                  className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
+                    recipientGender === g.value ? pillActive : pillInactive
                   }`}>
                   {g.label}
                 </button>
@@ -239,13 +245,11 @@ export function CapsuleCreationFlow() {
 
           <div>
             <Label>Occasion</Label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="flex flex-wrap gap-2">
               {OCCASIONS.map((o) => (
-                <button key={o.value} type="button" onClick={() => setOccasionType(o.value)}
-                  className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
-                    occasionType === o.value
-                      ? "bg-amber text-white border-amber"
-                      : "bg-white border-navy/15 text-ink-mid hover:border-navy hover:text-navy"
+                <button key={o.value} type="button" onClick={() => { setOccasionType(o.value); setOccasionAlert(false); }}
+                  className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
+                    occasionType === o.value ? pillActive : pillInactive
                   }`}>
                   {o.label}
                 </button>
@@ -261,8 +265,22 @@ export function CapsuleCreationFlow() {
 
           <div>
             <Label>Reveal date</Label>
-            <input type="date" value={revealDate} onChange={(e) => handleRevealDate(e.target.value)}
-              min={minDateIso} max={maxDateIso} className="account-input" required />
+            {occasionAlert && (
+              <div className="mb-2 rounded-lg bg-amber-tint border border-amber/30 px-3 py-2">
+                <p className="text-xs text-navy font-semibold">Please choose an occasion first.</p>
+              </div>
+            )}
+            <input
+              type="date"
+              value={revealDate}
+              onChange={(e) => handleRevealDate(e.target.value)}
+              onFocus={() => { if (!occasionType) { setOccasionAlert(true); } }}
+              min={minDateIso}
+              max={maxDateIso}
+              disabled={!occasionType}
+              className={`account-input ${!occasionType ? "opacity-50 cursor-not-allowed" : ""}`}
+              required
+            />
             {dateAlert && (
               <div className="mt-2 rounded-lg bg-amber-tint border border-amber/30 px-3 py-2">
                 <p className="text-xs text-navy font-semibold">
@@ -279,39 +297,50 @@ export function CapsuleCreationFlow() {
           </div>
 
           {revealDate && (
-            <div>
-              <Label>What time should we deliver this?</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {([
-                  { value: "09:00", label: "Morning (9am)" },
-                  { value: "14:00", label: "Afternoon (2pm)" },
-                  { value: "19:00", label: "Evening (7pm)" },
-                  { value: "00:00", label: "Midnight" },
-                ] as const).map((t) => (
-                  <button key={t.value} type="button" onClick={() => setDeliveryTime(t.value)}
-                    className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition-colors ${
-                      deliveryTime === t.value
-                        ? "bg-amber text-white border-amber"
-                        : "bg-white border-navy/15 text-ink-mid hover:border-navy hover:text-navy"
-                    }`}>
-                    {t.label}
-                  </button>
-                ))}
+            <>
+              <div>
+                <Label>What time should we deliver this?</Label>
+                <div className="flex flex-wrap gap-2">
+                  {TIME_PRESETS.map((t) => (
+                    <button key={t.value} type="button" onClick={() => setDeliveryTime(t.value)}
+                      className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
+                        deliveryTime === t.value ? pillActive : pillInactive
+                      }`}>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-3">
+                  <label className="flex items-center gap-2 text-sm text-ink-mid">
+                    <span className="text-[11px] font-bold tracking-[0.06em] uppercase">Or pick your own:</span>
+                    <input type="time" value={deliveryTime} onChange={(e) => setDeliveryTime(e.target.value)}
+                      className="account-input w-auto" />
+                  </label>
+                </div>
               </div>
-              <div className="mt-3">
-                <label className="flex items-center gap-2 text-sm text-ink-mid">
-                  <span className="text-[11px] font-bold tracking-[0.06em] uppercase">Or pick your own:</span>
-                  <input type="time" value={deliveryTime} onChange={(e) => setDeliveryTime(e.target.value)}
-                    className="account-input w-auto" />
-                </label>
+
+              <div>
+                <Label>Timezone</Label>
+                <select
+                  value={COMMON_TIMEZONES.some((tz) => tz.value === timezone) ? timezone : "__other"}
+                  onChange={(e) => setTimezone(e.target.value)}
+                  className="account-input"
+                >
+                  {COMMON_TIMEZONES.map((tz) => (
+                    <option key={tz.value} value={tz.value}>{tz.label}</option>
+                  ))}
+                  {!COMMON_TIMEZONES.some((tz) => tz.value === timezone) && (
+                    <option value={timezone}>{timezone}</option>
+                  )}
+                </select>
               </div>
-            </div>
+            </>
           )}
 
           {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
 
           <button type="submit"
-            disabled={saving || !title.trim() || !recipientFirstName.trim() || !revealDate}
+            disabled={saving || !title.trim() || !recipientFirstName.trim() || !occasionType || !revealDate}
             className="w-full bg-amber text-white py-3.5 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60">
             {saving ? "Saving\u2026" : "Continue"}
           </button>
