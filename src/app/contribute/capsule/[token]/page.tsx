@@ -77,7 +77,14 @@ export default async function CapsuleContributePage({
   let existingContribution: { id: string; title: string | null; body: string | null } | null = null;
   if (invite.status === "ACTIVE") {
     const contrib = await prisma.capsuleContribution.findFirst({
-      where: { capsuleId: c.id, authorEmail: invite.email },
+      where: {
+        capsuleId: c.id,
+        OR: [
+          { authorEmail: invite.email },
+          { authorName: invite.name ?? undefined },
+        ],
+        createdAt: invite.acceptedAt ? { gte: invite.acceptedAt } : undefined,
+      },
       orderBy: { createdAt: "desc" },
       select: { id: true, title: true, body: true },
     });

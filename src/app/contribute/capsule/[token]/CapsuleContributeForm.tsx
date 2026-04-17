@@ -168,15 +168,15 @@ export function CapsuleContributeForm({
           <h1 className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
             <Typewriter
               text="Someone wants you to be part of this moment."
-              speed={45}
+              speed={61}
               startDelay={500}
             />
           </h1>
           <p className="mt-4 text-[15px] text-ink-mid leading-[1.5]">
             <Typewriter
               text={`You've been invited to leave something ${r.subjectContraction} keep forever.`}
-              speed={40}
-              startDelay={3200}
+              speed={54}
+              startDelay={4000}
               onComplete={() => {
                 setTimeout(() => setPhase("editor"), 2000);
               }}

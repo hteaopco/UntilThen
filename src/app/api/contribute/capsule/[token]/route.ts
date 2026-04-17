@@ -144,10 +144,11 @@ export async function POST(
       data: {
         capsuleId: c.id,
         authorName,
-        authorEmail:
+        authorEmail: invite.email ?? (
           typeof body.authorEmail === "string"
             ? body.authorEmail.trim().toLowerCase() || null
-            : null,
+            : null
+        ),
         type,
         title: typeof body.title === "string" && body.title.trim() ? body.title.trim() : null,
         body: text,
