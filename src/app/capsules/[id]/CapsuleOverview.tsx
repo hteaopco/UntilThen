@@ -776,7 +776,7 @@ function OwnContribution({
     <button
       type="button"
       onClick={() => setEditing(true)}
-      className="w-full rounded-2xl border border-dashed border-amber/40 bg-amber-tint/30 px-3 sm:px-5 py-6 text-left hover:bg-amber-tint/50 hover:border-amber transition-colors"
+      className="w-full rounded-2xl border border-dashed border-amber/40 bg-amber-tint/30 px-5 py-6 text-left hover:bg-amber-tint/50 hover:border-amber transition-colors"
     >
       <div className="flex items-center gap-3">
         <div
@@ -789,7 +789,7 @@ function OwnContribution({
           <div className="text-[15px] font-bold text-navy">
             Start {possessivePronoun} first message
           </div>
-          <div className="text-xs text-ink-mid italic mt-0.5">
+          <div className="text-[11px] text-ink-mid italic mt-0.5 whitespace-nowrap">
             Write the first note &mdash; others will follow your lead.
           </div>
           <div className="text-[11px] font-semibold text-navy/60 mt-1">
@@ -1166,6 +1166,13 @@ function ConfirmDelete({
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_MIN_DIGITS = 10;
 
+function formatPhone(raw: string): string {
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+}
+
 function ActivationModal({
   capsuleId,
   recipientName,
@@ -1189,7 +1196,9 @@ function ActivationModal({
 }) {
   const [step, setStep] = useState<"pay" | "contact">("pay");
   const [email, setEmail] = useState(initialEmail ?? "");
-  const [phone, setPhone] = useState(initialPhone ?? "");
+  const [phone, setPhone] = useState(
+    initialPhone ? formatPhone(initialPhone) : "",
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -1341,7 +1350,7 @@ function ActivationModal({
               onClick={confirmPayment}
               className="w-full bg-amber text-white py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
-              Send invites &mdash; $9.99
+              Next
             </button>
             <p className="text-sm font-semibold text-navy text-center">
               Nothing is sent to {recipientName.split(" ")[0]} yet. You&rsquo;ll review everything before delivery.
@@ -1379,8 +1388,8 @@ function ActivationModal({
               <input
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+1 555 123 4567"
+                onChange={(e) => setPhone(formatPhone(e.target.value))}
+                placeholder="337-288-6073"
                 className="account-input"
               />
             </label>
