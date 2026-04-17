@@ -295,3 +295,39 @@ export async function sendCapsuleSaved(params: {
     `),
   });
 }
+
+export async function sendContributorConfirmation(params: {
+  to: string;
+  contributorName: string;
+  recipientName: string;
+  capsuleTitle: string;
+  messagePreview: string | null;
+  editUrl: string;
+}): Promise<void> {
+  const preview = params.messagePreview
+    ? `<div style="margin:16px 0;padding:16px;background:#fdf8f2;border-radius:12px;border:1px solid rgba(196,122,58,0.15);">
+        <p style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:#8896a5;margin:0 0 8px;">Your message</p>
+        <p style="font-size:14px;color:#0f1f3d;line-height:1.6;margin:0;">${escapeHtml(params.messagePreview.slice(0, 500))}</p>
+      </div>`
+    : "";
+  const html = wrap(`
+    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
+      Your contribution is saved, ${escapeHtml(params.contributorName)}.
+    </h1>
+    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 8px;">
+      You added something to <strong>${escapeHtml(params.capsuleTitle)}</strong> for ${escapeHtml(params.recipientName)}.
+    </p>
+    ${preview}
+    <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:16px 0;">
+      Want to make changes? You can edit your contribution before the reveal date.
+    </p>
+    <a href="${params.editUrl}" style="display:inline-block;background:#c47a3a;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">
+      Edit my contribution
+    </a>
+  `);
+  await send({
+    to: params.to,
+    subject: `Your contribution to "${params.capsuleTitle}" is saved`,
+    html,
+  });
+}

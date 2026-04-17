@@ -74,6 +74,7 @@ interface SubmitBody {
   authorName?: string;
   authorEmail?: string;
   type?: string;
+  title?: string;
   body?: string;
   mediaUrls?: string[];
   mediaTypes?: string[];
@@ -148,6 +149,7 @@ export async function POST(
             ? body.authorEmail.trim().toLowerCase() || null
             : null,
         type,
+        title: typeof body.title === "string" && body.title.trim() ? body.title.trim() : null,
         body: text,
         mediaUrls,
         mediaTypes,
@@ -201,6 +203,25 @@ export async function POST(
       console.error("[capsule contribute] organiser notify:", err);
     }
 
+    // Confirmation email to the contributor
+    try {
+      if (invite.email) {
+        const { sendContributorConfirmation } = await import("@/lib/capsule-emails");
+        const origin = process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
+        const bodyPreview = text ? text.replace(/<[^>]+>/g, " ").trim() : null;
+        await sendContributorConfirmation({
+          to: invite.email,
+          contributorName: authorName,
+          recipientName: c.recipientName,
+          capsuleTitle: c.title,
+          messagePreview: bodyPreview,
+          editUrl: `${origin}/contribute/capsule/${token}`,
+        });
+      }
+    } catch (err) {
+      console.error("[capsule contribute] contributor confirm:", err);
+    }
+
     return NextResponse.json({ success: true, id: contribution.id });
   } catch (err) {
     console.error("[capsule contribute POST] error:", err);
@@ -208,5 +229,59 @@ export async function POST(
       { error: "Couldn't save your contribution." },
       { status: 500 },
     );
+  }
+}
+
+export async function PATCH(
+  req: NextRequest,
+  ctx: { params: Promise<{ token: string }> },
+): Promise<NextResponse> {
+  const { token } = await ctx.params;
+  const invite = await resolveInvite(token);
+  if (!invite)
+    return NextResponse.json({ error: "Invite not found." }, { status: 404 });
+  const c = invite.capsule;
+  const status = effectiveStatus(c);
+  if (c.status === "DRAFT" || status === "SEALED" || status === "REVEALED")
+    return NextResponse.json({ error: "Contributions are closed." }, { status: 410 });
+
+  const body = (await req.json().catch(() => ({}))) as {
+    contributionId?: string;
+    title?: string | null;
+    body?: string | null;
+    mediaUrls?: string[];
+    mediaTypes?: string[];
+  };
+
+  const contributionId = typeof body.contributionId === "string" ? body.contributionId : "";
+  if (!contributionId)
+    return NextResponse.json({ error: "Missing contributionId." }, { status: 400 });
+
+  try {
+    const { prisma } = await import("@/lib/prisma");
+
+    const contribution = await prisma.capsuleContribution.findUnique({
+      where: { id: contributionId },
+    });
+    if (!contribution || contribution.capsuleId !== c.id)
+      return NextResponse.json({ error: "Contribution not found." }, { status: 404 });
+
+    const needsReApproval = invite.requiresApproval || c.requiresApproval;
+
+    await prisma.capsuleContribution.update({
+      where: { id: contributionId },
+      data: {
+        title: body.title ?? contribution.title,
+        body: body.body ?? contribution.body,
+        mediaUrls: Array.isArray(body.mediaUrls) ? body.mediaUrls : contribution.mediaUrls,
+        mediaTypes: Array.isArray(body.mediaTypes) ? body.mediaTypes : contribution.mediaTypes,
+        approvalStatus: needsReApproval ? "PENDING_REVIEW" : contribution.approvalStatus,
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("[capsule contribute PATCH] error:", err);
+    return NextResponse.json({ error: "Couldn't update." }, { status: 500 });
   }
 }

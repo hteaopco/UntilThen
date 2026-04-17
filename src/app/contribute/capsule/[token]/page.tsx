@@ -73,15 +73,21 @@ export default async function CapsuleContributePage({
     );
   }
 
-  // Already contributed? Skip straight to a thank-you frame so the
-  // contributor can't flood the capsule by re-opening their invite.
+  // Returning contributor — load existing contribution for editing
+  let existingContribution: { id: string; title: string | null; body: string | null } | null = null;
   if (invite.status === "ACTIVE") {
-    redirect(`/contribute/capsule/${token}/thanks`);
+    const contrib = await prisma.capsuleContribution.findFirst({
+      where: { capsuleId: c.id, authorEmail: invite.email },
+      orderBy: { createdAt: "desc" },
+      select: { id: true, title: true, body: true },
+    });
+    existingContribution = contrib;
   }
 
   return (
     <CapsuleContributeForm
       token={token}
+      existingContribution={existingContribution}
       capsule={{
         title: c.title,
         recipientName: c.recipientName,

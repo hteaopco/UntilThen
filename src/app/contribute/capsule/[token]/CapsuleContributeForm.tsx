@@ -32,6 +32,7 @@ export function CapsuleContributeForm({
   token,
   capsule,
   invite,
+  existingContribution,
 }: {
   token: string;
   capsule: {
@@ -42,15 +43,17 @@ export function CapsuleContributeForm({
     contributorDeadline: string | null;
   };
   invite: { name: string };
+  existingContribution?: { id: string; title: string | null; body: string | null } | null;
 }) {
   const r = derivePronouns(capsule.recipientName);
-  const [phase, setPhase] = useState<Phase>("splash");
+  const isEditing = Boolean(existingContribution);
+  const [phase, setPhase] = useState<Phase>(isEditing ? "editor" : "splash");
   const [name, setName] = useState(invite.name);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
+  const [title, setTitle] = useState(existingContribution?.title ?? "");
+  const [body, setBody] = useState(existingContribution?.body ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [contributionId, setContributionId] = useState<string | null>(null);
+  const [contributionId, setContributionId] = useState<string | null>(existingContribution?.id ?? null);
   const [showCta, setShowCta] = useState(false);
   const mediaKeysRef = useRef<string[]>([]);
   const mediaTypesRef = useRef<string[]>([]);
@@ -107,7 +110,23 @@ export function CapsuleContributeForm({
     try {
       const id = stateRef.current.contributionId;
 
-      if (!id) {
+      if (id) {
+        const res = await fetch(`/api/contribute/capsule/${token}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contributionId: id,
+            title: title.trim() || null,
+            body: body || null,
+            mediaUrls: mediaKeysRef.current,
+            mediaTypes: mediaTypesRef.current,
+          }),
+        });
+        if (!res.ok) {
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          throw new Error(data.error ?? "Couldn't update.");
+        }
+      } else {
         const res = await fetch(`/api/contribute/capsule/${token}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -124,21 +143,6 @@ export function CapsuleContributeForm({
           const data = (await res.json().catch(() => ({}))) as { error?: string };
           throw new Error(data.error ?? "Couldn't submit.");
         }
-        setPhase("thankyou-typing");
-        return;
-      }
-
-      if (mediaKeysRef.current.length > 0) {
-        await fetch(`/api/contribute/capsule/${token}/upload`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            action: "complete",
-            contributionId: id,
-            mediaKeys: mediaKeysRef.current,
-            mediaTypes: mediaTypesRef.current,
-          }),
-        });
       }
 
       setPhase("thankyou-typing");
