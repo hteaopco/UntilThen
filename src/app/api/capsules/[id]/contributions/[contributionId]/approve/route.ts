@@ -6,11 +6,6 @@ import { findOwnedCapsule } from "@/lib/capsules";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-/**
- * Organiser approves a pending contribution on a
- * requiresApproval capsule. Moves it into the main list that
- * the recipient sees on reveal day.
- */
 export async function POST(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string; contributionId: string }> },
@@ -24,7 +19,7 @@ export async function POST(
   const { prisma } = await import("@/lib/prisma");
   const contribution = await prisma.capsuleContribution.findUnique({
     where: { id: contributionId },
-    select: { id: true, capsuleId: true },
+    include: { capsule: { select: { title: true, recipientName: true } } },
   });
   if (!contribution || contribution.capsuleId !== id)
     return NextResponse.json({ error: "Not found." }, { status: 404 });
@@ -33,5 +28,27 @@ export async function POST(
     where: { id: contributionId },
     data: { approvalStatus: "APPROVED" },
   });
+
+  try {
+    const email = contribution.authorEmail;
+    if (email) {
+      const { sendContributorApproved } = await import("@/lib/capsule-emails");
+      const invite = await prisma.capsuleInvite.findFirst({
+        where: { capsuleId: id, email },
+        select: { inviteToken: true },
+      });
+      const origin = process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
+      await sendContributorApproved({
+        to: email,
+        contributorName: contribution.authorName,
+        recipientName: contribution.capsule.recipientName,
+        capsuleTitle: contribution.capsule.title,
+        editUrl: invite ? `${origin}/contribute/capsule/${invite.inviteToken}` : origin,
+      });
+    }
+  } catch (err) {
+    console.error("[approve] email failed:", err);
+  }
+
   return NextResponse.json({ success: true });
 }

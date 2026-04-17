@@ -331,3 +331,58 @@ export async function sendContributorConfirmation(params: {
     html,
   });
 }
+
+export async function sendContributorApproved(params: {
+  to: string;
+  contributorName: string;
+  recipientName: string;
+  capsuleTitle: string;
+  editUrl: string;
+}): Promise<void> {
+  const html = wrap(`
+    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
+      Your contribution has been approved!
+    </h1>
+    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 8px;">
+      Great news, ${escapeHtml(params.contributorName)} &mdash; your message for <strong>${escapeHtml(params.capsuleTitle)}</strong> has been approved by the organiser.
+    </p>
+    <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0 0 20px;">
+      ${escapeHtml(params.recipientName)} will see it on the reveal date. You can still make edits before then.
+    </p>
+    <a href="${params.editUrl}" style="display:inline-block;background:#c47a3a;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">
+      View or edit my contribution
+    </a>
+  `);
+  await send({
+    to: params.to,
+    subject: `Approved: your contribution to "${params.capsuleTitle}"`,
+    html,
+  });
+}
+
+export async function sendContributorRejected(params: {
+  to: string;
+  contributorName: string;
+  capsuleTitle: string;
+  editUrl: string;
+}): Promise<void> {
+  const html = wrap(`
+    <h1 style="font-size:24px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;">
+      Your contribution needs a revision.
+    </h1>
+    <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 8px;">
+      Hi ${escapeHtml(params.contributorName)} &mdash; the organiser of <strong>${escapeHtml(params.capsuleTitle)}</strong> has requested changes to your message.
+    </p>
+    <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0 0 20px;">
+      No worries &mdash; you can edit your contribution or start fresh using the link below.
+    </p>
+    <a href="${params.editUrl}" style="display:inline-block;background:#c47a3a;color:#ffffff;font-weight:700;font-size:14px;padding:12px 24px;border-radius:8px;text-decoration:none;">
+      Edit my contribution
+    </a>
+  `);
+  await send({
+    to: params.to,
+    subject: `Changes requested: your contribution to "${params.capsuleTitle}"`,
+    html,
+  });
+}

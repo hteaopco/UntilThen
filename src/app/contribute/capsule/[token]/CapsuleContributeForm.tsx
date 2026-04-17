@@ -55,6 +55,7 @@ export function CapsuleContributeForm({
   const [error, setError] = useState<string | null>(null);
   const [contributionId, setContributionId] = useState<string | null>(existingContribution?.id ?? null);
   const [showCta, setShowCta] = useState(false);
+  const [showSecondLine, setShowSecondLine] = useState(false);
   const mediaKeysRef = useRef<string[]>([]);
   const mediaTypesRef = useRef<string[]>([]);
   const stateRef = useRef({ name, title, body, contributionId });
@@ -196,24 +197,35 @@ export function CapsuleContributeForm({
         </div>
         <div className="max-w-[440px] text-center">
           {phase === "thankyou-typing" ? (
-            <h1 className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
+            <div className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
               <Typewriter
-                text={`That's going to mean everything to ${r.pronoun}. You just created something ${r.subjectContraction} keep forever.`}
+                text={`That\u2019s going to mean everything to ${r.pronoun}.`}
                 speed={61}
                 startDelay={400}
-                onComplete={() => {
-                  setTimeout(() => {
-                    setPhase("thankyou");
-                    setTimeout(() => setShowCta(true), 500);
-                  }, 1000);
-                }}
+                onComplete={() => setShowSecondLine(true)}
               />
-            </h1>
+              {showSecondLine && (
+                <span className="block mt-2">
+                  <Typewriter
+                    text={`You just created something ${r.subjectContraction} keep forever.`}
+                    speed={61}
+                    startDelay={600}
+                    onComplete={() => {
+                      setTimeout(() => {
+                        setPhase("thankyou");
+                        setTimeout(() => setShowCta(true), 500);
+                      }, 1000);
+                    }}
+                  />
+                </span>
+              )}
+            </div>
           ) : (
             <>
-              <h1 className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3] mb-8">
-                That&rsquo;s going to mean everything to {r.pronoun}. You just created something {r.subjectContraction} keep forever.
-              </h1>
+              <div className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3] mb-8">
+                That&rsquo;s going to mean everything to {r.pronoun}.
+                <span className="block mt-2">You just created something {r.subjectContraction} keep forever.</span>
+              </div>
               <div
                 className="transition-opacity duration-700 ease-out"
                 style={{ opacity: showCta ? 1 : 0 }}
