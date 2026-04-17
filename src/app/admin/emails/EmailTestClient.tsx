@@ -16,8 +16,8 @@ const TEMPLATES: EmailTemplate[] = [
   {
     id: "capsule-invite",
     name: "#1 Invite Contributor",
-    subject: "{name} will read this one day.",
-    bodyPreview: "You've been invited to leave something for {name}. A message. A memory. A moment they'll open in the future.",
+    subject: "Margaret will read this one day.",
+    bodyPreview: "You've been invited to leave something for Margaret. A message. A memory. A moment they'll open in the future.",
     trigger: "Contributor added to Gift Capsule",
     frequency: "On event",
     funnel: "Acquisition",
@@ -52,7 +52,7 @@ const TEMPLATES: EmailTemplate[] = [
   {
     id: "contribution-submitted",
     name: "#5 Contribution Submitted",
-    subject: "Someone just added something for {name}",
+    subject: "Someone just added something for Margaret",
     bodyPreview: "A new memory was added to your capsule. You can review it, edit it, or approve it before it's sealed.",
     trigger: "Contributor submits → sent to organiser",
     frequency: "On event",
@@ -62,7 +62,7 @@ const TEMPLATES: EmailTemplate[] = [
     id: "contributor-reminder",
     name: "#6 Contributor Reminder",
     subject: "Don't miss this.",
-    bodyPreview: "You were invited to leave a message for {name}. Take a minute to write something they'll keep forever.",
+    bodyPreview: "You were invited to leave a message for Margaret. Take a minute to write something they'll keep forever.",
     trigger: "48hr before contributor deadline",
     frequency: "Cron (not wired)",
     funnel: "Engagement",
