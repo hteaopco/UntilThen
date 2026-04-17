@@ -78,22 +78,34 @@ export function PublicMediaAttachments({
     setError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      const mime = MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : MediaRecorder.isTypeSupported("audio/mp4")
+          ? "audio/mp4"
+          : "";
+      const recorder = mime
+        ? new MediaRecorder(stream, { mimeType: mime })
+        : new MediaRecorder(stream);
+      const ext = mime.includes("mp4") ? "m4a" : "webm";
+      const finalMime = recorder.mimeType || "audio/webm";
       chunksRef.current = [];
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
       recorder.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
-        const file = new File([blob], `voice-${Date.now()}.webm`, { type: "audio/webm" });
+        const blob = new Blob(chunksRef.current, { type: finalMime });
+        const file = new File([blob], `voice-${Date.now()}.${ext}`, { type: finalMime });
         handleFile(file, "voice");
       };
       mediaRecorderRef.current = recorder;
       recorder.start();
       setRecording(true);
-    } catch {
-      setError("Microphone access denied.");
+    } catch (err) {
+      const msg = (err as Error).name === "NotAllowedError"
+        ? "Microphone access denied. Check your browser permissions."
+        : "Could not start recording. Try uploading a voice file instead.";
+      setError(msg);
     }
   }
 
