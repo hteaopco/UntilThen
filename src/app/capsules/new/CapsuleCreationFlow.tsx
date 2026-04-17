@@ -484,7 +484,7 @@ export function CapsuleCreationFlow() {
                 disabled={!stepComplete}
                 className={`flex-1 py-3 rounded-lg text-[14px] font-semibold border transition-colors ${
                   stepComplete
-                    ? "border-navy/15 text-navy bg-white hover:border-amber hover:text-amber"
+                    ? "border-amber/40 text-amber bg-amber/10 hover:bg-amber/20"
                     : "border-navy/10 text-ink-light/40 bg-white cursor-not-allowed"
                 }`}>
                 Next
@@ -493,8 +493,8 @@ export function CapsuleCreationFlow() {
               <button type="submit" disabled={saving}
                 className={`flex-1 py-3 rounded-lg text-[14px] font-bold transition-colors ${
                   saving
-                    ? "bg-green-600 text-white"
-                    : "bg-sage/80 text-white hover:bg-sage"
+                    ? "bg-green-700 text-white"
+                    : "bg-sage/60 text-white hover:bg-sage"
                 }`}>
                 {saving ? "Creating\u2026" : "Create Gift Capsule"}
               </button>

@@ -100,6 +100,13 @@ export function CapsuleOverview({
   const subjectPronoun = pronoun === "her" ? "she" : pronoun === "him" ? "he" : "they";
   const possessivePronoun = pronoun === "her" ? "her" : pronoun === "him" ? "his" : "their";
   const subjectCapitalized = subjectPronoun.charAt(0).toUpperCase() + subjectPronoun.slice(1);
+  const isCouple = pronoun === "them";
+  const nameParts = capsule.recipientName.split("&");
+  const firstName1 = (nameParts[0] ?? "").trim().split(" ")[0] ?? "";
+  const firstName2 = isCouple && nameParts.length > 1 ? (nameParts[1] ?? "").trim().split(" ")[0] ?? "" : "";
+  const recipientDisplayName = isCouple && firstName2
+    ? `${firstName1} and ${firstName2}`
+    : firstName1;
   const pending = contributions.filter(
     (c) => c.approvalStatus === "PENDING_REVIEW",
   );
@@ -285,6 +292,7 @@ export function CapsuleOverview({
         <OwnContribution
           capsuleId={capsule.id}
           recipientName={capsule.recipientName}
+          recipientDisplayName={recipientDisplayName}
           possessivePronoun={possessivePronoun}
           contribution={ownContribution ?? null}
           initialAttachments={ownAttachments}
@@ -309,6 +317,8 @@ export function CapsuleOverview({
         <ContributorsPanel
           capsuleId={capsule.id}
           recipientName={capsule.recipientName}
+          recipientDisplayName={recipientDisplayName}
+          isCouple={isCouple}
           invites={invites}
           isDraft={isDraft}
           busyId={busy}
@@ -375,11 +385,11 @@ export function CapsuleOverview({
           className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10"
         >
           <div className="rounded-2xl border border-amber/25 bg-amber-tint/40 px-6 py-6 space-y-3">
-            <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px]">
+            <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] whitespace-nowrap">
               Invite everyone who loves {pronoun}
             </h2>
             <p className="text-sm text-ink-mid leading-[1.6]">
-              They&rsquo;ll each add something &mdash; a message, a memory, a voice note &mdash; and {subjectPronoun}&rsquo;ll open it all at once.
+              Each contributor adds something &mdash; a message, a memory, a voice note &mdash; and {subjectPronoun}&rsquo;ll open it all at once.
             </p>
             <button
               type="button"
@@ -389,7 +399,7 @@ export function CapsuleOverview({
               Send invites &mdash; $9.99
             </button>
             <p className="text-sm font-semibold text-navy">
-              Nothing is sent to {capsule.recipientName.split(" ")[0]} yet. You&rsquo;ll review everything before delivery.
+              Nothing is sent to {recipientDisplayName} yet. You&rsquo;ll review everything before delivery.
             </p>
             <div className="pt-1">
               <Link
@@ -468,7 +478,10 @@ export function CapsuleOverview({
         <ActivationModal
           capsuleId={capsule.id}
           recipientName={capsule.recipientName}
+          recipientDisplayName={recipientDisplayName}
           recipientPronoun={pronoun}
+          isCouple={isCouple}
+          subjectPronoun={subjectPronoun}
           initialEmail={capsule.recipientEmail}
           initialPhone={capsule.recipientPhone}
           invitesStaged={invites.filter((i) => i.status === "STAGED").length}
@@ -489,12 +502,14 @@ export function CapsuleOverview({
 function OwnContribution({
   capsuleId,
   recipientName,
+  recipientDisplayName,
   possessivePronoun,
   contribution,
   initialAttachments,
 }: {
   capsuleId: string;
   recipientName: string;
+  recipientDisplayName: string;
   possessivePronoun: string;
   contribution: ContributionRow | null;
   initialAttachments: Attachment[];
@@ -793,7 +808,7 @@ function OwnContribution({
             Write the first note &mdash; others will follow your lead.
           </div>
           <div className="text-[11px] font-semibold text-navy/60 mt-1">
-            Nothing is sent to {recipientName.split(" ")[0]} yet.
+            Nothing is sent to {recipientDisplayName} yet.
           </div>
         </div>
       </div>
@@ -832,6 +847,8 @@ function blankRow(): DraftRow {
 function ContributorsPanel({
   capsuleId,
   recipientName,
+  recipientDisplayName,
+  isCouple,
   invites,
   isDraft,
   busyId,
@@ -839,6 +856,8 @@ function ContributorsPanel({
 }: {
   capsuleId: string;
   recipientName: string;
+  recipientDisplayName: string;
+  isCouple: boolean;
   invites: InviteRow[];
   isDraft: boolean;
   busyId: string | null;
@@ -988,10 +1007,10 @@ function ContributorsPanel({
                   className="accent-amber"
                 />
                 <span className="hidden sm:inline">
-                  Review before {recipientName.split(" ")[0]} sees
+                  Review before {isCouple ? `${recipientDisplayName} see` : `${recipientDisplayName} sees`}
                 </span>
                 <span className="sm:hidden">
-                  Review before {recipientName.split(" ")[0]} sees
+                  Review before {isCouple ? `${recipientDisplayName} see` : `${recipientDisplayName} sees`}
                 </span>
               </label>
               {rows.length > 1 && (
@@ -1176,7 +1195,10 @@ function formatPhone(raw: string): string {
 function ActivationModal({
   capsuleId,
   recipientName,
+  recipientDisplayName,
   recipientPronoun,
+  isCouple,
+  subjectPronoun,
   initialEmail,
   initialPhone,
   invitesStaged,
@@ -1186,7 +1208,10 @@ function ActivationModal({
 }: {
   capsuleId: string;
   recipientName: string;
+  recipientDisplayName: string;
   recipientPronoun: "her" | "him" | "them";
+  isCouple: boolean;
+  subjectPronoun: string;
   initialEmail: string | null;
   initialPhone: string | null;
   invitesStaged: number;
@@ -1199,6 +1224,8 @@ function ActivationModal({
   const [phone, setPhone] = useState(
     initialPhone ? formatPhone(initialPhone) : "",
   );
+  const [email2, setEmail2] = useState("");
+  const [phone2, setPhone2] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -1270,7 +1297,7 @@ function ActivationModal({
             <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] leading-[1.25] whitespace-nowrap">
               {step === "pay"
                 ? `Invite everyone who loves ${recipientPronoun}`
-                : `How should we reach ${recipientName.split(" ")[0]}?`}
+                : isCouple ? "How should we reach them?" : `How should we reach ${recipientDisplayName}?`}
             </h2>
           </div>
           <button
@@ -1300,7 +1327,7 @@ function ActivationModal({
               </p>
             </div>
             <p className="text-sm text-ink-mid leading-[1.6]">
-              They&rsquo;ll each add something &mdash; a message, a memory, a voice note. {recipientName.split(" ")[0]} will open it all at once.
+              Each contributor adds something &mdash; a message, a memory, a voice note. {recipientDisplayName} will open it all at once.
             </p>
             {stagedInvites.length > 0 && (
               <div className="rounded-lg border border-navy/[0.06] bg-warm-surface/40 overflow-hidden">
@@ -1353,7 +1380,7 @@ function ActivationModal({
               Next
             </button>
             <p className="text-sm font-semibold text-navy text-center">
-              Nothing is sent to {recipientName.split(" ")[0]} yet. You&rsquo;ll review everything before delivery.
+              Nothing is sent to {recipientDisplayName} yet. You&rsquo;ll review everything before delivery.
             </p>
           </div>
         ) : (
@@ -1366,24 +1393,24 @@ function ActivationModal({
                 Contributions are not sent until the reveal date.
               </p>
               <p className="text-[11px] text-ink-mid leading-[1.5]">
-                Invites go out now so contributors can write, but {recipientName.split(" ")[0]} won&rsquo;t receive anything until the scheduled reveal day and time.
+                Invites go out now so contributors can write, but {isCouple ? "they" : recipientDisplayName} won&rsquo;t receive anything until the scheduled reveal day and time.
               </p>
             </div>
             <label className="block">
               <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
-                Recipient email
+                {isCouple ? `${recipientDisplayName.split(" and ")[0]} email` : "Recipient email"}
               </span>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={`${recipientName.split(" ")[0].toLowerCase()}@email.com`}
+                placeholder={`${recipientDisplayName.split(" and ")[0]?.toLowerCase() ?? "recipient"}@email.com`}
                 className="account-input"
               />
             </label>
             <label className="block">
               <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
-                Recipient phone
+                {isCouple ? `${recipientDisplayName.split(" and ")[0]} phone` : "Recipient phone"}
               </span>
               <input
                 type="tel"
@@ -1393,6 +1420,35 @@ function ActivationModal({
                 className="account-input"
               />
             </label>
+            {isCouple && (
+              <>
+                <hr className="border-navy/[0.06]" />
+                <label className="block">
+                  <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
+                    {recipientDisplayName.split(" and ")[1]} email
+                  </span>
+                  <input
+                    type="email"
+                    value={email2}
+                    onChange={(e) => setEmail2(e.target.value)}
+                    placeholder={`${recipientDisplayName.split(" and ")[1]?.toLowerCase() ?? "recipient2"}@email.com`}
+                    className="account-input"
+                  />
+                </label>
+                <label className="block">
+                  <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
+                    {recipientDisplayName.split(" and ")[1]} phone
+                  </span>
+                  <input
+                    type="tel"
+                    value={phone2}
+                    onChange={(e) => setPhone2(formatPhone(e.target.value))}
+                    placeholder="337-288-6073"
+                    className="account-input"
+                  />
+                </label>
+              </>
+            )}
             {error && (
               <p className="text-sm text-red-600" role="alert">
                 {error}
