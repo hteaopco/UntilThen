@@ -35,7 +35,7 @@ export default function PrivacyPage() {
       </p>
       <p>
         If you have questions about this policy, contact us at{" "}
-        <a href="mailto:privacy@untilthenapp.io">privacy@untilthenapp.io</a>.
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>.
       </p>
 
       <hr />
@@ -422,7 +422,7 @@ export default function PrivacyPage() {
       <p>
         You can request a copy of all personal data we hold about you by
         emailing{" "}
-        <a href="mailto:privacy@untilthenapp.io">privacy@untilthenapp.io</a>.
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>.
       </p>
 
       <h3>8.2 Correction</h3>
@@ -435,7 +435,7 @@ export default function PrivacyPage() {
       <p>
         You can request deletion of your account and all associated data from
         your account settings or by emailing{" "}
-        <a href="mailto:privacy@untilthenapp.io">privacy@untilthenapp.io</a>.
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>.
         We will process deletion requests within 30 days.
       </p>
 
@@ -443,7 +443,7 @@ export default function PrivacyPage() {
       <p>
         You can request a full export of your vault contents — letters,
         photos, voice notes, and videos — by emailing{" "}
-        <a href="mailto:privacy@untilthenapp.io">privacy@untilthenapp.io</a>.
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>.
       </p>
 
       <h3>8.5 Opt-out of Communications</h3>
@@ -458,7 +458,7 @@ export default function PrivacyPage() {
         California residents have additional rights under the California
         Consumer Privacy Act including the right to know, right to delete, and
         right to opt-out of sale (we do not sell data). Contact{" "}
-        <a href="mailto:privacy@untilthenapp.io">privacy@untilthenapp.io</a>{" "}
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>{" "}
         to exercise these rights.
       </p>
 
@@ -467,7 +467,7 @@ export default function PrivacyPage() {
         EU and UK residents have rights under GDPR including access,
         rectification, erasure, restriction, portability, and objection.
         Contact{" "}
-        <a href="mailto:privacy@untilthenapp.io">privacy@untilthenapp.io</a>{" "}
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>{" "}
         to exercise these rights.
       </p>
 
@@ -499,13 +499,13 @@ export default function PrivacyPage() {
       <h2>11. Contact Us</h2>
       <p>
         <strong>Privacy inquiries:</strong>{" "}
-        <a href="mailto:privacy@untilthenapp.io">privacy@untilthenapp.io</a>
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>
         <br />
         <strong>Child safety concerns:</strong>{" "}
-        <a href="mailto:safety@untilthenapp.io">safety@untilthenapp.io</a>
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>
         <br />
         <strong>General support:</strong>{" "}
-        <a href="mailto:support@untilthenapp.io">support@untilthenapp.io</a>
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>
       </p>
       <p>
         To report child sexual abuse material or child exploitation, contact:

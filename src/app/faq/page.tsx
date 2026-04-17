@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     "Everything you need to know about untilThen — the time capsule app for parents.",
 };
 
-const SUPPORT_EMAIL = "support@untilthenapp.io";
+const SUPPORT_EMAIL = "hello@untilthenapp.io";
 
 const SECTIONS: AccordionSection[] = [
   {

@@ -74,7 +74,7 @@ export default function TermsPage() {
         You are responsible for maintaining the security of your account and
         password. You are responsible for all activity that occurs under your
         account. Notify us immediately at{" "}
-        <a href="mailto:support@untilthenapp.io">support@untilthenapp.io</a>{" "}
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>{" "}
         if you suspect unauthorised access.
       </p>
 
@@ -154,7 +154,7 @@ export default function TermsPage() {
       <p>
         We offer refunds at our discretion within 14 days of a charge if you
         have not used the service. Contact{" "}
-        <a href="mailto:support@untilthenapp.io">support@untilthenapp.io</a>{" "}
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>{" "}
         to request a refund.
       </p>
 
@@ -321,7 +321,7 @@ export default function TermsPage() {
       <ul>
         <li>
           <strong>Within the app:</strong> Email{" "}
-          <a href="mailto:safety@untilthenapp.io">safety@untilthenapp.io</a>{" "}
+          <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>{" "}
           with details
         </li>
         <li>
@@ -530,16 +530,16 @@ export default function TermsPage() {
       <h2>14. Contact</h2>
       <p>
         <strong>General support:</strong>{" "}
-        <a href="mailto:support@untilthenapp.io">support@untilthenapp.io</a>
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>
         <br />
         <strong>Legal inquiries:</strong>{" "}
-        <a href="mailto:legal@untilthenapp.io">legal@untilthenapp.io</a>
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>
         <br />
         <strong>Child safety:</strong>{" "}
-        <a href="mailto:safety@untilthenapp.io">safety@untilthenapp.io</a>
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>
         <br />
         <strong>Privacy:</strong>{" "}
-        <a href="mailto:privacy@untilthenapp.io">privacy@untilthenapp.io</a>
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>
       </p>
       <p>To report child sexual abuse material:</p>
       <ul>

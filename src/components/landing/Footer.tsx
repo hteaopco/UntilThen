@@ -29,7 +29,7 @@ export function Footer() {
           </li>
           <li>
             <a
-              href="mailto:support@untilthenapp.io"
+              href="mailto:hello@untilthenapp.io"
               className="text-[13px] text-white/90 hover:text-white transition-colors"
             >
               Help
