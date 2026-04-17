@@ -151,7 +151,8 @@ export function IntroSplash({ onComplete }: { onComplete?: () => void } = {}) {
 
   return (
     <div
-      className={`fixed inset-0 z-[200] bg-white flex items-center justify-center transition-opacity ease-out ${
+      onClick={() => setPhase("hidden")}
+      className={`fixed inset-0 z-[200] bg-white flex items-center justify-center transition-opacity ease-out cursor-pointer ${
         phase === "fading" ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       style={{ transitionDuration: `${FADE_MS}ms` }}

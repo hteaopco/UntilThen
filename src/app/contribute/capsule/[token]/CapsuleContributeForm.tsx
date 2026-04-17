@@ -161,7 +161,7 @@ export function CapsuleContributeForm({
   // ── Phase 2: Invite message ──────────────────────────────
   if (phase === "invite") {
     return (
-      <main className="min-h-screen bg-cream flex flex-col items-center justify-center px-6">
+      <main onClick={() => setPhase("editor")} className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 cursor-pointer">
         <div className="fixed top-8 left-0 right-0 flex justify-center z-10">
           <LogoSvg variant="dark" width={100} height={20} />
         </div>

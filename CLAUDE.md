@@ -29,3 +29,13 @@ snapshot. Even after `prisma migrate deploy` applies a column to
 Postgres, Accelerate's cached schema lags until the connection is
 recycled. A service restart on Railway is the fastest way to
 force that recycle in production.
+
+# Email Templates — Sync Rule
+
+When changing ANY email template copy (subject, body, CTA) in
+`src/lib/capsule-emails.ts`, `src/lib/emails.ts`, or inline in
+API routes, ALWAYS update the matching entry in the admin Emails
+tab at `src/app/admin/emails/EmailTestClient.tsx` (the TEMPLATES
+array) AND the test-fire endpoint at
+`src/app/api/admin/test-emails/route.ts` so the admin UI and
+test emails stay in sync with production.
