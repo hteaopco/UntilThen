@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { Check, CheckCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -36,6 +36,27 @@ export function ModerationClient({ items }: { items: PendingEntry[] }) {
     }
   }
 
+  const [approvingAll, setApprovingAll] = useState(false);
+
+  async function approveAll() {
+    if (!window.confirm(`Approve all ${items.length} items?`)) return;
+    setApprovingAll(true);
+    try {
+      for (const item of items) {
+        const url =
+          item.kind === "vault"
+            ? `/api/entries/${item.id}/approve`
+            : `/api/admin/capsule-contributions/${item.id}/approve`;
+        await fetch(url, { method: "POST" });
+      }
+      router.refresh();
+    } catch {
+      window.alert("Some items failed to approve.");
+    } finally {
+      setApprovingAll(false);
+    }
+  }
+
   if (items.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-navy/10 bg-warm-surface/40 px-5 py-12 text-center">
@@ -46,9 +67,20 @@ export function ModerationClient({ items }: { items: PendingEntry[] }) {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm text-ink-mid mb-4">
-        {items.length} item{items.length !== 1 ? "s" : ""} awaiting your review.
-      </p>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-ink-mid">
+          {items.length} item{items.length !== 1 ? "s" : ""} awaiting your review.
+        </p>
+        <button
+          type="button"
+          onClick={approveAll}
+          disabled={approvingAll}
+          className="inline-flex items-center gap-1.5 bg-sage text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-sage/90 transition-colors disabled:opacity-50"
+        >
+          <CheckCircle size={14} strokeWidth={2} aria-hidden="true" />
+          {approvingAll ? "Approving\u2026" : "Approve All"}
+        </button>
+      </div>
       {items.map((item) => {
         const preview = item.body
           ? item.body.replace(/<[^>]+>/g, " ").trim().slice(0, 300)
