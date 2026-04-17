@@ -524,6 +524,11 @@ html {
 .account-input:disabled {
   opacity: 0.55;
 }
+.account-input[type="date"],
+.account-input[type="time"] {
+  -webkit-appearance: textfield;
+  appearance: textfield;
+}
 
 /* iOS Safari zoom-on-focus safety net. On touch devices, force
    every form control to at least 16px computed font-size so

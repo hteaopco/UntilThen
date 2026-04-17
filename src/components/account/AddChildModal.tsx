@@ -209,7 +209,7 @@ export function AddChildModal({
           </button>
         </div>
 
-        <div className="px-4 sm:px-7 py-5 space-y-5">
+        <div className="px-4 sm:px-7 py-5 space-y-5 overflow-hidden">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="First name">
               <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} autoFocus required className="account-input" />
