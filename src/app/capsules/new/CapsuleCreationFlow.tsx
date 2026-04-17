@@ -324,24 +324,22 @@ export function CapsuleCreationFlow() {
                 </button>
               </div>
               {customTime && (
-                <div className="mt-3">
-                  <label className="flex items-center gap-2 text-sm text-ink-mid">
-                    <span className="text-[11px] font-bold tracking-[0.06em] uppercase">Reveal time:</span>
-                    <input type="time" value={deliveryTime ?? ""} onChange={(e) => setDeliveryTime(e.target.value)}
-                      className="account-input w-auto max-w-[140px]" />
-                  </label>
+                <div className="mt-3 flex items-center gap-3">
+                  <span className="text-[11px] font-bold tracking-[0.06em] uppercase text-ink-mid whitespace-nowrap">Reveal time:</span>
+                  <input type="time" value={deliveryTime ?? ""} onChange={(e) => setDeliveryTime(e.target.value)}
+                    className="account-input w-auto max-w-[140px]" />
                 </div>
               )}
             </div>
           )}
 
           {deliveryTime && (
-            <div>
-              <Label>Timezone</Label>
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] font-bold tracking-[0.06em] uppercase text-ink-mid whitespace-nowrap">Timezone:</span>
               <select
                 value={COMMON_TIMEZONES.some((tz) => tz.value === timezone) ? timezone : "__other"}
                 onChange={(e) => setTimezone(e.target.value)}
-                className="account-input max-w-[260px]"
+                className="account-input w-auto"
               >
                 {COMMON_TIMEZONES.map((tz) => (
                   <option key={tz.value} value={tz.value}>{tz.label}</option>
@@ -373,7 +371,7 @@ export function CapsuleCreationFlow() {
           <p className="text-center text-xs italic text-ink-light">
             {authLoaded && !isSignedIn
               ? "No payment yet. We\u2019ll ask you to create a free account to save your capsule."
-              : "No payment yet. We save your capsule as a draft."}
+              : "No payment yet. Payment takes place prior to final recipient information entered or contributors invited."}
           </p>
         </form>
       </section>
