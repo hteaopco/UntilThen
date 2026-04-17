@@ -776,7 +776,7 @@ function OwnContribution({
     <button
       type="button"
       onClick={() => setEditing(true)}
-      className="w-full rounded-2xl border border-dashed border-amber/40 bg-amber-tint/30 px-5 py-6 text-left hover:bg-amber-tint/50 hover:border-amber transition-colors"
+      className="w-full rounded-2xl border border-dashed border-amber/40 bg-amber-tint/30 px-3 sm:px-5 py-6 text-left hover:bg-amber-tint/50 hover:border-amber transition-colors"
     >
       <div className="flex items-center gap-3">
         <div
@@ -1164,6 +1164,7 @@ function ConfirmDelete({
 //            dispatches staged invite emails atomically.
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_MIN_DIGITS = 10;
 
 function ActivationModal({
   capsuleId,
@@ -1294,7 +1295,7 @@ function ActivationModal({
             </p>
             {stagedInvites.length > 0 && (
               <div className="rounded-lg border border-navy/[0.06] bg-warm-surface/40 overflow-hidden">
-                <div className="px-4 py-2 text-[10px] uppercase tracking-[0.12em] font-bold text-ink-light border-b border-navy/[0.06]">
+                <div className="px-4 py-2 text-[10px] uppercase tracking-[0.12em] font-bold text-navy bg-white border-b border-navy/[0.06]">
                   Contributor List
                 </div>
                 <table className="w-full text-sm">
@@ -1369,7 +1370,6 @@ function ActivationModal({
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={`${recipientName.split(" ")[0].toLowerCase()}@email.com`}
                 className="account-input"
-                autoFocus
               />
             </label>
             <label className="block">
@@ -1390,17 +1390,25 @@ function ActivationModal({
               </p>
             )}
             <div className="flex items-center gap-3 pt-1">
-              <button
-                type="submit"
-                disabled={busy || (!email.trim() && !phone.trim())}
-                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors disabled:opacity-50 ${
-                  email.trim() || phone.trim()
-                    ? "bg-amber text-white hover:bg-amber-dark"
-                    : "bg-navy/10 text-ink-light cursor-not-allowed"
-                }`}
-              >
-                {busy ? "Sending…" : "Send Invites, Save Recipient Info"}
-              </button>
+              {(() => {
+                const emailValid = EMAIL_RE.test(email.trim());
+                const phoneDigits = phone.replace(/\D/g, "").length;
+                const phoneValid = phoneDigits >= PHONE_MIN_DIGITS;
+                const contactValid = emailValid || phoneValid;
+                return (
+                  <button
+                    type="submit"
+                    disabled={busy || !contactValid}
+                    className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors ${
+                      contactValid
+                        ? "bg-amber text-white hover:bg-amber-dark disabled:opacity-60"
+                        : "bg-navy/10 text-ink-light cursor-not-allowed"
+                    }`}
+                  >
+                    {busy ? "Sending…" : "Send Invites, Save Recipient Info"}
+                  </button>
+                );
+              })()}
               <button
                 type="button"
                 onClick={() => {
