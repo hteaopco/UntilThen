@@ -79,23 +79,24 @@ export function CapsuleCreationFlow() {
 
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [occasionAlert, setOccasionAlert] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   const [title, setTitle] = useState("");
   const [recipientFirstName, setRecipientFirstName] = useState("");
   const [recipientLastName, setRecipientLastName] = useState("");
-  const [recipientGender, setRecipientGender] = useState<"male" | "female">("female");
+  const [recipientEmail, setRecipientEmail] = useState("");
   const [occasionType, setOccasionType] = useState<OccasionType | null>(null);
   const [otherOccasion, setOtherOccasion] = useState("");
   const [revealDate, setRevealDate] = useState("");
-  const [deliveryTime, setDeliveryTime] = useState("09:00");
+  const [deliveryTime, setDeliveryTime] = useState<string | null>(null);
+  const [customTime, setCustomTime] = useState(false);
   const [timezone, setTimezone] = useState(detectTimezone);
   const [dateAlert, setDateAlert] = useState(false);
 
   const maxDateIso = yyyymmdd(new Date(Date.now() + CAPSULE_MAX_HORIZON_MS));
   const minDateIso = yyyymmdd(new Date(Date.now() + 86400000));
 
-  const recipientPronoun = recipientGender === "female" ? "her" : "him";
+  const recipientPronoun = recipientEmail ? undefined : undefined;
   const recipientName = `${recipientFirstName.trim()} ${recipientLastName.trim()}`.trim();
 
   useEffect(() => {
@@ -113,10 +114,6 @@ export function CapsuleCreationFlow() {
   }, []);
 
   function handleRevealDate(iso: string) {
-    if (!occasionType) {
-      setOccasionAlert(true);
-      return;
-    }
     if (!iso) { setRevealDate(""); setDateAlert(false); return; }
     const picked = new Date(iso + "T00:00:00");
     const maxDate = new Date(Date.now() + CAPSULE_MAX_HORIZON_MS);
@@ -129,10 +126,27 @@ export function CapsuleCreationFlow() {
     setRevealDate(iso);
   }
 
+  function validate(): string[] {
+    const errors: string[] = [];
+    if (!title.trim()) errors.push("Title is required");
+    if (!recipientFirstName.trim()) errors.push("Recipient first name is required");
+    if (!occasionType) errors.push("Please select an occasion");
+    if (!revealDate) errors.push("Please select a reveal date");
+    if (!deliveryTime) errors.push("Please select a delivery time");
+    return errors;
+  }
+
   async function submitStep1(e: FormEvent) {
     e.preventDefault();
     if (saving) return;
     setError(null);
+    setValidationErrors([]);
+
+    const errors = validate();
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
 
     if (authLoaded && !isSignedIn) {
       const snapshot: PendingStep1 = {
@@ -155,7 +169,7 @@ export function CapsuleCreationFlow() {
         body: JSON.stringify({
           title: title.trim(),
           recipientName,
-          recipientPronoun,
+          recipientPronoun: "them",
           occasionType: occasionType ?? "OTHER",
           revealDate,
           deliveryTime,
@@ -211,14 +225,14 @@ export function CapsuleCreationFlow() {
           </p>
 
           <Field label="What are you celebrating?" hint="This is what people will see when they&rsquo;re invited.">
-            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
-              placeholder="Mom's 60th Birthday" className="account-input" required />
+            <input type="text" value={title} onChange={(e) => { setTitle(e.target.value); setValidationErrors([]); }}
+              placeholder="Mom's 60th Birthday" className="account-input" />
           </Field>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Recipient first name">
-              <input type="text" value={recipientFirstName} onChange={(e) => setRecipientFirstName(e.target.value)}
-                placeholder="Margaret" className="account-input" required />
+              <input type="text" value={recipientFirstName} onChange={(e) => { setRecipientFirstName(e.target.value); setValidationErrors([]); }}
+                placeholder="Margaret" className="account-input" />
             </Field>
             <Field label="Recipient last name">
               <input type="text" value={recipientLastName} onChange={(e) => setRecipientLastName(e.target.value)}
@@ -226,28 +240,16 @@ export function CapsuleCreationFlow() {
             </Field>
           </div>
 
-          <div>
-            <Label>Gender</Label>
-            <div className="flex flex-wrap gap-2">
-              {([
-                { value: "female" as const, label: "Female" },
-                { value: "male" as const, label: "Male" },
-              ]).map((g) => (
-                <button key={g.value} type="button" onClick={() => setRecipientGender(g.value)}
-                  className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
-                    recipientGender === g.value ? pillActive : pillInactive
-                  }`}>
-                  {g.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <Field label="Recipient email">
+            <input type="email" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)}
+              placeholder="margaret@email.com" className="account-input" />
+          </Field>
 
           <div>
-            <Label>Occasion</Label>
+            <Label>Occasion &mdash; select one</Label>
             <div className="flex flex-wrap gap-2">
               {OCCASIONS.map((o) => (
-                <button key={o.value} type="button" onClick={() => { setOccasionType(o.value); setOccasionAlert(false); }}
+                <button key={o.value} type="button" onClick={() => { setOccasionType(o.value); setValidationErrors([]); }}
                   className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
                     occasionType === o.value ? pillActive : pillInactive
                   }`}>
@@ -263,84 +265,96 @@ export function CapsuleCreationFlow() {
             )}
           </div>
 
-          <div>
-            <Label>Reveal date</Label>
-            {occasionAlert && (
-              <div className="mb-2 rounded-lg bg-amber-tint border border-amber/30 px-3 py-2">
-                <p className="text-xs text-navy font-semibold">Please choose an occasion first.</p>
-              </div>
-            )}
-            <input
-              type="date"
-              value={revealDate}
-              onChange={(e) => handleRevealDate(e.target.value)}
-              onFocus={() => { if (!occasionType) { setOccasionAlert(true); } }}
-              min={minDateIso}
-              max={maxDateIso}
-              disabled={!occasionType}
-              className={`account-input ${!occasionType ? "opacity-50 cursor-not-allowed" : ""}`}
-              required
-            />
-            {dateAlert && (
-              <div className="mt-2 rounded-lg bg-amber-tint border border-amber/30 px-3 py-2">
-                <p className="text-xs text-navy font-semibold">
-                  Gift Capsules must open within 60 days.
-                </p>
-                <p className="text-xs text-ink-mid mt-0.5">
-                  Please check back closer to the reveal date to create this capsule.
-                </p>
-              </div>
-            )}
-            <p className="mt-2 text-xs italic text-ink-light">
-              They&rsquo;ll open everything at once on this day.
-            </p>
-          </div>
-
-          {revealDate && (
-            <>
-              <div>
-                <Label>What time should we deliver this?</Label>
-                <div className="flex flex-wrap gap-2">
-                  {TIME_PRESETS.map((t) => (
-                    <button key={t.value} type="button" onClick={() => setDeliveryTime(t.value)}
-                      className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
-                        deliveryTime === t.value ? pillActive : pillInactive
-                      }`}>
-                      {t.label}
-                    </button>
-                  ))}
+          {occasionType && (
+            <div>
+              <Label>Reveal date</Label>
+              <input
+                type="date"
+                value={revealDate}
+                onChange={(e) => { handleRevealDate(e.target.value); setValidationErrors([]); }}
+                min={minDateIso}
+                max={maxDateIso}
+                className="account-input max-w-[220px]"
+              />
+              {dateAlert && (
+                <div className="mt-2 rounded-lg bg-amber-tint border border-amber/30 px-3 py-2">
+                  <p className="text-xs text-navy font-semibold">
+                    Gift Capsules must open within 60 days.
+                  </p>
+                  <p className="text-xs text-ink-mid mt-0.5">
+                    Please check back closer to the reveal date to create this capsule.
+                  </p>
                 </div>
-                <div className="mt-3">
-                  <label className="flex items-center gap-2 text-sm text-ink-mid">
-                    <span className="text-[11px] font-bold tracking-[0.06em] uppercase">Or pick your own:</span>
-                    <input type="time" value={deliveryTime} onChange={(e) => setDeliveryTime(e.target.value)}
-                      className="account-input w-auto" />
-                  </label>
-                </div>
-              </div>
-
-              <div>
-                <Label>Timezone</Label>
-                <select
-                  value={COMMON_TIMEZONES.some((tz) => tz.value === timezone) ? timezone : "__other"}
-                  onChange={(e) => setTimezone(e.target.value)}
-                  className="account-input"
-                >
-                  {COMMON_TIMEZONES.map((tz) => (
-                    <option key={tz.value} value={tz.value}>{tz.label}</option>
-                  ))}
-                  {!COMMON_TIMEZONES.some((tz) => tz.value === timezone) && (
-                    <option value={timezone}>{timezone}</option>
-                  )}
-                </select>
-              </div>
-            </>
+              )}
+              <p className="mt-2 text-xs italic text-ink-light">
+                They&rsquo;ll open everything at once on this day.
+              </p>
+            </div>
           )}
 
+          {revealDate && (
+            <div>
+              <Label>What time should we deliver this?</Label>
+              <div className="flex flex-wrap gap-2">
+                {TIME_PRESETS.map((t) => (
+                  <button key={t.value} type="button" onClick={() => { setDeliveryTime(t.value); setCustomTime(false); setValidationErrors([]); }}
+                    className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
+                      deliveryTime === t.value && !customTime ? pillActive : pillInactive
+                    }`}>
+                    {t.label}
+                  </button>
+                ))}
+                <button type="button" onClick={() => { setCustomTime(true); setDeliveryTime(""); setValidationErrors([]); }}
+                  className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
+                    customTime ? pillActive : pillInactive
+                  }`}>
+                  Custom
+                </button>
+              </div>
+              {customTime && (
+                <div className="mt-3">
+                  <label className="flex items-center gap-2 text-sm text-ink-mid">
+                    <span className="text-[11px] font-bold tracking-[0.06em] uppercase">Reveal time:</span>
+                    <input type="time" value={deliveryTime ?? ""} onChange={(e) => setDeliveryTime(e.target.value)}
+                      className="account-input w-auto max-w-[140px]" />
+                  </label>
+                </div>
+              )}
+            </div>
+          )}
+
+          {deliveryTime && (
+            <div>
+              <Label>Timezone</Label>
+              <select
+                value={COMMON_TIMEZONES.some((tz) => tz.value === timezone) ? timezone : "__other"}
+                onChange={(e) => setTimezone(e.target.value)}
+                className="account-input max-w-[260px]"
+              >
+                {COMMON_TIMEZONES.map((tz) => (
+                  <option key={tz.value} value={tz.value}>{tz.label}</option>
+                ))}
+                {!COMMON_TIMEZONES.some((tz) => tz.value === timezone) && (
+                  <option value={timezone}>{timezone}</option>
+                )}
+              </select>
+            </div>
+          )}
+
+          {validationErrors.length > 0 && (
+            <div className="rounded-lg bg-red-50 border border-red-200 px-4 py-3" role="alert">
+              <p className="text-xs font-bold text-red-700 mb-1">Please complete the following:</p>
+              <ul className="list-disc list-inside space-y-0.5">
+                {validationErrors.map((err) => (
+                  <li key={err} className="text-xs text-red-600">{err}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
 
           <button type="submit"
-            disabled={saving || !title.trim() || !recipientFirstName.trim() || !occasionType || !revealDate}
+            disabled={saving}
             className="w-full bg-amber text-white py-3.5 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60">
             {saving ? "Saving\u2026" : "Continue"}
           </button>
