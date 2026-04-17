@@ -310,14 +310,14 @@ export function EmailTestClient() {
               <th className="py-2 pr-3 text-left font-bold">Email</th>
               <th className="py-2 pr-3 text-left font-bold">Subject</th>
               <th className="py-2 pr-3 text-left font-bold hidden lg:table-cell">Body Preview</th>
-              <th className="py-2 pr-3 text-left font-bold">Trigger</th>
-              <th className="py-2 pr-3 text-left font-bold">Frequency</th>
+              <th className="py-2 pr-3 text-left font-bold hidden sm:table-cell">Trigger</th>
+              <th className="py-2 pr-3 text-left font-bold hidden sm:table-cell">Frequency</th>
               <th className="py-2 text-left font-bold">Funnel</th>
             </tr>
           </thead>
           <tbody>
             {TEMPLATES.map((t) => (
-              <tr key={t.id} className="border-b border-navy/[0.04] hover:bg-warm-surface/40">
+              <tr key={t.id} className="border-b border-navy/[0.04] hover:bg-warm-surface/40 align-top">
                 <td className="py-2.5 pr-2">
                   <input
                     type="checkbox"
@@ -326,11 +326,15 @@ export function EmailTestClient() {
                     className="accent-amber"
                   />
                 </td>
-                <td className="py-2.5 pr-3 font-semibold text-navy whitespace-nowrap">{t.name}</td>
+                <td className="py-2.5 pr-3">
+                  <div className="font-semibold text-navy whitespace-nowrap">{t.name}</div>
+                  <div className="lg:hidden text-xs text-ink-light leading-[1.5] mt-1">{t.bodyPreview}</div>
+                  <div className="sm:hidden text-[10px] text-ink-light mt-1">{t.trigger} · {t.frequency}</div>
+                </td>
                 <td className="py-2.5 pr-3 text-ink-mid italic">{t.subject}</td>
                 <td className="py-2.5 pr-3 text-ink-light text-xs leading-[1.5] max-w-[300px] hidden lg:table-cell">{t.bodyPreview}</td>
-                <td className="py-2.5 pr-3 text-ink-mid text-xs">{t.trigger}</td>
-                <td className="py-2.5 pr-3 text-ink-mid text-xs whitespace-nowrap">{t.frequency}</td>
+                <td className="py-2.5 pr-3 text-ink-mid text-xs hidden sm:table-cell">{t.trigger}</td>
+                <td className="py-2.5 pr-3 text-ink-mid text-xs whitespace-nowrap hidden sm:table-cell">{t.frequency}</td>
                 <td className="py-2.5">
                   <span className={`text-[9px] uppercase tracking-[0.1em] font-bold px-2 py-0.5 rounded ${FUNNEL_COLORS[t.funnel] ?? ""}`}>
                     {t.funnel}
