@@ -84,7 +84,7 @@ export function CapsuleCreationFlow() {
   const [title, setTitle] = useState("");
   const [recipientFirstName, setRecipientFirstName] = useState("");
   const [recipientLastName, setRecipientLastName] = useState("");
-  const [recipientEmail, setRecipientEmail] = useState("");
+  const [recipientGender, setRecipientGender] = useState<"male" | "female">("female");
   const [occasionType, setOccasionType] = useState<OccasionType | null>(null);
   const [otherOccasion, setOtherOccasion] = useState("");
   const [revealDate, setRevealDate] = useState("");
@@ -96,7 +96,7 @@ export function CapsuleCreationFlow() {
   const maxDateIso = yyyymmdd(new Date(Date.now() + CAPSULE_MAX_HORIZON_MS));
   const minDateIso = yyyymmdd(new Date(Date.now() + 86400000));
 
-  const recipientPronoun = recipientEmail ? undefined : undefined;
+  const recipientPronoun = recipientGender === "female" ? "her" : "him";
   const recipientName = `${recipientFirstName.trim()} ${recipientLastName.trim()}`.trim();
 
   useEffect(() => {
@@ -169,7 +169,7 @@ export function CapsuleCreationFlow() {
         body: JSON.stringify({
           title: title.trim(),
           recipientName,
-          recipientPronoun: "them",
+          recipientPronoun,
           occasionType: occasionType ?? "OTHER",
           revealDate,
           deliveryTime,
@@ -240,10 +240,22 @@ export function CapsuleCreationFlow() {
             </Field>
           </div>
 
-          <Field label="Recipient email">
-            <input type="email" value={recipientEmail} onChange={(e) => setRecipientEmail(e.target.value)}
-              placeholder="margaret@email.com" className="account-input" />
-          </Field>
+          <div>
+            <Label>Recipient gender</Label>
+            <div className="flex flex-wrap gap-2">
+              {([
+                { value: "female" as const, label: "Female" },
+                { value: "male" as const, label: "Male" },
+              ]).map((g) => (
+                <button key={g.value} type="button" onClick={() => setRecipientGender(g.value)}
+                  className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
+                    recipientGender === g.value ? pillActive : pillInactive
+                  }`}>
+                  {g.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div>
             <Label>Occasion &mdash; select one</Label>
