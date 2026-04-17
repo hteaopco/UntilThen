@@ -154,6 +154,8 @@ export function CapsuleCreationFlow() {
     return null;
   }
 
+  const stepComplete = validateStep() === null;
+
   function goNext() {
     setStepError(null);
     const err = validateStep();
@@ -466,33 +468,44 @@ export function CapsuleCreationFlow() {
             </div>
           )}
 
-          <div className="mt-8 space-y-2">
+          <div className="mt-8 flex items-center gap-3">
+            <button type="button" onClick={goBack}
+              disabled={step === 0}
+              className={`flex-1 py-3 rounded-lg text-[14px] font-semibold border transition-colors ${
+                step === 0
+                  ? "border-navy/10 text-ink-light/40 cursor-not-allowed"
+                  : "border-navy/15 text-navy bg-white hover:border-navy/30"
+              }`}>
+              Back
+            </button>
+
             {step < TOTAL_STEPS - 1 ? (
               <button type="button" onClick={goNext}
-                className="w-full bg-amber text-white py-3.5 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors">
+                disabled={!stepComplete}
+                className={`flex-1 py-3 rounded-lg text-[14px] font-semibold border transition-colors ${
+                  stepComplete
+                    ? "border-navy/15 text-navy bg-white hover:border-amber hover:text-amber"
+                    : "border-navy/10 text-ink-light/40 bg-white cursor-not-allowed"
+                }`}>
                 Next
               </button>
             ) : (
               <button type="submit" disabled={saving}
-                className="w-full bg-amber text-white py-3.5 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60">
+                className={`flex-1 py-3 rounded-lg text-[14px] font-bold transition-colors ${
+                  saving
+                    ? "bg-green-600 text-white"
+                    : "bg-sage/80 text-white hover:bg-sage"
+                }`}>
                 {saving ? "Creating\u2026" : "Create Gift Capsule"}
               </button>
             )}
-
-            <p className="text-center text-xs italic text-ink-light">
-              {step < TOTAL_STEPS - 1
-                ? STEP_BLURBS[step]
-                : "No payment yet. Payment takes place prior to final recipient information entered or contributors invited."}
-            </p>
-
-            {step > 0 && (
-              <button type="button" onClick={goBack}
-                className="w-full flex items-center justify-center gap-1.5 py-2.5 text-sm font-medium text-ink-mid hover:text-navy transition-colors">
-                <ChevronLeft size={16} strokeWidth={1.75} aria-hidden="true" />
-                Back
-              </button>
-            )}
           </div>
+
+          <p className="mt-2 text-center text-xs italic text-ink-light">
+            {step < TOTAL_STEPS - 1
+              ? STEP_BLURBS[step]
+              : "No payment yet. Payment takes place prior to final recipient information entered or contributors invited."}
+          </p>
         </form>
       </section>
     </main>
