@@ -1042,7 +1042,7 @@ function ContributorsPanel({
       {invites.length > 0 && (
         <>
           <div className="mt-5 mb-2 text-[11px] uppercase tracking-[0.12em] font-bold text-ink-light">
-            Already added · {invites.length}
+            Contributor List · {invites.length}
           </div>
           <ul className="space-y-2">
             {invites.map((i) => (
@@ -1293,24 +1293,43 @@ function ActivationModal({
               They&rsquo;ll each add something &mdash; a message, a memory, a voice note. {recipientName.split(" ")[0]} will open it all at once.
             </p>
             {stagedInvites.length > 0 && (
-              <ul className="space-y-1.5 rounded-lg border border-navy/[0.06] bg-warm-surface/40 px-4 py-3">
-                {stagedInvites.map((inv) => (
-                  <li key={inv.id} className="flex items-center justify-between gap-2 text-sm">
-                    <div className="min-w-0">
-                      <span className="font-semibold text-navy">{inv.name || "—"}</span>
-                      <span className="text-ink-light ml-2 text-xs">{inv.email}</span>
-                    </div>
-                    {inv.requiresApproval ? (
-                      <span className="shrink-0 inline-flex items-center gap-1 text-green-600 text-xs font-semibold">
-                        <Check size={12} strokeWidth={2.5} aria-hidden="true" />
-                      </span>
-                    ) : (
-                      <span className="shrink-0 text-ink-light text-xs">&mdash;</span>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              <div className="rounded-lg border border-navy/[0.06] bg-warm-surface/40 overflow-hidden">
+                <div className="px-4 py-2 text-[10px] uppercase tracking-[0.12em] font-bold text-ink-light border-b border-navy/[0.06]">
+                  Contributor List
+                </div>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-navy/[0.06] text-[10px] uppercase tracking-[0.08em] text-ink-light font-bold">
+                      <th className="text-left px-4 py-2">Name</th>
+                      <th className="text-left px-4 py-2">Email</th>
+                      <th className="text-center px-4 py-2 whitespace-nowrap">Review</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {stagedInvites.map((inv) => (
+                      <tr key={inv.id} className="border-b border-navy/[0.04] last:border-b-0">
+                        <td className="px-4 py-2 font-semibold text-navy whitespace-nowrap">{inv.name || "\u2014"}</td>
+                        <td className="px-4 py-2 text-ink-light break-all">{inv.email}</td>
+                        <td className="px-4 py-2 text-center">
+                          {inv.requiresApproval ? (
+                            <Check size={14} strokeWidth={2.5} className="text-green-600 inline-block" aria-label="Yes" />
+                          ) : (
+                            <span className="text-ink-light">&mdash;</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
+            <button
+              type="button"
+              onClick={() => { onClose(); setTimeout(() => document.getElementById("invite-people")?.scrollIntoView({ behavior: "smooth" }), 100); }}
+              className="text-xs font-semibold text-amber hover:text-amber-dark transition-colors"
+            >
+              + Add contributor
+            </button>
             {error && (
               <p className="text-sm text-red-600" role="alert">
                 {error}
@@ -1330,8 +1349,16 @@ function ActivationModal({
         ) : (
           <form onSubmit={saveAndActivate} className="p-6 space-y-4">
             <p className="text-sm text-ink-mid leading-[1.6]">
-              Add an email, a phone number, or both — either works.
+              Add an email, a phone number, or both.
             </p>
+            <div className="rounded-lg bg-amber-tint border border-amber/25 px-4 py-3">
+              <p className="text-xs font-bold text-navy mb-0.5">
+                Contributions are not sent until the reveal date.
+              </p>
+              <p className="text-[11px] text-ink-mid leading-[1.5]">
+                Invites go out now so contributors can write, but {recipientName.split(" ")[0]} won&rsquo;t receive anything until the scheduled reveal day and time.
+              </p>
+            </div>
             <label className="block">
               <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
                 Recipient email
@@ -1340,7 +1367,7 @@ function ActivationModal({
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={`${recipientName.toLowerCase().replace(/\s+/g, "")}@email.com`}
+                placeholder={`${recipientName.split(" ")[0].toLowerCase()}@email.com`}
                 className="account-input"
                 autoFocus
               />
@@ -1365,10 +1392,14 @@ function ActivationModal({
             <div className="flex items-center gap-3 pt-1">
               <button
                 type="submit"
-                disabled={busy}
-                className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
+                disabled={busy || (!email.trim() && !phone.trim())}
+                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors disabled:opacity-50 ${
+                  email.trim() || phone.trim()
+                    ? "bg-amber text-white hover:bg-amber-dark"
+                    : "bg-navy/10 text-ink-light cursor-not-allowed"
+                }`}
               >
-                {busy ? "Sending…" : "Send it"}
+                {busy ? "Sending…" : "Send Invites, Save Recipient Info"}
               </button>
               <button
                 type="button"
