@@ -153,7 +153,7 @@ export default async function DashboardPage({
   }));
 
   return (
-    <main className="min-h-screen bg-cream flex flex-col">
+    <main className="min-h-screen bg-cream flex flex-col overflow-x-hidden">
       <DashboardHeader />
 
       <div className="mx-auto max-w-[980px] w-full px-6 lg:px-10 pt-8 pb-6 flex-1">
@@ -374,7 +374,7 @@ async function CapsuleDetailView({
   }));
 
   return (
-    <main className="min-h-screen bg-cream flex flex-col">
+    <main className="min-h-screen bg-cream flex flex-col overflow-x-hidden">
       <DashboardHeader />
 
       <div className="mx-auto max-w-[980px] w-full px-6 lg:px-10 pt-6 pb-8 flex-1">

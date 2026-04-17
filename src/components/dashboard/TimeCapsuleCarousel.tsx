@@ -53,12 +53,12 @@ export function TimeCapsuleCarousel({
 
   return (
     <div
-      className="relative overflow-hidden"
+      className="relative"
       style={{ touchAction: "pan-y" }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {/* Cards container — stacked, overflow hidden so side cards don't widen the page. */}
+      {/* Cards container — stacked, overflow visible so side cards peek. */}
       <div className="relative flex items-center justify-center" style={{ minHeight: 460 }}>
         {items.map((item, i) => {
           const offset = i - activeIndex;
