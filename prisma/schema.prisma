@@ -93,12 +93,7 @@ model Child {
   parentId     String
   trusteeName  String?
   trusteeEmail String?
-  // NOTE: trusteePhone column exists in the DB (migration
-  // 20260416_add_trustee_phone) but is intentionally NOT mapped
-  // right now — Accelerate is serving a stale schema and P2022's
-  // every query that references it. Restore once Accelerate's
-  // cache has refreshed. See CLAUDE.md "Prisma Accelerate —
-  // Schema Change Protocol".
+  trusteePhone String?
   createdAt    DateTime  @default(now())
 
   parent User   @relation(fields: [parentId], references: [id])
@@ -109,10 +104,8 @@ model Vault {
   id           String    @id @default(cuid())
   childId      String    @unique
   revealDate   DateTime?
-  // NOTE: deliveryTime + timezone columns exist in the DB
-  // (migration 20260416_add_delivery_time) but are intentionally
-  // NOT mapped right now — Accelerate is serving a stale schema.
-  // Restore once cache has refreshed.
+  deliveryTime String    @default("08:00")
+  timezone     String    @default("America/Chicago")
   unlockedAt   DateTime?
   createdAt    DateTime  @default(now())
 
@@ -253,10 +246,8 @@ model MemoryCapsule {
   // Tracks whether the recipient has completed the first-open
   // sequential reveal. Return visits then get the browseable
   // list instead of the guided sequence.
-  // NOTE: deliveryTime + timezone columns exist in the DB
-  // (migration 20260416_add_delivery_time) but are intentionally
-  // NOT mapped right now — Accelerate cache lag. Restore once
-  // cache has refreshed.
+  deliveryTime        String        @default("09:00")
+  timezone            String        @default("America/Chicago")
   firstOpenedAt       DateTime?
   // NOTE: recipientCompletedAt column exists in the database
   // (added by migrations 20260415080000 + 20260415090000) but

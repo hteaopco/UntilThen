@@ -42,8 +42,8 @@ export default async function AccountChildEditPage({
       revealDate={child.vault?.revealDate?.toISOString() ?? null}
       trusteeName={child.trusteeName ?? ""}
       trusteeEmail={child.trusteeEmail ?? ""}
-      trusteePhone={""}
-      deliveryTime={"08:00"}
+      trusteePhone={child.trusteePhone ?? ""}
+      deliveryTime={child.vault?.deliveryTime ?? "08:00"}
     />
   );
 }

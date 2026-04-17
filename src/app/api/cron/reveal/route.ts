@@ -55,10 +55,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   for (const capsule of capsules) {
     if (!capsule.recipientEmail) continue;
 
-    // NOTE: deliveryTime + timezone are unmapped in schema right now
-    // (Accelerate cache lag). Defaults hardcoded until fields are
-    // re-mapped; at that point pass capsule.deliveryTime + capsule.timezone.
-    if (!isDeliveryTimePassed(capsule.revealDate, null, null)) {
+    if (!isDeliveryTimePassed(capsule.revealDate, capsule.deliveryTime, capsule.timezone)) {
       skipped++;
       continue;
     }

@@ -100,12 +100,10 @@ export async function PATCH(
       typeof body.trusteeEmail === "string" ? body.trusteeEmail.trim() : "";
     childData.trusteeEmail = v.length > 0 ? v : null;
   }
-  // NOTE: trusteePhone is accepted in the body but NOT written
-  // right now — the column is unmapped in Prisma schema while we
-  // wait for Accelerate cache to refresh. Restore once cache is
-  // caught up.
   if ("trusteePhone" in body) {
-    // intentionally skipped — see schema note
+    const v =
+      typeof body.trusteePhone === "string" ? body.trusteePhone.trim() : "";
+    childData.trusteePhone = v.length > 0 ? v : null;
   }
 
   const { prisma } = await import("@/lib/prisma");
@@ -123,9 +121,12 @@ export async function PATCH(
         );
       vaultData.revealDate = d;
     }
-    // NOTE: deliveryTime + timezone accepted but not persisted
-    // right now — unmapped in schema while Accelerate cache catches
-    // up. Restore these writes once the schema is re-mapped.
+    if (typeof body.deliveryTime === "string" && /^\d{2}:\d{2}$/.test(body.deliveryTime)) {
+      vaultData.deliveryTime = body.deliveryTime;
+    }
+    if (typeof body.timezone === "string" && body.timezone.trim()) {
+      vaultData.timezone = body.timezone.trim();
+    }
     if (Object.keys(vaultData).length > 0) {
       await prisma.vault.update({
         where: { id: result.child.vault.id },
