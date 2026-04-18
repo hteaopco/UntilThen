@@ -78,9 +78,12 @@ export default clerkMiddleware(async (auth, req) => {
   const kind = rateLimitKindFor(req.method, pathname);
   if (kind) {
     const ip = clientIp(req.headers);
+    const { userId } = auth();
+    const key =
+      kind === "authenticated" && userId ? `${userId}:${ip}` : ip;
     const { success, limit, remaining, reset } = await checkRateLimit(
       kind,
-      ip,
+      key,
     );
     if (!success) {
       return NextResponse.json(
