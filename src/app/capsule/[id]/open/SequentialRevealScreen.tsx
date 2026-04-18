@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Typewriter } from "@/components/ui/Typewriter";
-import { triggerCelebration } from "@/lib/confetti";
+import { triggerCelebration, triggerFireworks } from "@/lib/confetti";
 
 type Contribution = {
   id: string;
@@ -14,7 +14,7 @@ type Contribution = {
   body: string | null;
 };
 
-type Phase = "unlock" | "author-intro" | "reading" | "closing" | "done";
+type Phase = "unlock" | "author-intro" | "fading-to-note" | "reading" | "fading-out" | "closing" | "done";
 
 function authorAlreadySigned(body: string | null, authorName: string): boolean {
   if (!body) return false;
@@ -39,22 +39,19 @@ export function SequentialRevealScreen({
   const [phase, setPhase] = useState<Phase>("unlock");
   const [index, setIndex] = useState(0);
   const [maxSeen, setMaxSeen] = useState(0);
-  const [noteVisible, setNoteVisible] = useState(false);
 
   const total = contributions.length;
   const current = contributions[index];
 
+  // Unlock: 4 confetti pops + fireworks
   useEffect(() => {
     if (phase !== "unlock") return;
-    const t1 = setTimeout(() => void triggerCelebration(), 800);
-    const t2 = setTimeout(() => void triggerCelebration(), 1600);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    const t1 = setTimeout(() => void triggerCelebration(), 600);
+    const t2 = setTimeout(() => void triggerFireworks(), 1000);
+    const t3 = setTimeout(() => void triggerCelebration(), 1800);
+    const t4 = setTimeout(() => void triggerFireworks(), 2400);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, [phase]);
-
-  useEffect(() => {
-    if (phase !== "author-intro") return;
-    setNoteVisible(false);
-  }, [phase, index]);
 
   if (!current && phase === "reading") {
     onComplete();
@@ -78,9 +75,7 @@ export function SequentialRevealScreen({
               speed={55}
               startDelay={1200}
               onComplete={() => {
-                setTimeout(() => {
-                  setPhase("author-intro");
-                }, 2000);
+                setTimeout(() => setPhase("author-intro"), 2000);
               }}
             />
           </h1>
@@ -89,7 +84,7 @@ export function SequentialRevealScreen({
     );
   }
 
-  // ── Phase 3: Closing ───────────────────────────────────
+  // ── Closing ────────────────────────────────────────────
   if (phase === "closing") {
     return (
       <main className="min-h-screen bg-cream flex flex-col items-center justify-center px-6">
@@ -112,7 +107,7 @@ export function SequentialRevealScreen({
     );
   }
 
-  // ── Author intro (center of note) ─────────────────────
+  // ── Author intro ───────────────────────────────────────
   if (phase === "author-intro" && current) {
     return (
       <main className="min-h-screen bg-warm-surface flex items-center justify-center px-6 py-16">
@@ -127,19 +122,49 @@ export function SequentialRevealScreen({
           >
             <div className="text-center">
               <Typewriter
-                text={`From ${current.authorName}`}
+                text={`From ${current.authorName}.`}
                 speed={50}
                 startDelay={300}
                 className="text-[18px] font-bold text-navy tracking-[-0.2px]"
                 onComplete={() => {
-                  setTimeout(() => {
-                    setNoteVisible(true);
-                    setPhase("reading");
-                  }, 500);
+                  setTimeout(() => setPhase("fading-to-note"), 750);
                 }}
               />
             </div>
           </div>
+        </div>
+      </main>
+    );
+  }
+
+  // ── Fade from author intro to note ─────────────────────
+  if (phase === "fading-to-note" && current) {
+    return (
+      <main className="min-h-screen bg-warm-surface flex items-center justify-center px-6 py-16">
+        <div className="w-full max-w-[560px]">
+          <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-light mb-4 text-center">
+            {index + 1} of {total}
+          </div>
+
+          <FadeTransition onDone={() => setPhase("reading")} current={current} />
+        </div>
+      </main>
+    );
+  }
+
+  // ── Fading out current note ────────────────────────────
+  if (phase === "fading-out") {
+    return (
+      <main className="min-h-screen bg-warm-surface flex items-center justify-center px-6 py-16">
+        <div className="w-full max-w-[560px]">
+          <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-light mb-4 text-center">
+            {index + 1} of {total}
+          </div>
+
+          <div
+            className="rounded-2xl bg-[#fdfbf5] text-navy px-7 py-8 lg:px-9 lg:py-10 shadow-[0_12px_40px_-12px_rgba(196,122,58,0.15)] border border-amber/10 transition-all duration-500 opacity-0 translate-y-4"
+            style={{ transform: "rotate(-0.3deg)" }}
+          />
         </div>
       </main>
     );
@@ -153,20 +178,26 @@ export function SequentialRevealScreen({
   function goNext() {
     if (isLast) {
       void triggerCelebration();
+      void triggerFireworks();
       setPhase("closing");
       return;
     }
-    const nextIndex = index + 1;
-    setIndex(nextIndex);
-    if (nextIndex > maxSeen) setMaxSeen(nextIndex);
-    setNoteVisible(false);
-    setPhase("author-intro");
+    setPhase("fading-out");
+    setTimeout(() => {
+      const nextIndex = index + 1;
+      setIndex(nextIndex);
+      if (nextIndex > maxSeen) setMaxSeen(nextIndex);
+      setPhase("author-intro");
+    }, 500);
   }
 
   function goBack() {
     if (index > 0) {
-      setIndex(index - 1);
-      setNoteVisible(true);
+      setPhase("fading-out");
+      setTimeout(() => {
+        setIndex(index - 1);
+        setPhase("fading-to-note");
+      }, 500);
     }
   }
 
@@ -178,14 +209,14 @@ export function SequentialRevealScreen({
         </div>
 
         <article
-          className="rounded-2xl bg-[#fdfbf5] text-navy px-7 py-8 lg:px-9 lg:py-10 shadow-[0_12px_40px_-12px_rgba(196,122,58,0.15)] border border-amber/10 transition-all duration-700"
-          style={{
-            opacity: noteVisible ? 1 : 0,
-            transform: `rotate(-0.3deg) translateY(${noteVisible ? 0 : 16}px)`,
-          }}
+          className="rounded-2xl bg-[#fdfbf5] text-navy px-7 py-8 lg:px-9 lg:py-10 shadow-[0_12px_40px_-12px_rgba(196,122,58,0.15)] border border-amber/10 animate-fadeIn"
+          style={{ transform: "rotate(-0.3deg)" }}
         >
           {current?.title && (
-            <h2 className="text-xl lg:text-2xl font-extrabold tracking-[-0.4px] leading-tight text-navy mb-4">
+            <h2
+              className="text-2xl lg:text-[28px] font-bold tracking-[-0.4px] leading-tight text-navy mb-4"
+              style={{ fontFamily: "var(--font-caveat), 'Caveat', cursive" }}
+            >
               {current.title}
             </h2>
           )}
@@ -232,5 +263,28 @@ export function SequentialRevealScreen({
         </div>
       </div>
     </main>
+  );
+}
+
+function FadeTransition({ onDone, current }: { onDone: () => void; current: Contribution }) {
+  const [opacity, setOpacity] = useState(1);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setOpacity(0), 50);
+    const t2 = setTimeout(() => onDone(), 600);
+    return () => { clearTimeout(t1); clearTimeout(t2); };
+  }, [onDone]);
+
+  return (
+    <div
+      className="rounded-2xl bg-[#fdfbf5] text-navy px-7 py-12 lg:px-9 lg:py-16 shadow-[0_12px_40px_-12px_rgba(196,122,58,0.15)] border border-amber/10 min-h-[300px] flex items-center justify-center transition-opacity duration-500"
+      style={{ transform: "rotate(-0.3deg)", opacity }}
+    >
+      <div className="text-center">
+        <span className="text-[18px] font-bold text-navy tracking-[-0.2px]">
+          From {current.authorName}.
+        </span>
+      </div>
+    </div>
   );
 }
