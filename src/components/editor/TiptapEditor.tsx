@@ -49,7 +49,7 @@ export function TiptapEditor({
     editorProps: {
       attributes: {
         class:
-          "tiptap-editor min-h-[320px] outline-none",
+          "tiptap-editor min-h-[180px] sm:min-h-[320px] outline-none",
       },
     },
     onUpdate: ({ editor }) => {
@@ -69,7 +69,7 @@ export function TiptapEditor({
 
   if (!editor) {
     return (
-      <div className="min-h-[320px] text-[17px] leading-[1.75] text-ink-light">
+      <div className="min-h-[180px] sm:min-h-[320px] text-[17px] leading-[1.75] text-ink-light">
         {placeholder}
       </div>
     );

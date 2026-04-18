@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -329,42 +329,22 @@ export function CapsuleContributeForm({
           </p>
         )}
 
-        <label className="mt-5 block">
-          <span className="text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid">From you</span>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
-            required
-            className="mt-1.5 w-full px-3 py-2.5 rounded-lg border border-navy/15 bg-white text-[15px] font-semibold text-navy placeholder-ink-light/50 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
-          />
-        </label>
-
         <form onSubmit={submit} className="mt-5">
+          {/* From field */}
+          <label className="flex items-center gap-3 mb-4">
+            <span className="text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid whitespace-nowrap">From you</span>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              required
+              className="flex-1 min-w-0 px-3 py-2.5 rounded-lg border border-navy/15 bg-white text-[15px] font-semibold text-navy placeholder-ink-light/50 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+            />
+          </label>
+
           {/* ── Writing card ─────────────────────────────── */}
           <div className="rounded-2xl border border-amber/40 bg-white shadow-[0_4px_18px_rgba(196,122,58,0.08)] overflow-hidden">
-            {/* Instruction area */}
-            <div className="mx-4 mt-4 rounded-xl bg-[#eef0f8] border border-[#d4d8e8] px-5 py-4">
-              <div className="flex items-start gap-3">
-                <span className="mt-0.5 text-amber" aria-hidden="true">
-                  <Sparkles size={12} strokeWidth={2} className="inline -mt-1" />
-                  <Pencil size={20} strokeWidth={1.75} className="inline" />
-                </span>
-                <div>
-                  <p className="text-[15px] font-bold text-navy leading-snug">
-                    Write something meaningful.
-                  </p>
-                  <p className="mt-1 text-[13px] text-ink-mid leading-[1.5]">
-                    Start with a memory, a thank you, or something you appreciate.
-                  </p>
-                  <p className="mt-2 text-[13px] italic text-ink-light leading-[1.5]">
-                    Ex: &ldquo;Thinking back on this season, I&rsquo;ll always remember the time we&hellip;&rdquo;
-                  </p>
-                </div>
-              </div>
-            </div>
-
             {/* Editor area */}
             <div className="relative px-6 pt-4 pb-4">
               <TiptapEditor
