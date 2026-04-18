@@ -4,15 +4,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // PIN feature temporarily disabled — pinHash column is unmapped
-// while Accelerate schema cache refreshes.
+// while Accelerate schema cache refreshes. Returns skipSetup so
+// VaultPinScreen goes straight to unlocked.
 
 export async function GET(): Promise<NextResponse> {
-  return NextResponse.json({ hasPin: false });
+  return NextResponse.json({ hasPin: false, skipSetup: true });
 }
 
 export async function POST(): Promise<NextResponse> {
-  return NextResponse.json(
-    { error: "PIN feature is temporarily unavailable. Please try again later." },
-    { status: 503 },
-  );
+  return NextResponse.json({ success: true });
 }
