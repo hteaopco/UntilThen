@@ -90,7 +90,7 @@ export function SequentialRevealScreen({
         <div className="text-center max-w-[400px]">
           <h1 className="text-[22px] lg:text-[28px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
             <Typewriter
-              text={`That was ${total} ${total === 1 ? "person" : "people"} who showed up for you.`}
+              text={`That was ${total} ${total === 1 ? "person" : "people"} who wrote to you.`}
               speed={55}
               startDelay={500}
               onComplete={() => {
@@ -160,10 +160,7 @@ export function SequentialRevealScreen({
             {index + 1} of {total}
           </div>
 
-          <div
-            className="rounded-2xl bg-[#fdfbf5] text-navy px-7 py-8 lg:px-9 lg:py-10 shadow-[0_12px_40px_-12px_rgba(196,122,58,0.15)] border border-amber/10 transition-all duration-500 opacity-0 translate-y-4"
-            style={{ transform: "rotate(-0.3deg)" }}
-          />
+          <FadeOut current={current!} />
         </div>
       </main>
     );
@@ -285,5 +282,50 @@ function FadeTransition({ onDone, current }: { onDone: () => void; current: Cont
         </span>
       </div>
     </div>
+  );
+}
+
+function FadeOut({ current }: { current: Contribution }) {
+  const [opacity, setOpacity] = useState(1);
+  const showSignoff = !authorAlreadySigned(current.body, current.authorName);
+
+  useEffect(() => {
+    const t = setTimeout(() => setOpacity(0), 50);
+    return () => clearTimeout(t);
+  }, []);
+
+  return (
+    <article
+      className="rounded-2xl bg-[#fdfbf5] text-navy px-7 py-8 lg:px-9 lg:py-10 shadow-[0_12px_40px_-12px_rgba(196,122,58,0.15)] border border-amber/10 transition-opacity duration-500"
+      style={{ transform: "rotate(-0.3deg)", opacity }}
+    >
+      {current.title && (
+        <h2
+          className="text-2xl lg:text-[28px] font-bold tracking-[-0.4px] leading-tight text-navy mb-4"
+          style={{ fontFamily: "var(--font-caveat), 'Caveat', cursive" }}
+        >
+          {current.title}
+        </h2>
+      )}
+      {current.body ? (
+        <div
+          className="text-[18px] lg:text-[20px] leading-[1.8] text-navy/80"
+          style={{ fontFamily: "var(--font-caveat), 'Caveat', cursive" }}
+          dangerouslySetInnerHTML={{ __html: current.body }}
+        />
+      ) : (
+        <p className="italic text-ink-light">
+          (Non-text contribution — see the list after the reveal to view.)
+        </p>
+      )}
+      {showSignoff && (
+        <p
+          className="text-right mt-6 text-[16px] text-navy/60 italic"
+          style={{ fontFamily: "var(--font-caveat), 'Caveat', cursive" }}
+        >
+          — {current.authorName}
+        </p>
+      )}
+    </article>
   );
 }

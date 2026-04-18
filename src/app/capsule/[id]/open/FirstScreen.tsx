@@ -19,27 +19,9 @@ type Occasion =
  * the brief's v1.1 clarification that the intimate phrasing can
  * feel slightly heavy on work contexts.
  */
-function heroLine(occasion: Occasion, count: number): string {
-  const n = count.toLocaleString();
+function heroLine(_occasion: Occasion, count: number): string {
   if (count === 0) return "Your capsule is ready.";
-  switch (occasion) {
-    case "BIRTHDAY":
-    case "ANNIVERSARY":
-    case "WEDDING":
-      return count === 1
-        ? "One person showed up for you."
-        : `${n} people showed up for you.`;
-    case "RETIREMENT":
-    case "GRADUATION":
-      return count === 1
-        ? "One person wrote to you."
-        : `${n} people wrote to you.`;
-    case "OTHER":
-    default:
-      return count === 1
-        ? "One person left you something."
-        : `${n} people left you something.`;
-  }
+  return "Something\u2019s waiting for you.";
 }
 
 const OCCASION_EMOJI: Record<Occasion, string> = {
