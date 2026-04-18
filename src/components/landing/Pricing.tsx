@@ -188,7 +188,7 @@ const GIFT_CAPSULE_FEATURES = [
   "Unlimited contributors",
   "Text, photos, voice & video",
   "Reveal within 60 days",
-  "No account needed to open or contribute",
+  "No account needed to contribute",
   "Save forever with a free account",
 ];
 

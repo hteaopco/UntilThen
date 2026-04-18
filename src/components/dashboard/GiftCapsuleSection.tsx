@@ -3,9 +3,53 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { PlusCircle, Sparkles } from "lucide-react";
-
 const COLLAPSED_COUNT = 3;
+
+const GIFT_FEATURES = [
+  "Any occasion",
+  "Unlimited contributors",
+  "Text, photos, voice & video",
+  "Reveal within 60 days",
+  "No account needed to contribute",
+  "Save forever with a free account",
+];
+
+function ConfettiOverlay() {
+  const colors = ["#c9a84c", "#e2c47a", "#c47a3a", "#e09a5a", "#e07a4a"];
+  const pieces = Array.from({ length: 18 }).map((_, i) => ({
+    left: `${(i * 13 + 5) % 100}%`,
+    delay: `${((i * 0.73) % 5).toFixed(2)}s`,
+    duration: `${(4 + ((i * 0.5) % 3)).toFixed(2)}s`,
+    color: colors[i % colors.length],
+    size: 3 + (i % 3),
+    shape: i % 2 === 0 ? ("circle" as const) : ("square" as const),
+  }));
+
+  return (
+    <div
+      aria-hidden="true"
+      className="absolute inset-0 overflow-hidden pointer-events-none rounded-2xl"
+    >
+      {pieces.map((p, i) => (
+        <span
+          key={i}
+          className="absolute block animate-confettiFall"
+          style={{
+            left: p.left,
+            top: -24,
+            width: p.size,
+            height: p.size,
+            background: p.color,
+            animationDelay: p.delay,
+            animationDuration: p.duration,
+            borderRadius: p.shape === "circle" ? "50%" : "1px",
+            opacity: 0.8,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export function CapsuleListCollapsible({
   children,
@@ -25,70 +69,52 @@ export function CapsuleListCollapsible({
         <button
           type="button"
           onClick={() => setExpanded(!expanded)}
-          className="w-full text-center py-2 text-[12px] font-semibold text-amber/70 hover:text-amber transition-colors"
+          className="w-full py-2.5 rounded-lg border border-amber/30 text-[13px] font-bold text-amber hover:bg-amber-tint transition-colors"
         >
           {expanded ? "Show less" : `Show all (${total})`}
         </button>
       )}
-      <div className="mt-2">
-        <Link
-          href="/capsules/new"
-          className="inline-flex items-center gap-1.5 py-2 px-3 rounded-lg border border-amber/30 text-amber text-[13px] font-bold hover:bg-amber-tint transition-colors"
-        >
-          <PlusCircle size={14} strokeWidth={1.75} aria-hidden="true" />
-          New Gift Capsule
-        </Link>
-      </div>
     </div>
   );
 }
 
 export function GiftCapsulePricingCard() {
   return (
-    <div className="mt-6 rounded-2xl border border-gold/30 bg-[#fdfaf3] px-6 py-6 relative overflow-hidden">
-      {/* Decorative dots */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="absolute top-3 right-16 w-2 h-2 rounded-full bg-gold/30" />
-        <div className="absolute top-10 right-8 w-1.5 h-1.5 rounded-full bg-amber/20" />
-        <div className="absolute bottom-12 left-10 w-1.5 h-1.5 rounded-full bg-gold/25" />
-        <div className="absolute bottom-6 right-20 w-2 h-2 rounded-full bg-amber/15" />
-        <div className="absolute top-20 left-6 w-1 h-1 rounded-full bg-gold/35" />
-      </div>
-
-      <div className="relative">
-        <span className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
+    <div className="relative mt-6 rounded-2xl border border-gold/25 bg-[#fdf6e8] p-9 shadow-[0_10px_30px_-10px_rgba(201,168,76,0.22)]">
+      <ConfettiOverlay />
+      <div className="relative z-[1] flex flex-col">
+        <span className="block text-[10px] font-bold tracking-[0.14em] uppercase mb-4 text-gold">
           Gift Capsules
         </span>
-        <h3 className="mt-1 text-[20px] font-extrabold text-navy tracking-[-0.3px]">
+        <div className="text-xl font-extrabold tracking-[-0.5px] text-navy">
           One-time Purchase
-        </h3>
-        <div className="mt-2 flex items-baseline gap-0.5">
-          <span className="text-[14px] font-bold text-navy">$</span>
-          <span className="text-[48px] font-extrabold text-navy tracking-[-2px] leading-none">
-            9.99
-          </span>
         </div>
-        <p className="text-[13px] italic text-ink-light">one-time</p>
+        <div className="text-5xl font-extrabold tracking-[-2px] leading-none mt-4 mb-1 text-navy">
+          <sub className="text-xl tracking-normal align-baseline">$</sub>
+          9.99
+        </div>
+        <div className="text-xs italic text-ink-mid/90">one-time</div>
 
-        <ul className="mt-5 space-y-2.5">
-          {[
-            "Any occasion",
-            "Unlimited contributors",
-            "Text, photos, voice & video",
-            "Reveal within 60 days",
-            "No account needed to open or contribute",
-            "Save forever with a free account",
-          ].map((item) => (
-            <li key={item} className="flex items-start gap-2.5 text-[14px] text-navy leading-[1.4]">
-              <Sparkles size={10} strokeWidth={2} className="text-gold mt-1 shrink-0" />
-              {item}
+        <ul className="flex flex-col gap-2.5 mt-6 mb-7">
+          {GIFT_FEATURES.map((f) => (
+            <li
+              key={f}
+              className="text-[13px] leading-[1.4] flex items-start gap-2 text-ink-mid"
+            >
+              <span
+                aria-hidden="true"
+                className="text-[9px] mt-[3px] shrink-0 text-gold"
+              >
+                ✦
+              </span>
+              <span>{f}</span>
             </li>
           ))}
         </ul>
 
         <Link
           href="/capsules/new"
-          className="mt-6 block w-full text-center bg-gold text-navy py-3 rounded-xl text-[15px] font-bold hover:bg-gold-light transition-colors"
+          className="block text-center py-3 px-5 rounded-lg text-[13px] font-bold tracking-[0.01em] transition-all bg-gold text-navy hover:bg-gold-light"
         >
           Create a Gift Capsule
         </Link>

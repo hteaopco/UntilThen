@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { ArrowLeft, Cake, Flower2, Gift, GraduationCap, Heart, Inbox, Lock, PartyPopper, PlusCircle, Sparkles } from "lucide-react";
+import { ArrowLeft, Cake, Flower2, Gift, GraduationCap, Heart, Inbox, Lock, PartyPopper, Sparkles } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Footer } from "@/components/landing/Footer";
 import { NewVaultButton } from "@/components/dashboard/NewVaultButton";
@@ -281,7 +281,7 @@ export default async function DashboardPage({
                   <Link
                     key={c.id}
                     href={`/capsules/${c.id}`}
-                    className="flex items-center gap-3 rounded-xl border border-navy/[0.06] bg-white px-4 py-3 hover:border-amber/25 transition-colors"
+                    className="flex items-center gap-3 rounded-xl border border-dashed border-amber/30 bg-white px-4 py-3 hover:border-amber/50 transition-colors"
                   >
                     <span className="text-amber shrink-0" aria-hidden="true">
                       {OCCASION_ICON[c.occasionType] ?? <Sparkles size={20} strokeWidth={1.5} />}
