@@ -14,7 +14,7 @@ type Contribution = {
   body: string | null;
 };
 
-type Phase = "unlock" | "author-intro" | "fading-to-note" | "reading" | "fading-out" | "closing" | "done";
+type Phase = "unlock" | "author-intro" | "fading-to-note" | "reading" | "closing" | "done";
 
 function authorAlreadySigned(body: string | null, authorName: string): boolean {
   if (!body) return false;
@@ -39,6 +39,7 @@ export function SequentialRevealScreen({
   const [phase, setPhase] = useState<Phase>("unlock");
   const [index, setIndex] = useState(0);
   const [maxSeen, setMaxSeen] = useState(0);
+  const [cardOpacity, setCardOpacity] = useState(1);
 
   const total = contributions.length;
   const current = contributions[index];
@@ -151,21 +152,6 @@ export function SequentialRevealScreen({
     );
   }
 
-  // ── Fading out current note ────────────────────────────
-  if (phase === "fading-out") {
-    return (
-      <main className="min-h-screen bg-warm-surface flex items-center justify-center px-6 py-16">
-        <div className="w-full max-w-[560px]">
-          <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-light mb-4 text-center">
-            {index + 1} of {total}
-          </div>
-
-          <FadeOut current={current!} />
-        </div>
-      </main>
-    );
-  }
-
   // ── Phase 2: Reading ───────────────────────────────────
   const canBack = index > 0;
   const isLast = index === total - 1;
@@ -178,21 +164,22 @@ export function SequentialRevealScreen({
       setPhase("closing");
       return;
     }
-    setPhase("fading-out");
+    setCardOpacity(0);
     setTimeout(() => {
       const nextIndex = index + 1;
       setIndex(nextIndex);
       if (nextIndex > maxSeen) setMaxSeen(nextIndex);
       setPhase("author-intro");
+      setCardOpacity(1);
     }, 500);
   }
 
   function goBack() {
     if (index > 0) {
-      setPhase("fading-out");
+      setCardOpacity(0);
       setTimeout(() => {
         setIndex(index - 1);
-        setPhase("fading-to-note");
+        setCardOpacity(1);
       }, 500);
     }
   }
@@ -205,8 +192,8 @@ export function SequentialRevealScreen({
         </div>
 
         <article
-          className="rounded-2xl bg-[#fdfbf5] text-navy px-7 py-8 lg:px-9 lg:py-10 shadow-[0_12px_40px_-12px_rgba(196,122,58,0.15)] border border-amber/10 animate-fadeIn"
-          style={{ transform: "rotate(-0.3deg)" }}
+          className="rounded-2xl bg-[#fdfbf5] text-navy px-7 py-8 lg:px-9 lg:py-10 shadow-[0_12px_40px_-12px_rgba(196,122,58,0.15)] border border-amber/10 transition-opacity duration-500"
+          style={{ transform: "rotate(-0.3deg)", opacity: cardOpacity }}
         >
           {current?.title && (
             <h2
@@ -285,47 +272,3 @@ function FadeTransition({ onDone, current }: { onDone: () => void; current: Cont
   );
 }
 
-function FadeOut({ current }: { current: Contribution }) {
-  const [opacity, setOpacity] = useState(1);
-  const showSignoff = !authorAlreadySigned(current.body, current.authorName);
-
-  useEffect(() => {
-    const t = setTimeout(() => setOpacity(0), 50);
-    return () => clearTimeout(t);
-  }, []);
-
-  return (
-    <article
-      className="rounded-2xl bg-[#fdfbf5] text-navy px-7 py-8 lg:px-9 lg:py-10 shadow-[0_12px_40px_-12px_rgba(196,122,58,0.15)] border border-amber/10 transition-opacity duration-500"
-      style={{ transform: "rotate(-0.3deg)", opacity }}
-    >
-      {current.title && (
-        <h2
-          className="text-2xl lg:text-[28px] font-bold tracking-[-0.4px] leading-tight text-navy mb-4"
-          style={{ fontFamily: "var(--font-caveat), 'Caveat', cursive" }}
-        >
-          {current.title}
-        </h2>
-      )}
-      {current.body ? (
-        <div
-          className="text-[18px] lg:text-[20px] leading-[1.8] text-navy/80"
-          style={{ fontFamily: "var(--font-caveat), 'Caveat', cursive" }}
-          dangerouslySetInnerHTML={{ __html: current.body }}
-        />
-      ) : (
-        <p className="italic text-ink-light">
-          (Non-text contribution — see the list after the reveal to view.)
-        </p>
-      )}
-      {showSignoff && (
-        <p
-          className="text-right mt-6 text-[16px] text-navy/60 italic"
-          style={{ fontFamily: "var(--font-caveat), 'Caveat', cursive" }}
-        >
-          — {current.authorName}
-        </p>
-      )}
-    </article>
-  );
-}
