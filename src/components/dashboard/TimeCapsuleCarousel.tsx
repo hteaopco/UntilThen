@@ -155,8 +155,8 @@ function CapsuleCard({
     <>
       <div className="p-5">
         <div className="flex items-center gap-2.5 mb-3">
-          <div className="w-8 h-8 rounded-lg bg-gold-tint flex items-center justify-center">
-            <Lock size={16} strokeWidth={1.5} className="text-gold" />
+          <div className="w-8 h-8 rounded-xl bg-gold-tint/70 flex items-center justify-center shadow-[0_0_12px_rgba(201,168,76,0.25)]">
+            <Lock size={15} strokeWidth={1.25} className="text-gold" />
           </div>
           <h3 className="text-[18px] font-extrabold text-navy tracking-[-0.3px]">
             {item.firstName}&rsquo;s Time Capsule
