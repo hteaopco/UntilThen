@@ -107,7 +107,7 @@ export function SequentialRevealScreen({
         <div className="text-center max-w-[400px]">
           <h1 className="text-[22px] lg:text-[28px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
             <Typewriter
-              text={toneClosingLine(tone, total)}
+              text={toneClosingLine(tone)}
               speed={55}
               startDelay={500}
               onComplete={() => {

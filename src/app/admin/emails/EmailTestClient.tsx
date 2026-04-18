@@ -83,7 +83,7 @@ const TEMPLATES: EmailTemplate[] = [
     id: "reveal-day",
     name: "#7 Reveal Day",
     subject: (t) => TONE_HERO[t],
-    bodyPreview: (t) => `${TONE_UNLOCK_LINE[t]} ${toneClosingLine(t, 5)}`,
+    bodyPreview: (t) => `${TONE_UNLOCK_LINE[t]} ${toneClosingLine(t)}`,
     trigger: "Reveal date arrives",
     frequency: "Cron (every 15 min)",
     funnel: "Anticipation",

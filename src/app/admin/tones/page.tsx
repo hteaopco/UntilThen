@@ -72,8 +72,8 @@ export default function AdminTonesPage() {
                 <Row label="Unlock line">
                   {TONE_UNLOCK_LINE[tone]}
                 </Row>
-                <Row label="Closing line (5 contributors)">
-                  {toneClosingLine(tone, 5)}
+                <Row label="Closing line">
+                  {toneClosingLine(tone)}
                 </Row>
                 <Row label="Thank you">
                   {TONE_THANKYOU[tone]("them")}
