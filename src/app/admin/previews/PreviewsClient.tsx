@@ -4,10 +4,21 @@ import { useState } from "react";
 
 import { IntroSplash } from "@/components/landing/IntroSplash";
 import { CapsuleContributeForm } from "@/app/contribute/capsule/[token]/CapsuleContributeForm";
+import { FirstScreen } from "@/app/capsule/[id]/open/FirstScreen";
+import { SequentialRevealScreen } from "@/app/capsule/[id]/open/SequentialRevealScreen";
+import { ListScreen } from "@/app/capsule/[id]/open/ListScreen";
 
-type Preview = null | "splash" | "contributor-single" | "contributor-couple" | "pin";
+type Preview =
+  | null
+  | "splash"
+  | "contributor-single"
+  | "contributor-couple"
+  | "pin"
+  | "reveal-first"
+  | "reveal-sequence"
+  | "reveal-list";
 
-const MOCK_SINGLE = {
+const MOCK_SINGLE_CAPSULE = {
   title: "Mom's 60th Birthday",
   recipientName: "Margaret Smith",
   occasionType: "BIRTHDAY" as const,
@@ -15,13 +26,72 @@ const MOCK_SINGLE = {
   contributorDeadline: null,
 };
 
-const MOCK_COUPLE = {
+const MOCK_COUPLE_CAPSULE = {
   title: "Mom & Dad's 50th Anniversary",
   recipientName: "Margaret Smith & Robert Smith",
   occasionType: "ANNIVERSARY" as const,
   revealDate: new Date(Date.now() + 30 * 86400000).toISOString(),
   contributorDeadline: null,
 };
+
+const MOCK_REVEAL_CAPSULE = {
+  id: "preview-capsule",
+  title: "Sarah's 30th Birthday",
+  recipientName: "Sarah Johnson",
+  occasionType: "BIRTHDAY" as const,
+  revealDate: new Date().toISOString(),
+  hasAccount: false,
+};
+
+const MOCK_CONTRIBUTIONS = [
+  {
+    id: "c1",
+    authorName: "Mom",
+    type: "TEXT" as const,
+    title: "Happy 30th, sweetheart",
+    body: "<p>You've grown into such an incredible person. Every day I watch you navigate this world with grace and kindness, and I couldn't be more proud. I remember the day you were born like it was yesterday — tiny hands, big lungs, and a spirit that hasn't stopped since.</p><p>I love you more than words could ever say.</p>",
+  },
+  {
+    id: "c2",
+    authorName: "Dad",
+    type: "TEXT" as const,
+    title: null,
+    body: "<p>Kid, you've always been braver than you think. Remember when you were seven and climbed that oak tree in the backyard? You got to the top and froze — but you didn't cry. You just looked down and said, \"I'll figure it out.\" That's who you are. Happy birthday.</p>",
+  },
+  {
+    id: "c3",
+    authorName: "Best Friend Alex",
+    type: "TEXT" as const,
+    title: "To my person",
+    body: "<p>20 years of friendship and you still make me laugh harder than anyone. Here's to 20 more of late-night talks, terrible karaoke, and being each other's emergency contact. Love you forever.</p>",
+  },
+  {
+    id: "c4",
+    authorName: "Grandma Rose",
+    type: "TEXT" as const,
+    title: null,
+    body: "<p>My darling girl. You have your grandfather's eyes and your mother's heart. What a combination. Happy birthday from the one who loved you first.</p>",
+  },
+  {
+    id: "c5",
+    authorName: "Brother Jake",
+    type: "TEXT" as const,
+    title: "From your favorite sibling",
+    body: "<p>I know I don't say it enough, but you're the best sister anyone could ask for. Even when you steal my fries. Especially then. Happy 30th, sis.</p>",
+  },
+];
+
+function ExitButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="fixed top-4 right-4 z-[300] bg-navy text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg"
+    >
+      Exit Preview
+    </button>
+  );
+}
 
 export function PreviewsClient() {
   const [active, setActive] = useState<Preview>(null);
@@ -33,16 +103,10 @@ export function PreviewsClient() {
   if (active === "contributor-single") {
     return (
       <div className="relative">
-        <button
-          type="button"
-          onClick={() => setActive(null)}
-          className="fixed top-4 right-4 z-[300] bg-navy text-white px-3 py-1.5 rounded-lg text-xs font-bold"
-        >
-          Exit Preview
-        </button>
+        <ExitButton onClick={() => setActive(null)} />
         <CapsuleContributeForm
           token="preview-mode"
-          capsule={MOCK_SINGLE}
+          capsule={MOCK_SINGLE_CAPSULE}
           invite={{ name: "Sarah" }}
         />
       </div>
@@ -52,16 +116,10 @@ export function PreviewsClient() {
   if (active === "contributor-couple") {
     return (
       <div className="relative">
-        <button
-          type="button"
-          onClick={() => setActive(null)}
-          className="fixed top-4 right-4 z-[300] bg-navy text-white px-3 py-1.5 rounded-lg text-xs font-bold"
-        >
-          Exit Preview
-        </button>
+        <ExitButton onClick={() => setActive(null)} />
         <CapsuleContributeForm
           token="preview-mode"
-          capsule={MOCK_COUPLE}
+          capsule={MOCK_COUPLE_CAPSULE}
           invite={{ name: "Sarah" }}
         />
       </div>
@@ -71,17 +129,50 @@ export function PreviewsClient() {
   if (active === "pin") {
     return (
       <div className="relative">
-        <button
-          type="button"
-          onClick={() => {
-            sessionStorage.removeItem("vaultUnlocked");
-            setActive(null);
-          }}
-          className="fixed top-4 right-4 z-[300] bg-navy text-white px-3 py-1.5 rounded-lg text-xs font-bold"
-        >
-          Exit Preview
-        </button>
+        <ExitButton onClick={() => {
+          sessionStorage.removeItem("vaultUnlocked");
+          setActive(null);
+        }} />
         <PinPreview />
+      </div>
+    );
+  }
+
+  if (active === "reveal-first") {
+    return (
+      <div className="relative">
+        <ExitButton onClick={() => setActive(null)} />
+        <FirstScreen
+          capsule={MOCK_REVEAL_CAPSULE}
+          contributionCount={MOCK_CONTRIBUTIONS.length}
+          onOpen={() => setActive("reveal-sequence")}
+        />
+      </div>
+    );
+  }
+
+  if (active === "reveal-sequence") {
+    return (
+      <div className="relative">
+        <ExitButton onClick={() => setActive(null)} />
+        <SequentialRevealScreen
+          contributions={MOCK_CONTRIBUTIONS}
+          onComplete={() => setActive("reveal-list")}
+        />
+      </div>
+    );
+  }
+
+  if (active === "reveal-list") {
+    return (
+      <div className="relative">
+        <ExitButton onClick={() => setActive(null)} />
+        <ListScreen
+          capsule={MOCK_REVEAL_CAPSULE}
+          token="preview-token"
+          contributions={MOCK_CONTRIBUTIONS}
+          preview={true}
+        />
       </div>
     );
   }
@@ -95,7 +186,7 @@ export function PreviewsClient() {
       <div className="grid gap-3 sm:grid-cols-2">
         <PreviewCard
           title="Intro Splash"
-          description="The untilThen typewriter animation that plays on first visit."
+          description="The untilThen typewriter animation."
           onClick={() => {
             try { sessionStorage.removeItem("untilthen:intro-shown"); } catch { /* */ }
             setActive("splash");
@@ -103,17 +194,22 @@ export function PreviewsClient() {
         />
         <PreviewCard
           title="Contributor Flow (Single)"
-          description="Full contributor experience: splash → typewriter invite → editor → thank you. Single recipient."
+          description="Splash, typewriter invite, rich editor, thank you. Single recipient."
           onClick={() => setActive("contributor-single")}
         />
         <PreviewCard
           title="Contributor Flow (Couple)"
-          description="Same flow but with couple recipient — Ann & Bob pronouns and copy."
+          description="Same flow with couple recipient — they/them pronouns."
           onClick={() => setActive("contributor-couple")}
         />
         <PreviewCard
+          title="Gift Capsule Reveal"
+          description="Full reveal: emotional hook, sequential guided reveal (5 sample letters), browseable list."
+          onClick={() => setActive("reveal-first")}
+        />
+        <PreviewCard
           title="PIN Screen"
-          description="Vault PIN entry with setup flow, keyboard support, and unlock animation."
+          description="Vault PIN setup, unlock animation, keyboard support."
           onClick={() => {
             sessionStorage.removeItem("vaultUnlocked");
             setActive("pin");
