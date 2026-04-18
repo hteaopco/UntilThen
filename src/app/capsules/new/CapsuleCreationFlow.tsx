@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { ArrowLeft, Check, ChevronLeft, Home, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, ChevronLeft, Feather, Flame, HandHeart, Heart, Home, PartyPopper, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -11,7 +11,6 @@ import { CAPSULE_MAX_HORIZON_MS } from "@/lib/capsules";
 import {
   TONE_LABELS,
   TONE_DESCRIPTIONS,
-  TONE_EMOJI,
   type CapsuleTone,
 } from "@/lib/tone";
 
@@ -26,6 +25,15 @@ type OccasionType =
   | "OTHER";
 
 type Gender = "female" | "male" | "couple";
+
+const TONE_ICONS: Record<CapsuleTone, React.ReactNode> = {
+  CELEBRATION: <PartyPopper size={20} strokeWidth={1.5} />,
+  GRATITUDE: <HandHeart size={20} strokeWidth={1.5} />,
+  REMEMBRANCE: <Feather size={20} strokeWidth={1.5} />,
+  ENCOURAGEMENT: <Flame size={20} strokeWidth={1.5} />,
+  LOVE: <Heart size={20} strokeWidth={1.5} />,
+  OTHER: <Sparkles size={20} strokeWidth={1.5} />,
+};
 
 const OCCASIONS: { value: OccasionType; label: string }[] = [
   { value: "BIRTHDAY", label: "Birthday" },
@@ -286,11 +294,11 @@ export function CapsuleCreationFlow() {
           {/* ── Step 0: Tone ───────────────────────────── */}
           {step === 0 && (
             <div className="space-y-5">
-              <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
+              <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight whitespace-nowrap">
                 What kind of moment is this?
               </h1>
               <p className="text-[15px] text-ink-mid leading-[1.6]">
-                This sets the tone for the entire experience &mdash; the reveal, the messages, everything.
+                This shapes how it feels when they open it.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {TONE_OPTIONS.map((t) => (
@@ -305,7 +313,7 @@ export function CapsuleCreationFlow() {
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
-                      <span className="text-xl">{TONE_EMOJI[t]}</span>
+                      <span className={`shrink-0 ${tone === t ? "text-amber" : "text-ink-light"}`}>{TONE_ICONS[t]}</span>
                       <div>
                         <div className={`text-[14px] font-bold ${tone === t ? "text-amber" : "text-navy"}`}>
                           {TONE_LABELS[t]}
@@ -503,7 +511,7 @@ export function CapsuleCreationFlow() {
               </p>
 
               <div className="rounded-2xl border border-amber/20 bg-white px-5 py-5 space-y-3">
-                <ReviewRow label="Tone" value={`${TONE_EMOJI[tone ?? "CELEBRATION"]} ${TONE_LABELS[tone ?? "CELEBRATION"]}`} />
+                <ReviewRow label="Tone" value={TONE_LABELS[tone ?? "CELEBRATION"]} />
                 <ReviewRow label="Title" value={title} />
                 <ReviewRow label="For" value={recipientName} />
                 <ReviewRow label="Occasion" value={OCCASIONS.find((o) => o.value === occasionType)?.label ?? "Other"} />
