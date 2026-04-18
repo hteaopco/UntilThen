@@ -3,7 +3,7 @@ export type CapsuleTone = "CELEBRATION" | "GRATITUDE" | "REMEMBRANCE" | "ENCOURA
 export const TONE_LABELS: Record<CapsuleTone, string> = {
   CELEBRATION: "Celebration",
   GRATITUDE: "Gratitude",
-  REMEMBRANCE: "Remembrance",
+  REMEMBRANCE: "Thinking of You",
   ENCOURAGEMENT: "Encouragement",
   LOVE: "Love",
   OTHER: "Other",
@@ -12,7 +12,7 @@ export const TONE_LABELS: Record<CapsuleTone, string> = {
 export const TONE_DESCRIPTIONS: Record<CapsuleTone, string> = {
   CELEBRATION: "Joy, milestones, and big moments",
   GRATITUDE: "Appreciation and thank you",
-  REMEMBRANCE: "Honoring and remembering",
+  REMEMBRANCE: "Care, presence, and being there",
   ENCOURAGEMENT: "Support and strength",
   LOVE: "Intimate and heartfelt",
   OTHER: "Something else entirely",
@@ -58,7 +58,7 @@ export function toneClosingLine(tone: CapsuleTone): string {
   switch (tone) {
     case "CELEBRATION": return "They showed up for you.";
     case "GRATITUDE": return "They took time to thank you.";
-    case "REMEMBRANCE": return "You\u2019re being held close.";
+    case "REMEMBRANCE": return "You\u2019re not alone.";
     case "ENCOURAGEMENT": return "People believe in you.";
     case "LOVE": return "You\u2019re deeply loved.";
     default: return "This was all for you.";
@@ -68,7 +68,7 @@ export function toneClosingLine(tone: CapsuleTone): string {
 export const TONE_INVITE_LINE1: Record<CapsuleTone, string> = {
   CELEBRATION: "You\u2019ve been invited to create something for",
   GRATITUDE: "You\u2019ve been invited to thank",
-  REMEMBRANCE: "You\u2019ve been invited to share a memory of",
+  REMEMBRANCE: "You\u2019ve been invited to share something for",
   ENCOURAGEMENT: "You\u2019ve been invited to send encouragement to",
   LOVE: "You\u2019ve been invited to write something for",
   OTHER: "You\u2019ve been invited to create something for",
@@ -77,7 +77,7 @@ export const TONE_INVITE_LINE1: Record<CapsuleTone, string> = {
 export const TONE_INVITE_LINE2: Record<CapsuleTone, (contraction: string) => string> = {
   CELEBRATION: (_c) => "A message. A memory. Something they\u2019ll open and feel for years.",
   GRATITUDE: (_c) => "A message of thanks. Something they\u2019ll keep with them.",
-  REMEMBRANCE: (_c) => "A memory. A kind word. Something to remind them they\u2019re not alone.",
+  REMEMBRANCE: (_c) => "A message to let them know you\u2019re there. Something they can come back to.",
   ENCOURAGEMENT: (_c) => "A few words of support. Something to lift them up.",
   LOVE: (_c) => "A letter. A memory. Something from the heart.",
   OTHER: (_c) => "A message. A memory. Something they\u2019ll open when it matters.",
@@ -86,7 +86,7 @@ export const TONE_INVITE_LINE2: Record<CapsuleTone, (contraction: string) => str
 export const TONE_EDITOR_HINT: Record<CapsuleTone, string> = {
   CELEBRATION: "Write what comes to mind \u2014 a favorite memory, something you admire, or just what you want them to know.",
   GRATITUDE: "What do you want to thank them for? A moment, a quality, something they did\u2026",
-  REMEMBRANCE: "Share a memory, a story, or something they meant to you\u2026",
+  REMEMBRANCE: "What do you want them to feel? A reminder they\u2019re not alone, or that you\u2019re thinking of them.",
   ENCOURAGEMENT: "What do you want them to hear? Something steady, something they can come back to\u2026",
   LOVE: "What do you want to tell them? Something you\u2019ve never said, or something they should always remember\u2026",
   OTHER: "Write what comes to mind \u2014 a favorite memory, something you admire, or just what you want them to know.",
@@ -95,7 +95,7 @@ export const TONE_EDITOR_HINT: Record<CapsuleTone, string> = {
 export const TONE_THANKYOU: Record<CapsuleTone, (pronoun: string) => string> = {
   CELEBRATION: (_p) => "That\u2019s going to mean a lot to them.",
   GRATITUDE: (_p) => "They\u2019re going to feel this.",
-  REMEMBRANCE: (_p) => "That meant more than you know.",
+  REMEMBRANCE: (_p) => "That\u2019s going to mean more than you know.",
   ENCOURAGEMENT: (_p) => "This is going to give them strength.",
   LOVE: (_p) => "That\u2019s going to stay with them.",
   OTHER: (_p) => "That\u2019s going to mean a lot to them.",
@@ -112,7 +112,7 @@ export function toneHasFireworks(tone: CapsuleTone): boolean {
 export const TONE_UPSELL: Record<CapsuleTone, { headline: string; sub: string }> = {
   CELEBRATION: { headline: "Love this idea?", sub: "Write to someone you love \u2014 for years, not just once." },
   GRATITUDE: { headline: "Love this idea?", sub: "Start a capsule for someone who matters." },
-  REMEMBRANCE: { headline: "Create something meaningful.", sub: "A lasting way to honor someone you love." },
+  REMEMBRANCE: { headline: "Create something meaningful.", sub: "Be there for someone \u2014 even when you\u2019re not with them." },
   ENCOURAGEMENT: { headline: "Love this idea?", sub: "Write something they can come back to." },
   LOVE: { headline: "Love this idea?", sub: "Write something they\u2019ll carry with them." },
   OTHER: { headline: "Love this idea?", sub: "Write to someone you love \u2014 for years, not just once." },
