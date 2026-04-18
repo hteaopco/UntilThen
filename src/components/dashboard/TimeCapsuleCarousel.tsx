@@ -185,7 +185,7 @@ function CapsuleCard({
           alt=""
           width={800}
           height={533}
-          className="w-full h-full object-contain object-center"
+          className="w-full h-full object-cover object-center scale-[1.4]"
           priority={false}
         />
       </div>
