@@ -68,6 +68,7 @@ export function CapsuleContributeForm({
   }, []);
 
   const ensureContribution = useCallback(async (): Promise<string | null> => {
+    if (token === "preview-mode") return "preview-contribution";
     const s = stateRef.current;
     if (s.contributionId) return s.contributionId;
     if (!s.name.trim()) return null;
@@ -104,6 +105,10 @@ export function CapsuleContributeForm({
     if (saving) return;
     if (!hasContent()) {
       setError("Please add your name and write a message.");
+      return;
+    }
+    if (token === "preview-mode") {
+      setPhase("thankyou-typing");
       return;
     }
     setSaving(true);
