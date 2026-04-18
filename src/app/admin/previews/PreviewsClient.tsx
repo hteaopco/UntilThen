@@ -8,6 +8,12 @@ import { FirstScreen } from "@/app/capsule/[id]/open/FirstScreen";
 import { SequentialRevealScreen } from "@/app/capsule/[id]/open/SequentialRevealScreen";
 import { ListScreen } from "@/app/capsule/[id]/open/ListScreen";
 import { LockedVaultView } from "@/app/vault/[childId]/child-view/LockedVaultView";
+import {
+  TONE_LABELS,
+  TONE_EMOJI,
+  TONE_HERO,
+  type CapsuleTone,
+} from "@/lib/tone";
 
 type Preview =
   | null
@@ -110,8 +116,11 @@ function ExitButton({ onClick }: { onClick: () => void }) {
   );
 }
 
+const TONE_OPTIONS: CapsuleTone[] = ["CELEBRATION", "GRATITUDE", "REMEMBRANCE", "ENCOURAGEMENT", "LOVE", "OTHER"];
+
 export function PreviewsClient() {
   const [active, setActive] = useState<Preview>(null);
+  const [previewTone, setPreviewTone] = useState<CapsuleTone>("CELEBRATION");
 
   if (active === "splash") {
     return <IntroSplash onComplete={() => setActive(null)} />;
@@ -123,7 +132,7 @@ export function PreviewsClient() {
         <ExitButton onClick={() => setActive(null)} />
         <CapsuleContributeForm
           token="preview-mode"
-          capsule={MOCK_SINGLE_CAPSULE}
+          capsule={{ ...MOCK_SINGLE_CAPSULE, tone: previewTone }}
           invite={{ name: "Sarah" }}
         />
       </div>
@@ -136,7 +145,7 @@ export function PreviewsClient() {
         <ExitButton onClick={() => setActive(null)} />
         <CapsuleContributeForm
           token="preview-mode"
-          capsule={MOCK_COUPLE_CAPSULE}
+          capsule={{ ...MOCK_COUPLE_CAPSULE, tone: previewTone }}
           invite={{ name: "Sarah" }}
         />
       </div>
@@ -177,6 +186,7 @@ export function PreviewsClient() {
         <SequentialRevealScreen
           contributions={MOCK_CONTRIBUTIONS}
           onComplete={() => setActive("reveal-list")}
+          tone={previewTone}
         />
       </div>
     );
@@ -234,6 +244,19 @@ export function PreviewsClient() {
         Preview interactive flows with mock data. No real capsules or accounts needed.
       </p>
 
+      {/* Tone selector */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-mid">Preview tone:</span>
+        {TONE_OPTIONS.map((t) => (
+          <button key={t} type="button" onClick={() => setPreviewTone(t)}
+            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${
+              previewTone === t ? "bg-amber text-white border-amber" : "border-navy/15 text-ink-mid hover:border-amber/40"
+            }`}>
+            {TONE_EMOJI[t]} {TONE_LABELS[t]}
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2">
         <PreviewCard
           title="Intro Splash"
@@ -245,17 +268,17 @@ export function PreviewsClient() {
         />
         <PreviewCard
           title="Contributor Flow (Single)"
-          description="Splash, typewriter invite, rich editor, thank you. Single recipient."
+          description={`${TONE_EMOJI[previewTone]} ${TONE_LABELS[previewTone]} tone. Splash, invite, editor, thank you.`}
           onClick={() => setActive("contributor-single")}
         />
         <PreviewCard
           title="Contributor Flow (Couple)"
-          description="Same flow with couple recipient — they/them pronouns."
+          description={`${TONE_EMOJI[previewTone]} ${TONE_LABELS[previewTone]} tone. Same flow with couple pronouns.`}
           onClick={() => setActive("contributor-couple")}
         />
         <PreviewCard
           title="Gift Capsule Reveal"
-          description="Full reveal with confetti: emotional hook, sequential guided reveal (5 letters), browseable list."
+          description={`${TONE_EMOJI[previewTone]} ${TONE_LABELS[previewTone]} tone. ${previewTone === "CELEBRATION" ? "Confetti + fireworks." : previewTone === "LOVE" ? "Gentle confetti." : "No effects — quiet and warm."}`}
           onClick={() => setActive("reveal-first")}
         />
         <PreviewCard
