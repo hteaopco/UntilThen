@@ -35,7 +35,7 @@ export function HeroImageCrossfade() {
             alt=""
             fill
             sizes="(max-width: 768px) 100vw, 600px"
-            className="object-contain"
+            className="object-contain mix-blend-multiply"
             priority={i === 0}
           />
         </div>
