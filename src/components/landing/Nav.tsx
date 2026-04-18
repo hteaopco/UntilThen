@@ -1,7 +1,7 @@
 "use client";
 
 import { SignedIn, SignedOut } from "@clerk/nextjs";
-import { LogIn, Menu, X } from "lucide-react";
+import { CircleUserRound, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -12,15 +12,10 @@ const LINKS = [
   { href: "/#pricing", label: "Pricing" },
 ] as const;
 
-/**
- * Scroll behaviour: transparent over the cream page at the top,
- * a soft blurred surface once the page has scrolled past ~12px.
- */
 export function Nav() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // Close on ESC + lock body scroll while the sheet is open.
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
@@ -35,9 +30,6 @@ export function Nav() {
     };
   }, [open]);
 
-  // Toggle the .scrolled state once the page leaves the top.
-  // Single passive listener; no rAF — the bar's fade-in is
-  // happening in CSS via a transition on background-color.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
     onScroll();
@@ -59,9 +51,7 @@ export function Nav() {
           <LogoSvg variant="dark" />
         </Link>
 
-        {/* Desktop: inline nav links + sign-in / dashboard.
-            "Get started" CTA removed so the nav doesn't compete
-            with the hero CTA below. */}
+        {/* Desktop nav */}
         <ul className="hidden lg:flex items-center gap-8 text-sm text-ink-mid">
           {LINKS.map((l) => (
             <li key={l.href}>
@@ -74,49 +64,66 @@ export function Nav() {
             </li>
           ))}
           <li>
-            <RightAction />
+            <DesktopActions />
           </li>
         </ul>
 
-        {/* Mobile: three elements only — Logo (above), then
-            Sign in and the hamburger. Spacing matches the
-            spec's gap-16. */}
-        <div className="lg:hidden flex items-center gap-4">
-          <RightAction />
+        {/* Mobile: Get Started + user icon menu */}
+        <div className="lg:hidden flex items-center gap-3">
           <SignedOut>
+            <Link
+              href="/sign-up"
+              className="inline-flex items-center bg-amber/85 text-white px-3.5 py-2 rounded-xl text-[13px] font-semibold tracking-[0.01em] hover:bg-amber transition-colors shadow-[0_2px_12px_rgba(196,122,58,0.25)]"
+            >
+              Get Started
+            </Link>
             <button
               type="button"
               onClick={() => setOpen((v) => !v)}
               aria-label={open ? "Close menu" : "Open menu"}
               aria-expanded={open}
               aria-controls="mobile-nav-panel"
-              className="text-navy/70 hover:text-navy transition-colors p-1"
+              className="text-navy/40 hover:text-navy/70 transition-colors p-0.5"
             >
               {open ? (
-                <X size={24} strokeWidth={1.5} aria-hidden="true" />
+                <X size={22} strokeWidth={1.25} aria-hidden="true" />
               ) : (
-                <Menu size={24} strokeWidth={1.5} aria-hidden="true" />
+                <CircleUserRound size={22} strokeWidth={1.25} aria-hidden="true" />
               )}
             </button>
           </SignedOut>
+          <SignedIn>
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-1 bg-amber text-white px-3.5 py-2 rounded-lg text-[13px] font-bold tracking-[0.01em] hover:bg-amber-dark transition-colors"
+            >
+              Your Vault
+            </Link>
+          </SignedIn>
         </div>
       </div>
 
-      {/* Mobile dropdown panel — slides in from under the nav. */}
+      {/* Mobile dropdown */}
       <div
         id="mobile-nav-panel"
         className={`lg:hidden overflow-hidden transition-[max-height,opacity] duration-300 ease-out ${
           open ? "max-h-[520px] opacity-100" : "max-h-0 opacity-0"
-        } ${
-          // Open panel needs a solid surface even if the page
-          // is still at the top (transparent nav).
-          open ? "bg-cream/[0.96] backdrop-blur-[12px]" : ""
-        }`}
-        style={{
-          WebkitBackdropFilter: open ? "blur(12px)" : "none",
-        }}
+        } ${open ? "bg-cream/[0.96] backdrop-blur-[12px]" : ""}`}
+        style={{ WebkitBackdropFilter: open ? "blur(12px)" : "none" }}
       >
         <ul className="px-5 pb-6 pt-2 flex flex-col gap-1 border-t border-navy/[0.06]">
+          <li>
+            <Link
+              href="/sign-in"
+              onClick={() => setOpen(false)}
+              className="block px-3 py-3 rounded-lg text-[15px] font-semibold text-navy hover:bg-amber-tint transition-colors"
+            >
+              Sign in
+            </Link>
+          </li>
+          <li aria-hidden="true">
+            <hr className="my-1 border-navy/[0.06]" />
+          </li>
           {LINKS.map((l) => (
             <li key={l.href}>
               <Link
@@ -134,35 +141,16 @@ export function Nav() {
   );
 }
 
-/**
- * The right-side action — same component on desktop and mobile.
- *
- *   Signed out → "Sign in" text link + "Sign up" amber button
- *   Signed in  → "Your Vault" amber button
- *
- * Sign in / Dashboard-when-on-it-already stay quiet; the primary
- * action is always styled as a filled button so it's visible from
- * across a marketing page — signed-out users see the sign-up path,
- * signed-in users wandering on /blog or /faq see a clear way back
- * into the product.
- */
-function RightAction() {
+function DesktopActions() {
   return (
     <>
       <SignedOut>
-        <div className="flex items-center gap-3 lg:gap-4">
+        <div className="flex items-center gap-4">
           <Link
             href="/sign-in"
-            className="hidden lg:inline text-[14px] font-medium text-navy/85 hover:text-navy transition-colors"
+            className="text-[14px] font-medium text-navy/85 hover:text-navy transition-colors"
           >
             Sign in
-          </Link>
-          <Link
-            href="/sign-in"
-            aria-label="Sign in"
-            className="lg:hidden text-navy/60 hover:text-navy transition-colors p-1"
-          >
-            <LogIn size={20} strokeWidth={1.5} aria-hidden="true" />
           </Link>
           <Link
             href="/sign-up"
