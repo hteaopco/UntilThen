@@ -1,5 +1,6 @@
 "use client";
 
+import { Cake, Flower2, GraduationCap, Heart, PartyPopper, Sparkles } from "lucide-react";
 import { TimeVault } from "@/components/ui/TimeVault";
 import { formatLong } from "@/lib/dateFormatters";
 
@@ -24,13 +25,13 @@ function heroLine(_occasion: Occasion, count: number): string {
   return "Something\u2019s waiting for you.";
 }
 
-const OCCASION_EMOJI: Record<Occasion, string> = {
-  BIRTHDAY: "🎂",
-  ANNIVERSARY: "💍",
-  RETIREMENT: "🎉",
-  GRADUATION: "🎓",
-  WEDDING: "💐",
-  OTHER: "✨",
+const OCCASION_ICON: Record<Occasion, React.ReactNode> = {
+  BIRTHDAY: <Cake size={28} strokeWidth={1.5} />,
+  ANNIVERSARY: <Heart size={28} strokeWidth={1.5} />,
+  RETIREMENT: <PartyPopper size={28} strokeWidth={1.5} />,
+  GRADUATION: <GraduationCap size={28} strokeWidth={1.5} />,
+  WEDDING: <Flower2 size={28} strokeWidth={1.5} />,
+  OTHER: <Sparkles size={28} strokeWidth={1.5} />,
 };
 
 export function FirstScreen({
@@ -54,8 +55,8 @@ export function FirstScreen({
           <TimeVault state="sealed" ariaLabel={`${capsule.recipientName}'s capsule`} />
         </div>
 
-        <div aria-hidden="true" className="text-3xl">
-          {OCCASION_EMOJI[capsule.occasionType]}
+        <div aria-hidden="true" className="flex justify-center text-white/80">
+          {OCCASION_ICON[capsule.occasionType]}
         </div>
 
         <h1 className="text-balance text-[28px] lg:text-[36px] font-extrabold tracking-[-0.5px] leading-[1.1]">

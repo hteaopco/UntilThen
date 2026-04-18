@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { ArrowLeft, Gift, Inbox, Lock, PlusCircle, Sparkles } from "lucide-react";
+import { ArrowLeft, Cake, Flower2, Gift, GraduationCap, Heart, Inbox, Lock, PartyPopper, PlusCircle, Sparkles } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Footer } from "@/components/landing/Footer";
 import { NewVaultButton } from "@/components/dashboard/NewVaultButton";
@@ -34,9 +34,13 @@ export const runtime = "nodejs";
 
 // ── Helpers ───────────────────────────────────────────────────
 
-const OCCASION_EMOJI: Record<string, string> = {
-  BIRTHDAY: "🎂", ANNIVERSARY: "💍", RETIREMENT: "🎉",
-  GRADUATION: "🎓", WEDDING: "💐", OTHER: "✨",
+const OCCASION_ICON: Record<string, React.ReactNode> = {
+  BIRTHDAY: <Cake size={20} strokeWidth={1.5} />,
+  ANNIVERSARY: <Heart size={20} strokeWidth={1.5} />,
+  RETIREMENT: <PartyPopper size={20} strokeWidth={1.5} />,
+  GRADUATION: <GraduationCap size={20} strokeWidth={1.5} />,
+  WEDDING: <Flower2 size={20} strokeWidth={1.5} />,
+  OTHER: <Sparkles size={20} strokeWidth={1.5} />,
 };
 
 function statusLabel(s: string): string {
@@ -275,8 +279,8 @@ export default async function DashboardPage({
                     href={`/capsules/${c.id}`}
                     className="flex items-center gap-3 rounded-xl border border-navy/[0.06] bg-white px-4 py-3 hover:border-amber/25 transition-colors"
                   >
-                    <span className="text-xl" aria-hidden="true">
-                      {OCCASION_EMOJI[c.occasionType] ?? "✨"}
+                    <span className="text-amber shrink-0" aria-hidden="true">
+                      {OCCASION_ICON[c.occasionType] ?? <Sparkles size={20} strokeWidth={1.5} />}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="text-[14px] font-semibold text-navy truncate">

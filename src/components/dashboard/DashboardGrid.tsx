@@ -1,4 +1,4 @@
-import { Lock, PlusCircle, Sparkles } from "lucide-react";
+import { Cake, Flower2, GraduationCap, Heart, Lock, PartyPopper, PlusCircle, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 import { NewVaultButton } from "@/components/dashboard/NewVaultButton";
@@ -26,13 +26,13 @@ export type DashboardCapsule = {
   contributorCount: number;
 };
 
-const OCCASION_EMOJI: Record<DashboardCapsule["occasionType"], string> = {
-  BIRTHDAY: "🎂",
-  ANNIVERSARY: "💍",
-  RETIREMENT: "🎉",
-  GRADUATION: "🎓",
-  WEDDING: "💐",
-  OTHER: "✨",
+const OCCASION_ICON: Record<DashboardCapsule["occasionType"], React.ReactNode> = {
+  BIRTHDAY: <Cake size={20} strokeWidth={1.5} />,
+  ANNIVERSARY: <Heart size={20} strokeWidth={1.5} />,
+  RETIREMENT: <PartyPopper size={20} strokeWidth={1.5} />,
+  GRADUATION: <GraduationCap size={20} strokeWidth={1.5} />,
+  WEDDING: <Flower2 size={20} strokeWidth={1.5} />,
+  OTHER: <Sparkles size={20} strokeWidth={1.5} />,
 };
 
 function capsuleStatusLabel(status: DashboardCapsule["status"]): string {
@@ -158,9 +158,9 @@ export function DashboardGrid({
               <div className="flex items-start gap-3">
                 <div
                   aria-hidden="true"
-                  className="shrink-0 w-10 h-10 rounded-xl bg-amber-tint flex items-center justify-center text-xl"
+                  className="shrink-0 w-10 h-10 rounded-xl bg-amber-tint text-amber flex items-center justify-center"
                 >
-                  {OCCASION_EMOJI[c.occasionType]}
+                  {OCCASION_ICON[c.occasionType]}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
