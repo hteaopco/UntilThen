@@ -7,6 +7,10 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Footer } from "@/components/landing/Footer";
 import { NewVaultButton } from "@/components/dashboard/NewVaultButton";
 import {
+  CapsuleListCollapsible,
+  GiftCapsulePricingCard,
+} from "@/components/dashboard/GiftCapsuleSection";
+import {
   TimeCapsuleCarousel,
   type TimeCapsuleItem,
 } from "@/components/dashboard/TimeCapsuleCarousel";
@@ -270,7 +274,7 @@ export default async function DashboardPage({
               </Link>
             </div>
           ) : (
-            <div className="space-y-2">
+            <CapsuleListCollapsible total={capsuleRecords.length}>
               {capsuleRecords.map((c) => {
                 const s = effectiveStatus(c);
                 return (
@@ -296,17 +300,10 @@ export default async function DashboardPage({
                   </Link>
                 );
               })}
-              <div className="mt-2">
-                <Link
-                  href="/capsules/new"
-                  className="inline-flex items-center gap-1.5 py-2 px-3 rounded-lg border border-amber/30 text-amber text-[13px] font-bold hover:bg-amber-tint transition-colors"
-                >
-                  <PlusCircle size={14} strokeWidth={1.75} aria-hidden="true" />
-                  New Gift Capsule
-                </Link>
-              </div>
-            </div>
+            </CapsuleListCollapsible>
           )}
+
+          <GiftCapsulePricingCard />
         </section>
 
         {/* ── Contributing To (secondary) ────────────────── */}

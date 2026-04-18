@@ -190,7 +190,7 @@ function CapsuleCard({
         />
       </div>
 
-      <div className="px-5 pb-5 pt-3">
+      <div className="px-5 pb-5 pt-6">
         <span className="block w-full text-center bg-amber text-white font-bold text-[15px] py-3 rounded-lg transition-colors hover:bg-amber-dark">
           Open {item.firstName}&rsquo;s capsule
         </span>
