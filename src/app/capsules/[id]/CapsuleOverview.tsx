@@ -390,7 +390,7 @@ export function CapsuleOverview({
           <p className="text-sm text-ink-mid leading-[1.6]">
             {isDraft
               ? <>Each contributor adds something &mdash; a message, a memory, a voice note &mdash; and {subjectPronoun}&rsquo;ll open it all at once.</>
-              : <>Contributors are adding messages. {recipientDisplayName} will see everything on the reveal date.</>
+              : <>Invites are out. You can still add more contributors above &mdash; they&rsquo;ll get their invite right away.</>
             }
           </p>
           {isDraft ? (
