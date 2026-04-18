@@ -294,7 +294,7 @@ export function CapsuleCreationFlow() {
           {/* ── Step 0: Tone ───────────────────────────── */}
           {step === 0 && (
             <div className="space-y-5">
-              <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight whitespace-nowrap">
+              <h1 className="text-[24px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
                 What kind of moment is this?
               </h1>
               <p className="text-[15px] text-ink-mid leading-[1.6]">

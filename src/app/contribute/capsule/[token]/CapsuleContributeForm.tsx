@@ -67,7 +67,7 @@ export function CapsuleContributeForm({
   const [contributionId, setContributionId] = useState<string | null>(existingContribution?.id ?? null);
   const [showCta, setShowCta] = useState(false);
   const [inviteLine2, setInviteLine2] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [extraHeight, setExtraHeight] = useState(0);
   const mediaKeysRef = useRef<string[]>([]);
   const mediaTypesRef = useRef<string[]>([]);
   const stateRef = useRef({ name, title, body, contributionId });
@@ -363,7 +363,7 @@ export function CapsuleContributeForm({
             </div>
 
             {/* Editor */}
-            <div className={`relative px-5 pt-3 pb-2 transition-all ${expanded ? "min-h-[360px]" : ""}`}>
+            <div className="relative px-5 pt-3 pb-2 transition-all" style={{ minHeight: extraHeight ? `${180 + extraHeight}px` : undefined }}>
               <TiptapEditor
                 initialContent={body}
                 onUpdate={setBody}
@@ -377,16 +377,24 @@ export function CapsuleContributeForm({
               </div>
             </div>
             <div className="px-5 pb-2 flex items-center justify-between">
-              {hasBody && (
+              <div className="flex gap-3">
+                {extraHeight > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setExtraHeight(Math.max(0, extraHeight - 180))}
+                    className="text-[11px] text-amber/70 hover:text-amber transition-colors"
+                  >
+                    Collapse
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => setExpanded(!expanded)}
+                  onClick={() => setExtraHeight(extraHeight + 180)}
                   className="text-[11px] text-amber/70 hover:text-amber transition-colors"
                 >
-                  {expanded ? "Collapse" : "Tap to expand"}
+                  Expand
                 </button>
-              )}
-              {!hasBody && <span />}
+              </div>
               <span className="text-[11px] text-ink-light/50 italic">
                 Write as much as you&rsquo;d like.
               </span>
