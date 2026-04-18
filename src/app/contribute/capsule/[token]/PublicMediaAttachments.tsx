@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Mic, MicOff, Video, X } from "lucide-react";
+import { Camera, Mic, MicOff, Upload, Video, X } from "lucide-react";
 import { useRef, useState } from "react";
 
 type Attachment = {
@@ -131,30 +131,30 @@ export function PublicMediaAttachments({
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2 mb-3">
+      <div className="flex gap-1.5 mb-3">
         <button type="button" onClick={() => triggerFile("photo")} disabled={uploading || recording}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-navy/15 text-[12px] font-semibold text-ink-mid hover:border-amber/40 hover:text-amber transition-colors disabled:opacity-40">
-          <Camera size={14} strokeWidth={1.5} /> Photo
+          className="inline-flex items-center gap-1 flex-1 justify-center px-2 py-1.5 rounded-full border border-navy/15 text-[11px] font-semibold text-ink-mid hover:border-amber/40 hover:text-amber transition-colors disabled:opacity-40">
+          <Camera size={13} strokeWidth={1.5} /> Photo
+        </button>
+        <button type="button" onClick={() => triggerFile("video")} disabled={uploading || recording}
+          className="inline-flex items-center gap-1 flex-1 justify-center px-2 py-1.5 rounded-full border border-navy/15 text-[11px] font-semibold text-ink-mid hover:border-amber/40 hover:text-amber transition-colors disabled:opacity-40">
+          <Video size={13} strokeWidth={1.5} /> Video
+        </button>
+        <button type="button" onClick={() => triggerFile("voice")} disabled={uploading || recording}
+          className="inline-flex items-center gap-1 flex-1 justify-center px-2 py-1.5 rounded-full border border-navy/15 text-[11px] font-semibold text-ink-mid hover:border-amber/40 hover:text-amber transition-colors disabled:opacity-40">
+          <Upload size={13} strokeWidth={1.5} /> Upload
         </button>
         {recording ? (
           <button type="button" onClick={stopRecording}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-red-400 text-[12px] font-semibold text-red-600 animate-pulse">
-            <MicOff size={14} strokeWidth={1.5} /> Stop recording
+            className="inline-flex items-center gap-1 flex-1 justify-center px-2 py-1.5 rounded-full border border-red-400 text-[11px] font-semibold text-red-600 animate-pulse">
+            <MicOff size={13} strokeWidth={1.5} /> Stop
           </button>
         ) : (
           <button type="button" onClick={startRecording} disabled={uploading}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-navy/15 text-[12px] font-semibold text-ink-mid hover:border-amber/40 hover:text-amber transition-colors disabled:opacity-40">
-            <Mic size={14} strokeWidth={1.5} /> Record voice
+            className="inline-flex items-center gap-1 flex-1 justify-center px-2 py-1.5 rounded-full border border-navy/15 text-[11px] font-semibold text-ink-mid hover:border-amber/40 hover:text-amber transition-colors disabled:opacity-40">
+            <Mic size={13} strokeWidth={1.5} /> Record
           </button>
         )}
-        <button type="button" onClick={() => triggerFile("voice")} disabled={uploading || recording}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-navy/15 text-[12px] font-semibold text-ink-mid hover:border-amber/40 hover:text-amber transition-colors disabled:opacity-40">
-          <Mic size={14} strokeWidth={1.5} /> Upload voice
-        </button>
-        <button type="button" onClick={() => triggerFile("video")} disabled={uploading || recording}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-navy/15 text-[12px] font-semibold text-ink-mid hover:border-amber/40 hover:text-amber transition-colors disabled:opacity-40">
-          <Video size={14} strokeWidth={1.5} /> Video
-        </button>
       </div>
 
       <input ref={fileRef} type="file" className="hidden"

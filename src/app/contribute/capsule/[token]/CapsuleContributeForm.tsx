@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
+import { Pencil, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -67,6 +67,7 @@ export function CapsuleContributeForm({
   const [contributionId, setContributionId] = useState<string | null>(existingContribution?.id ?? null);
   const [showCta, setShowCta] = useState(false);
   const [inviteLine2, setInviteLine2] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const mediaKeysRef = useRef<string[]>([]);
   const mediaTypesRef = useRef<string[]>([]);
   const stateRef = useRef({ name, title, body, contributionId });
@@ -301,7 +302,8 @@ export function CapsuleContributeForm({
     ? `Dear ${r.firstName1} & ${r.firstName2},`
     : `Dear ${r.firstName1},`;
 
-  const editorPlaceholder = `${dearLine}\n\n${TONE_EDITOR_HINT[capsuleTone]}`;
+  const editorPlaceholder = dearLine;
+  const hasBody = body.replace(/<[^>]*>/g, "").trim().length > 0;
 
   return (
     <main className="min-h-screen bg-cream">
@@ -342,20 +344,49 @@ export function CapsuleContributeForm({
 
           {/* ── Writing card ─────────────────────────────── */}
           <div className="rounded-2xl border border-amber/40 bg-white shadow-[0_4px_18px_rgba(196,122,58,0.08)] overflow-hidden">
-            <div className="relative px-5 pt-3 pb-3">
+            {/* Instruction banner */}
+            <div className="mx-3 mt-3 rounded-lg bg-[#eef0f8] border border-[#d4d8e8] px-4 py-3">
+              <div className="flex items-start gap-2.5">
+                <span className="mt-0.5 text-amber shrink-0" aria-hidden="true">
+                  <Sparkles size={10} strokeWidth={2} className="inline -mt-1" />
+                  <Pencil size={16} strokeWidth={1.75} className="inline" />
+                </span>
+                <div>
+                  <p className="text-[13px] font-bold text-navy leading-snug">
+                    Write something meaningful.
+                  </p>
+                  <p className="mt-0.5 text-[12px] text-ink-mid leading-[1.4]">
+                    {TONE_EDITOR_HINT[capsuleTone]}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Editor */}
+            <div className={`relative px-5 pt-3 pb-2 transition-all ${expanded ? "min-h-[360px]" : ""}`}>
               <TiptapEditor
                 initialContent={body}
                 onUpdate={setBody}
                 placeholder={editorPlaceholder}
               />
               {/* Scroll indicator */}
-              <div className="absolute top-3 right-2.5 bottom-3 w-px flex flex-col items-center pointer-events-none">
+              <div className="absolute top-3 right-2.5 bottom-2 w-px flex flex-col items-center pointer-events-none">
                 <div className="w-[3px] flex-1 rounded-full bg-gradient-to-b from-amber via-amber/60 to-transparent" />
                 <div className="w-2.5 h-2.5 rounded-full border-2 border-amber/40 bg-white mt-1" />
                 <div className="w-px flex-1 border-l border-dashed border-amber/30" />
               </div>
             </div>
-            <div className="px-5 pb-2 text-right">
+            <div className="px-5 pb-2 flex items-center justify-between">
+              {hasBody && (
+                <button
+                  type="button"
+                  onClick={() => setExpanded(!expanded)}
+                  className="text-[11px] text-amber/70 hover:text-amber transition-colors"
+                >
+                  {expanded ? "Collapse" : "Tap to expand"}
+                </button>
+              )}
+              {!hasBody && <span />}
               <span className="text-[11px] text-ink-light/50 italic">
                 Write as much as you&rsquo;d like.
               </span>
