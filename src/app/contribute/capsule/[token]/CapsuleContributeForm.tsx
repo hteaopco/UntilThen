@@ -13,6 +13,13 @@ import { SequentialRevealScreen } from "@/app/capsule/[id]/open/SequentialReveal
 import { PublicMediaAttachments } from "@/app/contribute/capsule/[token]/PublicMediaAttachments";
 import { formatLong } from "@/lib/dateFormatters";
 import { OCCASION_LABELS } from "@/lib/capsules";
+import {
+  TONE_INVITE_LINE1,
+  TONE_INVITE_LINE2,
+  TONE_EDITOR_HINT,
+  TONE_THANKYOU,
+  type CapsuleTone,
+} from "@/lib/tone";
 
 type Phase = "splash" | "invite" | "editor" | "thankyou-typing" | "thankyou" | "preview-reveal";
 
@@ -41,6 +48,7 @@ export function CapsuleContributeForm({
     title: string;
     recipientName: string;
     occasionType: keyof typeof OCCASION_LABELS;
+    tone?: CapsuleTone;
     revealDate: string;
     contributorDeadline: string | null;
   };
@@ -48,6 +56,7 @@ export function CapsuleContributeForm({
   existingContribution?: { id: string; title: string | null; body: string | null } | null;
 }) {
   const r = derivePronouns(capsule.recipientName);
+  const capsuleTone: CapsuleTone = capsule.tone ?? "CELEBRATION";
   const isEditing = Boolean(existingContribution);
   const [phase, setPhase] = useState<Phase>(isEditing ? "editor" : "splash");
   const [name, setName] = useState(invite.name);
@@ -175,7 +184,7 @@ export function CapsuleContributeForm({
         <div className="max-w-[440px] text-center">
           <h1 className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
             <Typewriter
-              text={`You've been invited to create something for ${r.displayName}.`}
+              text={`${TONE_INVITE_LINE1[capsuleTone]} ${r.displayName}.`}
               speed={61}
               startDelay={500}
               cursorBlinks={1}
@@ -188,7 +197,7 @@ export function CapsuleContributeForm({
             className="mt-4 text-[15px] text-ink-mid leading-[1.5] transition-opacity duration-700 ease-out"
             style={{ opacity: inviteLine2 ? 1 : 0 }}
           >
-            A message. A memory. Something {r.subjectContraction} open and experience forever.
+            {TONE_INVITE_LINE2[capsuleTone](r.subjectContraction)}
           </p>
           <div
             className="mt-6 transition-opacity duration-700 ease-out"
@@ -218,7 +227,7 @@ export function CapsuleContributeForm({
           {phase === "thankyou-typing" ? (
             <div className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
               <Typewriter
-                text={`That\u2019s going to mean everything to ${r.pronoun}.`}
+                text={TONE_THANKYOU[capsuleTone](r.pronoun)}
                 speed={61}
                 startDelay={400}
                 onComplete={() => {
@@ -232,7 +241,7 @@ export function CapsuleContributeForm({
           ) : (
             <>
               <div className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3] mb-8">
-                That&rsquo;s going to mean everything to {r.pronoun}.
+                {TONE_THANKYOU[capsuleTone](r.pronoun)}
               </div>
               <div
                 className="transition-opacity duration-700 ease-out space-y-3"
@@ -292,7 +301,7 @@ export function CapsuleContributeForm({
     ? `Dear ${r.firstName1} & ${r.firstName2},`
     : `Dear ${r.firstName1},`;
 
-  const editorPlaceholder = `${dearLine}\n\nWrite what comes to mind — a favorite memory, something you admire, or just what you want them to know.`;
+  const editorPlaceholder = `${dearLine}\n\n${TONE_EDITOR_HINT[capsuleTone]}`;
 
   return (
     <main className="min-h-screen bg-cream">

@@ -1,12 +1,24 @@
 "use client";
 
 import { useState } from "react";
+import {
+  TONE_LABELS,
+  TONE_EMOJI,
+  TONE_INVITE_LINE1,
+  TONE_INVITE_LINE2,
+  TONE_EDITOR_HINT,
+  TONE_THANKYOU,
+  TONE_UNLOCK_LINE,
+  TONE_HERO,
+  toneClosingLine,
+  type CapsuleTone,
+} from "@/lib/tone";
 
 type EmailTemplate = {
   id: string;
   name: string;
-  subject: string;
-  bodyPreview: string;
+  subject: string | ((tone: CapsuleTone) => string);
+  bodyPreview: string | ((tone: CapsuleTone) => string);
   trigger: string;
   frequency: string;
   funnel: string;
@@ -16,8 +28,8 @@ const TEMPLATES: EmailTemplate[] = [
   {
     id: "capsule-invite",
     name: "#1 Invite Contributor",
-    subject: "Add your message for Margaret.",
-    bodyPreview: "You've been invited to contribute to a gift capsule for Margaret. Jett invited you to be part of this. A message. A memory.",
+    subject: (t) => `${TONE_INVITE_LINE1[t]} Margaret.`,
+    bodyPreview: (t) => `${TONE_INVITE_LINE1[t]} Margaret. ${TONE_INVITE_LINE2[t]("she'll")}`,
     trigger: "Contributor added to Gift Capsule",
     frequency: "On event",
     funnel: "Acquisition",
@@ -70,8 +82,8 @@ const TEMPLATES: EmailTemplate[] = [
   {
     id: "reveal-day",
     name: "#7 Reveal Day",
-    subject: "It's time.",
-    bodyPreview: "Today is the day. There are messages waiting for you — written in the past, meant for right now.",
+    subject: (t) => TONE_HERO[t],
+    bodyPreview: (t) => `${TONE_UNLOCK_LINE[t]} ${toneClosingLine(t, 5)}`,
     trigger: "Reveal date arrives",
     frequency: "Cron (every 15 min)",
     funnel: "Anticipation",
@@ -97,8 +109,8 @@ const TEMPLATES: EmailTemplate[] = [
   {
     id: "contributor-confirmation",
     name: "#10 Contributor Confirmation",
-    subject: "This is going to mean everything to them.",
-    bodyPreview: "Your message is saved. One day, they'll read this. You can still edit it before it's sealed.",
+    subject: (t) => TONE_THANKYOU[t]("her"),
+    bodyPreview: "Your message is saved. You can still edit it before it's sealed.",
     trigger: "Contributor submits → sent to contributor",
     frequency: "On event",
     funnel: "Activation",
@@ -240,11 +252,14 @@ const FUNNEL_COLORS: Record<string, string> = {
   Retention: "text-ink-mid bg-[#f1f5f9]",
 };
 
+const TONE_OPTIONS: CapsuleTone[] = ["CELEBRATION", "GRATITUDE", "REMEMBRANCE", "ENCOURAGEMENT", "LOVE", "OTHER"];
+
 export function EmailTestClient() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ sent: number; failed: number } | null>(null);
+  const [previewTone, setPreviewTone] = useState<CapsuleTone>("CELEBRATION");
 
   function toggleAll() {
     if (selected.size === TEMPLATES.length) {
@@ -313,6 +328,18 @@ export function EmailTestClient() {
         </div>
       )}
 
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-mid">Tone preview:</span>
+        {TONE_OPTIONS.map((t) => (
+          <button key={t} type="button" onClick={() => setPreviewTone(t)}
+            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition-colors ${
+              previewTone === t ? "bg-amber text-white border-amber" : "border-navy/15 text-ink-mid hover:border-amber/40"
+            }`}>
+            {TONE_EMOJI[t]} {TONE_LABELS[t]}
+          </button>
+        ))}
+      </div>
+
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -346,11 +373,11 @@ export function EmailTestClient() {
                 </td>
                 <td className="py-2.5 pr-3">
                   <div className="font-semibold text-navy whitespace-nowrap">{t.name}</div>
-                  <div className="lg:hidden text-xs text-ink-light leading-[1.5] mt-1">{t.bodyPreview}</div>
+                  <div className="lg:hidden text-xs text-ink-light leading-[1.5] mt-1">{typeof t.bodyPreview === "function" ? t.bodyPreview(previewTone) : t.bodyPreview}</div>
                   <div className="sm:hidden text-[10px] text-ink-light mt-1">{t.trigger} · {t.frequency}</div>
                 </td>
-                <td className="py-2.5 pr-3 text-ink-mid italic">{t.subject}</td>
-                <td className="py-2.5 pr-3 text-ink-light text-xs leading-[1.5] max-w-[300px] hidden lg:table-cell">{t.bodyPreview}</td>
+                <td className="py-2.5 pr-3 text-ink-mid italic">{typeof t.subject === "function" ? t.subject(previewTone) : t.subject}</td>
+                <td className="py-2.5 pr-3 text-ink-light text-xs leading-[1.5] max-w-[300px] hidden lg:table-cell">{typeof t.bodyPreview === "function" ? t.bodyPreview(previewTone) : t.bodyPreview}</td>
                 <td className="py-2.5 pr-3 text-ink-mid text-xs hidden sm:table-cell">{t.trigger}</td>
                 <td className="py-2.5 pr-3 text-ink-mid text-xs whitespace-nowrap hidden sm:table-cell">{t.frequency}</td>
                 <td className="py-2.5">

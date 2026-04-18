@@ -1,0 +1,5 @@
+-- CreateEnum
+CREATE TYPE "CapsuleTone" AS ENUM ('CELEBRATION', 'GRATITUDE', 'REMEMBRANCE', 'ENCOURAGEMENT', 'LOVE', 'OTHER');
+
+-- AlterTable
+ALTER TABLE "MemoryCapsule" ADD COLUMN "tone" "CapsuleTone" NOT NULL DEFAULT 'CELEBRATION';

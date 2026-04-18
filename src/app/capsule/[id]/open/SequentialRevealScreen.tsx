@@ -5,6 +5,14 @@ import { useEffect, useState } from "react";
 
 import { Typewriter } from "@/components/ui/Typewriter";
 import { triggerCelebration, triggerFireworks } from "@/lib/confetti";
+import {
+  TONE_UNLOCK_LINE,
+  TONE_REVEAL_BG,
+  toneClosingLine,
+  toneHasConfetti,
+  toneHasFireworks,
+  type CapsuleTone,
+} from "@/lib/tone";
 
 type Contribution = {
   id: string;
@@ -32,9 +40,11 @@ function authorAlreadySigned(body: string | null, authorName: string): boolean {
 export function SequentialRevealScreen({
   contributions,
   onComplete,
+  tone = "CELEBRATION",
 }: {
   contributions: Contribution[];
   onComplete: () => void;
+  tone?: CapsuleTone;
 }) {
   const [phase, setPhase] = useState<Phase>("unlock");
   const [index, setIndex] = useState(0);
@@ -47,10 +57,16 @@ export function SequentialRevealScreen({
   // Unlock: 4 confetti pops + fireworks
   useEffect(() => {
     if (phase !== "unlock") return;
+    if (!toneHasConfetti(tone)) return;
     const t1 = setTimeout(() => void triggerCelebration(), 600);
-    const t2 = setTimeout(() => void triggerFireworks(), 1200);
-    const t3 = setTimeout(() => void triggerCelebration(), 2000);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    const timers = [t1];
+    if (toneHasFireworks(tone)) {
+      const t2 = setTimeout(() => void triggerFireworks(), 1200);
+      timers.push(t2);
+    }
+    const t3 = setTimeout(() => void triggerCelebration(), toneHasFireworks(tone) ? 2000 : 1400);
+    timers.push(t3);
+    return () => timers.forEach(clearTimeout);
   }, [phase]);
 
   if (!current && phase === "reading") {
@@ -71,7 +87,7 @@ export function SequentialRevealScreen({
 
           <h1 className="text-[22px] lg:text-[28px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
             <Typewriter
-              text="Here's what they wrote for you."
+              text={TONE_UNLOCK_LINE[tone]}
               speed={55}
               startDelay={1200}
               onComplete={() => {
@@ -91,7 +107,7 @@ export function SequentialRevealScreen({
         <div className="text-center max-w-[400px]">
           <h1 className="text-[22px] lg:text-[28px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
             <Typewriter
-              text={`That was ${total} ${total === 1 ? "person" : "people"} who wrote to you.`}
+              text={toneClosingLine(tone, total)}
               speed={55}
               startDelay={500}
               onComplete={() => {
@@ -110,7 +126,7 @@ export function SequentialRevealScreen({
   // ── Author intro ───────────────────────────────────────
   if (phase === "author-intro" && current) {
     return (
-      <main className="min-h-screen bg-warm-surface flex items-center justify-center px-6 py-16">
+      <main className="min-h-screen bg-cream flex items-center justify-center px-6 py-16">
         <div className="w-full max-w-[560px]">
           <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-light mb-4 text-center">
             {index + 1} of {total}
@@ -140,7 +156,7 @@ export function SequentialRevealScreen({
   // ── Fade from author intro to note ─────────────────────
   if (phase === "fading-to-note" && current) {
     return (
-      <main className="min-h-screen bg-warm-surface flex items-center justify-center px-6 py-16">
+      <main className="min-h-screen bg-cream flex items-center justify-center px-6 py-16">
         <div className="w-full max-w-[560px]">
           <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-light mb-4 text-center">
             {index + 1} of {total}
@@ -159,8 +175,8 @@ export function SequentialRevealScreen({
 
   function goNext() {
     if (isLast) {
-      void triggerCelebration();
-      void triggerFireworks();
+      if (toneHasConfetti(tone)) void triggerCelebration();
+      if (toneHasFireworks(tone)) void triggerFireworks();
       setPhase("closing");
       return;
     }
@@ -185,7 +201,7 @@ export function SequentialRevealScreen({
   }
 
   return (
-    <main className="min-h-screen bg-warm-surface text-navy flex items-center justify-center px-6 py-16">
+    <main className="min-h-screen bg-cream text-navy flex items-center justify-center px-6 py-16">
       <div className="w-full max-w-[560px]">
         <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-light mb-4 text-center">
           {index + 1} of {total}

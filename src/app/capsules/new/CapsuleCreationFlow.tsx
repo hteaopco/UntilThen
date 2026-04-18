@@ -8,6 +8,12 @@ import { useEffect, useState } from "react";
 
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import { CAPSULE_MAX_HORIZON_MS } from "@/lib/capsules";
+import {
+  TONE_LABELS,
+  TONE_DESCRIPTIONS,
+  TONE_EMOJI,
+  type CapsuleTone,
+} from "@/lib/tone";
 
 const PENDING_STEP1_KEY = "untilthen:capsule-pending-step1";
 
@@ -52,10 +58,15 @@ const STEP_BLURBS = [
   "Take the next step",
   "Getting closer",
   "Almost there",
+  "One more",
   "",
 ] as const;
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
+
+const TONE_OPTIONS: CapsuleTone[] = [
+  "CELEBRATION", "GRATITUDE", "REMEMBRANCE", "ENCOURAGEMENT", "LOVE", "OTHER",
+];
 
 function yyyymmdd(d: Date): string {
   const y = d.getFullYear();
@@ -85,6 +96,7 @@ export function CapsuleCreationFlow() {
   const [stepError, setStepError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const [tone, setTone] = useState<CapsuleTone | null>(null);
   const [title, setTitle] = useState("");
   const [recipientFirstName, setRecipientFirstName] = useState("");
   const [recipientLastName, setRecipientLastName] = useState("");
@@ -137,17 +149,21 @@ export function CapsuleCreationFlow() {
 
   function validateStep(): string | null {
     if (step === 0) {
+      if (!tone) return "Please select a tone";
+      return null;
+    }
+    if (step === 1) {
       if (!title.trim()) return "Please add a title";
       if (!recipientFirstName.trim()) return "Recipient first name is required";
       if (isCouple && !recipient2FirstName.trim()) return "Second recipient first name is required";
       return null;
     }
-    if (step === 1) {
+    if (step === 2) {
       if (!occasionType) return "Please select an occasion";
       if (!revealDate) return "Please select a reveal date";
       return null;
     }
-    if (step === 2) {
+    if (step === 3) {
       if (!deliveryTime) return "Please select a delivery time";
       return null;
     }
@@ -200,6 +216,7 @@ export function CapsuleCreationFlow() {
           recipientName: fullName,
           recipientPronoun,
           occasionType: occasionType ?? "OTHER",
+          tone: tone ?? "CELEBRATION",
           revealDate,
           deliveryTime,
           timezone,
@@ -266,8 +283,46 @@ export function CapsuleCreationFlow() {
         </div>
 
         <div>
-          {/* ── Step 1: Who's it for? ──────────────────── */}
+          {/* ── Step 0: Tone ───────────────────────────── */}
           {step === 0 && (
+            <div className="space-y-5">
+              <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
+                What kind of moment is this?
+              </h1>
+              <p className="text-[15px] text-ink-mid leading-[1.6]">
+                This sets the tone for the entire experience &mdash; the reveal, the messages, everything.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {TONE_OPTIONS.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => { setTone(t); setStepError(null); }}
+                    className={`text-left rounded-xl border px-4 py-3.5 transition-all ${
+                      tone === t
+                        ? "border-amber bg-amber-tint/60 shadow-[0_2px_8px_rgba(196,122,58,0.12)]"
+                        : "border-navy/10 bg-white hover:border-amber/30"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-xl">{TONE_EMOJI[t]}</span>
+                      <div>
+                        <div className={`text-[14px] font-bold ${tone === t ? "text-amber" : "text-navy"}`}>
+                          {TONE_LABELS[t]}
+                        </div>
+                        <div className="text-[12px] text-ink-light leading-[1.4]">
+                          {TONE_DESCRIPTIONS[t]}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Step 1: Who's it for? ──────────────────── */}
+          {step === 1 && (
             <div className="space-y-5">
               <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
                 Who&rsquo;s it for?
@@ -326,7 +381,7 @@ export function CapsuleCreationFlow() {
           )}
 
           {/* ── Step 2: Occasion & date ────────────────── */}
-          {step === 1 && (
+          {step === 2 && (
             <div className="space-y-5">
               <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
                 What&rsquo;s the occasion?
@@ -381,7 +436,7 @@ export function CapsuleCreationFlow() {
           )}
 
           {/* ── Step 3: Delivery time ──────────────────── */}
-          {step === 2 && (
+          {step === 3 && (
             <div className="space-y-5">
               <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
                 When should we deliver?
@@ -438,7 +493,7 @@ export function CapsuleCreationFlow() {
           )}
 
           {/* ── Step 4: Review & create ────────────────── */}
-          {step === 3 && (
+          {step === 4 && (
             <div className="space-y-5">
               <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
                 Review your capsule
@@ -448,6 +503,7 @@ export function CapsuleCreationFlow() {
               </p>
 
               <div className="rounded-2xl border border-amber/20 bg-white px-5 py-5 space-y-3">
+                <ReviewRow label="Tone" value={`${TONE_EMOJI[tone ?? "CELEBRATION"]} ${TONE_LABELS[tone ?? "CELEBRATION"]}`} />
                 <ReviewRow label="Title" value={title} />
                 <ReviewRow label="For" value={recipientName} />
                 <ReviewRow label="Occasion" value={OCCASIONS.find((o) => o.value === occasionType)?.label ?? "Other"} />
