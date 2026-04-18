@@ -1,7 +1,7 @@
 "use client";
 
 import { SignedIn, SignedOut } from "@clerk/nextjs";
-import { Menu, X } from "lucide-react";
+import { LogIn, Menu, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -153,13 +153,20 @@ function RightAction() {
         <div className="flex items-center gap-3 lg:gap-4">
           <Link
             href="/sign-in"
-            className="text-[14px] font-medium text-navy/85 hover:text-navy transition-colors"
+            className="hidden lg:inline text-[14px] font-medium text-navy/85 hover:text-navy transition-colors"
           >
             Sign in
           </Link>
           <Link
+            href="/sign-in"
+            aria-label="Sign in"
+            className="lg:hidden text-navy/60 hover:text-navy transition-colors p-1"
+          >
+            <LogIn size={20} strokeWidth={1.5} aria-hidden="true" />
+          </Link>
+          <Link
             href="/sign-up"
-            className="inline-flex items-center bg-amber text-white px-3.5 py-2 rounded-lg text-[13px] font-bold tracking-[0.01em] hover:bg-amber-dark transition-colors"
+            className="inline-flex items-center bg-amber/85 text-white px-3.5 py-2 rounded-xl text-[13px] font-semibold tracking-[0.01em] hover:bg-amber transition-colors shadow-[0_2px_12px_rgba(196,122,58,0.25)]"
           >
             Get Started
           </Link>
