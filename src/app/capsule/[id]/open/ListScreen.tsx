@@ -215,7 +215,7 @@ export function ListScreen({
             <p className="mt-2 text-sm text-white/60 leading-[1.6]">
               Write to someone you love — for years, not just once.
             </p>
-            <div className="mt-5 inline-flex flex-wrap items-center gap-3 justify-center">
+            <div className="mt-5">
               <Link
                 href="/"
                 onClick={() => {
@@ -225,9 +225,6 @@ export function ListScreen({
               >
                 Start writing
               </Link>
-              <span className="text-xs italic text-white/55">
-                Free 7-day trial · $3.99/month
-              </span>
             </div>
           </div>
         </div>
