@@ -55,7 +55,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   for (const capsule of capsules) {
     if (!capsule.recipientEmail) continue;
 
-    if (!isDeliveryTimePassed(capsule.revealDate, null, null)) {
+    if (!isDeliveryTimePassed(capsule.revealDate, capsule.deliveryTime, capsule.timezone)) {
       skipped++;
       continue;
     }

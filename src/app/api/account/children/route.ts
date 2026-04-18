@@ -123,6 +123,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     : null;
   if (defaultReveal) defaultReveal.setFullYear(defaultReveal.getFullYear() + 18);
   const revealDate = explicitReveal ?? defaultReveal ?? null;
+  const deliveryTime =
+    typeof body.deliveryTime === "string" && /^\d{2}:\d{2}$/.test(body.deliveryTime)
+      ? body.deliveryTime
+      : "08:00";
+  const timezone =
+    typeof body.timezone === "string" && body.timezone.trim()
+      ? body.timezone.trim()
+      : "America/Chicago";
 
   try {
     const child = await prisma.$transaction(async (tx) => {
@@ -137,6 +145,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       await tx.vault.create({
         data: {
           childId: created.id,
+          deliveryTime,
+          timezone,
           revealDate,
         },
       });

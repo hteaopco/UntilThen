@@ -74,8 +74,7 @@ model User {
   firstName   String
   lastName    String
   displayName String?
-  // pinHash — column exists in DB (migration 20260417_add_pin_hash)
-  // but unmapped until Accelerate cache sees it.
+  pinHash     String?
   role        Role     @default(PARENT)
   userType    UserType @default(PARENT)
   createdAt   DateTime @default(now())
@@ -95,9 +94,7 @@ model Child {
   parentId     String
   trusteeName  String?
   trusteeEmail String?
-  // trusteePhone — column exists in DB but unmapped until
-  // Accelerate cache sees it. Do NOT restore without explicit
-  // confirmation.
+  trusteePhone String?
   createdAt    DateTime  @default(now())
 
   parent User   @relation(fields: [parentId], references: [id])
@@ -108,9 +105,8 @@ model Vault {
   id           String    @id @default(cuid())
   childId      String    @unique
   revealDate   DateTime?
-  // deliveryTime + timezone — columns exist in DB but unmapped
-  // until Accelerate cache sees them. Do NOT restore without
-  // explicit confirmation.
+  deliveryTime String    @default("08:00")
+  timezone     String    @default("America/Chicago")
   unlockedAt   DateTime?
   createdAt    DateTime  @default(now())
 
@@ -251,8 +247,7 @@ model MemoryCapsule {
   recipientEmail      String?
   recipientPhone      String?
   occasionType        OccasionType  @default(OTHER)
-  // tone — column exists in DB (migration 20260418_add_capsule_tone)
-  // but unmapped until Accelerate cache sees it.
+  tone                CapsuleTone   @default(CELEBRATION)
   revealDate          DateTime
   contributorDeadline DateTime?
   status              CapsuleStatus @default(DRAFT)
@@ -262,21 +257,10 @@ model MemoryCapsule {
   accessToken         String        @unique @default(cuid())
   tokenExpiresAt      DateTime?
   recipientClerkId    String?
-  // Tracks whether the recipient has completed the first-open
-  // sequential reveal. Return visits then get the browseable
-  // list instead of the guided sequence.
-  // deliveryTime + timezone — same as Vault, unmapped until
-  // Accelerate confirms.
+  deliveryTime        String        @default("09:00")
+  timezone            String        @default("America/Chicago")
   firstOpenedAt       DateTime?
-  // NOTE: recipientCompletedAt column exists in the database
-  // (added by migrations 20260415080000 + 20260415090000) but
-  // is intentionally NOT mapped on the model right now —
-  // Prisma Accelerate is serving a stale schema and P2022's
-  // every query that references it, even after two service
-  // restarts. See CLAUDE.md "Prisma Accelerate — Schema Change
-  // Protocol". Restore `recipientCompletedAt DateTime?` below
-  // once Accelerate's cache has actually refreshed (can take
-  // up to ~24h on some plans).
+  recipientCompletedAt DateTime?
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 
