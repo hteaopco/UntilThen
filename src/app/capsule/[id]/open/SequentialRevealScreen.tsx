@@ -47,10 +47,9 @@ export function SequentialRevealScreen({
   useEffect(() => {
     if (phase !== "unlock") return;
     const t1 = setTimeout(() => void triggerCelebration(), 600);
-    const t2 = setTimeout(() => void triggerFireworks(), 1000);
-    const t3 = setTimeout(() => void triggerCelebration(), 1800);
-    const t4 = setTimeout(() => void triggerFireworks(), 2400);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+    const t2 = setTimeout(() => void triggerFireworks(), 1200);
+    const t3 = setTimeout(() => void triggerCelebration(), 2000);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
   }, [phase]);
 
   if (!current && phase === "reading") {

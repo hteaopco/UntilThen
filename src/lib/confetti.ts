@@ -9,12 +9,13 @@ export async function triggerCelebration() {
   confetti({
     particleCount: 60,
     spread: 70,
-    origin: { y: 0.4 },
+    origin: { x: 0.5, y: 0.3 },
     colors: COLORS,
-    gravity: 0.8,
+    gravity: 0.6,
     scalar: 0.9,
-    drift: 0.1,
-    ticks: 200,
+    drift: 0,
+    ticks: 250,
+    startVelocity: 30,
   });
 }
 
@@ -22,44 +23,29 @@ export async function triggerFireworks() {
   if (typeof window === "undefined") return;
   const { default: confetti } = await import("canvas-confetti");
 
-  // Bottom-left burst
   confetti({
-    particleCount: 40,
-    angle: 60,
-    spread: 55,
-    origin: { x: 0.2, y: 1 },
-    colors: COLORS,
-    gravity: 1.2,
-    scalar: 1.1,
-    ticks: 250,
-    startVelocity: 45,
-  });
-
-  // Bottom-right burst
-  confetti({
-    particleCount: 40,
+    particleCount: 50,
     angle: 120,
-    spread: 55,
-    origin: { x: 0.8, y: 1 },
+    spread: 60,
+    origin: { x: 0.85, y: 0.95 },
     colors: COLORS,
-    gravity: 1.2,
+    gravity: 1,
     scalar: 1.1,
-    ticks: 250,
-    startVelocity: 45,
+    ticks: 280,
+    startVelocity: 50,
   });
 
-  // Center burst upward
   setTimeout(() => {
     confetti({
-      particleCount: 50,
-      angle: 90,
-      spread: 80,
-      origin: { x: 0.5, y: 1 },
+      particleCount: 40,
+      angle: 110,
+      spread: 50,
+      origin: { x: 0.8, y: 0.95 },
       colors: COLORS,
       gravity: 1,
       scalar: 1,
-      ticks: 300,
-      startVelocity: 50,
+      ticks: 250,
+      startVelocity: 45,
     });
-  }, 200);
+  }, 300);
 }
