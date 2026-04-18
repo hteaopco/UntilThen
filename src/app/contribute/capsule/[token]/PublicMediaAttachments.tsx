@@ -131,10 +131,6 @@ export function PublicMediaAttachments({
 
   return (
     <div>
-      <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
-        Add photos, voice notes, or video (optional)
-      </span>
-
       <div className="flex flex-wrap gap-2 mb-3">
         <button type="button" onClick={() => triggerFile("photo")} disabled={uploading || recording}
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-navy/15 text-[12px] font-semibold text-ink-mid hover:border-amber/40 hover:text-amber transition-colors disabled:opacity-40">
