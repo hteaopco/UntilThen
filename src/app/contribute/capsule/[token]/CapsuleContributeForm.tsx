@@ -315,51 +315,47 @@ export function CapsuleContributeForm({
         </div>
       </header>
 
-      <section className="mx-auto max-w-[720px] px-6 pt-8 pb-20">
-        <h1 className="text-balance text-[28px] lg:text-[36px] font-extrabold text-navy leading-[1.08] tracking-[-0.8px]">
+      <section className="mx-auto max-w-[720px] px-6 pt-4 pb-20">
+        <h1 className="text-balance text-[26px] lg:text-[36px] font-extrabold text-navy leading-[1.08] tracking-[-0.8px]">
           {capsule.title}
         </h1>
-        <p className="mt-2 text-[15px] text-ink-mid leading-[1.5]">
+        <p className="mt-1.5 text-[14px] text-ink-mid leading-[1.5]">
           {r.subjectContraction.charAt(0).toUpperCase() + r.subjectContraction.slice(1)} open everything on{" "}
           <span className="font-semibold text-navy">{formatLong(capsule.revealDate)}</span>.
         </p>
         {capsule.contributorDeadline && (
-          <p className="mt-1.5 text-xs italic text-ink-light">
+          <p className="mt-1 text-xs italic text-ink-light">
             Last day to contribute: {formatLong(capsule.contributorDeadline)}.
           </p>
         )}
 
-        <form onSubmit={submit} className="mt-5">
+        <form onSubmit={submit} className="mt-3">
           {/* From field */}
-          <label className="flex items-center gap-3 mb-4">
-            <span className="text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid whitespace-nowrap">From you</span>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
-              required
-              className="flex-1 min-w-0 px-3 py-2.5 rounded-lg border border-navy/15 bg-white text-[15px] font-semibold text-navy placeholder-ink-light/50 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
-            />
-          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={`From ${invite.name || "your name"}`}
+            required
+            className="w-full mb-2.5 px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+          />
 
           {/* ── Writing card ─────────────────────────────── */}
           <div className="rounded-2xl border border-amber/40 bg-white shadow-[0_4px_18px_rgba(196,122,58,0.08)] overflow-hidden">
-            {/* Editor area */}
-            <div className="relative px-6 pt-4 pb-4">
+            <div className="relative px-5 pt-3 pb-3">
               <TiptapEditor
                 initialContent={body}
                 onUpdate={setBody}
                 placeholder={editorPlaceholder}
               />
               {/* Scroll indicator */}
-              <div className="absolute top-4 right-3 bottom-4 w-px flex flex-col items-center pointer-events-none">
+              <div className="absolute top-3 right-2.5 bottom-3 w-px flex flex-col items-center pointer-events-none">
                 <div className="w-[3px] flex-1 rounded-full bg-gradient-to-b from-amber via-amber/60 to-transparent" />
                 <div className="w-2.5 h-2.5 rounded-full border-2 border-amber/40 bg-white mt-1" />
                 <div className="w-px flex-1 border-l border-dashed border-amber/30" />
               </div>
             </div>
-            <div className="px-6 pb-3 text-right">
+            <div className="px-5 pb-2 text-right">
               <span className="text-[11px] text-ink-light/50 italic">
                 Write as much as you&rsquo;d like.
               </span>
@@ -367,14 +363,14 @@ export function CapsuleContributeForm({
           </div>
 
           {/* ── Media card ────────────────────────────────── */}
-          <div className="mt-4 rounded-2xl border border-amber/30 bg-white shadow-[0_2px_10px_rgba(196,122,58,0.05)] px-6 py-5">
-            <p className="text-[15px] font-bold text-navy">
+          <div className="mt-2.5 rounded-2xl border border-amber/30 bg-white shadow-[0_2px_10px_rgba(196,122,58,0.05)] px-5 py-4">
+            <p className="text-[14px] font-bold text-navy">
               Add a photo, voice note, or video
             </p>
-            <p className="mt-1 text-[13px] text-ink-mid">
+            <p className="mt-0.5 text-[12px] text-ink-mid">
               Your voice makes it even more special.
             </p>
-            <div className="mt-3">
+            <div className="mt-2.5">
               <PublicMediaAttachments
                 token={token}
                 ensureContribution={ensureContribution}

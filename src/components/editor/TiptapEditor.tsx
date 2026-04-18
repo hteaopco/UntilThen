@@ -96,8 +96,8 @@ export function TiptapEditor({
 
 function Toolbar({ editor, compact }: { editor: Editor; compact?: boolean }) {
   return (
-    <div className={compact ? "" : "mb-5 pb-3 border-b border-navy/[0.08]"}>
-      <div className="inline-flex items-center gap-0.5 rounded-lg bg-[#f5f1ea] border border-navy/[0.06] p-1">
+    <div className={compact ? "" : "mb-3 pb-2 border-b border-navy/[0.08]"}>
+      <div className="inline-flex items-center gap-0.5 rounded-md bg-[#f5f1ea] border border-navy/[0.06] p-0.5">
         {/* Group 1: text formatting */}
         <TbButton
           active={editor.isActive("bold")}
@@ -171,7 +171,7 @@ function TbButton({
       onClick={onClick}
       aria-label={ariaLabel}
       aria-pressed={active}
-      className={`w-9 h-9 rounded-md flex items-center justify-center transition-colors ${
+      className={`w-7 h-7 rounded flex items-center justify-center transition-colors ${
         active
           ? "bg-white text-navy border border-navy/15 shadow-[0_1px_2px_rgba(15,31,61,0.06)]"
           : "text-ink-mid border border-transparent hover:bg-white hover:text-navy"
