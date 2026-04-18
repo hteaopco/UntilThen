@@ -252,7 +252,7 @@ const FUNNEL_COLORS: Record<string, string> = {
   Retention: "text-ink-mid bg-[#f1f5f9]",
 };
 
-const TONE_OPTIONS: CapsuleTone[] = ["CELEBRATION", "GRATITUDE", "REMEMBRANCE", "ENCOURAGEMENT", "LOVE", "OTHER"];
+const TONE_OPTIONS: CapsuleTone[] = ["CELEBRATION", "GRATITUDE", "THINKING_OF_YOU", "ENCOURAGEMENT", "LOVE", "OTHER"];
 
 export function EmailTestClient() {
   const [selected, setSelected] = useState<Set<string>>(new Set());

@@ -29,7 +29,7 @@ type Gender = "female" | "male" | "couple";
 const TONE_ICONS: Record<CapsuleTone, React.ReactNode> = {
   CELEBRATION: <PartyPopper size={20} strokeWidth={1.5} />,
   GRATITUDE: <HandHeart size={20} strokeWidth={1.5} />,
-  REMEMBRANCE: <Feather size={20} strokeWidth={1.5} />,
+  THINKING_OF_YOU: <Feather size={20} strokeWidth={1.5} />,
   ENCOURAGEMENT: <Flame size={20} strokeWidth={1.5} />,
   LOVE: <Heart size={20} strokeWidth={1.5} />,
   OTHER: <Sparkles size={20} strokeWidth={1.5} />,
@@ -73,7 +73,7 @@ const STEP_BLURBS = [
 const TOTAL_STEPS = 5;
 
 const TONE_OPTIONS: CapsuleTone[] = [
-  "CELEBRATION", "GRATITUDE", "REMEMBRANCE", "ENCOURAGEMENT", "LOVE", "OTHER",
+  "CELEBRATION", "GRATITUDE", "THINKING_OF_YOU", "ENCOURAGEMENT", "LOVE", "OTHER",
 ];
 
 function yyyymmdd(d: Date): string {

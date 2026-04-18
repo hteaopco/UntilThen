@@ -19,7 +19,7 @@ import {
 const TONES: CapsuleTone[] = [
   "CELEBRATION",
   "GRATITUDE",
-  "REMEMBRANCE",
+  "THINKING_OF_YOU",
   "ENCOURAGEMENT",
   "LOVE",
   "OTHER",

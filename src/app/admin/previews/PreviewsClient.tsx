@@ -116,7 +116,7 @@ function ExitButton({ onClick }: { onClick: () => void }) {
   );
 }
 
-const TONE_OPTIONS: CapsuleTone[] = ["CELEBRATION", "GRATITUDE", "REMEMBRANCE", "ENCOURAGEMENT", "LOVE", "OTHER"];
+const TONE_OPTIONS: CapsuleTone[] = ["CELEBRATION", "GRATITUDE", "THINKING_OF_YOU", "ENCOURAGEMENT", "LOVE", "OTHER"];
 
 export function PreviewsClient() {
   const [active, setActive] = useState<Preview>(null);
