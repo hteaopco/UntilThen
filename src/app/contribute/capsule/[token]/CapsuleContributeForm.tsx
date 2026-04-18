@@ -193,6 +193,12 @@ export function CapsuleContributeForm({
           >
             A message. A memory. Something {r.subjectContraction} open and experience forever.
           </p>
+          <p
+            className="fixed bottom-10 left-0 right-0 text-center text-[11px] italic transition-opacity duration-700 ease-out"
+            style={{ color: "rgba(44,36,32,0.25)", opacity: inviteLine2 ? 1 : 0 }}
+          >
+            tap to continue
+          </p>
         </div>
       </main>
     );
