@@ -6,12 +6,12 @@ import { useState } from "react";
 const COLLAPSED_COUNT = 3;
 
 const GIFT_FEATURES = [
-  "Any occasion",
-  "Unlimited contributors",
-  "Text, photos, voice & video",
-  "Reveal within 60 days",
+  "Works for any moment",
+  "Invite everyone who loves them",
   "No account needed to contribute",
-  "Save forever with a free account",
+  "Add messages, photos, and voices",
+  "Everything opens together",
+  "They keep it forever",
 ];
 
 function ConfettiOverlay() {
