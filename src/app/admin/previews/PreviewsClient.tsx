@@ -7,6 +7,8 @@ import { CapsuleContributeForm } from "@/app/contribute/capsule/[token]/CapsuleC
 import { FirstScreen } from "@/app/capsule/[id]/open/FirstScreen";
 import { SequentialRevealScreen } from "@/app/capsule/[id]/open/SequentialRevealScreen";
 import { ListScreen } from "@/app/capsule/[id]/open/ListScreen";
+import { LockedVaultView } from "@/app/vault/[childId]/child-view/LockedVaultView";
+import { triggerCelebration } from "@/lib/confetti";
 
 type Preview =
   | null
@@ -16,7 +18,9 @@ type Preview =
   | "pin"
   | "reveal-first"
   | "reveal-sequence"
-  | "reveal-list";
+  | "reveal-list"
+  | "vault-locked"
+  | "vault-unlocked";
 
 const MOCK_SINGLE_CAPSULE = {
   title: "Mom's 60th Birthday",
@@ -79,6 +83,20 @@ const MOCK_CONTRIBUTIONS = [
     title: "From your favorite sibling",
     body: "<p>I know I don't say it enough, but you're the best sister anyone could ask for. Even when you steal my fries. Especially then. Happy 30th, sis.</p>",
   },
+];
+
+const MOCK_VAULT_ENTRIES = [
+  { id: "e1", type: "TEXT" as const, author: "Mom" },
+  { id: "e2", type: "TEXT" as const, author: "Dad" },
+  { id: "e3", type: "PHOTO" as const, author: "Mom" },
+  { id: "e4", type: "VOICE" as const, author: "Grandma Rose" },
+  { id: "e5", type: "TEXT" as const, author: "Dad" },
+  { id: "e6", type: "VIDEO" as const, author: "Mom" },
+];
+
+const MOCK_VAULT_COLLECTIONS = [
+  { id: "col1", title: "First Year", coverEmoji: "👶", entryCount: 12 },
+  { id: "col2", title: "School Days", coverEmoji: "🎒", entryCount: 8 },
 ];
 
 function ExitButton({ onClick }: { onClick: () => void }) {
@@ -145,7 +163,10 @@ export function PreviewsClient() {
         <FirstScreen
           capsule={MOCK_REVEAL_CAPSULE}
           contributionCount={MOCK_CONTRIBUTIONS.length}
-          onOpen={() => setActive("reveal-sequence")}
+          onOpen={() => {
+            void triggerCelebration();
+            setActive("reveal-sequence");
+          }}
         />
       </div>
     );
@@ -177,6 +198,38 @@ export function PreviewsClient() {
     );
   }
 
+  if (active === "vault-locked") {
+    return (
+      <div className="relative">
+        <ExitButton onClick={() => setActive(null)} />
+        <main className="min-h-screen bg-[#f5f7f0]">
+          <LockedVaultView
+            childFirstName="Olivia"
+            revealDate={new Date(Date.now() + 365 * 86400000).toISOString()}
+            entries={MOCK_VAULT_ENTRIES}
+            collections={MOCK_VAULT_COLLECTIONS}
+          />
+        </main>
+      </div>
+    );
+  }
+
+  if (active === "vault-unlocked") {
+    return (
+      <div className="relative">
+        <ExitButton onClick={() => setActive(null)} />
+        <main className="min-h-screen bg-[#f5f7f0]">
+          <LockedVaultView
+            childFirstName="Olivia"
+            revealDate={new Date(Date.now() - 86400000).toISOString()}
+            entries={MOCK_VAULT_ENTRIES}
+            collections={MOCK_VAULT_COLLECTIONS}
+          />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <p className="text-sm text-ink-mid mb-6">
@@ -204,8 +257,18 @@ export function PreviewsClient() {
         />
         <PreviewCard
           title="Gift Capsule Reveal"
-          description="Full reveal: emotional hook, sequential guided reveal (5 sample letters), browseable list."
+          description="Full reveal with confetti: emotional hook, sequential guided reveal (5 letters), browseable list."
           onClick={() => setActive("reveal-first")}
+        />
+        <PreviewCard
+          title="Time Capsule — Locked"
+          description="What the child sees before the reveal date: countdown timer, sealed memories list, locked vault animation."
+          onClick={() => setActive("vault-locked")}
+        />
+        <PreviewCard
+          title="Time Capsule — Unlocked"
+          description="What the child sees after the reveal date: vault is ready, memories accessible."
+          onClick={() => setActive("vault-unlocked")}
         />
         <PreviewCard
           title="PIN Screen"
