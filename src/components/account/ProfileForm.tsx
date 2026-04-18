@@ -1,7 +1,7 @@
 "use client";
 
 import { useClerk, useUser } from "@clerk/nextjs";
-import { AlertCircle, Check, KeyRound, Trash2 } from "lucide-react";
+import { AlertCircle, Check, KeyRound, Lock, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
@@ -28,6 +28,11 @@ export function ProfileForm({
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteText, setDeleteText] = useState("");
+  const [pinOpen, setPinOpen] = useState(false);
+  const [currentPin, setCurrentPin] = useState("");
+  const [newPin, setNewPin] = useState("");
+  const [pinState, setPinState] = useState<SaveState>("idle");
+  const [pinError, setPinError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
   async function submit(e: FormEvent) {
@@ -54,6 +59,53 @@ export function ProfileForm({
     } catch (err) {
       setError((err as Error).message);
       setState("error");
+    }
+  }
+
+  async function changePin() {
+    if (!/^\d{4}$/.test(newPin)) { setPinError("PIN must be 4 digits."); return; }
+    setPinState("saving");
+    setPinError(null);
+    try {
+      const hasExisting = currentPin.length === 4;
+      const res = await fetch("/api/account/pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          hasExisting
+            ? { action: "change", currentPin, newPin }
+            : { action: "setup", pin: newPin }
+        ),
+      });
+      const data = (await res.json()) as { success?: boolean; error?: string };
+      if (!res.ok || !data.success) throw new Error(data.error ?? "Couldn't update PIN.");
+      setPinState("saved");
+      setCurrentPin("");
+      setNewPin("");
+      setTimeout(() => { setPinState("idle"); setPinOpen(false); }, 2000);
+    } catch (err) {
+      setPinError((err as Error).message);
+      setPinState("error");
+    }
+  }
+
+  async function resetPin() {
+    setPinState("saving");
+    setPinError(null);
+    try {
+      const res = await fetch("/api/account/pin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "reset" }),
+      });
+      if (!res.ok) throw new Error("Couldn't reset PIN.");
+      setPinState("saved");
+      setCurrentPin("");
+      setNewPin("");
+      setTimeout(() => { setPinState("idle"); setPinOpen(false); }, 2000);
+    } catch (err) {
+      setPinError((err as Error).message);
+      setPinState("error");
     }
   }
 
@@ -147,6 +199,60 @@ export function ProfileForm({
               <KeyRound size={16} strokeWidth={1.5} aria-hidden="true" />
               Change password
             </button>
+          </Field>
+
+          <Field label="Vault PIN">
+            {!pinOpen ? (
+              <button
+                type="button"
+                onClick={() => setPinOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-navy/15 text-sm font-semibold text-navy hover:border-navy transition-colors"
+              >
+                <Lock size={16} strokeWidth={1.5} aria-hidden="true" />
+                Change or reset PIN
+              </button>
+            ) : (
+              <div className="space-y-3 max-w-[280px]">
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={currentPin}
+                  onChange={(e) => setCurrentPin(e.target.value.replace(/\D/g, ""))}
+                  placeholder="Current PIN (leave blank if first time)"
+                  className="account-input"
+                />
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={newPin}
+                  onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
+                  placeholder="New 4-digit PIN"
+                  className="account-input"
+                />
+                {pinError && <p className="text-xs text-red-600">{pinError}</p>}
+                {pinState === "saved" && (
+                  <p className="inline-flex items-center gap-1.5 text-xs font-medium text-sage">
+                    <Check size={14} strokeWidth={2} /> PIN updated
+                  </p>
+                )}
+                <div className="flex items-center gap-2">
+                  <button type="button" onClick={changePin} disabled={pinState === "saving"}
+                    className="bg-amber text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-amber-dark transition-colors disabled:opacity-50">
+                    {pinState === "saving" ? "Saving\u2026" : "Update PIN"}
+                  </button>
+                  <button type="button" onClick={resetPin} disabled={pinState === "saving"}
+                    className="text-xs font-semibold text-ink-mid hover:text-red-600 transition-colors disabled:opacity-50">
+                    Remove PIN
+                  </button>
+                  <button type="button" onClick={() => { setPinOpen(false); setPinError(null); }}
+                    className="text-xs font-semibold text-ink-light hover:text-navy transition-colors">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </Field>
 
           <div className="flex items-center gap-3 pt-2">

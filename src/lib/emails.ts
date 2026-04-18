@@ -167,6 +167,32 @@ export async function sendAccountDeleted(params: {
   });
 }
 
+export async function sendTrusteeNominated(params: {
+  to: string;
+  trusteeName: string;
+  parentName: string;
+  childName: string;
+}): Promise<void> {
+  await send({
+    to: params.to,
+    subject: "Someone trusts you with something important.",
+    html: wrapper(`
+      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
+        ${escapeHtml(params.parentName)} named you as a trusted person.
+      </h1>
+      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+        If ${escapeHtml(params.parentName)} is ever unable to access their account, you may be contacted to help transfer ${escapeHtml(params.childName)}&rsquo;s time capsule.
+      </p>
+      <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0 0 12px;">
+        You don&rsquo;t need to do anything right now. This is just to let you know.
+      </p>
+      <p style="font-size:14px;color:#8896a5;line-height:1.6;margin:0;">
+        If you have questions, reply to this email.
+      </p>
+    `),
+  });
+}
+
 // #18 — Writing Reminder (30+ Days)
 export async function sendWritingReminder(params: {
   to: string;

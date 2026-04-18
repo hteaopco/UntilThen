@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-import { ArrowLeft, Gift, Inbox, PlusCircle, Sparkles } from "lucide-react";
+import { ArrowLeft, Gift, Inbox, Lock, PlusCircle, Sparkles } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Footer } from "@/components/landing/Footer";
 import { NewVaultButton } from "@/components/dashboard/NewVaultButton";
@@ -118,6 +118,27 @@ export default async function DashboardPage({
     );
   }
 
+  // Check if user is a trustee for anyone
+  let trusteeFor: { childFirstName: string; parentFirstName: string }[] = [];
+  try {
+    const { clerkClient } = await import("@clerk/nextjs/server");
+    const clerk = await clerkClient();
+    const clerkUser = await clerk.users.getUser(userId);
+    const userEmail =
+      clerkUser.primaryEmailAddress?.emailAddress ??
+      clerkUser.emailAddresses[0]?.emailAddress;
+    if (userEmail) {
+      const trusteeChildren = await prisma.child.findMany({
+        where: { trusteeEmail: userEmail },
+        include: { parent: { select: { firstName: true } } },
+      });
+      trusteeFor = trusteeChildren.map((c) => ({
+        childFirstName: c.firstName,
+        parentFirstName: c.parent.firstName,
+      }));
+    }
+  } catch { /* ignore */ }
+
   // ── Carousel dashboard ────────────────────────────────────
   const [capsuleRecords, contributingToRecords, receivedRecords, pendingContributions] =
     await Promise.all([
@@ -184,6 +205,27 @@ export default async function DashboardPage({
                   <p className="text-xs text-ink-mid mt-0.5">Click to review</p>
                 </div>
               </Link>
+            ))}
+          </div>
+        )}
+
+        {trusteeFor.length > 0 && (
+          <div className="mb-6 space-y-2">
+            {trusteeFor.map((t, i) => (
+              <div
+                key={i}
+                className="flex items-start gap-3 rounded-xl border border-sage/25 bg-sage-tint/50 px-4 py-3"
+              >
+                <Lock size={16} strokeWidth={1.75} className="text-sage shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-navy">
+                    {t.parentFirstName} named you as a trusted person for {t.childFirstName}&rsquo;s capsule.
+                  </p>
+                  <p className="text-xs text-ink-mid mt-0.5">
+                    If they&rsquo;re ever unable to access their account, you may be contacted.
+                  </p>
+                </div>
+              </div>
             ))}
           </div>
         )}

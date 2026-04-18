@@ -107,7 +107,36 @@ export async function PATCH(
   }
 
   const { prisma } = await import("@/lib/prisma");
+
+  const previousChild = await prisma.child.findUnique({
+    where: { id },
+    select: { trusteeEmail: true, firstName: true },
+  });
+
   await prisma.child.update({ where: { id }, data: childData });
+
+  // Send trustee nomination email if trusteeEmail was just set or changed
+  if (
+    typeof childData.trusteeEmail === "string" &&
+    childData.trusteeEmail &&
+    childData.trusteeEmail !== previousChild?.trusteeEmail
+  ) {
+    try {
+      const parent = await prisma.user.findUnique({
+        where: { id: result.user.id },
+        select: { firstName: true },
+      });
+      const { sendTrusteeNominated } = await import("@/lib/emails");
+      await sendTrusteeNominated({
+        to: childData.trusteeEmail,
+        trusteeName: typeof childData.trusteeName === "string" ? childData.trusteeName : "",
+        parentName: parent?.firstName ?? "",
+        childName: previousChild?.firstName ?? "",
+      });
+    } catch (err) {
+      console.error("[children PATCH] trustee email failed:", err);
+    }
+  }
 
   // Vault fields (reveal date, delivery time, timezone).
   if (result.child.vault) {
