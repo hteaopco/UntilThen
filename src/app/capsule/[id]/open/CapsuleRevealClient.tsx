@@ -129,14 +129,7 @@ export function CapsuleRevealClient({
         onOpen={() => {
           if (!preview) {
             captureEvent("capsule_opened", { capsuleId });
-            // Celebrate the moment with a warm confetti drift. Only
-            // fires on real opens (not the organiser's preview
-            // surface, which has its own scene for this).
-            void triggerCelebration();
           }
-          // If there's nothing in the capsule, skip straight to
-          // the list so the recipient isn't staring at a sequence
-          // of zero items.
           setView(contributions.length > 0 ? "sequence" : "list");
         }}
       />

@@ -8,7 +8,6 @@ import { FirstScreen } from "@/app/capsule/[id]/open/FirstScreen";
 import { SequentialRevealScreen } from "@/app/capsule/[id]/open/SequentialRevealScreen";
 import { ListScreen } from "@/app/capsule/[id]/open/ListScreen";
 import { LockedVaultView } from "@/app/vault/[childId]/child-view/LockedVaultView";
-import { triggerCelebration } from "@/lib/confetti";
 
 type Preview =
   | null
@@ -164,7 +163,6 @@ export function PreviewsClient() {
           capsule={MOCK_REVEAL_CAPSULE}
           contributionCount={MOCK_CONTRIBUTIONS.length}
           onOpen={() => {
-            void triggerCelebration();
             setActive("reveal-sequence");
           }}
         />
