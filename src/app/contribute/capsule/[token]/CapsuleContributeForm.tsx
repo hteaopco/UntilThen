@@ -8,11 +8,13 @@ import { TiptapEditor } from "@/components/editor/TiptapEditor";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import { Typewriter } from "@/components/ui/Typewriter";
 import { IntroSplash } from "@/components/landing/IntroSplash";
+import { FirstScreen } from "@/app/capsule/[id]/open/FirstScreen";
+import { SequentialRevealScreen } from "@/app/capsule/[id]/open/SequentialRevealScreen";
 import { PublicMediaAttachments } from "@/app/contribute/capsule/[token]/PublicMediaAttachments";
 import { formatLong } from "@/lib/dateFormatters";
 import { OCCASION_LABELS } from "@/lib/capsules";
 
-type Phase = "splash" | "invite" | "editor" | "thankyou-typing" | "thankyou";
+type Phase = "splash" | "invite" | "editor" | "thankyou-typing" | "thankyou" | "preview-reveal";
 
 function derivePronouns(recipientName: string) {
   const isCouple = recipientName.includes("&");
@@ -55,7 +57,6 @@ export function CapsuleContributeForm({
   const [error, setError] = useState<string | null>(null);
   const [contributionId, setContributionId] = useState<string | null>(existingContribution?.id ?? null);
   const [showCta, setShowCta] = useState(false);
-  const [showSecondLine, setShowSecondLine] = useState(false);
   const mediaKeysRef = useRef<string[]>([]);
   const mediaTypesRef = useRef<string[]>([]);
   const stateRef = useRef({ name, title, body, contributionId });
@@ -207,32 +208,21 @@ export function CapsuleContributeForm({
                 text={`That\u2019s going to mean everything to ${r.pronoun}.`}
                 speed={61}
                 startDelay={400}
-                onComplete={() => setShowSecondLine(true)}
+                onComplete={() => {
+                  setTimeout(() => {
+                    setPhase("thankyou");
+                    setTimeout(() => setShowCta(true), 500);
+                  }, 1000);
+                }}
               />
-              {showSecondLine && (
-                <span className="block mt-2">
-                  <Typewriter
-                    text={`You just created something ${r.subjectContraction} keep forever.`}
-                    speed={61}
-                    startDelay={600}
-                    onComplete={() => {
-                      setTimeout(() => {
-                        setPhase("thankyou");
-                        setTimeout(() => setShowCta(true), 500);
-                      }, 1000);
-                    }}
-                  />
-                </span>
-              )}
             </div>
           ) : (
             <>
               <div className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3] mb-8">
                 That&rsquo;s going to mean everything to {r.pronoun}.
-                <span className="block mt-2">You just created something {r.subjectContraction} keep forever.</span>
               </div>
               <div
-                className="transition-opacity duration-700 ease-out"
+                className="transition-opacity duration-700 ease-out space-y-3"
                 style={{ opacity: showCta ? 1 : 0 }}
               >
                 <Link
@@ -241,11 +231,45 @@ export function CapsuleContributeForm({
                 >
                   Start one for someone you love
                 </Link>
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => setPhase("preview-reveal")}
+                    className="inline-block px-4 py-2 rounded-lg text-[13px] font-semibold border border-amber/30 text-amber/80 hover:text-amber hover:border-amber transition-colors"
+                  >
+                    Preview what {r.pronoun === "them" ? "they" : r.pronoun === "her" ? "she" : "he"}&rsquo;ll see
+                  </button>
+                </div>
               </div>
             </>
           )}
         </div>
       </main>
+    );
+  }
+
+  // ── Phase 5: Preview reveal (contributor sees the full reveal) ──
+  if (phase === "preview-reveal") {
+    return (
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setPhase("thankyou")}
+          className="fixed top-4 right-4 z-[300] bg-navy text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg"
+        >
+          Back
+        </button>
+        <PreviewReveal
+          capsule={capsule}
+          contribution={{
+            id: contributionId ?? "preview",
+            authorName: name,
+            type: "TEXT",
+            title: title || null,
+            body: body || null,
+          }}
+        />
+      </div>
     );
   }
 
@@ -343,5 +367,52 @@ export function CapsuleContributeForm({
         </form>
       </section>
     </main>
+  );
+}
+
+function PreviewReveal({
+  capsule,
+  contribution,
+}: {
+  capsule: {
+    title: string;
+    recipientName: string;
+    occasionType: keyof typeof OCCASION_LABELS;
+    revealDate: string;
+  };
+  contribution: {
+    id: string;
+    authorName: string;
+    type: "TEXT" | "PHOTO" | "VOICE" | "VIDEO";
+    title: string | null;
+    body: string | null;
+  };
+}) {
+  const [view, setView] = useState<"first" | "sequence">("first");
+
+  const mockCapsule = {
+    id: "preview",
+    title: capsule.title,
+    recipientName: capsule.recipientName,
+    occasionType: capsule.occasionType,
+    revealDate: capsule.revealDate,
+    hasAccount: false,
+  };
+
+  if (view === "first") {
+    return (
+      <FirstScreen
+        capsule={mockCapsule}
+        contributionCount={1}
+        onOpen={() => setView("sequence")}
+      />
+    );
+  }
+
+  return (
+    <SequentialRevealScreen
+      contributions={[contribution]}
+      onComplete={() => setView("first")}
+    />
   );
 }
