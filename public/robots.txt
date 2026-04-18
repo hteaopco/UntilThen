@@ -1,0 +1,12 @@
+# untilThen — robots.txt
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api
+Disallow: /dashboard
+Disallow: /onboarding
+Disallow: /account
+Disallow: /capsules
+Disallow: /contribute
+
+Sitemap: https://untilthenapp.io/sitemap.xml
