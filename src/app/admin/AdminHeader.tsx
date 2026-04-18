@@ -29,7 +29,7 @@ export function AdminHeader({ actions }: { actions?: React.ReactNode }) {
       </div>
       <nav
         aria-label="Admin sections"
-        className="flex items-center gap-1 border-b border-navy/10"
+        className="flex flex-wrap items-center gap-1 border-b border-navy/10"
       >
         {TABS.map((tab) => {
           const active =
