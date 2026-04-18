@@ -251,7 +251,8 @@ model MemoryCapsule {
   recipientEmail      String?
   recipientPhone      String?
   occasionType        OccasionType  @default(OTHER)
-  tone                CapsuleTone   @default(CELEBRATION)
+  // tone — column exists in DB (migration 20260418_add_capsule_tone)
+  // but unmapped until Accelerate cache sees it.
   revealDate          DateTime
   contributorDeadline DateTime?
   status              CapsuleStatus @default(DRAFT)
