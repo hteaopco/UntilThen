@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import type { ReactNode } from "react";
 
 // A handful of gold/amber/warm pieces fall continuously behind the gift
@@ -193,7 +196,37 @@ const GIFT_CAPSULE_FEATURES = [
 ];
 
 
+const timeCapsulePlan = (
+  <Plan
+    variant="featured"
+    tag="Time Capsules"
+    name="Time Capsules"
+    price="3.99"
+    priceUnit="per month"
+    priceNote="Save with annual billing at checkout"
+    features={BASE_FEATURES}
+    cta="Start free 7-day trial"
+    ctaNote="No credit card required. Cancel anytime."
+  />
+);
+
+const giftCapsulePlan = (
+  <Plan
+    variant="gift"
+    tag="Gift Capsules"
+    name="One-time Purchase"
+    price="9.99"
+    priceUnit="one-time"
+    features={GIFT_CAPSULE_FEATURES}
+    cta="Create a Gift Capsule"
+    ctaHref="/capsules/new"
+    overlay={<ConfettiOverlay />}
+  />
+);
+
 export function Pricing() {
+  const [tab, setTab] = useState<"time" | "gift">("time");
+
   return (
     <section id="pricing" className="bg-cream">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-16 lg:py-24">
@@ -212,31 +245,45 @@ export function Pricing() {
           </p>
         </div>
 
-        <div className="grid gap-4 md:gap-5 md:grid-cols-2 max-w-[760px] mx-auto items-stretch">
-          <Plan
-            variant="featured"
-            tag="Time Capsules"
-            name="Time Capsules"
-            price="3.99"
-            priceUnit="per month"
-            priceNote="Save with annual billing at checkout"
-            features={BASE_FEATURES}
-            cta="Start free 7-day trial"
-            ctaNote="No credit card required. Cancel anytime."
-          />
-          <Plan
-            variant="gift"
-            tag="Gift Capsules"
-            name="One-time Purchase"
-            price="9.99"
-            priceUnit="one-time"
-            features={GIFT_CAPSULE_FEATURES}
-            cta="Create a Gift Capsule"
-            ctaHref="/capsules/new"
-            overlay={<ConfettiOverlay />}
-          />
+        {/* Mobile: segmented toggle + swapping card */}
+        <div className="md:hidden max-w-[420px] mx-auto">
+          <div className="flex rounded-xl bg-navy/[0.04] border border-navy/[0.06] p-1 mb-5">
+            <button
+              type="button"
+              onClick={() => setTab("time")}
+              className={`flex-1 rounded-lg py-2.5 text-center transition-all ${
+                tab === "time"
+                  ? "bg-white text-navy shadow-[0_1px_4px_rgba(15,31,61,0.08)]"
+                  : "text-ink-mid hover:text-navy"
+              }`}
+            >
+              <span className="block text-[13px] font-bold">Time Capsules</span>
+              <span className="block text-[10px] text-ink-light mt-0.5">Write over time</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("gift")}
+              className={`flex-1 rounded-lg py-2.5 text-center transition-all ${
+                tab === "gift"
+                  ? "bg-white text-navy shadow-[0_1px_4px_rgba(15,31,61,0.08)]"
+                  : "text-ink-mid hover:text-navy"
+              }`}
+            >
+              <span className="block text-[13px] font-bold">Gift Capsules</span>
+              <span className="block text-[10px] text-ink-light mt-0.5">One moment</span>
+            </button>
+          </div>
+
+          <div className="transition-opacity duration-200">
+            {tab === "time" ? timeCapsulePlan : giftCapsulePlan}
+          </div>
         </div>
 
+        {/* Desktop: side by side */}
+        <div className="hidden md:grid gap-5 md:grid-cols-2 max-w-[760px] mx-auto items-stretch">
+          {timeCapsulePlan}
+          {giftCapsulePlan}
+        </div>
       </div>
     </section>
   );
