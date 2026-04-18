@@ -716,39 +716,72 @@ function OwnContribution({
         onSubmit={save}
         className="rounded-2xl border border-amber/40 bg-white shadow-[0_4px_18px_rgba(196,122,58,0.08)] overflow-hidden"
       >
-        {/* Title — same look as the letter editor's title input
-            (large, transparent, with a divider below). */}
-        <div className="px-6 pt-6">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Title (optional)"
-            aria-label="Contribution title"
-            className="w-full px-0 py-2 text-[24px] lg:text-[28px] font-extrabold text-navy bg-transparent border-0 outline-none placeholder-ink-light/60 tracking-[-0.4px] leading-tight border-b border-navy/[0.06] pb-3"
-          />
+        {/* Instruction area */}
+        <div className="mx-4 mt-4 rounded-xl bg-[#eef0f8] border border-[#d4d8e8] px-5 py-4">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 text-amber" aria-hidden="true">
+              <Sparkles size={12} strokeWidth={2} className="inline -mt-1" />
+              <Pencil size={20} strokeWidth={1.75} className="inline" />
+            </span>
+            <div>
+              <p className="text-[15px] font-bold text-navy leading-snug">
+                Write something meaningful.
+              </p>
+              <p className="mt-1 text-[13px] text-ink-mid leading-[1.5]">
+                Start with a memory, a thank you, or something you appreciate.
+              </p>
+              <p className="mt-2 text-[13px] italic text-ink-light leading-[1.5]">
+                Ex: &ldquo;Thinking back on this season, I&rsquo;ll always remember the time we&hellip;&rdquo;
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="px-6 pt-4 pb-2">
-          <TiptapEditor
-            initialContent={body}
-            onUpdate={setBody}
-            placeholder={`Dear ${recipientName.split(" ")[0]},`}
-          />
+        {/* Editor area */}
+        <div className="relative px-4 pt-4 pb-2">
+          <div className="rounded-xl border border-navy/[0.08] bg-white overflow-hidden">
+            <div className="px-5 pt-5 pb-1">
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Title (optional)"
+                aria-label="Contribution title"
+                className="w-full px-0 py-2 text-[24px] lg:text-[28px] font-extrabold text-navy bg-transparent border-0 outline-none placeholder-ink-light/40 tracking-[-0.4px] leading-tight border-b border-navy/[0.06] pb-3"
+              />
+            </div>
+            <div className="relative px-5 pt-3 pb-4">
+              <TiptapEditor
+                initialContent={body}
+                onUpdate={setBody}
+                placeholder={`Dear ${recipientName.split(" ")[0]},`}
+                floatingToolbar
+              />
+              <div className="absolute top-3 right-3 bottom-4 w-px flex flex-col items-center pointer-events-none">
+                <div className="w-[3px] flex-1 rounded-full bg-gradient-to-b from-amber via-amber/60 to-transparent" />
+                <div className="w-2.5 h-2.5 rounded-full border-2 border-amber/40 bg-white mt-1" />
+                <div className="w-px flex-1 border-l border-dashed border-amber/30" />
+              </div>
+            </div>
+            <div className="px-5 pb-3 text-right">
+              <span className="text-[11px] text-ink-light/50 italic">
+                Write as much as you&rsquo;d like.
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Media — same component, same buttons. The only
-            difference is the target descriptor that routes
-            uploads through the capsule contribution path. */}
-        <div className="px-6 pt-4 pb-5 border-t border-navy/[0.06]">
-          <MediaAttachments
-            target="capsuleContribution"
-            capsuleId={capsuleId}
-            entryId={contributionId}
-            initial={initialAttachments}
-            ensureEntry={ensureContribution}
-            canAttach={Boolean(contributionId) || hasContent()}
-          />
+        <div className="px-4 pt-2 pb-4">
+          <div className="rounded-xl border border-navy/[0.08] bg-white px-5 py-4">
+            <MediaAttachments
+              target="capsuleContribution"
+              capsuleId={capsuleId}
+              entryId={contributionId}
+              initial={initialAttachments}
+              ensureEntry={ensureContribution}
+              canAttach={Boolean(contributionId) || hasContent()}
+            />
+          </div>
         </div>
 
         {error && (
