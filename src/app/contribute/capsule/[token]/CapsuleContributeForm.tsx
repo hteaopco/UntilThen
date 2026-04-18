@@ -57,6 +57,7 @@ export function CapsuleContributeForm({
   const [error, setError] = useState<string | null>(null);
   const [contributionId, setContributionId] = useState<string | null>(existingContribution?.id ?? null);
   const [showCta, setShowCta] = useState(false);
+  const [inviteLine2, setInviteLine2] = useState(false);
   const mediaKeysRef = useRef<string[]>([]);
   const mediaTypesRef = useRef<string[]>([]);
   const stateRef = useRef({ name, title, body, contributionId });
@@ -177,17 +178,20 @@ export function CapsuleContributeForm({
               text={`You've been invited to create something for ${r.displayName}.`}
               speed={61}
               startDelay={500}
-            />
-          </h1>
-          <p className="mt-4 text-[15px] text-ink-mid leading-[1.5]">
-            <Typewriter
-              text={`A message. A memory. Something ${r.subjectContraction} open and experience forever.`}
-              speed={54}
-              startDelay={4000}
+              cursorBlinks={1}
               onComplete={() => {
-                setTimeout(() => setPhase("editor"), 2000);
+                setTimeout(() => {
+                  setInviteLine2(true);
+                  setTimeout(() => setPhase("editor"), 2500);
+                }, 1100);
               }}
             />
+          </h1>
+          <p
+            className="mt-4 text-[15px] text-ink-mid leading-[1.5] transition-opacity duration-700 ease-out"
+            style={{ opacity: inviteLine2 ? 1 : 0 }}
+          >
+            A message. A memory. Something {r.subjectContraction} open and experience forever.
           </p>
         </div>
       </main>
@@ -254,7 +258,7 @@ export function CapsuleContributeForm({
       <div className="relative">
         <button
           type="button"
-          onClick={() => setPhase("thankyou")}
+          onClick={() => { setPhase("thankyou"); setShowCta(true); }}
           className="fixed top-4 right-4 z-[300] bg-navy text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg"
         >
           Back
@@ -268,6 +272,7 @@ export function CapsuleContributeForm({
             title: title || null,
             body: body || null,
           }}
+          onDone={() => { setPhase("thankyou"); setShowCta(true); }}
         />
       </div>
     );
@@ -373,6 +378,7 @@ export function CapsuleContributeForm({
 function PreviewReveal({
   capsule,
   contribution,
+  onDone,
 }: {
   capsule: {
     title: string;
@@ -387,6 +393,7 @@ function PreviewReveal({
     title: string | null;
     body: string | null;
   };
+  onDone: () => void;
 }) {
   const [view, setView] = useState<"first" | "sequence">("first");
 
@@ -412,7 +419,7 @@ function PreviewReveal({
   return (
     <SequentialRevealScreen
       contributions={[contribution]}
-      onComplete={() => setView("first")}
+      onComplete={onDone}
     />
   );
 }
