@@ -20,7 +20,7 @@ export function HeroImageCrossfade() {
   }, []);
 
   return (
-    <div className="relative w-full max-w-[600px] mx-auto aspect-[3/2]">
+    <div className="relative w-full max-w-[680px] mx-auto aspect-[3/2]">
       {IMAGES.map((src, i) => (
         <div
           key={src}
