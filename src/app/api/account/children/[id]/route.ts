@@ -12,9 +12,6 @@ type PatchBody = {
   revealDate?: string | null;
   trusteeName?: string | null;
   trusteeEmail?: string | null;
-  trusteePhone?: string | null;
-  deliveryTime?: string;
-  timezone?: string;
 };
 
 async function requireOwnership(clerkUserId: string, childId: string) {
@@ -100,12 +97,6 @@ export async function PATCH(
       typeof body.trusteeEmail === "string" ? body.trusteeEmail.trim() : "";
     childData.trusteeEmail = v.length > 0 ? v : null;
   }
-  if ("trusteePhone" in body) {
-    const v =
-      typeof body.trusteePhone === "string" ? body.trusteePhone.trim() : "";
-    childData.trusteePhone = v.length > 0 ? v : null;
-  }
-
   const { prisma } = await import("@/lib/prisma");
 
   const previousChild = await prisma.child.findUnique({
@@ -138,30 +129,18 @@ export async function PATCH(
     }
   }
 
-  // Vault fields (reveal date, delivery time, timezone).
-  if (result.child.vault) {
-    const vaultData: Record<string, unknown> = {};
-    if ("revealDate" in body) {
-      const d = parseDate(body.revealDate);
-      if (d === undefined)
-        return NextResponse.json(
-          { error: "Invalid reveal date." },
-          { status: 400 },
-        );
-      vaultData.revealDate = d;
-    }
-    if (typeof body.deliveryTime === "string" && /^\d{2}:\d{2}$/.test(body.deliveryTime)) {
-      vaultData.deliveryTime = body.deliveryTime;
-    }
-    if (typeof body.timezone === "string" && body.timezone.trim()) {
-      vaultData.timezone = body.timezone.trim();
-    }
-    if (Object.keys(vaultData).length > 0) {
-      await prisma.vault.update({
-        where: { id: result.child.vault.id },
-        data: vaultData,
-      });
-    }
+  // Vault fields (reveal date only — deliveryTime/timezone unmapped for Accelerate cache).
+  if (result.child.vault && "revealDate" in body) {
+    const d = parseDate(body.revealDate);
+    if (d === undefined)
+      return NextResponse.json(
+        { error: "Invalid reveal date." },
+        { status: 400 },
+      );
+    await prisma.vault.update({
+      where: { id: result.child.vault.id },
+      data: { revealDate: d },
+    });
   }
 
   revalidatePath("/account/capsules");

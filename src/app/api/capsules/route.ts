@@ -36,9 +36,6 @@ interface CreateBody {
   revealDate?: string;
   contributorDeadline?: string | null;
   requiresApproval?: boolean;
-  deliveryTime?: string;
-  timezone?: string;
-  tone?: string;
 }
 
 /**
@@ -101,18 +98,6 @@ export async function POST(req: Request) {
       ? new Date(body.contributorDeadline)
       : null;
   const requiresApproval = body.requiresApproval === true;
-  const deliveryTime =
-    typeof body.deliveryTime === "string" && /^\d{2}:\d{2}$/.test(body.deliveryTime)
-      ? body.deliveryTime
-      : "09:00";
-  const timezone =
-    typeof body.timezone === "string" && body.timezone.trim()
-      ? body.timezone.trim()
-      : "America/Chicago";
-  const validTones = ["CELEBRATION", "GRATITUDE", "REMEMBRANCE", "ENCOURAGEMENT", "LOVE", "OTHER"];
-  const tone = typeof body.tone === "string" && validTones.includes(body.tone)
-    ? body.tone
-    : "CELEBRATION";
 
   if (!title)
     return NextResponse.json(
@@ -175,9 +160,6 @@ export async function POST(req: Request) {
         revealDate,
         contributorDeadline,
         requiresApproval,
-        tone: tone as "CELEBRATION" | "GRATITUDE" | "REMEMBRANCE" | "ENCOURAGEMENT" | "LOVE" | "OTHER",
-        deliveryTime,
-        timezone,
       },
     });
 

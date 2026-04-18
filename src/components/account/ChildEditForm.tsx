@@ -31,8 +31,6 @@ export function ChildEditForm({
   revealDate: initialReveal,
   trusteeName: initialTrusteeName,
   trusteeEmail: initialTrusteeEmail,
-  trusteePhone: initialTrusteePhone,
-  deliveryTime: initialDeliveryTime,
 }: {
   childId: string;
   firstName: string;
@@ -40,8 +38,6 @@ export function ChildEditForm({
   revealDate: string | null;
   trusteeName: string;
   trusteeEmail: string;
-  trusteePhone: string;
-  deliveryTime: string;
 }) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
@@ -49,8 +45,6 @@ export function ChildEditForm({
   // Trustee fields stay editable inline (not in the modal).
   const [trusteeName, setTrusteeName] = useState(initialTrusteeName);
   const [trusteeEmail, setTrusteeEmail] = useState(initialTrusteeEmail);
-  const [trusteePhone, setTrusteePhone] = useState(initialTrusteePhone);
-  const [deliveryTime, setDeliveryTime] = useState(initialDeliveryTime);
   const [trusteeState, setTrusteeState] = useState<SaveState>("idle");
   const [trusteeError, setTrusteeError] = useState<string | null>(null);
 
@@ -60,28 +54,6 @@ export function ChildEditForm({
 
   const dobDisplay = initialDob ? formatDate(toDateInput(initialDob)) : "Not set";
   const revealDisplay = initialReveal ? formatDate(toDateInput(initialReveal)) : "Not set";
-
-  async function saveDeliveryTime() {
-    setTrusteeState("saving");
-    setTrusteeError(null);
-    try {
-      const res = await fetch(`/api/account/children/${childId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ deliveryTime }),
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? "Couldn't save.");
-      }
-      setTrusteeState("saved");
-      router.refresh();
-      setTimeout(() => setTrusteeState("idle"), 2200);
-    } catch (err) {
-      setTrusteeError((err as Error).message);
-      setTrusteeState("error");
-    }
-  }
 
   async function saveTrustee(e: FormEvent) {
     e.preventDefault();
@@ -97,7 +69,6 @@ export function ChildEditForm({
           revealDate: initialReveal ? toDateInput(initialReveal) : null,
           trusteeName: trusteeName.trim() || null,
           trusteeEmail: trusteeEmail.trim() || null,
-          trusteePhone: trusteePhone.trim() || null,
         }),
       });
       if (!res.ok) {
@@ -163,22 +134,6 @@ export function ChildEditForm({
           <ReadOnlyField label="Name" value={initialFirstName} />
           <ReadOnlyField label="Date of birth" value={dobDisplay} />
           <ReadOnlyField label="Reveal date" value={revealDisplay} />
-          <div>
-            <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-1.5">
-              Delivery time
-            </span>
-            <div className="flex items-center gap-3">
-              <input type="time" value={deliveryTime} onChange={(e) => setDeliveryTime(e.target.value)}
-                className="account-input w-auto" />
-              <button type="button" onClick={saveDeliveryTime} disabled={deliveryTime === initialDeliveryTime || trusteeState === "saving"}
-                className="text-xs font-bold text-amber hover:text-amber-dark transition-colors disabled:opacity-40">
-                Save
-              </button>
-            </div>
-            <p className="mt-1 text-xs italic text-ink-light">
-              The time the capsule will be delivered on the reveal date. Default is 8:00 AM.
-            </p>
-          </div>
         </div>
       </section>
 
@@ -196,7 +151,7 @@ export function ChildEditForm({
         </p>
 
         <form onSubmit={saveTrustee} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Name">
               <input type="text" value={trusteeName} onChange={(e) => setTrusteeName(e.target.value)}
                 placeholder="Spouse, sibling, close friend, etc" className="account-input" />
@@ -204,10 +159,6 @@ export function ChildEditForm({
             <Field label="Email">
               <input type="email" value={trusteeEmail} onChange={(e) => setTrusteeEmail(e.target.value)}
                 placeholder="trustee@email.com" className="account-input" />
-            </Field>
-            <Field label="Phone (optional)">
-              <input type="tel" value={trusteePhone} onChange={(e) => setTrusteePhone(e.target.value)}
-                placeholder="(555) 123-4567" className="account-input" />
             </Field>
           </div>
 

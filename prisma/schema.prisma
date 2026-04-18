@@ -74,7 +74,7 @@ model User {
   firstName   String
   lastName    String
   displayName String?
-  pinHash     String?
+  // pinHash     String?    // UNMAPPED — Accelerate cache stale
   role        Role     @default(PARENT)
   userType    UserType @default(PARENT)
   createdAt   DateTime @default(now())
@@ -94,7 +94,7 @@ model Child {
   parentId     String
   trusteeName  String?
   trusteeEmail String?
-  trusteePhone String?
+  // trusteePhone String?   // UNMAPPED — Accelerate cache stale
   createdAt    DateTime  @default(now())
 
   parent User   @relation(fields: [parentId], references: [id])
@@ -105,8 +105,8 @@ model Vault {
   id           String    @id @default(cuid())
   childId      String    @unique
   revealDate   DateTime?
-  deliveryTime String    @default("08:00")
-  timezone     String    @default("America/Chicago")
+  // deliveryTime String    @default("08:00")   // UNMAPPED — Accelerate cache stale
+  // timezone     String    @default("America/Chicago")  // UNMAPPED
   unlockedAt   DateTime?
   createdAt    DateTime  @default(now())
 
@@ -216,14 +216,15 @@ enum OccasionType {
   OTHER
 }
 
-enum CapsuleTone {
-  CELEBRATION
-  GRATITUDE
-  REMEMBRANCE
-  ENCOURAGEMENT
-  LOVE
-  OTHER
-}
+// UNMAPPED — Accelerate cache stale
+// enum CapsuleTone {
+//   CELEBRATION
+//   GRATITUDE
+//   REMEMBRANCE
+//   ENCOURAGEMENT
+//   LOVE
+//   OTHER
+// }
 
 enum CapsuleStatus {
   DRAFT // Created, not paid, no invites sent yet.
@@ -247,7 +248,7 @@ model MemoryCapsule {
   recipientEmail      String?
   recipientPhone      String?
   occasionType        OccasionType  @default(OTHER)
-  tone                CapsuleTone   @default(CELEBRATION)
+  // tone                CapsuleTone   @default(CELEBRATION)  // UNMAPPED
   revealDate          DateTime
   contributorDeadline DateTime?
   status              CapsuleStatus @default(DRAFT)
@@ -257,10 +258,10 @@ model MemoryCapsule {
   accessToken         String        @unique @default(cuid())
   tokenExpiresAt      DateTime?
   recipientClerkId    String?
-  deliveryTime        String        @default("09:00")
-  timezone            String        @default("America/Chicago")
+  // deliveryTime        String        @default("09:00")   // UNMAPPED
+  // timezone            String        @default("America/Chicago")  // UNMAPPED
   firstOpenedAt       DateTime?
-  recipientCompletedAt DateTime?
+  // recipientCompletedAt DateTime?   // UNMAPPED
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 

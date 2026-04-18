@@ -3,14 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function isDeliveryTimePassed(
-  revealDate: Date,
-  deliveryTime: string | null,
-  timezone: string | null,
-): boolean {
-  const tz = timezone || "America/Chicago";
-  const time = deliveryTime || "09:00";
-  const [hours, minutes] = time.split(":").map(Number);
+function isDeliveryTimePassed(revealDate: Date): boolean {
+  const tz = "America/Chicago";
+  const [hours, minutes] = [9, 0];
 
   const nowInTz = new Date(
     new Date().toLocaleString("en-US", { timeZone: tz }),
@@ -19,7 +14,7 @@ function isDeliveryTimePassed(
     revealDate.toLocaleString("en-US", { timeZone: tz }),
   );
 
-  revealInTz.setHours(hours ?? 9, minutes ?? 0, 0, 0);
+  revealInTz.setHours(hours, minutes, 0, 0);
 
   return nowInTz >= revealInTz;
 }
@@ -55,7 +50,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   for (const capsule of capsules) {
     if (!capsule.recipientEmail) continue;
 
-    if (!isDeliveryTimePassed(capsule.revealDate, capsule.deliveryTime, capsule.timezone)) {
+    if (!isDeliveryTimePassed(capsule.revealDate)) {
       skipped++;
       continue;
     }
