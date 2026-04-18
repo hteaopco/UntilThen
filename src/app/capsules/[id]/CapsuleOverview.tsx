@@ -379,18 +379,21 @@ export function CapsuleOverview({
           doesn't see anything until the reveal date. Empty state
           (no invites yet) pivots to "unlock your capsule" so the
           user still has a forward action. */}
-      {isDraft && (
-        <section
-          id="activate"
-          className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10"
-        >
-          <div className="rounded-2xl border border-amber/25 bg-amber-tint/40 px-6 py-6 space-y-3">
-            <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] whitespace-nowrap">
-              Invite everyone who loves {pronoun}
-            </h2>
-            <p className="text-sm text-ink-mid leading-[1.6]">
-              Each contributor adds something &mdash; a message, a memory, a voice note &mdash; and {subjectPronoun}&rsquo;ll open it all at once.
-            </p>
+      <section
+        id="activate"
+        className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10"
+      >
+        <div className="rounded-2xl border border-amber/25 bg-amber-tint/40 px-6 py-6 space-y-3">
+          <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] whitespace-nowrap">
+            {isDraft ? `Invite everyone who loves ${pronoun}` : `${recipientDisplayName}\u2019s capsule is live`}
+          </h2>
+          <p className="text-sm text-ink-mid leading-[1.6]">
+            {isDraft
+              ? <>Each contributor adds something &mdash; a message, a memory, a voice note &mdash; and {subjectPronoun}&rsquo;ll open it all at once.</>
+              : <>Contributors are adding messages. {recipientDisplayName} will see everything on the reveal date.</>
+            }
+          </p>
+          {isDraft ? (
             <button
               type="button"
               onClick={() => setActivateOpen(true)}
@@ -398,20 +401,26 @@ export function CapsuleOverview({
             >
               Send invites &mdash; $9.99
             </button>
+          ) : (
+            <span className="inline-flex items-center gap-2 bg-navy/10 text-ink-light px-5 py-2.5 rounded-lg text-sm font-bold cursor-default">
+              Invites sent
+            </span>
+          )}
+          {isDraft && (
             <p className="text-sm font-semibold text-navy">
               Nothing is sent to {recipientDisplayName} yet. You&rsquo;ll review everything before delivery.
             </p>
-            <div className="pt-1">
-              <Link
-                href={`/capsules/${capsule.id}/preview`}
-                className="inline-block px-4 py-2 rounded-lg text-[13px] font-semibold border border-amber/30 text-amber/80 hover:text-amber hover:border-amber transition-colors"
-              >
-                Preview their moment
-              </Link>
-            </div>
+          )}
+          <div className="pt-1">
+            <Link
+              href={`/capsules/${capsule.id}/preview`}
+              className="inline-block px-4 py-2 rounded-lg text-[13px] font-semibold border border-amber/30 text-amber/80 hover:text-amber hover:border-amber transition-colors"
+            >
+              Preview their moment
+            </Link>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
       {/* Live capsule summary (post-activation): contributions
           land here. Replaces the activate panel once isPaid. */}
