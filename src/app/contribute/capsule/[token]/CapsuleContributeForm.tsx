@@ -168,7 +168,7 @@ export function CapsuleContributeForm({
   // ── Phase 2: Invite message ──────────────────────────────
   if (phase === "invite") {
     return (
-      <main onClick={() => setPhase("editor")} className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 cursor-pointer">
+      <main className="min-h-screen bg-cream flex flex-col items-center justify-center px-6">
         <div className="fixed top-8 left-0 right-0 flex justify-center z-10">
           <LogoSvg variant="dark" width={100} height={20} />
         </div>
@@ -180,10 +180,7 @@ export function CapsuleContributeForm({
               startDelay={500}
               cursorBlinks={1}
               onComplete={() => {
-                setTimeout(() => {
-                  setInviteLine2(true);
-                  setTimeout(() => setPhase("editor"), 2500);
-                }, 1100);
+                setTimeout(() => setInviteLine2(true), 1100);
               }}
             />
           </h1>
@@ -193,12 +190,18 @@ export function CapsuleContributeForm({
           >
             A message. A memory. Something {r.subjectContraction} open and experience forever.
           </p>
-          <p
-            className="fixed bottom-10 left-0 right-0 text-center text-[11px] italic transition-opacity duration-700 ease-out"
-            style={{ color: "rgba(44,36,32,0.25)", opacity: inviteLine2 ? 1 : 0 }}
+          <div
+            className="mt-6 transition-opacity duration-700 ease-out"
+            style={{ opacity: inviteLine2 ? 1 : 0 }}
           >
-            tap to continue
-          </p>
+            <button
+              type="button"
+              onClick={() => setPhase("editor")}
+              className="px-5 py-2.5 rounded-lg text-[13px] font-semibold border border-amber/30 text-amber/70 hover:text-amber hover:border-amber transition-colors"
+            >
+              Start writing
+            </button>
+          </div>
         </div>
       </main>
     );
@@ -289,6 +292,8 @@ export function CapsuleContributeForm({
     ? `Dear ${r.firstName1} & ${r.firstName2},`
     : `Dear ${r.firstName1},`;
 
+  const editorPlaceholder = `${dearLine}\n\nWrite what comes to mind — a favorite memory, something you admire, or just what you want them to know.`;
+
   return (
     <main className="min-h-screen bg-cream">
       <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
@@ -346,7 +351,7 @@ export function CapsuleContributeForm({
               <TiptapEditor
                 initialContent={body}
                 onUpdate={setBody}
-                placeholder={dearLine}
+                placeholder={editorPlaceholder}
               />
             </div>
 
