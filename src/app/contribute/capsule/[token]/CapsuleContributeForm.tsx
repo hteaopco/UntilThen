@@ -168,14 +168,14 @@ export function CapsuleContributeForm({
         <div className="max-w-[440px] text-center">
           <h1 className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
             <Typewriter
-              text="Someone wants you to be part of this moment."
+              text={`You've been invited to create something for ${r.displayName}.`}
               speed={61}
               startDelay={500}
             />
           </h1>
           <p className="mt-4 text-[15px] text-ink-mid leading-[1.5]">
             <Typewriter
-              text={`You've been invited to leave something ${r.subjectContraction} keep forever.`}
+              text={`A message. A memory. Something ${r.subjectContraction} open and experience forever.`}
               speed={54}
               startDelay={4000}
               onComplete={() => {
