@@ -40,7 +40,7 @@ export function Typewriter({
   return (
     <span className={className}>
       {displayed}
-      {!done && <span className="animate-blink ml-[1px] inline-block w-[2px] h-[1em] bg-current align-text-bottom" />}
+      {started && !done && <span className="animate-blink ml-[1px] inline-block w-[2px] h-[1em] bg-current align-text-bottom" />}
     </span>
   );
 }
