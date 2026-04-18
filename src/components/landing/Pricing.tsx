@@ -212,7 +212,7 @@ export function Pricing() {
           </p>
         </div>
 
-        <div className="grid gap-4 lg:gap-5 lg:grid-cols-2 max-w-[760px] mx-auto">
+        <div className="grid gap-4 md:gap-5 md:grid-cols-2 max-w-[760px] mx-auto items-stretch">
           <Plan
             variant="featured"
             tag="Time Capsules"
