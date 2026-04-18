@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
+import { Pencil, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 
@@ -320,7 +320,9 @@ export function CapsuleContributeForm({
           {capsule.title}
         </h1>
         <p className="mt-2 text-[15px] text-ink-mid leading-[1.5]">
-          Add your message for {r.displayName}. {r.subjectContraction.charAt(0).toUpperCase() + r.subjectContraction.slice(1)} open everything at once on{" "}
+          Write something for {r.displayName}.
+          <br />
+          {r.subjectContraction.charAt(0).toUpperCase() + r.subjectContraction.slice(1)} open everything on{" "}
           <span className="font-semibold text-navy">{formatLong(capsule.revealDate)}</span>.
         </p>
         {capsule.contributorDeadline && (
@@ -329,42 +331,78 @@ export function CapsuleContributeForm({
           </p>
         )}
 
-        <form onSubmit={submit} className="mt-8">
+        <label className="mt-5 flex items-center gap-2 text-[15px] text-navy">
+          From you:{" "}
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your name"
+            required
+            className="font-bold bg-transparent border-0 outline-none placeholder-ink-light/50 min-w-0"
+          />
+        </label>
+
+        <form onSubmit={submit} className="mt-5">
+          {/* ── Writing card ─────────────────────────────── */}
           <div className="rounded-2xl border border-amber/40 bg-white shadow-[0_4px_18px_rgba(196,122,58,0.08)] overflow-hidden">
-            <div className="px-6 pt-5 pb-3 border-b border-navy/[0.06]">
-              <label className="flex items-center gap-3">
-                <span className="text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid whitespace-nowrap">From:</span>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
-                  className="flex-1 bg-transparent border-0 outline-none text-[15px] text-navy font-semibold placeholder-ink-light/50"
-                  required
-                />
-              </label>
+            {/* Instruction area */}
+            <div className="mx-4 mt-4 rounded-xl bg-[#eef0f8] border border-[#d4d8e8] px-5 py-4">
+              <div className="flex items-start gap-3">
+                <span className="mt-0.5 text-amber" aria-hidden="true">
+                  <Sparkles size={12} strokeWidth={2} className="inline -mt-1" />
+                  <Pencil size={20} strokeWidth={1.75} className="inline" />
+                </span>
+                <div>
+                  <p className="text-[15px] font-bold text-navy leading-snug">
+                    Write something meaningful.
+                  </p>
+                  <p className="mt-1 text-[13px] text-ink-mid leading-[1.5]">
+                    Start with a memory, a thank you, or something you appreciate.
+                  </p>
+                  <p className="mt-2 text-[13px] italic text-ink-light leading-[1.5]">
+                    Ex: &ldquo;Thinking back on this season, I&rsquo;ll always remember the time we&hellip;&rdquo;
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <div className="px-6 pt-4">
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Title (optional)"
-                aria-label="Contribution title"
-                className="w-full px-0 py-2 text-[22px] lg:text-[26px] font-extrabold text-navy bg-transparent border-0 outline-none placeholder-ink-light/40 tracking-[-0.3px] leading-tight border-b border-navy/[0.06] pb-3"
-              />
+            {/* Editor area with floating toolbar */}
+            <div className="relative px-4 pt-4 pb-2">
+              <div className="rounded-xl border border-navy/[0.08] bg-white overflow-hidden">
+                <div className="relative px-5 pt-4 pb-4">
+                  <TiptapEditor
+                    initialContent={body}
+                    onUpdate={setBody}
+                    placeholder={editorPlaceholder}
+                    floatingToolbar
+                  />
+                  {/* Scroll indicator */}
+                  <div className="absolute top-4 right-3 bottom-4 w-px flex flex-col items-center pointer-events-none">
+                    <div className="w-[3px] flex-1 rounded-full bg-gradient-to-b from-amber via-amber/60 to-transparent" />
+                    <div className="w-2.5 h-2.5 rounded-full border-2 border-amber/40 bg-white mt-1" />
+                    <div className="w-px flex-1 border-l border-dashed border-amber/30" />
+                  </div>
+                </div>
+                <div className="px-5 pb-3 text-right">
+                  <span className="text-[11px] text-ink-light/50 italic">
+                    Write as much as you&rsquo;d like.
+                  </span>
+                </div>
+              </div>
             </div>
+          </div>
 
-            <div className="px-6 pt-4 pb-2">
-              <TiptapEditor
-                initialContent={body}
-                onUpdate={setBody}
-                placeholder={editorPlaceholder}
-              />
-            </div>
-
-            <div className="px-6 pt-4 pb-5 border-t border-navy/[0.06]">
+          {/* ── Media card ────────────────────────────────── */}
+          <div className="mt-4 rounded-2xl border border-amber/30 bg-white shadow-[0_2px_10px_rgba(196,122,58,0.05)] px-6 py-5">
+            <p className="text-[15px] font-bold text-navy">
+              Add a photo, voice note, or video{" "}
+              <span className="font-normal text-ink-mid">(optional)</span>
+            </p>
+            <p className="mt-1 text-[13px] text-ink-mid">
+              Your voice makes it even more special.
+            </p>
+            <div className="mt-4">
               <PublicMediaAttachments
                 token={token}
                 ensureContribution={ensureContribution}
@@ -374,20 +412,21 @@ export function CapsuleContributeForm({
           </div>
 
           {error && (
-            <p className="mt-4 text-sm text-red-600" role="alert">{error}</p>
+            <p className="mt-4 text-sm text-red-600 text-center" role="alert">{error}</p>
           )}
 
-          <div className="mt-6 flex items-center gap-4">
+          <div className="mt-8 flex flex-col items-center gap-3">
+            <p className="text-[14px] text-navy">
+              {r.subjectContraction.charAt(0).toUpperCase() + r.subjectContraction.slice(1)} won&rsquo;t see this until{" "}
+              <span className="font-bold">{formatLong(capsule.revealDate)}</span>.
+            </p>
             <button
               type="submit"
               disabled={saving}
-              className="bg-amber text-white px-6 py-3 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
+              className="w-full max-w-[400px] bg-amber text-white py-3.5 rounded-xl text-[16px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60 shadow-[0_2px_8px_rgba(196,122,58,0.25)]"
             >
-              {saving ? "Submitting\u2026" : "Submit my contribution"}
+              {saving ? "Sending\u2026" : "Add my message"}
             </button>
-            <p className="text-xs italic text-ink-light">
-              {r.displayName} won&rsquo;t see this until the reveal date.
-            </p>
           </div>
         </form>
       </section>

@@ -20,6 +20,7 @@ interface Props {
   onUpdate: (html: string) => void;
   onBlur?: () => void;
   editable?: boolean;
+  floatingToolbar?: boolean;
 }
 
 export function TiptapEditor({
@@ -28,6 +29,7 @@ export function TiptapEditor({
   onUpdate,
   onBlur,
   editable = true,
+  floatingToolbar = false,
 }: Props) {
   const editor = useEditor({
     extensions: [
@@ -73,6 +75,17 @@ export function TiptapEditor({
     );
   }
 
+  if (floatingToolbar) {
+    return (
+      <div className="relative">
+        <div className="absolute top-0 right-0 z-10">
+          <Toolbar editor={editor} compact />
+        </div>
+        <EditorContent editor={editor} />
+      </div>
+    );
+  }
+
   return (
     <div>
       <Toolbar editor={editor} />
@@ -81,9 +94,9 @@ export function TiptapEditor({
   );
 }
 
-function Toolbar({ editor }: { editor: Editor }) {
+function Toolbar({ editor, compact }: { editor: Editor; compact?: boolean }) {
   return (
-    <div className="mb-5 pb-3 border-b border-navy/[0.08]">
+    <div className={compact ? "" : "mb-5 pb-3 border-b border-navy/[0.08]"}>
       <div className="inline-flex items-center gap-0.5 rounded-lg bg-[#f5f1ea] border border-navy/[0.06] p-1">
         {/* Group 1: text formatting */}
         <TbButton
