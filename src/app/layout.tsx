@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
-import { DM_Sans, Playfair_Display } from "next/font/google";
+import { DM_Sans, Playfair_Display, Caveat } from "next/font/google";
 import "./globals.css";
 import { PosthogProvider } from "@/components/PosthogProvider";
 
@@ -15,6 +15,13 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
   weight: ["400"],
   variable: "--font-playfair",
+  display: "swap",
+});
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-caveat",
   display: "swap",
 });
 
@@ -81,7 +88,7 @@ export default function RootLayout({
         },
       }}
     >
-      <html lang="en" className={`${dmSans.variable} ${playfair.variable}`}>
+      <html lang="en" className={`${dmSans.variable} ${playfair.variable} ${caveat.variable}`}>
         <body className="font-sans bg-white text-navy antialiased">
           <PosthogProvider>{children}</PosthogProvider>
         </body>
