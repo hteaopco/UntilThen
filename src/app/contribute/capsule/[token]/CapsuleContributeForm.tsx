@@ -291,6 +291,7 @@ export function CapsuleContributeForm({
             title: title || null,
             body: body || null,
           }}
+          tone={capsuleTone}
           onDone={() => { setPhase("thankyou"); setShowCta(true); }}
         />
       </div>
@@ -444,6 +445,7 @@ export function CapsuleContributeForm({
 function PreviewReveal({
   capsule,
   contribution,
+  tone,
   onDone,
 }: {
   capsule: {
@@ -459,6 +461,7 @@ function PreviewReveal({
     title: string | null;
     body: string | null;
   };
+  tone: CapsuleTone;
   onDone: () => void;
 }) {
   const [view, setView] = useState<"first" | "sequence">("first");
@@ -485,6 +488,7 @@ function PreviewReveal({
   return (
     <SequentialRevealScreen
       contributions={[contribution]}
+      tone={tone}
       onComplete={onDone}
     />
   );

@@ -70,6 +70,7 @@ export async function GET(
       title: capsule.title,
       recipientName: capsule.recipientName,
       occasionType: capsule.occasionType,
+      tone: (capsule as unknown as Record<string, unknown>).tone ?? "CELEBRATION",
       revealDate: capsule.revealDate.toISOString(),
       isFirstOpen,
       hasAccount: Boolean(capsule.recipientClerkId),

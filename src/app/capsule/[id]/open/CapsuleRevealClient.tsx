@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { captureEvent } from "@/components/PosthogProvider";
 import { triggerCelebration } from "@/lib/confetti";
+import type { CapsuleTone } from "@/lib/tone";
 
 import { ExpiredLinkScreen } from "./ExpiredLinkScreen";
 import { FirstScreen } from "./FirstScreen";
@@ -23,6 +24,7 @@ type Capsule = {
   title: string;
   recipientName: string;
   occasionType: Occasion;
+  tone: CapsuleTone;
   revealDate: string;
   isFirstOpen: boolean;
   hasAccount: boolean;
@@ -140,6 +142,7 @@ export function CapsuleRevealClient({
     return (
       <SequentialRevealScreen
         contributions={contributions}
+        tone={capsule.tone}
         onComplete={() => {
           if (!preview) {
             captureEvent("capsule_sequential_completed", { capsuleId });
