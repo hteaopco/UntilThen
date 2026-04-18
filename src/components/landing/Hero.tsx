@@ -1,3 +1,5 @@
+import { HeroImageCrossfade } from "@/components/landing/HeroImageCrossfade";
+
 export function Hero() {
   return (
     <section id="top" className="bg-cream overflow-hidden">
@@ -16,7 +18,7 @@ export function Hero() {
             to contribute messages for a meaningful moment.
           </p>
 
-          <div className="hero-actions">
+          <div className="hero-actions mb-10">
             <a
               href="#cta"
               className="inline-block bg-amber text-white px-7 py-3.5 rounded-lg text-[15px] font-bold tracking-[0.01em] hover:bg-amber-dark hover:-translate-y-0.5 transition-all"
@@ -25,6 +27,8 @@ export function Hero() {
               Start a time capsule
             </a>
           </div>
+
+          <HeroImageCrossfade />
         </div>
       </div>
     </section>
