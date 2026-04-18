@@ -20,11 +20,11 @@ export function HeroImageCrossfade() {
   }, []);
 
   return (
-    <div className="relative w-full max-w-[520px] mx-auto h-[320px] sm:h-[360px]">
+    <div className="relative w-full max-w-[600px] mx-auto aspect-[3/2]">
       {IMAGES.map((src, i) => (
         <div
           key={src}
-          className="absolute inset-0 flex items-center justify-center"
+          className="absolute inset-0"
           style={{
             opacity: i === active ? 1 : 0,
             transition: "opacity 500ms ease-in-out",
@@ -33,9 +33,9 @@ export function HeroImageCrossfade() {
           <Image
             src={src}
             alt=""
-            width={800}
-            height={533}
-            className="w-full h-full object-contain"
+            fill
+            sizes="(max-width: 768px) 100vw, 600px"
+            className="object-contain"
             priority={i === 0}
           />
         </div>
