@@ -181,11 +181,11 @@ function CapsuleCard({
           }}
         />
         <Image
-          src="/smallchild1.png"
+          src="/E6DB19EC-525E-4930-8300-5236F7741FF4.png"
           alt=""
-          width={1672}
-          height={941}
-          className="w-full h-full object-cover object-center"
+          width={800}
+          height={533}
+          className="w-full h-full object-contain object-center"
           priority={false}
         />
       </div>
