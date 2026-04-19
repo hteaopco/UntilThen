@@ -1,12 +1,11 @@
+import Image from "next/image";
+
 import {
   Bold,
   Camera,
   Italic,
   Lock,
   Mic,
-  Sparkles,
-  Users,
-  type LucideIcon,
 } from "lucide-react";
 
 function MockBtn({
@@ -28,8 +27,6 @@ function MockBtn({
 }
 
 function MockEditor() {
-  // Heavier shadow + subtle light ring so the editor reads as a floating
-  // "product moment" against the dark warm-slate section.
   return (
     <div className="bg-white rounded-xl p-5 ring-1 ring-white/10 shadow-[0_24px_48px_-12px_rgba(0,0,0,0.45),0_4px_12px_-4px_rgba(0,0,0,0.25)]">
       <div className="flex gap-1.5 mb-3 pb-3 border-b border-navy/[0.08]">
@@ -74,119 +71,125 @@ function MockEditor() {
   );
 }
 
-function FeatureBadge({
-  children,
-  dark,
-}: {
-  children: React.ReactNode;
-  dark?: boolean;
-}) {
-  return (
-    <span
-      className={`inline-block text-[10px] font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-md ${
-        dark ? "bg-amber/20 text-amber-light" : "bg-amber-tint text-amber"
-      }`}
-    >
-      {children}
-    </span>
-  );
-}
-
-function SimpleFeature({
-  icon: Icon,
-  badge,
-  title,
-  body,
-  primary = false,
-}: {
-  icon: LucideIcon;
-  badge: string;
-  title: string;
-  body: string;
-  primary?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-2xl border transition-all ${
-        primary
-          ? "bg-amber-tint border-amber/20 p-10 lg:p-11 hover:border-amber/35 hover:shadow-[0_10px_30px_rgba(196,122,58,0.12)] shadow-[0_2px_18px_rgba(196,122,58,0.06)]"
-          : "bg-white border-navy/[0.08] p-9 hover:border-amber/25 hover:shadow-[0_8px_24px_rgba(15,31,61,0.06)]"
-      }`}
-    >
-      {/* Icon on the left, badge pushed to the right so they're
-          not sitting on top of each other. */}
-      <div className="flex items-center justify-between gap-3 mb-5">
-        <div
-          className={`inline-flex items-center justify-center w-12 h-12 rounded-xl ${
-            primary ? "bg-white text-amber" : "bg-amber-tint text-amber"
-          }`}
-        >
-          <Icon size={24} strokeWidth={1.5} aria-hidden="true" />
-        </div>
-        <FeatureBadge>{badge}</FeatureBadge>
-      </div>
-      <h3
-        className={`font-bold text-navy mb-2.5 tracking-[-0.3px] leading-[1.2] ${
-          primary ? "text-[21px]" : "text-[19px]"
-        }`}
-      >
-        {title}
-      </h3>
-      <p className="text-sm leading-[1.75] text-ink-mid">{body}</p>
-    </div>
-  );
-}
-
 export function Features() {
   return (
     <section id="features" className="bg-cream">
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-10 lg:py-24 space-y-4 lg:space-y-5">
-        {/* Featured: dark gradient, full width */}
-        <div
-          className="rounded-2xl border border-white/5 p-9 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center"
-          style={{
-            background: "linear-gradient(180deg, #3a2e2a 0%, #2c2420 75%)",
-          }}
-        >
-          <div>
-            <div className="mb-3.5">
-              <FeatureBadge dark>Writing Experience</FeatureBadge>
-            </div>
-            <h3 className="text-[19px] font-bold text-white mb-2.5 tracking-[-0.3px] leading-[1.2]">
-              A quiet place to write what matters.
-            </h3>
-            <p className="text-sm leading-[1.75] text-white/75 font-light">
-              No clutter, no distractions. A quiet space to write freely —
-              with rich text, photo inserts, and an AI prompt when
-              you&rsquo;re stuck.
-            </p>
-          </div>
-          <MockEditor />
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-10 lg:py-24">
+        <div className="mb-10">
+          <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-2.5">
+            How it works
+          </p>
+          <h2 className="text-[clamp(28px,3.5vw,44px)] font-extrabold tracking-[-1.5px] text-navy leading-[1.08]">
+            Capture what you don&rsquo;t want to{" "}
+            <span className="font-light italic text-amber">forget.</span>
+          </h2>
         </div>
 
-        {/* Three supporting features, evenly weighted in a 3-col
-            grid below the hero feature. Smart Prompts was cut
-            here — it was a nice-to-have, not an emotional hook. */}
-        <div className="grid gap-4 lg:gap-5 lg:grid-cols-3">
-          <SimpleFeature
-            icon={Mic}
-            badge="Voice Notes"
-            title="Some things are better heard than read."
-            body="Record a voice note directly in the app. Your child won't just read your words — they'll hear your actual voice from across the years."
-          />
-          <SimpleFeature
-            icon={Users}
-            badge="Multi-Contributor"
-            title="A whole life, from more than just you."
-            body="Build a vault that holds a whole village of love. Each contributor writes privately — every voice in your child's life, in one place."
-          />
-          <SimpleFeature
-            primary
-            icon={Sparkles}
-            badge="The Reveal"
-            title="Memories unlock one by one, like gifts."
-            body="On the reveal date your child's vault opens — letters arriving in sequence. Each one a discovery."
-          />
+        <div className="space-y-4 lg:space-y-5">
+          {/* ── Writing Experience — dark card ─────────────── */}
+          <div
+            className="rounded-2xl border border-white/5 p-8 lg:p-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center"
+            style={{
+              background: "linear-gradient(180deg, #3a2e2a 0%, #2c2420 75%)",
+            }}
+          >
+            <div>
+              <span className="inline-block text-[10px] font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-md bg-amber/20 text-amber-light mb-4">
+                Writing Experience
+              </span>
+              <h3 className="text-[22px] lg:text-[26px] font-extrabold text-white mb-3 tracking-[-0.4px] leading-[1.15]">
+                Write it while it&rsquo;s happening.
+              </h3>
+              <p className="text-[14px] leading-[1.7] text-white/70">
+                A quiet space for letters, photos, and AI prompts when you&rsquo;re stuck.
+              </p>
+            </div>
+            <MockEditor />
+          </div>
+
+          {/* ── Voice Notes + Multi-Contributor — 2 col ──── */}
+          <div className="grid gap-4 lg:gap-5 grid-cols-1 sm:grid-cols-2">
+            {/* Voice Notes */}
+            <div className="rounded-2xl border border-navy/[0.06] bg-[#f5f0ea] overflow-hidden">
+              <Image
+                src="/IMG_2273.jpeg"
+                alt="Voice notes — record a message your child will hear years from now"
+                width={800}
+                height={900}
+                className="w-full h-auto"
+              />
+            </div>
+
+            {/* Multi-Contributor */}
+            <div className="rounded-2xl border border-navy/[0.06] bg-[#f5f0ea] p-8 flex flex-col">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-10 h-10 rounded-xl bg-amber-tint flex items-center justify-center">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-amber">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <line x1="19" x2="19" y1="8" y2="14" />
+                    <line x1="22" x2="16" y1="11" y2="11" />
+                  </svg>
+                </div>
+                <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-amber">
+                  Multi-Contributor
+                </span>
+              </div>
+              <h3 className="text-[22px] lg:text-[24px] font-extrabold text-navy mb-3 tracking-[-0.4px] leading-[1.15]">
+                It won&rsquo;t just be from you.
+              </h3>
+              <p className="text-[14px] leading-[1.7] text-ink-mid mb-6">
+                Invite grandparents, friends, or anyone who loves them. Every voice in one vault.
+              </p>
+              <div className="mt-auto">
+                <Image
+                  src="/0FCD9760-2600-4D48-AD47-EE123BD7A8F2.png"
+                  alt="Contributors"
+                  width={400}
+                  height={100}
+                  className="w-full max-w-[280px] h-auto"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ── The Reveal — full width with bg image ──── */}
+          <div
+            className="relative rounded-2xl border border-amber/15 overflow-hidden"
+            style={{ background: "#f9ede0" }}
+          >
+            <div className="grid lg:grid-cols-2 gap-6 lg:gap-0 items-center">
+              <div className="p-8 lg:p-10 relative z-[1]">
+                <div className="flex items-center gap-2.5 mb-5">
+                  <span className="text-gold" aria-hidden="true">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                    </svg>
+                  </span>
+                  <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-amber">
+                    The Reveal
+                  </span>
+                </div>
+                <h3 className="text-[24px] lg:text-[28px] font-extrabold text-navy mb-3 tracking-[-0.5px] leading-[1.1]">
+                  Then one day&hellip;
+                  <br />
+                  it all opens.
+                </h3>
+                <p className="text-[14px] leading-[1.7] text-ink-mid max-w-[340px]">
+                  On the reveal date, their vault unlocks — letters, photos, and voices delivered one by one.
+                </p>
+              </div>
+              <div className="relative h-[280px] lg:h-full">
+                <Image
+                  src="/E81775DA-BF27-49CE-B22D-84C5135FC04B.png"
+                  alt="Polaroid photos and sealed envelope"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-contain object-right-bottom lg:object-right"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
