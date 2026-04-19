@@ -169,14 +169,11 @@ function Plan({
 }
 
 const BASE_FEATURES = [
-  "3 time capsules included",
-  "Unlimited text entries",
-  "Photo uploads",
-  "Voice note recording",
-  "Video messages",
-  "Reveal by age or date",
-  "Smart writing prompts",
-  "Milestone reminders",
+  "Write to them over time \u2014 not just once",
+  "Add photos, voice, and video",
+  "Open it on the day that matters",
+  "Capture moments as they happen",
+  "Keep it forever",
 ];
 
 const GIFT_CAPSULE_FEATURES = [
@@ -198,8 +195,8 @@ const timeCapsulePlan = (
     priceUnit="per month"
     priceNote="Save with annual billing at checkout"
     features={BASE_FEATURES}
-    cta="Start free 7-day trial"
-    ctaNote="No credit card required. Cancel anytime."
+    cta="Start your first capsule"
+    ctaNote="No credit card needed. Cancel anytime."
   />
 );
 
