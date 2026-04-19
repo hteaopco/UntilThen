@@ -93,17 +93,53 @@ export function Features() {
                   They&rsquo;ll hear your voice again.
                 </h3>
                 <p className="text-[13px] sm:text-[14px] leading-[1.55] text-ink-mid">
-                  Record a message your child will hear years from now &mdash; exactly as you sound today.
+                  Record a message your child will hear years from now.
                 </p>
               </div>
-              <Image
-                src="/IMG_2289.png"
-                alt="Voice waveform"
-                width={500}
-                height={120}
-                className="absolute -bottom-1 sm:bottom-0 left-0 right-0 w-full h-auto pointer-events-none"
-                style={{ transform: "scale(1.03)", transformOrigin: "bottom center" }}
-              />
+              <div
+                aria-hidden="true"
+                className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex items-center gap-1.5 sm:gap-2.5 bg-white rounded-2xl px-2 py-1.5 sm:px-3 sm:py-2.5 border border-amber/15 pointer-events-none"
+                style={{
+                  boxShadow:
+                    "0 14px 32px -10px rgba(196,122,58,0.35), 0 4px 10px -2px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)",
+                }}
+              >
+                <div
+                  className="shrink-0 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-amber flex items-center justify-center"
+                  style={{
+                    boxShadow:
+                      "0 6px 14px -2px rgba(196,122,58,0.5), inset 0 1px 0 rgba(255,255,255,0.25)",
+                  }}
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="white"
+                    className="w-3 h-3 sm:w-4 sm:h-4 translate-x-[1px]"
+                  >
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+                <div className="flex-1 flex items-center gap-[2px] sm:gap-[3px] h-5 sm:h-8">
+                  {[40, 65, 50, 85, 95, 70, 50, 85, 60, 40, 70, 90, 75, 50, 35, 55, 80, 65, 45, 65, 30, 55, 75, 50].map(
+                    (h, i) => (
+                      <span
+                        key={i}
+                        className="flex-1 bg-amber/75 rounded-full"
+                        style={{ height: `${h}%` }}
+                      />
+                    )
+                  )}
+                </div>
+                <div
+                  className="shrink-0 px-2 py-0.5 sm:px-3 sm:py-1.5 bg-amber-tint rounded-full text-[10px] sm:text-[11px] font-bold text-amber border border-amber/20"
+                  style={{
+                    boxShadow:
+                      "0 2px 6px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.7)",
+                  }}
+                >
+                  3:16
+                </div>
+              </div>
             </div>
 
             {/* Multi-Contributor */}
@@ -121,7 +157,7 @@ export function Features() {
                   It won&rsquo;t just be from you.
                 </h3>
                 <p className="text-[13px] sm:text-[14px] leading-[1.55] text-ink-mid">
-                  Invite grandparents, friends, or anyone who loves them. Every voice in one vault.
+                  Invite grandparents, friends, or anyone who loves them.
                 </p>
               </div>
               <Image
