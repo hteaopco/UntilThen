@@ -60,13 +60,13 @@ function MockEditor() {
           <Lock size={12} strokeWidth={1.75} aria-hidden="true" />
           Unlocks age 18
         </div>
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 bg-amber text-white text-[11px] font-bold px-3.5 py-1.5 rounded-md hover:bg-amber-dark transition-colors"
+        <div
+          aria-hidden="true"
+          className="inline-flex items-center gap-1.5 bg-amber text-white text-[11px] font-bold px-3.5 py-1.5 rounded-md pointer-events-none select-none"
         >
-          <Lock size={12} strokeWidth={1.75} aria-hidden="true" />
+          <Lock size={12} strokeWidth={1.75} />
           Seal
-        </button>
+        </div>
       </div>
     </div>
   );
@@ -75,7 +75,7 @@ function MockEditor() {
 export function Features() {
   return (
     <section id="features" className="bg-cream">
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-10 lg:py-24">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-3 lg:pt-7 pb-10 lg:pb-24">
         <div className="space-y-4 lg:space-y-5">
           <div className="grid gap-2 sm:gap-3 lg:gap-5 grid-cols-2">
             {/* Voice Notes */}
