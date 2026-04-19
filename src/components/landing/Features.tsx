@@ -140,7 +140,7 @@ function SimpleFeature({
 export function Features() {
   return (
     <section id="features" className="bg-cream">
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-16 lg:py-24 space-y-4 lg:space-y-5">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-10 lg:py-24 space-y-4 lg:space-y-5">
         {/* Featured: dark gradient, full width */}
         <div
           className="rounded-2xl border border-white/5 p-9 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center"

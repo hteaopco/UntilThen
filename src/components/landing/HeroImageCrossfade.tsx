@@ -24,13 +24,13 @@ export function HeroImageCrossfade() {
       className="relative mx-auto overflow-hidden"
       style={{
         width: "92vw",
-        maxWidth: 600,
+        maxWidth: 640,
         background: "#fdf8f2",
       }}
     >
       <div
         className="relative aspect-[3/2]"
-        style={{ transform: "scale(1.1)" }}
+        style={{ transform: "scale(1.14)" }}
       >
         {IMAGES.map((src, i) => (
           <div
@@ -41,12 +41,12 @@ export function HeroImageCrossfade() {
               transition: "opacity 500ms ease-in-out",
               WebkitMaskImage: [
                 "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 10%, black 20%, black 80%, rgba(0,0,0,0.4) 92%, transparent 100%)",
-                "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 8%, black 18%, black 82%, rgba(0,0,0,0.4) 92%, transparent 100%)",
+                "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 6%, black 14%, black 86%, rgba(0,0,0,0.4) 94%, transparent 100%)",
               ].join(", "),
               WebkitMaskComposite: "source-in",
               maskImage: [
                 "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 10%, black 20%, black 80%, rgba(0,0,0,0.4) 92%, transparent 100%)",
-                "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 8%, black 18%, black 82%, rgba(0,0,0,0.4) 92%, transparent 100%)",
+                "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 6%, black 14%, black 86%, rgba(0,0,0,0.4) 94%, transparent 100%)",
               ].join(", "),
               maskComposite: "intersect" as React.CSSProperties["maskComposite"],
             }}
@@ -55,7 +55,7 @@ export function HeroImageCrossfade() {
               src={src}
               alt=""
               fill
-              sizes="(max-width: 768px) 92vw, 600px"
+              sizes="(max-width: 768px) 92vw, 640px"
               className="object-contain"
               priority={i === 0}
             />

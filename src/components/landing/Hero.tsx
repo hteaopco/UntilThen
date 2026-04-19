@@ -29,7 +29,7 @@ export function Hero() {
           </div>
         </div>
 
-        <div className="mt-3 w-full">
+        <div className="mt-1.5 w-full">
           <HeroImageCrossfade />
         </div>
       </div>
