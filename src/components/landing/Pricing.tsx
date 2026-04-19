@@ -83,14 +83,11 @@ function Plan({
   const gift = variant === "gift";
 
   const cardClasses = featured
-    ? "border-amber/30 shadow-[0_12px_30px_rgba(0,0,0,0.08),0_2px_6px_rgba(0,0,0,0.04)]"
-    : "bg-[#fdf6e8] border-gold/20 shadow-[0_12px_30px_rgba(0,0,0,0.08),0_2px_6px_rgba(0,0,0,0.04)]";
+    ? "border-amber/20 shadow-[0_4px_12px_rgba(0,0,0,0.04)]"
+    : "bg-[#fdf6e8] border-gold/15 shadow-[0_4px_12px_rgba(0,0,0,0.04)]";
 
   const cardStyle = featured
-    ? {
-        background:
-          "linear-gradient(180deg, #c58a55 0%, #b97a44 100%)",
-      }
+    ? { background: "#c58a55" }
     : undefined;
 
   const tagColor = featured ? "text-white/85" : "text-gold";
@@ -108,7 +105,7 @@ function Plan({
 
   return (
     <div
-      className={`relative rounded-3xl px-8 py-7 flex flex-col transition-all border -translate-y-0.5 ${cardClasses}`}
+      className={`relative rounded-3xl px-8 py-7 flex flex-col transition-all border ${cardClasses}`}
       style={cardStyle}
     >
       {overlay}
@@ -153,7 +150,7 @@ function Plan({
         </ul>
         <a
           href={ctaHref}
-          className={`block text-center py-3 px-5 rounded-xl text-[13px] font-bold tracking-[0.01em] transition-all shadow-[0_4px_12px_rgba(0,0,0,0.08)] ${ctaClasses}`}
+          className={`block text-center py-3 px-5 rounded-xl text-[13px] font-bold tracking-[0.01em] transition-all ${ctaClasses}`}
         >
           {cta}
         </a>
