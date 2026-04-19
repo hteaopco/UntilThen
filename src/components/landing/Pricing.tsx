@@ -102,6 +102,7 @@ function Plan({
   ctaNote,
   overlay,
   ribbon,
+  billingToggle,
 }: {
   variant: PlanVariant;
   tag: string;
@@ -116,6 +117,7 @@ function Plan({
   ctaNote?: string;
   overlay?: ReactNode;
   ribbon?: string;
+  billingToggle?: ReactNode;
 }) {
   const featured = variant === "featured";
   const gift = variant === "gift";
@@ -146,7 +148,12 @@ function Plan({
       className={`relative rounded-3xl px-8 py-7 flex flex-col transition-all border ${cardClasses}`}
       style={cardStyle}
     >
-      {ribbon && (
+      {billingToggle && (
+        <div className="absolute top-4 right-4 z-[2]">
+          {billingToggle}
+        </div>
+      )}
+      {ribbon && !billingToggle && (
         <div
           className="absolute top-4 right-4 z-[2] px-3 py-1 rounded-full text-[10px] font-semibold tracking-[0.08em] uppercase"
           style={{
@@ -239,21 +246,52 @@ const GIFT_CAPSULE_FEATURES = [
 ];
 
 
-const timeCapsulePlan = (
-  <Plan
-    variant="featured"
-    tag="Time Capsules"
-    name="Time Capsules"
-    price="4.99"
-    priceUnit="per month"
-    priceNote="Or $35.99/year — save 40%"
-    features={BASE_FEATURES}
-    cta="Start your first capsule"
-    ctaNote="No credit card needed. Cancel anytime."
-    overlay={<RisingDotsOverlay />}
-    ribbon="Most Popular"
-  />
-);
+// PRICING: Time Capsules — Monthly: $4.99/mo. Annual: $35.99/yr (save 40%).
+function TimeCapsulePlan() {
+  const [billing, setBilling] = useState<"annual" | "monthly">("annual");
+  const isAnnual = billing === "annual";
+
+  return (
+    <Plan
+      variant="featured"
+      tag="Time Capsules"
+      name="Time Capsules"
+      price={isAnnual ? "35.99" : "4.99"}
+      priceUnit={isAnnual ? "per year" : "per month"}
+      priceNote={isAnnual ? "That\u2019s less than $3/month" : "Or $35.99/year \u2014 save 40%"}
+      features={BASE_FEATURES}
+      cta="Start your first capsule"
+      ctaNote="No credit card needed. Cancel anytime."
+      overlay={<RisingDotsOverlay />}
+      billingToggle={
+        <div className="flex rounded-full bg-white/20 p-0.5 text-[10px] font-bold tracking-[0.06em] uppercase">
+          <button
+            type="button"
+            onClick={() => setBilling("annual")}
+            className={`px-3 py-1 rounded-full transition-all ${
+              isAnnual
+                ? "bg-white text-amber shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
+                : "text-white/70 hover:text-white"
+            }`}
+          >
+            Annual
+          </button>
+          <button
+            type="button"
+            onClick={() => setBilling("monthly")}
+            className={`px-3 py-1 rounded-full transition-all ${
+              !isAnnual
+                ? "bg-white text-amber shadow-[0_1px_3px_rgba(0,0,0,0.1)]"
+                : "text-white/70 hover:text-white"
+            }`}
+          >
+            Monthly
+          </button>
+        </div>
+      }
+    />
+  );
+}
 
 const giftCapsulePlan = (
   <Plan
@@ -295,7 +333,7 @@ export function Pricing() {
 
         {/* Desktop: side by side */}
         <div className="hidden md:grid gap-5 md:grid-cols-2 max-w-[760px] mx-auto items-stretch">
-          {timeCapsulePlan}
+          <TimeCapsulePlan />
           {giftCapsulePlan}
         </div>
       </div>
@@ -403,7 +441,7 @@ function MobilePricingSwiper({
             transition: swiping ? "none" : "transform 350ms cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
-          <div className="w-full shrink-0">{timeCapsulePlan}</div>
+          <div className="w-full shrink-0"><TimeCapsulePlan /></div>
           <div className="w-full shrink-0">{giftCapsulePlan}</div>
         </div>
       </div>
