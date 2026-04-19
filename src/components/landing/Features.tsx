@@ -80,7 +80,7 @@ export function Features() {
           <div className="grid gap-2 sm:gap-3 lg:gap-5 grid-cols-2">
             {/* Voice Notes */}
             <div className="relative rounded-2xl border border-amber/10 overflow-hidden min-h-[240px] sm:min-h-[280px]" style={{ background: "#fef0dc" }}>
-              <div className="relative z-[1] p-4 sm:p-6 lg:p-8 pb-[36px] sm:pb-[44px]">
+              <div className="relative z-[1] p-4 sm:p-6 lg:p-8">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Mic size={18} strokeWidth={1.5} className="text-amber" />
@@ -96,51 +96,11 @@ export function Features() {
                   Record something they&rsquo;ll listen to again and again.
                 </p>
               </div>
-              <div
-                aria-hidden="true"
-                className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex items-center gap-1.5 sm:gap-2 pl-1 pr-2 py-1.5 sm:pl-1.5 sm:pr-3 sm:py-2.5 pointer-events-none"
-              >
-                <div
-                  className="shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber flex items-center justify-center"
-                  style={{
-                    boxShadow:
-                      "0 6px 14px -2px rgba(196,122,58,0.5), inset 0 1px 0 rgba(255,255,255,0.25)",
-                  }}
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    fill="white"
-                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 translate-x-[1px]"
-                  >
-                    <path d="M8 5v14l11-7z" />
-                  </svg>
-                </div>
-                <div className="flex-1 flex items-center justify-between gap-[2px] sm:gap-[3px] h-6 sm:h-9">
-                  {[55, 80, 40, 95, 60, 100, 70, 45, 90, 65, 85, 55, 95, 75, 50, 30, 18, 10].map(
-                    (h, i) => (
-                      <span
-                        key={i}
-                        className="w-[2px] sm:w-[3px] bg-amber rounded-full"
-                        style={{ height: `${h}%` }}
-                      />
-                    )
-                  )}
-                </div>
-                <div
-                  className="shrink-0 px-2 py-0.5 sm:px-3 sm:py-1.5 bg-amber-tint rounded-full text-[10px] sm:text-[11px] font-bold text-amber border border-amber/20"
-                  style={{
-                    boxShadow:
-                      "0 2px 6px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.7)",
-                  }}
-                >
-                  3:16
-                </div>
-              </div>
             </div>
 
             {/* Multi-Contributor */}
             <div className="relative rounded-2xl border border-amber/10 overflow-hidden min-h-[240px] sm:min-h-[280px]" style={{ background: "#fef0dc" }}>
-              <div className="relative z-[1] p-4 sm:p-6 lg:p-8 pb-[36px] sm:pb-[44px]">
+              <div className="relative z-[1] p-4 sm:p-6 lg:p-8">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Pencil size={18} strokeWidth={1.5} className="text-amber" />
@@ -156,14 +116,6 @@ export function Features() {
                   Capture the moments you don&rsquo;t want to lose.
                 </p>
               </div>
-              <Image
-                src="/IMG_2335.png"
-                alt="Contributors"
-                width={500}
-                height={120}
-                className="absolute -bottom-1 sm:bottom-0 left-0 right-0 w-full h-auto pointer-events-none"
-                style={{ transform: "scale(0.88)", transformOrigin: "bottom center" }}
-              />
             </div>
           </div>
 

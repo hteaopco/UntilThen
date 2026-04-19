@@ -5,10 +5,10 @@ export function HowItWorks() {
         <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-3.5">
           How it works
         </p>
-        <h2 className="text-[clamp(28px,5vw,64px)] font-extrabold tracking-[-1.2px] leading-[1.05] text-navy max-w-[720px]">
-          <span className="whitespace-nowrap">Hold onto what matters &mdash;</span>
+        <h2 className="text-[clamp(40px,6vw,64px)] font-extrabold tracking-[-1.5px] leading-[1.05] text-navy max-w-[720px]">
+          Hold onto what
           <br />
-          <span className="font-light italic text-amber">for later.</span>
+          matters &mdash; <span className="font-light italic text-amber">for later.</span>
         </h2>
       </div>
     </section>
