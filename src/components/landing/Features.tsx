@@ -128,13 +128,20 @@ export function Features() {
                   Record a message your child will hear years from now &mdash; exactly as you sound today.
                 </p>
               </div>
-              <Image
-                src="/IMG_2289.png"
-                alt="Voice waveform"
-                width={500}
-                height={120}
-                className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3 w-[calc(100%-16px)] sm:w-[calc(100%-24px)] h-auto pointer-events-none opacity-95"
-              />
+              {/* Waveform wrapper — bg matches card, overlay blends */}
+              <div
+                className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3 rounded-xl overflow-hidden"
+                style={{ background: "#fdf8f2" }}
+              >
+                <Image
+                  src="/IMG_2289.png"
+                  alt="Voice waveform"
+                  width={500}
+                  height={120}
+                  className="w-full h-auto pointer-events-none opacity-95"
+                />
+                <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(253,248,242,0.2)" }} />
+              </div>
             </div>
 
             {/* Multi-Contributor */}
@@ -155,13 +162,20 @@ export function Features() {
                   Invite grandparents, friends, or anyone who loves them. Every voice in one vault.
                 </p>
               </div>
-              <Image
-                src="/IMG_2284.png"
-                alt="Contributors"
-                width={500}
-                height={120}
-                className="absolute bottom-3 sm:bottom-3 left-2.5 sm:left-3 right-2.5 sm:right-3 w-[calc(100%-20px)] sm:w-[calc(100%-24px)] h-auto pointer-events-none"
-              />
+              {/* Avatar wrapper — bg matches card, overlay blends */}
+              <div
+                className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3 rounded-xl overflow-hidden"
+                style={{ background: "#fdf8f2" }}
+              >
+                <Image
+                  src="/IMG_2284.png"
+                  alt="Contributors"
+                  width={500}
+                  height={120}
+                  className="w-full h-auto pointer-events-none"
+                />
+                <div className="absolute inset-0 pointer-events-none" style={{ background: "rgba(253,248,242,0.2)" }} />
+              </div>
             </div>
           </div>
 
