@@ -133,7 +133,7 @@ export function ChooseYourVault() {
                   <CardLabel icon={CalendarDays} color="amber">
                     Time Capsule
                   </CardLabel>
-                  <h3 className="text-[22px] font-extrabold text-navy tracking-[-0.5px] leading-[1.25]">
+                  <h3 className="text-[18px] sm:text-[22px] font-extrabold text-navy tracking-[-0.5px] leading-[1.25]">
                     Write now. They&rsquo;ll open later.
                   </h3>
                   <p className="text-[15px] text-ink-mid leading-[1.6] mt-1">
@@ -193,7 +193,7 @@ export function ChooseYourVault() {
                   <CardLabel icon={Gift} color="navy">
                     Gift Capsule
                   </CardLabel>
-                  <h3 className="text-[22px] font-extrabold text-navy tracking-[-0.5px] leading-[1.25]">
+                  <h3 className="text-[18px] sm:text-[22px] font-extrabold text-navy tracking-[-0.5px] leading-[1.25]">
                     Collect messages. Create a gift.
                   </h3>
                   <p className="text-[15px] text-ink-mid leading-[1.6] mt-1">
