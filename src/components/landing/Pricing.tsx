@@ -83,17 +83,13 @@ function Plan({
   const gift = variant === "gift";
 
   const cardClasses = featured
-    ? "border-amber/40 shadow-[0_12px_32px_-10px_rgba(196,122,58,0.3)]"
-    : "bg-[#fdf6e8] border-gold/25 shadow-[0_10px_30px_-10px_rgba(201,168,76,0.22)]";
+    ? "border-amber/30 shadow-[0_12px_30px_rgba(0,0,0,0.08),0_2px_6px_rgba(0,0,0,0.04)]"
+    : "bg-[#fdf6e8] border-gold/20 shadow-[0_12px_30px_rgba(0,0,0,0.08),0_2px_6px_rgba(0,0,0,0.04)]";
 
-  // Featured plan uses a soft top-lit amber gradient so the card has
-  // depth and warmth instead of reading as a flat block of colour.
-  // The lighter tone up top catches the eye; the deeper amber settles
-  // the bottom so the white CTA sits on a richer, anchor-y surface.
   const cardStyle = featured
     ? {
         background:
-          "linear-gradient(180deg, #e09a5a 0%, #c47a3a 55%, #a85e28 100%)",
+          "linear-gradient(180deg, #c58a55 0%, #b97a44 100%)",
       }
     : undefined;
 
@@ -112,38 +108,38 @@ function Plan({
 
   return (
     <div
-      className={`relative rounded-2xl p-9 flex flex-col transition-all border ${cardClasses}`}
+      className={`relative rounded-3xl px-8 py-7 flex flex-col transition-all border -translate-y-0.5 ${cardClasses}`}
       style={cardStyle}
     >
       {overlay}
       <div className="relative z-[1] flex flex-col flex-1">
         <span
-          className={`block text-[10px] font-bold tracking-[0.14em] uppercase mb-4 ${tagColor}`}
+          className={`block text-[10px] font-bold tracking-[0.14em] uppercase mb-2.5 ${tagColor}`}
         >
           {tag}
         </span>
         <div
-          className={`text-xl font-extrabold tracking-[-0.5px] ${nameColor}`}
+          className={`text-xl font-extrabold tracking-[-0.5px] mb-2.5 ${nameColor}`}
         >
           {name}
         </div>
         <div
-          className={`text-5xl font-extrabold tracking-[-2px] leading-none mt-4 mb-1 ${priceColor}`}
+          className={`text-5xl font-extrabold tracking-[-2px] leading-none mb-1.5 ${priceColor}`}
         >
           <sub className="text-xl tracking-normal align-baseline">$</sub>
           {price}
         </div>
         <div className={`text-xs italic ${priceUnitColor}`}>{priceUnit}</div>
         <div
-          className={`text-[11px] mt-1 min-h-[14px] italic ${priceNoteColor}`}
+          className={`text-[11px] mt-1 min-h-[14px] italic mb-5 ${priceNoteColor}`}
         >
           {priceNote ?? "\u00a0"}
         </div>
-        <ul className="flex flex-col gap-2.5 mt-6 mb-7 flex-1">
+        <ul className="flex flex-col gap-2 mb-6 flex-1">
           {features.map((f) => (
             <li
               key={f}
-              className={`text-[13px] leading-[1.4] flex items-start gap-2 ${featureTextColor}`}
+              className={`text-[13px] leading-[1.4] flex items-start gap-2.5 ${featureTextColor}`}
             >
               <span
                 aria-hidden="true"
@@ -157,13 +153,13 @@ function Plan({
         </ul>
         <a
           href={ctaHref}
-          className={`block text-center py-3 px-5 rounded-lg text-[13px] font-bold tracking-[0.01em] transition-all ${ctaClasses}`}
+          className={`block text-center py-3 px-5 rounded-xl text-[13px] font-bold tracking-[0.01em] transition-all shadow-[0_4px_12px_rgba(0,0,0,0.08)] ${ctaClasses}`}
         >
           {cta}
         </a>
         {ctaNote && (
           <p
-            className={`mt-3 text-[11px] italic text-center ${
+            className={`mt-2.5 text-[11px] italic text-center ${
               featured ? "text-white/55" : gift ? "text-ink-mid/80" : "text-ink-light"
             }`}
           >
