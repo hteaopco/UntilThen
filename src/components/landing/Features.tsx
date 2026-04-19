@@ -6,6 +6,7 @@ import {
   Italic,
   Lock,
   Mic,
+  Users,
 } from "lucide-react";
 
 function MockBtn({
@@ -107,47 +108,65 @@ export function Features() {
             <MockEditor />
           </div>
 
-          {/* ── Voice Notes + Multi-Contributor — 2 col ──── */}
-          <div className="grid gap-4 lg:gap-5 grid-cols-1 sm:grid-cols-2">
+          {/* ── Voice Notes + Multi-Contributor — always 2 col ── */}
+          <div className="grid gap-4 lg:gap-5 grid-cols-2">
             {/* Voice Notes */}
-            <div className="rounded-2xl border border-navy/[0.06] bg-[#f5f0ea] overflow-hidden">
-              <Image
-                src="/IMG_2273.jpeg"
-                alt="Voice notes — record a message your child will hear years from now"
-                width={800}
-                height={900}
-                className="w-full h-auto"
-              />
+            <div className="rounded-2xl border border-navy/[0.06] bg-[#f5f0ea] overflow-hidden flex flex-col">
+              <div className="p-4 sm:p-6 lg:p-8">
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-5">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
+                    <Mic size={18} strokeWidth={1.5} className="text-amber" />
+                  </div>
+                  <span className="text-[9px] sm:text-[10px] font-bold tracking-[0.14em] uppercase text-amber">
+                    Voice Notes
+                  </span>
+                </div>
+                <h3 className="text-[16px] sm:text-[20px] lg:text-[24px] font-extrabold text-navy mb-2 sm:mb-3 tracking-[-0.4px] leading-[1.15]">
+                  They&rsquo;ll hear your voice again.
+                </h3>
+                <p className="text-[12px] sm:text-[14px] leading-[1.6] text-ink-mid">
+                  Record a message your child will hear years from now &mdash; exactly as you sound today.
+                </p>
+              </div>
+              <div className="mt-auto px-4 sm:px-6 lg:px-8 pb-4 sm:pb-6 lg:pb-8">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="flex-1 flex items-end gap-[2px] h-8 sm:h-10">
+                    {[3,6,10,4,8,12,6,10,14,8,5,9,12,7,10,14,6,9,4,7,11,8,5,10].map((h, i) => (
+                      <div key={i} className="flex-1 rounded-full bg-amber/40" style={{ height: `${h * 2.5}%` }} />
+                    ))}
+                  </div>
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-amber flex items-center justify-center shrink-0">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="white">
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Multi-Contributor */}
-            <div className="rounded-2xl border border-navy/[0.06] bg-[#f5f0ea] p-8 flex flex-col">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-xl bg-amber-tint flex items-center justify-center">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-amber">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <line x1="19" x2="19" y1="8" y2="14" />
-                    <line x1="22" x2="16" y1="11" y2="11" />
-                  </svg>
+            <div className="rounded-2xl border border-navy/[0.06] bg-[#f5f0ea] p-4 sm:p-6 lg:p-8 flex flex-col">
+              <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-5">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
+                  <Users size={18} strokeWidth={1.5} className="text-amber" />
                 </div>
-                <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-amber">
+                <span className="text-[9px] sm:text-[10px] font-bold tracking-[0.14em] uppercase text-amber">
                   Multi-Contributor
                 </span>
               </div>
-              <h3 className="text-[22px] lg:text-[24px] font-extrabold text-navy mb-3 tracking-[-0.4px] leading-[1.15]">
+              <h3 className="text-[16px] sm:text-[20px] lg:text-[24px] font-extrabold text-navy mb-2 sm:mb-3 tracking-[-0.4px] leading-[1.15]">
                 It won&rsquo;t just be from you.
               </h3>
-              <p className="text-[14px] leading-[1.7] text-ink-mid mb-6">
+              <p className="text-[12px] sm:text-[14px] leading-[1.6] text-ink-mid">
                 Invite grandparents, friends, or anyone who loves them. Every voice in one vault.
               </p>
-              <div className="mt-auto">
+              <div className="mt-auto pt-4 sm:pt-6">
                 <Image
                   src="/0FCD9760-2600-4D48-AD47-EE123BD7A8F2.png"
                   alt="Contributors"
                   width={400}
                   height={100}
-                  className="w-full max-w-[280px] h-auto"
+                  className="w-full max-w-[220px] sm:max-w-[280px] h-auto"
                 />
               </div>
             </div>
@@ -158,11 +177,11 @@ export function Features() {
             className="relative rounded-2xl border border-amber/15 overflow-hidden"
             style={{ background: "#f9ede0" }}
           >
-            <div className="grid lg:grid-cols-2 gap-6 lg:gap-0 items-center">
-              <div className="p-8 lg:p-10 relative z-[1]">
-                <div className="flex items-center gap-2.5 mb-5">
+            <div className="grid grid-cols-[1fr_auto] lg:grid-cols-2 items-end">
+              <div className="p-6 sm:p-8 lg:p-10 relative z-[1]">
+                <div className="flex items-center gap-2.5 mb-4">
                   <span className="text-gold" aria-hidden="true">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
                     </svg>
                   </span>
@@ -170,22 +189,22 @@ export function Features() {
                     The Reveal
                   </span>
                 </div>
-                <h3 className="text-[24px] lg:text-[28px] font-extrabold text-navy mb-3 tracking-[-0.5px] leading-[1.1]">
+                <h3 className="text-[20px] sm:text-[24px] lg:text-[28px] font-extrabold text-navy mb-2 sm:mb-3 tracking-[-0.5px] leading-[1.1]">
                   Then one day&hellip;
                   <br />
                   it all opens.
                 </h3>
-                <p className="text-[14px] leading-[1.7] text-ink-mid max-w-[340px]">
+                <p className="text-[12px] sm:text-[14px] leading-[1.6] text-ink-mid max-w-[340px]">
                   On the reveal date, their vault unlocks — letters, photos, and voices delivered one by one.
                 </p>
               </div>
-              <div className="relative h-[280px] lg:h-full">
+              <div className="relative w-[160px] sm:w-[220px] lg:w-auto lg:h-full self-end">
                 <Image
                   src="/E81775DA-BF27-49CE-B22D-84C5135FC04B.png"
                   alt="Polaroid photos and sealed envelope"
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 50vw"
-                  className="object-contain object-right-bottom lg:object-right"
+                  width={500}
+                  height={400}
+                  className="w-full h-auto object-contain"
                 />
               </div>
             </div>
