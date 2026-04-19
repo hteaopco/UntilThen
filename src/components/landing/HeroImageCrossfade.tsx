@@ -20,26 +20,48 @@ export function HeroImageCrossfade() {
   }, []);
 
   return (
-    <div className="relative w-full max-w-[680px] mx-auto aspect-[3/2]">
-      {IMAGES.map((src, i) => (
-        <div
-          key={src}
-          className="absolute inset-0"
-          style={{
-            opacity: i === active ? 1 : 0,
-            transition: "opacity 500ms ease-in-out",
-          }}
-        >
-          <Image
-            src={src}
-            alt=""
-            fill
-            sizes="(max-width: 768px) 100vw, 600px"
-            className="object-contain"
-            priority={i === 0}
-          />
-        </div>
-      ))}
+    <div
+      className="relative w-full mx-auto overflow-hidden"
+      style={{
+        maxWidth: "min(816px, 92vw)",
+        background: "#fdf8f2",
+      }}
+    >
+      <div className="relative aspect-[3/2]">
+        {IMAGES.map((src, i) => (
+          <div
+            key={src}
+            className="absolute inset-0 hero-memory"
+            style={{
+              opacity: i === active ? 1 : 0,
+              transition: "opacity 500ms ease-in-out",
+            }}
+          >
+            <Image
+              src={src}
+              alt=""
+              fill
+              sizes="(max-width: 768px) 92vw, 816px"
+              className="object-contain"
+              priority={i === 0}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Edge fade overlay — blends image into page bg on all sides */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: [
+            "linear-gradient(to top, #fdf8f2 0%, transparent 16%)",
+            "linear-gradient(to bottom, #fdf8f2 0%, transparent 16%)",
+            "linear-gradient(to left, #fdf8f2 0%, transparent 14%)",
+            "linear-gradient(to right, #fdf8f2 0%, transparent 14%)",
+          ].join(", "),
+        }}
+      />
     </div>
   );
 }
