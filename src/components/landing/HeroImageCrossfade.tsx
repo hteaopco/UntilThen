@@ -21,47 +21,47 @@ export function HeroImageCrossfade() {
 
   return (
     <div
-      className="relative w-full mx-auto overflow-hidden"
+      className="relative mx-auto overflow-hidden"
       style={{
-        maxWidth: "min(816px, 92vw)",
+        width: "92vw",
+        maxWidth: 600,
         background: "#fdf8f2",
       }}
     >
-      <div className="relative aspect-[3/2]">
+      <div
+        className="relative aspect-[3/2]"
+        style={{ transform: "scale(1.1)" }}
+      >
         {IMAGES.map((src, i) => (
           <div
             key={src}
-            className="absolute inset-0 hero-memory"
+            className="absolute inset-0"
             style={{
               opacity: i === active ? 1 : 0,
               transition: "opacity 500ms ease-in-out",
+              WebkitMaskImage: [
+                "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 10%, black 20%, black 80%, rgba(0,0,0,0.4) 92%, transparent 100%)",
+                "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 8%, black 18%, black 82%, rgba(0,0,0,0.4) 92%, transparent 100%)",
+              ].join(", "),
+              WebkitMaskComposite: "source-in",
+              maskImage: [
+                "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 10%, black 20%, black 80%, rgba(0,0,0,0.4) 92%, transparent 100%)",
+                "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 8%, black 18%, black 82%, rgba(0,0,0,0.4) 92%, transparent 100%)",
+              ].join(", "),
+              maskComposite: "intersect" as React.CSSProperties["maskComposite"],
             }}
           >
             <Image
               src={src}
               alt=""
               fill
-              sizes="(max-width: 768px) 92vw, 816px"
+              sizes="(max-width: 768px) 92vw, 600px"
               className="object-contain"
               priority={i === 0}
             />
           </div>
         ))}
       </div>
-
-      {/* Edge fade overlay — blends image into page bg on all sides */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: [
-            "linear-gradient(to top, #fdf8f2 0%, transparent 16%)",
-            "linear-gradient(to bottom, #fdf8f2 0%, transparent 16%)",
-            "linear-gradient(to left, #fdf8f2 0%, transparent 14%)",
-            "linear-gradient(to right, #fdf8f2 0%, transparent 14%)",
-          ].join(", "),
-        }}
-      />
     </div>
   );
 }
