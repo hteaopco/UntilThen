@@ -77,53 +77,6 @@ export function Features() {
     <section id="features" className="bg-cream">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-10 lg:py-24">
         <div className="space-y-4 lg:space-y-5">
-          {/* ── Writing Experience — glassmorphism dark card ── */}
-          <div
-            className="relative rounded-3xl p-8 lg:p-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center overflow-hidden"
-            style={{
-              background: "linear-gradient(160deg, #3d2e28 0%, #2a1f1a 40%, #1e1612 100%)",
-            }}
-          >
-            {/* Glass border overlay */}
-            <div
-              className="absolute inset-0 rounded-3xl pointer-events-none"
-              style={{
-                border: "1px solid rgba(255,255,255,0.08)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.2)",
-              }}
-            />
-            {/* Sparkle accents */}
-            <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-              <div className="absolute top-[15%] left-[8%] w-1 h-1 bg-gold/60 rounded-full animate-pulse" style={{ animationDuration: "3s" }} />
-              <div className="absolute top-[70%] left-[4%] w-1.5 h-1.5 bg-amber/40 rounded-full animate-pulse" style={{ animationDuration: "4s", animationDelay: "1s" }} />
-              <div className="absolute bottom-[12%] left-[12%] w-1 h-1 bg-gold/50 rounded-full animate-pulse" style={{ animationDuration: "3.5s", animationDelay: "0.5s" }} />
-              <div className="absolute top-[25%] right-[45%] w-0.5 h-0.5 bg-white/30 rounded-full animate-pulse" style={{ animationDuration: "2.5s", animationDelay: "1.5s" }} />
-            </div>
-            {/* Warm glow behind editor */}
-            <div
-              className="absolute right-0 bottom-0 w-[60%] h-[70%] pointer-events-none"
-              style={{
-                background: "radial-gradient(ellipse at 80% 80%, rgba(201,168,76,0.08) 0%, transparent 70%)",
-              }}
-            />
-            <div className="relative z-[1]">
-              <span className="inline-block text-[10px] font-bold tracking-[0.14em] uppercase px-3 py-1.5 rounded-lg mb-4"
-                style={{ background: "rgba(201,168,76,0.15)", color: "#e2c47a" }}>
-                Writing Experience
-              </span>
-              <h3 className="text-[22px] lg:text-[26px] font-extrabold text-white mb-3 tracking-[-0.4px] leading-[1.15]">
-                Write it while it&rsquo;s happening.
-              </h3>
-              <p className="text-[14px] leading-[1.7] text-white/60">
-                A quiet space for letters, photos, and AI prompts when you&rsquo;re stuck.
-              </p>
-            </div>
-            <div className="relative z-[1]">
-              <MockEditor />
-            </div>
-          </div>
-
-          {/* ── Voice Notes + Multi-Contributor — always 2 col ── */}
           <div className="grid gap-2 sm:gap-3 lg:gap-5 grid-cols-2">
             {/* Voice Notes */}
             <div className="relative rounded-2xl border border-amber/10 overflow-hidden min-h-[240px] sm:min-h-[280px]" style={{ background: "#fef0dc" }}>
@@ -149,7 +102,7 @@ export function Features() {
                 width={500}
                 height={120}
                 className="absolute -bottom-1 sm:bottom-0 left-0 right-0 w-full h-auto pointer-events-none"
-                style={{ transform: "scale(1.15)", transformOrigin: "bottom center" }}
+                style={{ transform: "scale(1.08)", transformOrigin: "bottom center" }}
               />
             </div>
 
@@ -177,7 +130,7 @@ export function Features() {
                 width={500}
                 height={120}
                 className="absolute -bottom-1 sm:bottom-0 left-0 right-0 w-full h-auto pointer-events-none"
-                style={{ transform: "scale(1.15)", transformOrigin: "bottom center" }}
+                style={{ transform: "scale(1.08)", transformOrigin: "bottom center" }}
               />
             </div>
           </div>
@@ -195,10 +148,8 @@ export function Features() {
                   The Reveal
                 </span>
               </div>
-              <h3 className="text-[20px] sm:text-[24px] lg:text-[28px] font-extrabold text-navy mb-2 sm:mb-3 tracking-[-0.5px] leading-[1.1]">
-                Then one day&hellip;
-                <br />
-                it all opens.
+              <h3 className="text-[18px] sm:text-[24px] lg:text-[28px] font-extrabold text-navy mb-2 sm:mb-3 tracking-[-0.5px] leading-[1.1]">
+                Then one day&hellip; it all opens.
               </h3>
               <p className="text-[12px] sm:text-[14px] leading-[1.6] text-ink-mid">
                 On the reveal date, their vault unlocks &mdash; letters, photos, and voices delivered one by one.
@@ -215,6 +166,49 @@ export function Features() {
                   filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.06))",
                 }}
               />
+            </div>
+          </div>
+
+          {/* ── Writing Experience — glassmorphism dark card ── */}
+          <div
+            className="relative rounded-3xl p-8 lg:p-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center overflow-hidden"
+            style={{
+              background: "linear-gradient(160deg, #3d2e28 0%, #2a1f1a 40%, #1e1612 100%)",
+            }}
+          >
+            <div
+              className="absolute inset-0 rounded-3xl pointer-events-none"
+              style={{
+                border: "1px solid rgba(255,255,255,0.08)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.2)",
+              }}
+            />
+            <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+              <div className="absolute top-[15%] left-[8%] w-1 h-1 bg-gold/60 rounded-full animate-pulse" style={{ animationDuration: "3s" }} />
+              <div className="absolute top-[70%] left-[4%] w-1.5 h-1.5 bg-amber/40 rounded-full animate-pulse" style={{ animationDuration: "4s", animationDelay: "1s" }} />
+              <div className="absolute bottom-[12%] left-[12%] w-1 h-1 bg-gold/50 rounded-full animate-pulse" style={{ animationDuration: "3.5s", animationDelay: "0.5s" }} />
+              <div className="absolute top-[25%] right-[45%] w-0.5 h-0.5 bg-white/30 rounded-full animate-pulse" style={{ animationDuration: "2.5s", animationDelay: "1.5s" }} />
+            </div>
+            <div
+              className="absolute right-0 bottom-0 w-[60%] h-[70%] pointer-events-none"
+              style={{
+                background: "radial-gradient(ellipse at 80% 80%, rgba(201,168,76,0.08) 0%, transparent 70%)",
+              }}
+            />
+            <div className="relative z-[1]">
+              <span className="inline-block text-[10px] font-bold tracking-[0.14em] uppercase px-3 py-1.5 rounded-lg mb-4"
+                style={{ background: "rgba(201,168,76,0.15)", color: "#e2c47a" }}>
+                Writing Experience
+              </span>
+              <h3 className="text-[22px] lg:text-[26px] font-extrabold text-white mb-3 tracking-[-0.4px] leading-[1.15]">
+                Write it while it&rsquo;s happening.
+              </h3>
+              <p className="text-[14px] leading-[1.7] text-white/60">
+                A quiet space for letters, photos, and AI prompts when you&rsquo;re stuck.
+              </p>
+            </div>
+            <div className="relative z-[1]">
+              <MockEditor />
             </div>
           </div>
         </div>

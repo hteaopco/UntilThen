@@ -21,8 +21,8 @@ export default function Home() {
       <Nav />
       <main>
         <Hero />
-        <ChooseYourVault />
         <HowItWorks />
+        <ChooseYourVault />
         <Features />
         <Pricing />
         <CtaSection />
