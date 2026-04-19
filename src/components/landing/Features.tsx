@@ -149,7 +149,9 @@ export function Features() {
                 </span>
               </div>
               <h3 className="text-[18px] sm:text-[24px] lg:text-[28px] font-extrabold text-navy mb-2 sm:mb-3 tracking-[-0.5px] leading-[1.1]">
-                Then one day&hellip; it all opens.
+                Then one day&hellip;
+                <br />
+                it all opens.
               </h3>
               <p className="text-[12px] sm:text-[14px] leading-[1.6] text-ink-mid">
                 On the reveal date, their vault unlocks &mdash; letters, photos, and voices delivered one by one.
