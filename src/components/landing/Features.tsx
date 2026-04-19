@@ -85,14 +85,14 @@ export function Features() {
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Mic size={18} strokeWidth={1.5} className="text-amber" />
                   </div>
-                  <span className="text-[9px] sm:text-[10px] font-bold tracking-[0.14em] uppercase text-amber">
+                  <span className="text-[11px] sm:text-[12px] font-bold tracking-[0.14em] uppercase text-amber">
                     Voice Notes
                   </span>
                 </div>
                 <h3 className="text-[16px] sm:text-[20px] lg:text-[24px] font-extrabold text-navy mb-1.5 sm:mb-2 tracking-[-0.4px] leading-[1.06]">
                   They&rsquo;ll hear your voice again.
                 </h3>
-                <p className="text-[11px] sm:text-[13px] leading-[1.55] text-ink-mid">
+                <p className="text-[13px] sm:text-[14px] leading-[1.55] text-ink-mid">
                   Record a message your child will hear years from now &mdash; exactly as you sound today.
                 </p>
               </div>
@@ -113,19 +113,19 @@ export function Features() {
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Users size={18} strokeWidth={1.5} className="text-amber" />
                   </div>
-                  <span className="text-[9px] sm:text-[10px] font-bold tracking-[0.14em] uppercase text-amber">
+                  <span className="text-[11px] sm:text-[12px] font-bold tracking-[0.14em] uppercase text-amber">
                     Multi-Contributor
                   </span>
                 </div>
                 <h3 className="text-[16px] sm:text-[20px] lg:text-[24px] font-extrabold text-navy mb-1.5 sm:mb-2 tracking-[-0.4px] leading-[1.06]">
                   It won&rsquo;t just be from you.
                 </h3>
-                <p className="text-[11px] sm:text-[13px] leading-[1.55] text-ink-mid">
+                <p className="text-[13px] sm:text-[14px] leading-[1.55] text-ink-mid">
                   Invite grandparents, friends, or anyone who loves them. Every voice in one vault.
                 </p>
               </div>
               <Image
-                src="/IMG_2311.png"
+                src="/IMG_2324.png"
                 alt="Contributors"
                 width={500}
                 height={120}
@@ -144,7 +144,7 @@ export function Features() {
                     <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
                   </svg>
                 </span>
-                <span className="text-[10px] font-bold tracking-[0.14em] uppercase text-amber">
+                <span className="text-[12px] font-bold tracking-[0.14em] uppercase text-amber">
                   The Reveal
                 </span>
               </div>
@@ -153,7 +153,7 @@ export function Features() {
                 <br />
                 it all opens.
               </h3>
-              <p className="text-[12px] sm:text-[14px] leading-[1.6] text-ink-mid">
+              <p className="text-[14px] sm:text-[15px] leading-[1.6] text-ink-mid">
                 On the reveal date, their vault unlocks &mdash; letters, photos, and voices delivered one by one.
               </p>
             </div>
