@@ -102,7 +102,7 @@ export function Features() {
                 width={500}
                 height={120}
                 className="absolute -bottom-1 sm:bottom-0 left-0 right-0 w-full h-auto pointer-events-none"
-                style={{ transform: "scale(1.08)", transformOrigin: "bottom center" }}
+                style={{ transform: "scale(1.03)", transformOrigin: "bottom center" }}
               />
             </div>
 
@@ -130,7 +130,7 @@ export function Features() {
                 width={500}
                 height={120}
                 className="absolute -bottom-1 sm:bottom-0 left-0 right-0 w-full h-auto pointer-events-none"
-                style={{ transform: "scale(1.08)", transformOrigin: "bottom center" }}
+                style={{ transform: "scale(1.03)", transformOrigin: "bottom center" }}
               />
             </div>
           </div>
@@ -148,8 +148,8 @@ export function Features() {
                   The Reveal
                 </span>
               </div>
-              <h3 className="text-[18px] sm:text-[24px] lg:text-[28px] font-extrabold text-navy mb-2 sm:mb-3 tracking-[-0.5px] leading-[1.1]">
-                Then one day&hellip;
+              <h3 className="text-[16px] sm:text-[24px] lg:text-[28px] font-extrabold text-navy mb-2 sm:mb-3 tracking-[-0.5px] leading-[1.1]">
+                <span className="whitespace-nowrap">Then one day&hellip;</span>
                 <br />
                 it all opens.
               </h3>
