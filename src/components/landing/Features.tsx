@@ -79,7 +79,7 @@ export function Features() {
         <div className="space-y-4 lg:space-y-5">
           <div className="grid gap-2 sm:gap-3 lg:gap-5 grid-cols-2">
             {/* Voice Notes */}
-            <div className="relative rounded-2xl border border-amber/10 overflow-hidden min-h-[240px] sm:min-h-[280px]" style={{ background: "#fef0dc" }}>
+            <div className="relative rounded-2xl border border-amber/10 overflow-hidden" style={{ background: "#fef0dc" }}>
               <div className="relative z-[1] p-4 sm:p-6 lg:p-8">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
@@ -99,7 +99,7 @@ export function Features() {
             </div>
 
             {/* Multi-Contributor */}
-            <div className="relative rounded-2xl border border-amber/10 overflow-hidden min-h-[240px] sm:min-h-[280px]" style={{ background: "#fef0dc" }}>
+            <div className="relative rounded-2xl border border-amber/10 overflow-hidden" style={{ background: "#fef0dc" }}>
               <div className="relative z-[1] p-4 sm:p-6 lg:p-8">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
