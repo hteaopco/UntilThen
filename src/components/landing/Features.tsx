@@ -6,7 +6,7 @@ import {
   Italic,
   Lock,
   Mic,
-  Users,
+  Pencil,
 } from "lucide-react";
 
 function MockBtn({
@@ -143,7 +143,7 @@ export function Features() {
               <div className="relative z-[1] p-4 sm:p-6 lg:p-8 pb-[36px] sm:pb-[44px]">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
-                    <Users size={18} strokeWidth={1.5} className="text-amber" />
+                    <Pencil size={18} strokeWidth={1.5} className="text-amber" />
                   </div>
                   <span className="text-[11px] sm:text-[12px] font-bold tracking-[0.14em] uppercase text-amber">
                     Keep Writing
@@ -153,7 +153,7 @@ export function Features() {
                   Come back to it over time.
                 </h3>
                 <p className="text-[13px] sm:text-[14px] leading-[1.55] text-ink-mid">
-                  Add memories &mdash; capturing the moments you don&rsquo;t want to lose.
+                  Capture the moments you don&rsquo;t want to lose.
                 </p>
               </div>
               <Image
