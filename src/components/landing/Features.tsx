@@ -186,7 +186,7 @@ export function Features() {
                 it all opens.
               </h3>
               <p className="text-[14px] sm:text-[15px] leading-[1.6] text-ink-mid">
-                On the reveal date, their vault unlocks &mdash; letters, photos, and voices delivered one by one.
+                On reveal date, their vault unlocks letters, photos, and voices delivered one by one.
               </p>
             </div>
             <div className="self-end pr-1 pb-1 sm:pr-2 sm:pb-2 -ml-4">
