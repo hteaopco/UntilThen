@@ -73,6 +73,13 @@ html {
   100% { transform: translateY(580px) rotate(640deg); opacity: 0; }
 }
 
+@keyframes dotRise {
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
+  10%  { opacity: 0.6; }
+  50%  { opacity: 0.4; }
+  100% { transform: translateY(-520px) translateX(var(--drift, 0px)); opacity: 0; }
+}
+
 /* ── Time Vault keyframes ── */
 
 @keyframes vault-breathe {

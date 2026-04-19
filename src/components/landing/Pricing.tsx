@@ -1,11 +1,47 @@
 "use client";
 
+import { Clock, Gift } from "lucide-react";
 import { useState } from "react";
 import type { ReactNode } from "react";
 
-// A handful of gold/amber/warm pieces fall continuously behind the gift
-// card content. Deterministic layout (no Math.random) so SSR and client
-// match.
+function RisingDotsOverlay() {
+  const drifts = [12, -18, 8, -14, 20, -10, 6, -22, 15, -8, 18, -12, 10, -16, 22];
+  const pieces = Array.from({ length: 15 }).map((_, i) => ({
+    left: `${(i * 17 + 7) % 100}%`,
+    delay: `${((i * 1.1) % 6).toFixed(2)}s`,
+    duration: `${(5 + ((i * 0.7) % 4)).toFixed(2)}s`,
+    size: 2 + (i % 3),
+    drift: drifts[i] ?? 0,
+  }));
+
+  return (
+    <div
+      aria-hidden="true"
+      className="absolute inset-0 overflow-hidden pointer-events-none rounded-3xl"
+    >
+      {pieces.map((p, i) => (
+        <span
+          key={i}
+          className="absolute block rounded-full"
+          style={{
+            left: p.left,
+            bottom: -8,
+            width: p.size,
+            height: p.size,
+            background: "rgba(255,255,255,0.5)",
+            animationName: "dotRise",
+            animationDelay: p.delay,
+            animationDuration: p.duration,
+            animationTimingFunction: "ease-out",
+            animationIterationCount: "infinite",
+            "--drift": `${p.drift}px`,
+          } as React.CSSProperties}
+        />
+      ))}
+    </div>
+  );
+}
+
 function ConfettiOverlay() {
   type Piece = {
     left: string;
@@ -83,11 +119,11 @@ function Plan({
   const gift = variant === "gift";
 
   const cardClasses = featured
-    ? "border-amber/20 shadow-[0_4px_12px_rgba(0,0,0,0.04)]"
+    ? "border-amber/15 shadow-[0_4px_12px_rgba(0,0,0,0.04)]"
     : "bg-[#fdf6e8] border-gold/15 shadow-[0_4px_12px_rgba(0,0,0,0.04)]";
 
   const cardStyle = featured
-    ? { background: "#c58a55" }
+    ? { background: "linear-gradient(180deg, #d4a06a 0%, #c58a55 100%)" }
     : undefined;
 
   const tagColor = featured ? "text-white/85" : "text-gold";
@@ -197,6 +233,7 @@ const timeCapsulePlan = (
     features={BASE_FEATURES}
     cta="Start your first capsule"
     ctaNote="No credit card needed. Cancel anytime."
+    overlay={<RisingDotsOverlay />}
   />
 );
 
@@ -237,30 +274,36 @@ export function Pricing() {
 
         {/* Mobile: segmented toggle + swapping card */}
         <div className="md:hidden max-w-[420px] mx-auto">
-          <div className="flex rounded-xl bg-navy/[0.04] border border-navy/[0.06] p-1 mb-5">
+          <div className="flex rounded-2xl bg-white border border-navy/[0.08] p-1.5 mb-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
             <button
               type="button"
               onClick={() => setTab("time")}
-              className={`flex-1 rounded-lg py-2.5 text-center transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-3 transition-all ${
                 tab === "time"
-                  ? "bg-white text-navy shadow-[0_1px_4px_rgba(15,31,61,0.08)]"
-                  : "text-ink-mid hover:text-navy"
+                  ? "bg-amber/10 text-navy border border-amber/20"
+                  : "text-ink-mid hover:text-navy border border-transparent"
               }`}
             >
-              <span className="block text-[13px] font-bold">Time Capsules</span>
-              <span className="block text-[10px] text-ink-light mt-0.5">Write over time</span>
+              <Clock size={15} strokeWidth={1.5} className={tab === "time" ? "text-amber" : "text-ink-light"} />
+              <div className="text-left">
+                <span className="block text-[13px] font-bold leading-tight">Time Capsules</span>
+                <span className="block text-[10px] text-ink-light">Write over time</span>
+              </div>
             </button>
             <button
               type="button"
               onClick={() => setTab("gift")}
-              className={`flex-1 rounded-lg py-2.5 text-center transition-all ${
+              className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-3 transition-all ${
                 tab === "gift"
-                  ? "bg-white text-navy shadow-[0_1px_4px_rgba(15,31,61,0.08)]"
-                  : "text-ink-mid hover:text-navy"
+                  ? "bg-amber/10 text-navy border border-amber/20"
+                  : "text-ink-mid hover:text-navy border border-transparent"
               }`}
             >
-              <span className="block text-[13px] font-bold">Gift Capsules</span>
-              <span className="block text-[10px] text-ink-light mt-0.5">One moment</span>
+              <Gift size={15} strokeWidth={1.5} className={tab === "gift" ? "text-amber" : "text-ink-light"} />
+              <div className="text-left">
+                <span className="block text-[13px] font-bold leading-tight">Gift Capsules</span>
+                <span className="block text-[10px] text-ink-light">One moment</span>
+              </div>
             </button>
           </div>
 
