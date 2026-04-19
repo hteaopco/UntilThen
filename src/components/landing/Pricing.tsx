@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock, Gift } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 function RisingDotsOverlay() {
@@ -308,45 +308,8 @@ export function Pricing() {
           </p>
         </div>
 
-        {/* Mobile: segmented toggle + swapping card */}
-        <div className="md:hidden max-w-[420px] mx-auto">
-          <div className="flex rounded-2xl bg-white border border-navy/[0.08] p-1.5 mb-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
-            <button
-              type="button"
-              onClick={() => setTab("time")}
-              className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-3 transition-all ${
-                tab === "time"
-                  ? "bg-amber/10 text-navy border border-amber/20"
-                  : "text-ink-mid hover:text-navy border border-transparent"
-              }`}
-            >
-              <Clock size={15} strokeWidth={1.5} className={tab === "time" ? "text-amber" : "text-ink-light"} />
-              <div className="text-left">
-                <span className="block text-[13px] font-bold leading-tight">Time Capsules</span>
-                <span className="block text-[10px] text-ink-light">Write over time</span>
-              </div>
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab("gift")}
-              className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-3 transition-all ${
-                tab === "gift"
-                  ? "bg-amber/10 text-navy border border-amber/20"
-                  : "text-ink-mid hover:text-navy border border-transparent"
-              }`}
-            >
-              <Gift size={15} strokeWidth={1.5} className={tab === "gift" ? "text-amber" : "text-ink-light"} />
-              <div className="text-left">
-                <span className="block text-[13px] font-bold leading-tight">Gift Capsules</span>
-                <span className="block text-[10px] text-ink-light">One moment</span>
-              </div>
-            </button>
-          </div>
-
-          <div className="transition-opacity duration-200">
-            {tab === "time" ? timeCapsulePlan : giftCapsulePlan}
-          </div>
-        </div>
+        {/* Mobile: swipeable cards + toggle */}
+        <MobilePricingSwiper tab={tab} setTab={setTab} />
 
         {/* Desktop: side by side */}
         <div className="hidden md:grid gap-5 md:grid-cols-2 max-w-[760px] mx-auto items-stretch">
@@ -355,5 +318,129 @@ export function Pricing() {
         </div>
       </div>
     </section>
+  );
+}
+
+const SWIPE_THRESHOLD = 50;
+
+function MobilePricingSwiper({
+  tab,
+  setTab,
+}: {
+  tab: "time" | "gift";
+  setTab: (t: "time" | "gift") => void;
+}) {
+  const startRef = useRef<{ x: number; y: number } | null>(null);
+  const [dragX, setDragX] = useState(0);
+  const [swiping, setSwiping] = useState(false);
+
+  const handleStart = useCallback((x: number, y: number) => {
+    startRef.current = { x, y };
+    setDragX(0);
+    setSwiping(false);
+  }, []);
+
+  const handleMove = useCallback((x: number, y: number) => {
+    if (!startRef.current) return;
+    const dx = x - startRef.current.x;
+    const dy = y - startRef.current.y;
+    if (!swiping && Math.abs(dy) > Math.abs(dx)) {
+      startRef.current = null;
+      return;
+    }
+    setSwiping(true);
+    setDragX(dx);
+  }, [swiping]);
+
+  const handleEnd = useCallback(() => {
+    if (!startRef.current) { setDragX(0); return; }
+    if (dragX < -SWIPE_THRESHOLD && tab === "time") setTab("gift");
+    else if (dragX > SWIPE_THRESHOLD && tab === "gift") setTab("time");
+    startRef.current = null;
+    setDragX(0);
+    setSwiping(false);
+  }, [dragX, tab, setTab]);
+
+  const offset = tab === "time" ? 0 : -100;
+  const dragOffset = swiping ? (dragX / 4) : 0;
+
+  return (
+    <div className="md:hidden max-w-[420px] mx-auto">
+      {/* Toggle */}
+      <div className="flex rounded-2xl bg-white border border-navy/[0.08] p-1.5 mb-5 shadow-[0_2px_8px_rgba(0,0,0,0.03)]">
+        <button
+          type="button"
+          onClick={() => setTab("time")}
+          className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-3 transition-all ${
+            tab === "time"
+              ? "bg-amber/10 text-navy border border-amber/20"
+              : "text-ink-mid hover:text-navy border border-transparent"
+          }`}
+        >
+          <Clock size={15} strokeWidth={1.5} className={tab === "time" ? "text-amber" : "text-ink-light"} />
+          <div className="text-left">
+            <span className="block text-[13px] font-bold leading-tight">Time Capsules</span>
+            <span className="block text-[10px] text-ink-light">Write over time</span>
+          </div>
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("gift")}
+          className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-3 transition-all ${
+            tab === "gift"
+              ? "bg-amber/10 text-navy border border-amber/20"
+              : "text-ink-mid hover:text-navy border border-transparent"
+          }`}
+        >
+          <Gift size={15} strokeWidth={1.5} className={tab === "gift" ? "text-amber" : "text-ink-light"} />
+          <div className="text-left">
+            <span className="block text-[13px] font-bold leading-tight">Gift Capsules</span>
+            <span className="block text-[10px] text-ink-light">One moment</span>
+          </div>
+        </button>
+      </div>
+
+      {/* Swipeable cards */}
+      <div
+        className="overflow-hidden"
+        onTouchStart={(e) => {
+          const t = e.touches[0];
+          if (t) handleStart(t.clientX, t.clientY);
+        }}
+        onTouchMove={(e) => {
+          const t = e.touches[0];
+          if (t) handleMove(t.clientX, t.clientY);
+        }}
+        onTouchEnd={handleEnd}
+        onTouchCancel={handleEnd}
+      >
+        <div
+          className="flex"
+          style={{
+            transform: `translateX(calc(${offset}% + ${dragOffset}px))`,
+            transition: swiping ? "none" : "transform 350ms cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          <div className="w-full shrink-0">{timeCapsulePlan}</div>
+          <div className="w-full shrink-0">{giftCapsulePlan}</div>
+        </div>
+      </div>
+
+      {/* Dots */}
+      <div className="flex justify-center gap-2 mt-4">
+        <button
+          type="button"
+          onClick={() => setTab("time")}
+          aria-label="Time Capsules"
+          className={`w-2 h-2 rounded-full transition-colors ${tab === "time" ? "bg-amber" : "bg-navy/15"}`}
+        />
+        <button
+          type="button"
+          onClick={() => setTab("gift")}
+          aria-label="Gift Capsules"
+          className={`w-2 h-2 rounded-full transition-colors ${tab === "gift" ? "bg-amber" : "bg-navy/15"}`}
+        />
+      </div>
+    </div>
   );
 }
