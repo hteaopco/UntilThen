@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock, Gift } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
 function RisingDotsOverlay() {
@@ -293,6 +293,51 @@ function TimeCapsulePlan() {
   );
 }
 
+const OCCASIONS = [
+  "Birthdays",
+  "Retirements",
+  "Anniversaries",
+  "Graduations",
+  "Thank Yous",
+  "Weddings",
+  "Coach Gifts",
+  "Teacher Gifts",
+  "Just Because",
+];
+
+function OccasionTicker() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % OCCASIONS.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="text-right">
+      <span className="text-[11px] uppercase tracking-[0.1em] font-bold text-gold/70">
+        Perfect for
+      </span>
+      <div className="h-[28px] overflow-hidden relative mt-0.5">
+        <div
+          key={index}
+          className="text-[20px] font-extrabold text-navy tracking-[-0.3px]"
+          style={{
+            animationName: "tickerSlideUp",
+            animationDuration: "2.5s",
+            animationTimingFunction: "ease-in-out",
+            animationFillMode: "both",
+          }}
+        >
+          {OCCASIONS[index]}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const giftCapsulePlan = (
   <Plan
     variant="gift"
@@ -304,6 +349,7 @@ const giftCapsulePlan = (
     cta="Create a Gift Capsule"
     ctaHref="/capsules/new"
     overlay={<ConfettiOverlay />}
+    billingToggle={<OccasionTicker />}
   />
 );
 
