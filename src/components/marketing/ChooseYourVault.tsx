@@ -96,11 +96,13 @@ export function ChooseYourVault() {
             <span aria-hidden="true">✦</span>
             Start Something Meaningful
           </div>
-          <h2 className="text-[clamp(36px,4vw,52px)] font-extrabold leading-[1.1] tracking-[-1.5px] text-navy">
+          <h2 className="text-[clamp(30px,4vw,52px)] font-extrabold leading-[1.1] tracking-[-1.5px] text-navy">
             What will you create?
           </h2>
           <p className="mt-4 text-[18px] text-ink-mid leading-[1.55]">
-            Two ways to save love. Both last a lifetime.
+            Two ways to save love.
+            <br />
+            Both last a lifetime.
           </p>
         </div>
 

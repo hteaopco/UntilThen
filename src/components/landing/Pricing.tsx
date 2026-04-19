@@ -5,11 +5,11 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 
 function RisingDotsOverlay() {
-  const drifts = [12, -18, 8, -14, 20, -10, 6, -22, 15, -8, 18, -12, 10, -16, 22];
-  const pieces = Array.from({ length: 15 }).map((_, i) => ({
-    left: `${(i * 17 + 7) % 100}%`,
-    delay: `${((i * 1.1) % 6).toFixed(2)}s`,
-    duration: `${(5 + ((i * 0.7) % 4)).toFixed(2)}s`,
+  const drifts = [12,-18,8,-14,20,-10,6,-22,15,-8,18,-12,10,-16,22,-6,14,-20,9,-15,24,-11,7,-19,16,-9,13,-17,11,-21];
+  const pieces = Array.from({ length: 30 }).map((_, i) => ({
+    left: `${(i * 8.5 + 3) % 100}%`,
+    delay: `${((i * 0.8) % 7).toFixed(2)}s`,
+    duration: `${(5 + ((i * 0.6) % 4)).toFixed(2)}s`,
     size: 2 + (i % 3),
     drift: drifts[i] ?? 0,
   }));
@@ -28,7 +28,7 @@ function RisingDotsOverlay() {
             bottom: -8,
             width: p.size,
             height: p.size,
-            background: "rgba(255,255,255,0.5)",
+            background: "rgba(255,255,255,0.75)",
             animationName: "dotRise",
             animationDelay: p.delay,
             animationDuration: p.duration,
@@ -101,6 +101,7 @@ function Plan({
   ctaHref = "#cta",
   ctaNote,
   overlay,
+  ribbon,
 }: {
   variant: PlanVariant;
   tag: string;
@@ -114,6 +115,7 @@ function Plan({
   ctaHref?: string;
   ctaNote?: string;
   overlay?: ReactNode;
+  ribbon?: string;
 }) {
   const featured = variant === "featured";
   const gift = variant === "gift";
@@ -144,6 +146,11 @@ function Plan({
       className={`relative rounded-3xl px-8 py-7 flex flex-col transition-all border ${cardClasses}`}
       style={cardStyle}
     >
+      {ribbon && (
+        <div className="absolute top-4 right-4 z-[2] bg-white/90 text-amber text-[10px] font-bold tracking-[0.08em] uppercase px-3 py-1 rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.08)]">
+          {ribbon}
+        </div>
+      )}
       {overlay}
       <div className="relative z-[1] flex flex-col flex-1">
         <span
@@ -234,6 +241,7 @@ const timeCapsulePlan = (
     cta="Start your first capsule"
     ctaNote="No credit card needed. Cancel anytime."
     overlay={<RisingDotsOverlay />}
+    ribbon="Most Popular"
   />
 );
 
