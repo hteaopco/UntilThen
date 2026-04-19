@@ -111,8 +111,8 @@ export function Features() {
           {/* ── Voice Notes + Multi-Contributor — always 2 col ── */}
           <div className="grid gap-2 sm:gap-3 lg:gap-5 grid-cols-2">
             {/* Voice Notes */}
-            <div className="relative rounded-2xl border border-black/[0.04] overflow-hidden min-h-[280px] sm:min-h-[320px]" style={{ background: "#f7f2ec" }}>
-              <div className="relative z-[1] p-4 sm:p-6 lg:p-8 pb-[72px] sm:pb-[80px]">
+            <div className="relative rounded-2xl border border-amber/10 overflow-hidden min-h-[240px] sm:min-h-[280px]" style={{ background: "#fdf8f2" }}>
+              <div className="relative z-[1] p-4 sm:p-6 lg:p-8 pb-[52px] sm:pb-[60px]">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Mic size={18} strokeWidth={1.5} className="text-amber" />
@@ -133,13 +133,13 @@ export function Features() {
                 alt="Voice waveform"
                 width={500}
                 height={120}
-                className="absolute bottom-2.5 sm:bottom-3 left-2.5 sm:left-3 right-2.5 sm:right-3 w-[calc(100%-20px)] sm:w-[calc(100%-24px)] h-auto pointer-events-none opacity-95"
+                className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3 w-[calc(100%-16px)] sm:w-[calc(100%-24px)] h-auto pointer-events-none opacity-95"
               />
             </div>
 
             {/* Multi-Contributor */}
-            <div className="relative rounded-2xl border border-black/[0.04] overflow-hidden min-h-[280px] sm:min-h-[320px]" style={{ background: "#f7f2ec" }}>
-              <div className="relative z-[1] p-4 sm:p-6 lg:p-8 pb-[72px] sm:pb-[80px]">
+            <div className="relative rounded-2xl border border-amber/10 overflow-hidden min-h-[240px] sm:min-h-[280px]" style={{ background: "#fdf8f2" }}>
+              <div className="relative z-[1] p-4 sm:p-6 lg:p-8 pb-[52px] sm:pb-[60px]">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Users size={18} strokeWidth={1.5} className="text-amber" />
@@ -195,10 +195,9 @@ export function Features() {
                 height={500}
                 className="w-[160px] sm:w-[200px] lg:w-[260px] h-auto object-contain"
                 style={{
-                  filter: "drop-shadow(0 12px 20px rgba(0,0,0,0.08))",
-                  opacity: 0.95,
-                  WebkitMaskImage: "radial-gradient(circle at center, black 65%, transparent 100%)",
-                  maskImage: "radial-gradient(circle at center, black 65%, transparent 100%)",
+                  filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.06))",
+                  WebkitMaskImage: "radial-gradient(ellipse 85% 80% at 55% 50%, black 50%, transparent 100%)",
+                  maskImage: "radial-gradient(ellipse 85% 80% at 55% 50%, black 50%, transparent 100%)",
                 }}
               />
             </div>
