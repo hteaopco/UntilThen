@@ -76,7 +76,8 @@ export default async function AccountBillingPage() {
               Base Plan · Monthly
             </div>
             <div className="text-sm text-ink-mid mt-1">
-              $3.99 / month · Next billing date {formatLong(nextBillingIso)}
+              {/* PRICING: Time Capsules — $4.99/mo, $0.99/mo additional. Annual: $35.99/yr, $6/yr additional. */}
+              $4.99 / month · Next billing date {formatLong(nextBillingIso)}
             </div>
           </div>
           <button
@@ -126,7 +127,8 @@ export default async function AccountBillingPage() {
           <PlanOption
             icon={TrendingUp}
             title="Switch to Annual"
-            subtitle="$34.99 / year — save around 27% vs monthly."
+            // PRICING: Annual plan $35.99/yr, additional capsules $6/yr each.
+            subtitle="$35.99 / year — save around 40% vs monthly."
           />
           <PlanOption
             icon={PlusCircle}

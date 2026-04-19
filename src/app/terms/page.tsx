@@ -97,17 +97,13 @@ export default function TermsPage() {
       <h3>3.1 Child Vault Subscription</h3>
       <ul>
         <li>
-          <strong>Monthly plan:</strong> $3.99 per month
+          <strong>Monthly plan:</strong> $4.99 per month (includes 3 capsules)
         </li>
         <li>
-          <strong>Annual plan:</strong> $34.99 per year
+          <strong>Annual plan:</strong> $35.99 per year (includes 3 capsules)
         </li>
         <li>
-          <strong>Additional child vault:</strong> $1.99 per month per vault
-        </li>
-        <li>
-          <strong>Gift plan:</strong> $39.99 one-time, 12 months of access, no
-          auto-renewal
+          <strong>Additional capsule:</strong> $0.99 per month or $6.00 per year
         </li>
       </ul>
       <p>

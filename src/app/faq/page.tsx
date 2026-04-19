@@ -73,7 +73,7 @@ const SECTIONS: AccordionSection[] = [
       {
         question: "How much does untilThen cost?",
         answer:
-          "The base plan is $3.99 per month and includes one child vault. Each additional child vault is $1.99 per month. You can also pay annually at $34.99 per year — saving around 27%. All plans start with a 7-day free trial. No credit card required to start.",
+          "The base plan is $4.99 per month and includes 3 capsules. Each additional capsule is $0.99 per month. You can also pay annually at $35.99 per year (additional capsules $6.00/year each) — saving around 40%. All plans start with a 7-day free trial. No credit card required to start.",
       },
       {
         question: "What happens if I cancel my subscription?",
@@ -84,11 +84,6 @@ const SECTIONS: AccordionSection[] = [
         question: "What happens to the vault if I stop paying?",
         answer:
           "The vault enters read-only mode — you can view entries but not add new ones. Your child's reveal date is unaffected. If the reveal date arrives while your account is paused, the vault still unlocks for your child.",
-      },
-      {
-        question: "Is the gift plan auto-renewed?",
-        answer:
-          "No. The gift plan is a one-time annual payment of $39.99. The recipient chooses whether to continue when it expires — we'll remind them 30 days before with no obligation to renew.",
       },
     ],
   },

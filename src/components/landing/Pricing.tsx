@@ -218,7 +218,9 @@ function Plan({
   );
 }
 
+// PRICING: Time Capsules — $4.99/mo (3 capsules), $0.99/mo additional. Annual: $35.99/yr, $6/yr additional.
 const BASE_FEATURES = [
+  "3 capsules included",
   "Write to them over time \u2014 not just once",
   "Add photos, voice, and video",
   "Open it on the day that matters",
@@ -226,6 +228,7 @@ const BASE_FEATURES = [
   "Keep it forever",
 ];
 
+// PRICING: Gift Capsules — $9.99 one-time per capsule.
 const GIFT_CAPSULE_FEATURES = [
   "Works for any moment",
   "Invite everyone who loves them",
@@ -241,9 +244,9 @@ const timeCapsulePlan = (
     variant="featured"
     tag="Time Capsules"
     name="Time Capsules"
-    price="3.99"
+    price="4.99"
     priceUnit="per month"
-    priceNote="Save with annual billing at checkout"
+    priceNote="Or $35.99/year — save 40%"
     features={BASE_FEATURES}
     cta="Start your first capsule"
     ctaNote="No credit card needed. Cancel anytime."

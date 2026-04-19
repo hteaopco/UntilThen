@@ -212,7 +212,8 @@ export function OnboardingForm({
               icon="vault"
               title="Write to my child"
               body="Seal memories, letters and voice notes in a vault they open when they're ready."
-              price="$3.99/month — 7-day free trial"
+              // PRICING: Time Capsules — $4.99/mo, $0.99/mo additional. Annual: $35.99/yr, $6/yr additional.
+              price="$4.99/month — 7-day free trial"
               cta="Get started"
               onClick={() => {
                 // Vault path: keep the name on the wizard and

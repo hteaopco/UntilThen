@@ -43,7 +43,7 @@ export async function GET(): Promise<NextResponse> {
  * onboarding flow (transactional insert, reveal date defaults to
  * the child's 18th birthday when a DOB is supplied).
  *
- * TODO: gate this behind the Square billing integration — the +$1.99/mo
+ * TODO: gate this behind the Square billing integration — the +$0.99/mo
  * charge per additional vault applies from the second child onwards.
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
