@@ -116,7 +116,7 @@ export function Features() {
                   </svg>
                 </div>
                 <div className="flex-1 flex items-center justify-between gap-[2px] sm:gap-[3px] h-6 sm:h-9">
-                  {[30, 55, 75, 90, 100, 80, 60, 85, 95, 70, 50, 80, 65, 40, 25].map(
+                  {[40, 65, 85, 95, 100, 88, 75, 90, 80, 65, 50, 38, 28, 18, 10].map(
                     (h, i) => (
                       <span
                         key={i}
