@@ -147,36 +147,15 @@ function Plan({
       style={cardStyle}
     >
       {ribbon && (
-        <div className="absolute -top-px -right-px z-[2] overflow-hidden w-32 h-32 pointer-events-none">
-          {/* Ribbon */}
-          <div
-            className="absolute top-[22px] -right-[24px] w-[170px] text-center rotate-45 py-1.5"
-            style={{
-              background: "linear-gradient(90deg, #b8942e, #e2c47a, #d4af37, #e2c47a, #b8942e)",
-              border: "1px solid rgba(255,255,255,0.4)",
-              boxShadow: "0 2px 8px rgba(201,168,76,0.4), 0 0 16px rgba(201,168,76,0.2)",
-            }}
-          >
-            <span className="text-[9px] font-bold tracking-[0.12em] uppercase text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
-              {ribbon}
-            </span>
-          </div>
-          {/* Fold triangle — bottom */}
-          <div
-            className="absolute top-[52px] right-0 w-0 h-0"
-            style={{
-              borderLeft: "6px solid transparent",
-              borderTop: "6px solid #8a7020",
-            }}
-          />
-          {/* Fold triangle — top */}
-          <div
-            className="absolute top-0 right-[52px] w-0 h-0"
-            style={{
-              borderBottom: "6px solid transparent",
-              borderRight: "6px solid #8a7020",
-            }}
-          />
+        <div
+          className="absolute top-4 right-4 z-[2] px-3 py-1 rounded-full text-[10px] font-semibold tracking-[0.08em] uppercase"
+          style={{
+            color: "#8b6a1d",
+            background: "rgba(255, 245, 220, 0.9)",
+            border: "1px solid rgba(201,168,76,0.28)",
+          }}
+        >
+          {ribbon}
         </div>
       )}
       {overlay}
