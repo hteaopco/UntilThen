@@ -156,7 +156,7 @@ export function Features() {
                 </p>
               </div>
               <Image
-                src="/53DABB02-C731-4AD9-B25E-A5E0DA0F579B.png"
+                src="/IMG_2311.png"
                 alt="Contributors"
                 width={500}
                 height={120}
