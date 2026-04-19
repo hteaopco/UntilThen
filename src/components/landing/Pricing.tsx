@@ -188,7 +188,7 @@ function Plan({
             <div className={`text-xs italic mt-1.5 ${priceUnitColor}`}>{priceUnit}</div>
           </div>
           {gift && billingToggle && (
-            <div className="pb-1">{billingToggle}</div>
+            <div className="self-stretch flex items-center">{billingToggle}</div>
           )}
         </div>
         <div
@@ -323,23 +323,26 @@ function OccasionTicker() {
   }, []);
 
   return (
-    <div className="text-right pl-3 border-l-2 border-gold/25">
-      <span className="text-[9px] uppercase tracking-[0.12em] font-bold text-gold/60">
-        Perfect for
-      </span>
-      <div className="h-[24px] overflow-hidden relative mt-0.5">
-        <div
-          key={index}
-          className="text-[17px] font-extrabold tracking-[-0.3px]"
-          style={{
-            color: "#5a4a2a",
-            animationName: "tickerSlideUp",
-            animationDuration: "2.5s",
-            animationTimingFunction: "ease-in-out",
-            animationFillMode: "both",
-          }}
-        >
-          {OCCASIONS[index]}
+    <div className="flex items-stretch h-full">
+      <div className="w-[2px] bg-gold/25 shrink-0" />
+      <div className="pl-3 flex flex-col justify-center min-w-[130px]">
+        <span className="text-[9px] uppercase tracking-[0.12em] font-bold text-gold/60">
+          Perfect for
+        </span>
+        <div className="h-[22px] overflow-hidden relative mt-0.5">
+          <div
+            key={index}
+            className="text-[16px] font-extrabold tracking-[-0.3px]"
+            style={{
+              color: "#5a4a2a",
+              animationName: "tickerSlideUp",
+              animationDuration: "2.5s",
+              animationTimingFunction: "ease-in-out",
+              animationFillMode: "both",
+            }}
+          >
+            {OCCASIONS[index]}
+          </div>
         </div>
       </div>
     </div>
