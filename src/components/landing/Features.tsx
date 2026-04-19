@@ -115,13 +115,13 @@ export function Features() {
                     <path d="M8 5v14l11-7z" />
                   </svg>
                 </div>
-                <div className="flex-1 flex items-center gap-[3px] sm:gap-[4px] h-5 sm:h-8">
-                  {[45, 75, 55, 90, 65, 35, 80, 95, 60, 40, 70, 85, 50, 30, 75, 90].map(
+                <div className="flex-1 flex items-center justify-between gap-[3px] sm:gap-[4px] h-5 sm:h-8">
+                  {[60, 85, 70, 95, 80, 55, 90, 75, 65, 85, 95, 70].map(
                     (h, i) => (
                       <span
                         key={i}
-                        className="flex-1 bg-amber rounded-full"
-                        style={{ height: `${h}%` }}
+                        className="flex-1 bg-amber rounded-sm"
+                        style={{ height: `${h}%`, minHeight: "6px" }}
                       />
                     )
                   )}
@@ -162,7 +162,7 @@ export function Features() {
                 width={500}
                 height={120}
                 className="absolute -bottom-1 sm:bottom-0 left-0 right-0 w-full h-auto pointer-events-none"
-                style={{ transform: "scale(1.03)", transformOrigin: "bottom center" }}
+                style={{ transform: "scale(0.88)", transformOrigin: "bottom center" }}
               />
             </div>
           </div>
