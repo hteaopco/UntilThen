@@ -148,7 +148,7 @@ function Plan({
       className={`relative rounded-3xl px-8 py-7 flex flex-col transition-all border ${cardClasses}`}
       style={cardStyle}
     >
-      {billingToggle && (
+      {billingToggle && !gift && (
         <div className="absolute top-4 right-4 z-[2]">
           {billingToggle}
         </div>
@@ -177,13 +177,20 @@ function Plan({
         >
           {name}
         </div>
-        <div
-          className={`text-5xl font-extrabold tracking-[-2px] leading-none mb-1.5 ${priceColor}`}
-        >
-          <sub className="text-xl tracking-normal align-baseline">$</sub>
-          {price}
+        <div className="flex items-end justify-between gap-4 mb-1.5">
+          <div>
+            <div
+              className={`text-5xl font-extrabold tracking-[-2px] leading-none ${priceColor}`}
+            >
+              <sub className="text-xl tracking-normal align-baseline">$</sub>
+              {price}
+            </div>
+            <div className={`text-xs italic mt-1.5 ${priceUnitColor}`}>{priceUnit}</div>
+          </div>
+          {gift && billingToggle && (
+            <div className="pb-1">{billingToggle}</div>
+          )}
         </div>
-        <div className={`text-xs italic ${priceUnitColor}`}>{priceUnit}</div>
         <div
           className={`text-[11px] mt-1 min-h-[14px] italic mb-5 ${priceNoteColor}`}
         >
@@ -316,15 +323,16 @@ function OccasionTicker() {
   }, []);
 
   return (
-    <div className="text-right">
-      <span className="text-[11px] uppercase tracking-[0.1em] font-bold text-gold/70">
+    <div className="text-right pl-3 border-l-2 border-gold/25">
+      <span className="text-[9px] uppercase tracking-[0.12em] font-bold text-gold/60">
         Perfect for
       </span>
-      <div className="h-[28px] overflow-hidden relative mt-0.5">
+      <div className="h-[24px] overflow-hidden relative mt-0.5">
         <div
           key={index}
-          className="text-[20px] font-extrabold text-navy tracking-[-0.3px]"
+          className="text-[17px] font-extrabold tracking-[-0.3px]"
           style={{
+            color: "#5a4a2a",
             animationName: "tickerSlideUp",
             animationDuration: "2.5s",
             animationTimingFunction: "ease-in-out",
