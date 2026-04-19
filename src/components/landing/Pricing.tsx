@@ -147,8 +147,13 @@ function Plan({
       style={cardStyle}
     >
       {ribbon && (
-        <div className="absolute top-4 right-4 z-[2] bg-white/90 text-amber text-[10px] font-bold tracking-[0.08em] uppercase px-3 py-1 rounded-full shadow-[0_2px_6px_rgba(0,0,0,0.08)]">
-          {ribbon}
+        <div className="absolute -top-px -right-px z-[2] overflow-hidden w-28 h-28 pointer-events-none">
+          <div
+            className="absolute top-[18px] -right-[28px] w-[160px] text-center rotate-45 text-[10px] font-bold tracking-[0.1em] uppercase py-1.5 shadow-[0_2px_4px_rgba(0,0,0,0.12)]"
+            style={{ background: "linear-gradient(90deg, #c9a84c, #e2c47a, #c9a84c)" }}
+          >
+            <span className="text-white drop-shadow-[0_1px_1px_rgba(0,0,0,0.15)]">{ribbon}</span>
+          </div>
         </div>
       )}
       {overlay}
