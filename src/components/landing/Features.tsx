@@ -128,18 +128,16 @@ export function Features() {
                   Record a message your child will hear years from now &mdash; exactly as you sound today.
                 </p>
               </div>
-              {/* Waveform — absolute, anchored bottom-left */}
-              <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-16 sm:right-20 flex items-end gap-[1.5px] sm:gap-[2px] h-10 sm:h-14 opacity-90">
-                {[4,7,12,5,9,14,7,11,16,9,6,10,14,8,11,16,7,10,5,8,13,9,6,11,15,8,12,6,10,14,7,11].map((h, i) => (
-                  <div key={i} className="flex-1 rounded-full bg-amber/30" style={{ height: `${h * 2.5}%` }} />
-                ))}
-              </div>
-              {/* Play button — absolute, anchored bottom-right */}
-              <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-amber flex items-center justify-center shadow-[0_4px_12px_rgba(196,122,58,0.25)]">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="white" className="ml-0.5">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
+              <Image
+                src="/IMG_2289.png"
+                alt="Voice waveform"
+                width={500}
+                height={120}
+                className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-[80%] max-w-[260px] h-auto pointer-events-none opacity-95"
+                style={{
+                  transformOrigin: "bottom left",
+                }}
+              />
             </div>
 
             {/* Multi-Contributor */}
@@ -160,19 +158,12 @@ export function Features() {
                   Invite grandparents, friends, or anyone who loves them. Every voice in one vault.
                 </p>
               </div>
-              {/* Avatar row — absolute, anchored bottom-left, zoomed past whitespace */}
               <Image
-                src="/0FCD9760-2600-4D48-AD47-EE123BD7A8F2.png"
+                src="/IMG_2284.png"
                 alt="Contributors"
-                width={400}
-                height={100}
-                className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-[62%] max-w-[210px] h-auto pointer-events-none"
-                style={{
-                  transformOrigin: "bottom left",
-                  transform: "scale(1.4)",
-                  WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)",
-                  maskImage: "linear-gradient(to right, black 70%, transparent 100%)",
-                }}
+                width={500}
+                height={120}
+                className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-[85%] max-w-[260px] h-auto pointer-events-none"
               />
             </div>
           </div>
@@ -180,18 +171,15 @@ export function Features() {
           {/* ── The Reveal — image as absolute decorative layer ── */}
           <div className="relative rounded-2xl border border-amber/15 overflow-hidden min-h-[300px] sm:min-h-[340px]" style={{ background: "#f9ede0" }}>
             {/* Image — absolute, anchored bottom-right, bleeding off edge */}
-            {/* Polaroid — zoomed past canvas whitespace, anchored bottom-right */}
             <Image
-              src="/E81775DA-BF27-49CE-B22D-84C5135FC04B.png"
+              src="/IMG_2285.png"
               alt="Polaroid photos and sealed envelope"
-              width={500}
-              height={400}
-              className="absolute -right-2 -bottom-2 w-[44%] max-w-[260px] h-auto object-contain pointer-events-none"
+              width={400}
+              height={500}
+              className="absolute -right-2 -bottom-2 w-[50%] sm:w-[45%] max-w-[280px] h-auto object-contain pointer-events-none"
               style={{
-                transformOrigin: "bottom right",
-                transform: "scale(1.45)",
-                WebkitMaskImage: "linear-gradient(to left, black 72%, transparent 100%)",
-                maskImage: "linear-gradient(to left, black 72%, transparent 100%)",
+                WebkitMaskImage: "linear-gradient(to left, black 75%, transparent 100%)",
+                maskImage: "linear-gradient(to left, black 75%, transparent 100%)",
               }}
             />
             {/* Text content — relative, stays on top */}
