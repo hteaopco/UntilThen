@@ -85,14 +85,14 @@ export function Features() {
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Mic size={18} strokeWidth={1.5} className="text-amber" />
                   </div>
-                  <span className="text-[11px] sm:text-[12px] font-bold tracking-[0.14em] uppercase text-amber">
+                  <span className="text-[12px] font-bold tracking-[0.14em] uppercase text-amber">
                     Voice Notes
                   </span>
                 </div>
-                <h3 className="text-[16px] sm:text-[20px] lg:text-[24px] font-extrabold text-navy mb-1.5 sm:mb-2 tracking-[-0.4px] leading-[1.06]">
+                <h3 className="text-[16px] sm:text-[24px] lg:text-[28px] font-extrabold text-navy mb-1.5 sm:mb-2 tracking-[-0.4px] leading-[1.06]">
                   They&rsquo;ll hear your voice again.
                 </h3>
-                <p className="text-[13px] sm:text-[14px] leading-[1.55] text-ink-mid">
+                <p className="text-[14px] sm:text-[15px] leading-[1.55] text-ink-mid">
                   Record something they&rsquo;ll listen to again and again.
                 </p>
               </div>
@@ -105,14 +105,14 @@ export function Features() {
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Pencil size={18} strokeWidth={1.5} className="text-amber" />
                   </div>
-                  <span className="text-[11px] sm:text-[12px] font-bold tracking-[0.14em] uppercase text-amber">
+                  <span className="text-[12px] font-bold tracking-[0.14em] uppercase text-amber">
                     Keep Writing
                   </span>
                 </div>
-                <h3 className="text-[16px] sm:text-[20px] lg:text-[24px] font-extrabold text-navy mb-1.5 sm:mb-2 tracking-[-0.4px] leading-[1.06]">
+                <h3 className="text-[16px] sm:text-[24px] lg:text-[28px] font-extrabold text-navy mb-1.5 sm:mb-2 tracking-[-0.4px] leading-[1.06]">
                   Come back to it over time.
                 </h3>
-                <p className="text-[13px] sm:text-[14px] leading-[1.55] text-ink-mid">
+                <p className="text-[14px] sm:text-[15px] leading-[1.55] text-ink-mid">
                   Capture the moments you don&rsquo;t want to lose.
                 </p>
               </div>
