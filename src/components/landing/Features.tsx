@@ -111,9 +111,9 @@ export function Features() {
           {/* ── Voice Notes + Multi-Contributor — always 2 col ── */}
           <div className="grid gap-2 sm:gap-3 lg:gap-5 grid-cols-2">
             {/* Voice Notes */}
-            <div className="relative rounded-2xl border border-navy/[0.06] bg-[#f5f0ea] overflow-hidden min-h-[320px] sm:min-h-[380px]">
-              <div className="relative z-[1] p-4 sm:p-6 lg:p-8">
-                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-5">
+            <div className="relative rounded-2xl border border-navy/[0.06] bg-[#f5f0ea] overflow-hidden min-h-[280px] sm:min-h-[320px]">
+              <div className="relative z-[1] p-4 sm:p-6 lg:p-8 pb-2 sm:pb-3">
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Mic size={18} strokeWidth={1.5} className="text-amber" />
                   </div>
@@ -121,10 +121,10 @@ export function Features() {
                     Voice Notes
                   </span>
                 </div>
-                <h3 className="text-[16px] sm:text-[20px] lg:text-[24px] font-extrabold text-navy mb-2 sm:mb-3 tracking-[-0.4px] leading-[1.15]">
+                <h3 className="text-[16px] sm:text-[20px] lg:text-[24px] font-extrabold text-navy mb-1.5 sm:mb-2 tracking-[-0.4px] leading-[1.15]">
                   They&rsquo;ll hear your voice again.
                 </h3>
-                <p className="text-[12px] sm:text-[14px] leading-[1.6] text-ink-mid">
+                <p className="text-[11px] sm:text-[13px] leading-[1.5] text-ink-mid">
                   Record a message your child will hear years from now &mdash; exactly as you sound today.
                 </p>
               </div>
@@ -133,17 +133,14 @@ export function Features() {
                 alt="Voice waveform"
                 width={500}
                 height={120}
-                className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-[80%] max-w-[260px] h-auto pointer-events-none opacity-95"
-                style={{
-                  transformOrigin: "bottom left",
-                }}
+                className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3 w-[calc(100%-16px)] sm:w-[calc(100%-24px)] h-auto pointer-events-none opacity-95"
               />
             </div>
 
             {/* Multi-Contributor */}
-            <div className="relative rounded-2xl border border-navy/[0.06] bg-[#f5f0ea] overflow-hidden min-h-[320px] sm:min-h-[380px]">
-              <div className="relative z-[1] p-4 sm:p-6 lg:p-8">
-                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-5">
+            <div className="relative rounded-2xl border border-navy/[0.06] bg-[#f5f0ea] overflow-hidden min-h-[280px] sm:min-h-[320px]">
+              <div className="relative z-[1] p-4 sm:p-6 lg:p-8 pb-2 sm:pb-3">
+                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Users size={18} strokeWidth={1.5} className="text-amber" />
                   </div>
@@ -151,10 +148,10 @@ export function Features() {
                     Multi-Contributor
                   </span>
                 </div>
-                <h3 className="text-[16px] sm:text-[20px] lg:text-[24px] font-extrabold text-navy mb-2 sm:mb-3 tracking-[-0.4px] leading-[1.15]">
+                <h3 className="text-[16px] sm:text-[20px] lg:text-[24px] font-extrabold text-navy mb-1.5 sm:mb-2 tracking-[-0.4px] leading-[1.15]">
                   It won&rsquo;t just be from you.
                 </h3>
-                <p className="text-[12px] sm:text-[14px] leading-[1.6] text-ink-mid">
+                <p className="text-[11px] sm:text-[13px] leading-[1.5] text-ink-mid">
                   Invite grandparents, friends, or anyone who loves them. Every voice in one vault.
                 </p>
               </div>
@@ -163,27 +160,14 @@ export function Features() {
                 alt="Contributors"
                 width={500}
                 height={120}
-                className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-[85%] max-w-[260px] h-auto pointer-events-none"
+                className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3 w-[calc(100%-16px)] sm:w-[calc(100%-24px)] h-auto pointer-events-none"
               />
             </div>
           </div>
 
-          {/* ── The Reveal — image as absolute decorative layer ── */}
-          <div className="relative rounded-2xl border border-amber/15 overflow-hidden min-h-[300px] sm:min-h-[340px]" style={{ background: "#f9ede0" }}>
-            {/* Image — absolute, anchored bottom-right, bleeding off edge */}
-            <Image
-              src="/IMG_2285.png"
-              alt="Polaroid photos and sealed envelope"
-              width={400}
-              height={500}
-              className="absolute -right-2 -bottom-2 w-[50%] sm:w-[45%] max-w-[280px] h-auto object-contain pointer-events-none"
-              style={{
-                WebkitMaskImage: "linear-gradient(to left, black 75%, transparent 100%)",
-                maskImage: "linear-gradient(to left, black 75%, transparent 100%)",
-              }}
-            />
-            {/* Text content — relative, stays on top */}
-            <div className="relative z-[1] p-6 sm:p-8 lg:p-10 max-w-[50%] sm:max-w-[48%]">
+          {/* ── The Reveal — image sets card height ── */}
+          <div className="relative rounded-2xl border border-amber/15 overflow-hidden grid grid-cols-[1fr_auto]" style={{ background: "#f9ede0" }}>
+            <div className="relative z-[1] p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
               <div className="flex items-center gap-2.5 mb-4">
                 <span className="text-gold" aria-hidden="true">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -202,6 +186,15 @@ export function Features() {
               <p className="text-[12px] sm:text-[14px] leading-[1.6] text-ink-mid">
                 On the reveal date, their vault unlocks &mdash; letters, photos, and voices delivered one by one.
               </p>
+            </div>
+            <div className="self-end pr-2 pb-2 sm:pr-3 sm:pb-3">
+              <Image
+                src="/IMG_2285.png"
+                alt="Polaroid photos and sealed envelope"
+                width={400}
+                height={500}
+                className="w-[140px] sm:w-[180px] lg:w-[240px] h-auto object-contain"
+              />
             </div>
           </div>
         </div>
