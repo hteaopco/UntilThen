@@ -98,11 +98,7 @@ export function Features() {
               </div>
               <div
                 aria-hidden="true"
-                className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex items-center gap-1.5 sm:gap-2.5 bg-white rounded-2xl px-2 py-1.5 sm:px-3 sm:py-2.5 border border-amber/15 pointer-events-none"
-                style={{
-                  boxShadow:
-                    "0 14px 32px -10px rgba(196,122,58,0.35), 0 4px 10px -2px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9)",
-                }}
+                className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex items-center gap-1.5 sm:gap-2.5 px-2 py-1.5 sm:px-3 sm:py-2.5 pointer-events-none"
               >
                 <div
                   className="shrink-0 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-amber flex items-center justify-center"
