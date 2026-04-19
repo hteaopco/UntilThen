@@ -76,43 +76,58 @@ export function Features() {
   return (
     <section id="features" className="bg-cream">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-10 lg:py-24">
-        <div className="mb-10">
-          <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-2.5">
-            How it works
-          </p>
-          <h2 className="text-[clamp(28px,3.5vw,44px)] font-extrabold tracking-[-1.5px] text-navy leading-[1.08]">
-            Capture what you don&rsquo;t want to{" "}
-            <span className="font-light italic text-amber">forget.</span>
-          </h2>
-        </div>
-
         <div className="space-y-4 lg:space-y-5">
-          {/* ── Writing Experience — dark card ─────────────── */}
+          {/* ── Writing Experience — glassmorphism dark card ── */}
           <div
-            className="rounded-2xl border border-white/5 p-8 lg:p-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center"
+            className="relative rounded-3xl p-8 lg:p-10 grid lg:grid-cols-2 gap-8 lg:gap-12 items-center overflow-hidden"
             style={{
-              background: "linear-gradient(180deg, #3a2e2a 0%, #2c2420 75%)",
+              background: "linear-gradient(160deg, #3d2e28 0%, #2a1f1a 40%, #1e1612 100%)",
             }}
           >
-            <div>
-              <span className="inline-block text-[10px] font-bold tracking-[0.14em] uppercase px-2.5 py-1 rounded-md bg-amber/20 text-amber-light mb-4">
+            {/* Glass border overlay */}
+            <div
+              className="absolute inset-0 rounded-3xl pointer-events-none"
+              style={{
+                border: "1px solid rgba(255,255,255,0.08)",
+                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.2)",
+              }}
+            />
+            {/* Sparkle accents */}
+            <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+              <div className="absolute top-[15%] left-[8%] w-1 h-1 bg-gold/60 rounded-full animate-pulse" style={{ animationDuration: "3s" }} />
+              <div className="absolute top-[70%] left-[4%] w-1.5 h-1.5 bg-amber/40 rounded-full animate-pulse" style={{ animationDuration: "4s", animationDelay: "1s" }} />
+              <div className="absolute bottom-[12%] left-[12%] w-1 h-1 bg-gold/50 rounded-full animate-pulse" style={{ animationDuration: "3.5s", animationDelay: "0.5s" }} />
+              <div className="absolute top-[25%] right-[45%] w-0.5 h-0.5 bg-white/30 rounded-full animate-pulse" style={{ animationDuration: "2.5s", animationDelay: "1.5s" }} />
+            </div>
+            {/* Warm glow behind editor */}
+            <div
+              className="absolute right-0 bottom-0 w-[60%] h-[70%] pointer-events-none"
+              style={{
+                background: "radial-gradient(ellipse at 80% 80%, rgba(201,168,76,0.08) 0%, transparent 70%)",
+              }}
+            />
+            <div className="relative z-[1]">
+              <span className="inline-block text-[10px] font-bold tracking-[0.14em] uppercase px-3 py-1.5 rounded-lg mb-4"
+                style={{ background: "rgba(201,168,76,0.15)", color: "#e2c47a" }}>
                 Writing Experience
               </span>
               <h3 className="text-[22px] lg:text-[26px] font-extrabold text-white mb-3 tracking-[-0.4px] leading-[1.15]">
                 Write it while it&rsquo;s happening.
               </h3>
-              <p className="text-[14px] leading-[1.7] text-white/70">
+              <p className="text-[14px] leading-[1.7] text-white/60">
                 A quiet space for letters, photos, and AI prompts when you&rsquo;re stuck.
               </p>
             </div>
-            <MockEditor />
+            <div className="relative z-[1]">
+              <MockEditor />
+            </div>
           </div>
 
           {/* ── Voice Notes + Multi-Contributor — always 2 col ── */}
           <div className="grid gap-2 sm:gap-3 lg:gap-5 grid-cols-2">
             {/* Voice Notes */}
-            <div className="relative rounded-2xl border border-amber/10 overflow-hidden min-h-[240px] sm:min-h-[280px]" style={{ background: "#fdf8f2" }}>
-              <div className="relative z-[1] p-4 sm:p-6 lg:p-8 pb-[52px] sm:pb-[60px]">
+            <div className="relative rounded-2xl border border-amber/10 overflow-hidden min-h-[240px] sm:min-h-[280px]" style={{ background: "#fef0dc" }}>
+              <div className="relative z-[1] p-4 sm:p-6 lg:p-8 pb-[36px] sm:pb-[44px]">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Mic size={18} strokeWidth={1.5} className="text-amber" />
@@ -133,13 +148,14 @@ export function Features() {
                 alt="Voice waveform"
                 width={500}
                 height={120}
-                className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3 w-[calc(100%-16px)] sm:w-[calc(100%-24px)] h-auto pointer-events-none"
+                className="absolute -bottom-1 sm:bottom-0 left-0 right-0 w-full h-auto pointer-events-none"
+                style={{ transform: "scale(1.15)", transformOrigin: "bottom center" }}
               />
             </div>
 
             {/* Multi-Contributor */}
-            <div className="relative rounded-2xl border border-amber/10 overflow-hidden min-h-[240px] sm:min-h-[280px]" style={{ background: "#fdf8f2" }}>
-              <div className="relative z-[1] p-4 sm:p-6 lg:p-8 pb-[52px] sm:pb-[60px]">
+            <div className="relative rounded-2xl border border-amber/10 overflow-hidden min-h-[240px] sm:min-h-[280px]" style={{ background: "#fef0dc" }}>
+              <div className="relative z-[1] p-4 sm:p-6 lg:p-8 pb-[36px] sm:pb-[44px]">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Users size={18} strokeWidth={1.5} className="text-amber" />
@@ -160,7 +176,8 @@ export function Features() {
                 alt="Contributors"
                 width={500}
                 height={120}
-                className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 right-2 sm:right-3 w-[calc(100%-16px)] sm:w-[calc(100%-24px)] h-auto pointer-events-none"
+                className="absolute -bottom-1 sm:bottom-0 left-0 right-0 w-full h-auto pointer-events-none"
+                style={{ transform: "scale(1.15)", transformOrigin: "bottom center" }}
               />
             </div>
           </div>
@@ -193,7 +210,7 @@ export function Features() {
                 alt="Polaroid photos and sealed envelope"
                 width={400}
                 height={500}
-                className="w-[160px] sm:w-[200px] lg:w-[260px] h-auto object-contain"
+                className="w-[184px] sm:w-[230px] lg:w-[300px] h-auto object-contain"
                 style={{
                   filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.06))",
                 }}
