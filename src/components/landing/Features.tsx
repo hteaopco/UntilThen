@@ -98,10 +98,10 @@ export function Features() {
               </div>
               <div
                 aria-hidden="true"
-                className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex items-center gap-1.5 sm:gap-2.5 px-2 py-1.5 sm:px-3 sm:py-2.5 pointer-events-none"
+                className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4 flex items-center gap-1.5 sm:gap-2 pl-1 pr-2 py-1.5 sm:pl-1.5 sm:pr-3 sm:py-2.5 pointer-events-none"
               >
                 <div
-                  className="shrink-0 w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-amber flex items-center justify-center"
+                  className="shrink-0 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-amber flex items-center justify-center"
                   style={{
                     boxShadow:
                       "0 6px 14px -2px rgba(196,122,58,0.5), inset 0 1px 0 rgba(255,255,255,0.25)",
@@ -110,13 +110,13 @@ export function Features() {
                   <svg
                     viewBox="0 0 24 24"
                     fill="white"
-                    className="w-3 h-3 sm:w-4 sm:h-4 translate-x-[1px]"
+                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 translate-x-[1px]"
                   >
                     <path d="M8 5v14l11-7z" />
                   </svg>
                 </div>
                 <div className="flex-1 flex items-center justify-between gap-[2px] sm:gap-[3px] h-6 sm:h-9">
-                  {[40, 65, 85, 95, 100, 88, 75, 90, 80, 65, 50, 38, 28, 18, 10].map(
+                  {[55, 80, 40, 95, 60, 100, 70, 45, 90, 65, 85, 55, 95, 75, 50, 30, 18, 10].map(
                     (h, i) => (
                       <span
                         key={i}
