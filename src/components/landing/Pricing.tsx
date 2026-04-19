@@ -325,7 +325,7 @@ function OccasionTicker() {
   return (
     <div className="flex items-stretch h-full">
       <div className="w-[2px] bg-gold/25 shrink-0" />
-      <div className="pl-3 flex flex-col justify-center min-w-[130px]">
+      <div className="pl-4 flex flex-col justify-center min-w-[130px] text-center">
         <span className="text-[9px] uppercase tracking-[0.12em] font-bold text-gold/60">
           Perfect for
         </span>
