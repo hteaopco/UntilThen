@@ -111,8 +111,8 @@ export function Features() {
           {/* ── Voice Notes + Multi-Contributor — always 2 col ── */}
           <div className="grid gap-2 sm:gap-3 lg:gap-5 grid-cols-2">
             {/* Voice Notes */}
-            <div className="rounded-2xl border border-navy/[0.06] bg-[#f5f0ea] overflow-hidden flex flex-col">
-              <div className="p-4 sm:p-6 lg:p-8">
+            <div className="relative rounded-2xl border border-navy/[0.06] bg-[#f5f0ea] overflow-hidden min-h-[320px] sm:min-h-[380px]">
+              <div className="relative z-[1] p-4 sm:p-6 lg:p-8">
                 <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-5">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Mic size={18} strokeWidth={1.5} className="text-amber" />
@@ -128,28 +128,23 @@ export function Features() {
                   Record a message your child will hear years from now &mdash; exactly as you sound today.
                 </p>
               </div>
-              <div className="mt-auto relative">
-                <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-[#f5f0ea] to-transparent z-[1]" />
-                <div className="px-3 sm:px-5 lg:px-7 pb-4 sm:pb-6 lg:pb-8 pt-6">
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <div className="flex-1 flex items-end gap-[1.5px] sm:gap-[2px] h-12 sm:h-14 lg:h-16">
-                      {[4,7,12,5,9,14,7,11,16,9,6,10,14,8,11,16,7,10,5,8,13,9,6,11,15,8,12,6,10,14,7,11].map((h, i) => (
-                        <div key={i} className="flex-1 rounded-full bg-amber/35" style={{ height: `${h * 2.5}%` }} />
-                      ))}
-                    </div>
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-amber flex items-center justify-center shrink-0 shadow-[0_2px_8px_rgba(196,122,58,0.3)]">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="white" className="ml-0.5">
-                        <path d="M8 5v14l11-7z" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
+              {/* Waveform — absolute, anchored bottom-left */}
+              <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-16 sm:right-20 flex items-end gap-[1.5px] sm:gap-[2px] h-10 sm:h-14 opacity-90">
+                {[4,7,12,5,9,14,7,11,16,9,6,10,14,8,11,16,7,10,5,8,13,9,6,11,15,8,12,6,10,14,7,11].map((h, i) => (
+                  <div key={i} className="flex-1 rounded-full bg-amber/30" style={{ height: `${h * 2.5}%` }} />
+                ))}
+              </div>
+              {/* Play button — absolute, anchored bottom-right */}
+              <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-amber flex items-center justify-center shadow-[0_4px_12px_rgba(196,122,58,0.25)]">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="white" className="ml-0.5">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
               </div>
             </div>
 
             {/* Multi-Contributor */}
-            <div className="rounded-2xl border border-navy/[0.06] bg-[#f5f0ea] overflow-hidden flex flex-col">
-              <div className="p-4 sm:p-6 lg:p-8">
+            <div className="relative rounded-2xl border border-navy/[0.06] bg-[#f5f0ea] overflow-hidden min-h-[320px] sm:min-h-[380px]">
+              <div className="relative z-[1] p-4 sm:p-6 lg:p-8">
                 <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-5">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Users size={18} strokeWidth={1.5} className="text-amber" />
@@ -165,33 +160,37 @@ export function Features() {
                   Invite grandparents, friends, or anyone who loves them. Every voice in one vault.
                 </p>
               </div>
-              <div className="mt-auto relative">
-                <div className="absolute inset-x-0 top-0 h-8 bg-gradient-to-b from-[#f5f0ea] to-transparent z-[1]" />
-                <div className="px-2 sm:px-4 lg:px-6 pb-3 sm:pb-5 lg:pb-7 pt-4">
-                  <Image
-                    src="/0FCD9760-2600-4D48-AD47-EE123BD7A8F2.png"
-                    alt="Contributors"
-                    width={400}
-                    height={100}
-                    className="w-full h-auto"
-                  />
-                </div>
-              </div>
+              {/* Avatar row — absolute, anchored bottom-left */}
+              <Image
+                src="/0FCD9760-2600-4D48-AD47-EE123BD7A8F2.png"
+                alt="Contributors"
+                width={400}
+                height={100}
+                className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-[65%] max-w-[220px] h-auto pointer-events-none"
+                style={{
+                  WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)",
+                  maskImage: "linear-gradient(to right, black 70%, transparent 100%)",
+                }}
+              />
             </div>
           </div>
 
-          {/* ── The Reveal — full-width bg image, text overlay ── */}
-          <div className="relative rounded-2xl border border-amber/15 overflow-hidden">
+          {/* ── The Reveal — image as absolute decorative layer ── */}
+          <div className="relative rounded-2xl border border-amber/15 overflow-hidden min-h-[300px] sm:min-h-[340px]" style={{ background: "#f9ede0" }}>
+            {/* Image — absolute, anchored bottom-right, bleeding off edge */}
             <Image
               src="/E81775DA-BF27-49CE-B22D-84C5135FC04B.png"
               alt="Polaroid photos and sealed envelope"
-              fill
-              sizes="(max-width: 1024px) 100vw, 1280px"
-              className="object-cover object-right"
+              width={500}
+              height={400}
+              className="absolute -right-5 -bottom-3 w-[58%] sm:w-[55%] max-w-[320px] h-auto object-contain pointer-events-none"
+              style={{
+                WebkitMaskImage: "linear-gradient(to left, black 72%, transparent 100%)",
+                maskImage: "linear-gradient(to left, black 72%, transparent 100%)",
+              }}
             />
-            <div className="relative z-[1] p-6 sm:p-8 lg:p-10 min-h-[280px] sm:min-h-[320px] flex flex-col justify-center"
-              style={{ background: "linear-gradient(to right, #f9ede0 40%, transparent 75%)" }}
-            >
+            {/* Text content — relative, stays on top */}
+            <div className="relative z-[1] p-6 sm:p-8 lg:p-10 max-w-[50%] sm:max-w-[48%]">
               <div className="flex items-center gap-2.5 mb-4">
                 <span className="text-gold" aria-hidden="true">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -207,7 +206,7 @@ export function Features() {
                 <br />
                 it all opens.
               </h3>
-              <p className="text-[12px] sm:text-[14px] leading-[1.6] text-ink-mid max-w-[280px] sm:max-w-[340px]">
+              <p className="text-[12px] sm:text-[14px] leading-[1.6] text-ink-mid">
                 On the reveal date, their vault unlocks &mdash; letters, photos, and voices delivered one by one.
               </p>
             </div>
