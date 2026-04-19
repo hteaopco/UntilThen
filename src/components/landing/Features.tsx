@@ -115,13 +115,13 @@ export function Features() {
                     <path d="M8 5v14l11-7z" />
                   </svg>
                 </div>
-                <div className="flex-1 flex items-center justify-between gap-[3px] sm:gap-[4px] h-5 sm:h-8">
-                  {[60, 85, 70, 95, 80, 55, 90, 75, 65, 85, 95, 70].map(
+                <div className="flex-1 flex items-center justify-between gap-[2px] sm:gap-[3px] h-6 sm:h-9">
+                  {[30, 55, 75, 90, 100, 80, 60, 85, 95, 70, 50, 80, 65, 40, 25].map(
                     (h, i) => (
                       <span
                         key={i}
-                        className="flex-1 bg-amber rounded-sm"
-                        style={{ height: `${h}%`, minHeight: "6px" }}
+                        className="w-[2px] sm:w-[3px] bg-amber rounded-full"
+                        style={{ height: `${h}%` }}
                       />
                     )
                   )}
