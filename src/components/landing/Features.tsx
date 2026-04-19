@@ -160,14 +160,16 @@ export function Features() {
                   Invite grandparents, friends, or anyone who loves them. Every voice in one vault.
                 </p>
               </div>
-              {/* Avatar row — absolute, anchored bottom-left */}
+              {/* Avatar row — absolute, anchored bottom-left, zoomed past whitespace */}
               <Image
                 src="/0FCD9760-2600-4D48-AD47-EE123BD7A8F2.png"
                 alt="Contributors"
                 width={400}
                 height={100}
-                className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-[65%] max-w-[220px] h-auto pointer-events-none"
+                className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 w-[62%] max-w-[210px] h-auto pointer-events-none"
                 style={{
+                  transformOrigin: "bottom left",
+                  transform: "scale(1.4)",
                   WebkitMaskImage: "linear-gradient(to right, black 70%, transparent 100%)",
                   maskImage: "linear-gradient(to right, black 70%, transparent 100%)",
                 }}
@@ -178,13 +180,16 @@ export function Features() {
           {/* ── The Reveal — image as absolute decorative layer ── */}
           <div className="relative rounded-2xl border border-amber/15 overflow-hidden min-h-[300px] sm:min-h-[340px]" style={{ background: "#f9ede0" }}>
             {/* Image — absolute, anchored bottom-right, bleeding off edge */}
+            {/* Polaroid — zoomed past canvas whitespace, anchored bottom-right */}
             <Image
               src="/E81775DA-BF27-49CE-B22D-84C5135FC04B.png"
               alt="Polaroid photos and sealed envelope"
               width={500}
               height={400}
-              className="absolute -right-5 -bottom-3 w-[58%] sm:w-[55%] max-w-[320px] h-auto object-contain pointer-events-none"
+              className="absolute -right-2 -bottom-2 w-[44%] max-w-[260px] h-auto object-contain pointer-events-none"
               style={{
+                transformOrigin: "bottom right",
+                transform: "scale(1.45)",
                 WebkitMaskImage: "linear-gradient(to left, black 72%, transparent 100%)",
                 maskImage: "linear-gradient(to left, black 72%, transparent 100%)",
               }}
