@@ -93,7 +93,7 @@ export function Features() {
                   They&rsquo;ll hear your voice again.
                 </h3>
                 <p className="text-[13px] sm:text-[14px] leading-[1.55] text-ink-mid">
-                  Record a message your child will hear years from now.
+                  Record something they&rsquo;ll listen to again and again.
                 </p>
               </div>
               <div
@@ -146,18 +146,18 @@ export function Features() {
                     <Users size={18} strokeWidth={1.5} className="text-amber" />
                   </div>
                   <span className="text-[11px] sm:text-[12px] font-bold tracking-[0.14em] uppercase text-amber">
-                    Multi-Contributor
+                    Keep Writing
                   </span>
                 </div>
                 <h3 className="text-[16px] sm:text-[20px] lg:text-[24px] font-extrabold text-navy mb-1.5 sm:mb-2 tracking-[-0.4px] leading-[1.06]">
-                  It won&rsquo;t just be from you.
+                  Come back to it over time.
                 </h3>
                 <p className="text-[13px] sm:text-[14px] leading-[1.55] text-ink-mid">
-                  Invite grandparents, friends, or anyone who loves them.
+                  Add memories &mdash; capturing the moments you don&rsquo;t want to lose.
                 </p>
               </div>
               <Image
-                src="/IMG_2324.png"
+                src="/IMG_2335.png"
                 alt="Contributors"
                 width={500}
                 height={120}
@@ -186,7 +186,7 @@ export function Features() {
                 it all opens.
               </h3>
               <p className="text-[14px] sm:text-[15px] leading-[1.6] text-ink-mid">
-                On reveal date, their vault unlocks letters, photos, and voices delivered one by one.
+                On reveal date, messages, photos and voices come to life &mdash; one by one.
               </p>
             </div>
             <div className="self-end pr-1 pb-1 sm:pr-2 sm:pb-2 -ml-4">

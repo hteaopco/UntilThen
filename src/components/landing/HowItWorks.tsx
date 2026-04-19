@@ -6,10 +6,9 @@ export function HowItWorks() {
           How it works
         </p>
         <h2 className="text-[clamp(40px,5vw,64px)] font-extrabold tracking-[-2px] leading-[1.05] text-navy max-w-[720px]">
-          Capture what you
+          Hold onto what matters &mdash;
           <br />
-          don&rsquo;t want to{" "}
-          <span className="font-light italic text-amber">forget.</span>
+          <span className="font-light italic text-amber">for later.</span>
         </h2>
       </div>
     </section>
