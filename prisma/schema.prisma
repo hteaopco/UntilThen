@@ -1,20 +1,13 @@
 // Prisma schema for untilThen
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
-  provider  = "postgresql"
-  // Runtime queries flow through Prisma Accelerate over HTTP so the
-  // app stays cold-start-friendly and benefits from edge caching.
-  url       = env("PRISMA_ACCELERATE_URL")
-  // Migrations and `prisma db push` need a direct Postgres connection
-  // — Accelerate is query-only. On Railway, DATABASE_URL is set to
-  // the Accelerate string (prisma+postgres://…), so migrations must
-  // read a separate DIRECT_URL pointing at the real Postgres
-  // instance (set it to ${{Postgres.DATABASE_URL}} in Railway).
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // ── Auth + vaults ──────────────────────────────────────────
@@ -74,7 +67,7 @@ model User {
   firstName   String
   lastName    String
   displayName String?
-  // pinHash     String?    // UNMAPPED — Accelerate cache stale
+  pinHash     String?
   role        Role     @default(PARENT)
   userType    UserType @default(PARENT)
   createdAt   DateTime @default(now())
@@ -94,7 +87,7 @@ model Child {
   parentId     String
   trusteeName  String?
   trusteeEmail String?
-  // trusteePhone String?   // UNMAPPED — Accelerate cache stale
+  trusteePhone String?
   createdAt    DateTime  @default(now())
 
   parent User   @relation(fields: [parentId], references: [id])
@@ -105,8 +98,8 @@ model Vault {
   id           String    @id @default(cuid())
   childId      String    @unique
   revealDate   DateTime?
-  // deliveryTime String    @default("08:00")   // UNMAPPED — Accelerate cache stale
-  // timezone     String    @default("America/Chicago")  // UNMAPPED
+  deliveryTime String    @default("08:00")
+  timezone     String    @default("America/Chicago")
   unlockedAt   DateTime?
   createdAt    DateTime  @default(now())
 
@@ -216,15 +209,14 @@ enum OccasionType {
   OTHER
 }
 
-// UNMAPPED — Accelerate cache stale
-// enum CapsuleTone {
-//   CELEBRATION
-//   GRATITUDE
-//   THINKING_OF_YOU
-//   ENCOURAGEMENT
-//   LOVE
-//   OTHER
-// }
+enum CapsuleTone {
+  CELEBRATION
+  GRATITUDE
+  THINKING_OF_YOU
+  ENCOURAGEMENT
+  LOVE
+  OTHER
+}
 
 enum CapsuleStatus {
   DRAFT // Created, not paid, no invites sent yet.
@@ -248,7 +240,7 @@ model MemoryCapsule {
   recipientEmail      String?
   recipientPhone      String?
   occasionType        OccasionType  @default(OTHER)
-  // tone                CapsuleTone   @default(CELEBRATION)  // UNMAPPED
+  tone                CapsuleTone   @default(CELEBRATION)
   revealDate          DateTime
   contributorDeadline DateTime?
   status              CapsuleStatus @default(DRAFT)
@@ -258,10 +250,10 @@ model MemoryCapsule {
   accessToken         String        @unique @default(cuid())
   tokenExpiresAt      DateTime?
   recipientClerkId    String?
-  // deliveryTime        String        @default("09:00")   // UNMAPPED
-  // timezone            String        @default("America/Chicago")  // UNMAPPED
+  deliveryTime        String        @default("09:00")
+  timezone            String        @default("America/Chicago")
   firstOpenedAt       DateTime?
-  // recipientCompletedAt DateTime?   // UNMAPPED
+  recipientCompletedAt DateTime?
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 

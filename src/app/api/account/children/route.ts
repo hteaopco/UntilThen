@@ -10,6 +10,8 @@ type CreateBody = {
   lastName?: string;
   dateOfBirth?: string | null;
   revealDate?: string | null;
+  deliveryTime?: string | null;
+  timezone?: string | null;
 };
 
 export async function GET(): Promise<NextResponse> {
@@ -122,6 +124,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (defaultReveal) defaultReveal.setFullYear(defaultReveal.getFullYear() + 18);
   const revealDate = explicitReveal ?? defaultReveal ?? null;
 
+  const deliveryTime =
+    typeof body.deliveryTime === "string" &&
+    /^\d{2}:\d{2}$/.test(body.deliveryTime.trim())
+      ? body.deliveryTime.trim()
+      : undefined;
+  const timezone =
+    typeof body.timezone === "string" && body.timezone.trim()
+      ? body.timezone.trim()
+      : undefined;
+
   try {
     const child = await prisma.$transaction(async (tx) => {
       const created = await tx.child.create({
@@ -136,6 +148,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         data: {
           childId: created.id,
           revealDate,
+          ...(deliveryTime ? { deliveryTime } : {}),
+          ...(timezone ? { timezone } : {}),
         },
       });
       return created;

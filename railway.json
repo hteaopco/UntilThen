@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "sh -c 'set -e; if [ -z \"$DIRECT_URL\" ]; then echo \"[start] DIRECT_URL is required for prisma migrate deploy (direct Postgres, not the Accelerate URL)\"; exit 1; fi; echo \"[start] running prisma migrate deploy\"; npx prisma migrate deploy; echo \"[start] launching next server\"; npm run start'",
+    "startCommand": "sh -c 'set -e; echo \"[start] running prisma migrate deploy\"; npx prisma migrate deploy; echo \"[start] launching next server\"; npm run start'",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",

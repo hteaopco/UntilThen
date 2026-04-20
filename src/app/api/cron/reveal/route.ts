@@ -3,15 +3,20 @@ import { NextResponse, type NextRequest } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function isDeliveryTimePassed(revealDate: Date): boolean {
-  const tz = "America/Chicago";
-  const [hours, minutes] = [9, 0];
+function isDeliveryTimePassed(
+  revealDate: Date,
+  deliveryTime: string,
+  timezone: string,
+): boolean {
+  const match = /^(\d{2}):(\d{2})$/.exec(deliveryTime);
+  const hours = match ? Number(match[1]) : 9;
+  const minutes = match ? Number(match[2]) : 0;
 
   const nowInTz = new Date(
-    new Date().toLocaleString("en-US", { timeZone: tz }),
+    new Date().toLocaleString("en-US", { timeZone: timezone }),
   );
   const revealInTz = new Date(
-    revealDate.toLocaleString("en-US", { timeZone: tz }),
+    revealDate.toLocaleString("en-US", { timeZone: timezone }),
   );
 
   revealInTz.setHours(hours, minutes, 0, 0);
@@ -50,7 +55,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   for (const capsule of capsules) {
     if (!capsule.recipientEmail) continue;
 
-    if (!isDeliveryTimePassed(capsule.revealDate)) {
+    if (
+      !isDeliveryTimePassed(
+        capsule.revealDate,
+        capsule.deliveryTime,
+        capsule.timezone,
+      )
+    ) {
       skipped++;
       continue;
     }

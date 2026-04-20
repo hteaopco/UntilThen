@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { OccasionType } from "@prisma/client";
+import { CapsuleTone, OccasionType } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 import {
@@ -21,6 +21,15 @@ const VALID_OCCASIONS: OccasionType[] = [
   "OTHER",
 ];
 
+const VALID_TONES: CapsuleTone[] = [
+  "CELEBRATION",
+  "GRATITUDE",
+  "THINKING_OF_YOU",
+  "ENCOURAGEMENT",
+  "LOVE",
+  "OTHER",
+];
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 interface CreateBody {
@@ -33,9 +42,12 @@ interface CreateBody {
   /** Optional at creation — captured at activation instead. */
   recipientPhone?: string | null;
   occasionType?: string;
+  tone?: string;
   revealDate?: string;
   contributorDeadline?: string | null;
   requiresApproval?: boolean;
+  deliveryTime?: string | null;
+  timezone?: string | null;
 }
 
 /**
@@ -91,6 +103,18 @@ export async function POST(req: Request) {
   )
     ? (body.occasionType as OccasionType)
     : "OTHER";
+  const tone = VALID_TONES.includes(body.tone as CapsuleTone)
+    ? (body.tone as CapsuleTone)
+    : "CELEBRATION";
+  const deliveryTime =
+    typeof body.deliveryTime === "string" &&
+    /^\d{2}:\d{2}$/.test(body.deliveryTime.trim())
+      ? body.deliveryTime.trim()
+      : undefined;
+  const timezone =
+    typeof body.timezone === "string" && body.timezone.trim()
+      ? body.timezone.trim()
+      : undefined;
   const revealDate =
     typeof body.revealDate === "string" ? new Date(body.revealDate) : null;
   const contributorDeadline =
@@ -157,9 +181,12 @@ export async function POST(req: Request) {
         recipientEmail,
         recipientPhone,
         occasionType,
+        tone,
         revealDate,
         contributorDeadline,
         requiresApproval,
+        ...(deliveryTime ? { deliveryTime } : {}),
+        ...(timezone ? { timezone } : {}),
       },
     });
 

@@ -23,10 +23,6 @@ export async function GET(): Promise<NextResponse> {
   }
 
   const { prisma } = await import("@/lib/prisma");
-  // User profile rarely changes; 60s TTL keeps the account header
-  // snappy. PATCH below doesn't bust the Accelerate cache, so a
-  // self-edit can take up to a minute to surface — acceptable for
-  // the name-change UX.
   const user = await prisma.user.findUnique({
     where: { clerkId: userId },
     select: {
@@ -35,7 +31,6 @@ export async function GET(): Promise<NextResponse> {
       lastName: true,
       displayName: true,
     },
-    cacheStrategy: { ttl: 60 },
   });
   if (!user)
     return NextResponse.json({ error: "User not found." }, { status: 404 });
