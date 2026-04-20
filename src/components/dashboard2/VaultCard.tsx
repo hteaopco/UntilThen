@@ -27,7 +27,7 @@ export function VaultCard({ vault }: { vault: VaultCardData }) {
       prefetch={false}
       className="snap-start shrink-0 w-[72vw] max-w-[260px] sm:w-[240px] rounded-2xl bg-white border border-amber/10 shadow-[0_8px_24px_-8px_rgba(196,122,58,0.2)] hover:shadow-[0_12px_32px_-8px_rgba(196,122,58,0.3)] transition-shadow overflow-hidden flex flex-col"
     >
-      <div className="relative aspect-square bg-gradient-to-br from-amber/20 via-cream to-gold/20">
+      <div className="relative aspect-square bg-gradient-to-br from-amber/20 via-cream to-gold/20 rounded-t-2xl overflow-hidden">
         {vault.coverUrl ? (
           <img
             src={vault.coverUrl}

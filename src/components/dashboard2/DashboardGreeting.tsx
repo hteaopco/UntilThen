@@ -35,7 +35,7 @@ export function DashboardGreeting({
         </div>
       </div>
 
-      <p className="mt-3 sm:mt-4 text-[16px] sm:text-[18px] leading-[1.4] text-navy sm:max-w-[460px]">
+      <p className="mt-2 sm:-mt-2 text-[16px] sm:text-[18px] leading-[1.4] text-navy sm:max-w-[460px]">
         Every moment you capture becomes something unforgettable.
       </p>
     </section>

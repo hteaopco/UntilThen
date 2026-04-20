@@ -61,17 +61,17 @@ export function GiftCapsuleCreatingCard({ capsule }: { capsule: GiftCapsuleCreat
 }
 
 /**
- * Avatar row: 3 default User-icon avatars, a "+N" counter when there
- * are more contributors, and a dashed "+" affordance at the end for
- * inviting new ones. All decorative for now — no wiring.
+ * Avatar row: always three default User-icon avatars, a "+N" counter
+ * when there are more than three contributors, and a dashed "+"
+ * affordance at the end signalling "invite more". All decorative for
+ * now — no wiring.
  */
 function AvatarRow({ total }: { total: number }) {
-  const visible = Math.min(3, total);
-  const extra = Math.max(0, total - visible);
+  const extra = Math.max(0, total - 3);
   return (
     <div className="mt-2 flex items-center gap-1.5">
       <div className="flex items-center -space-x-1.5">
-        {Array.from({ length: visible }).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <DefaultAvatar key={i} index={i} />
         ))}
         {extra > 0 && (
