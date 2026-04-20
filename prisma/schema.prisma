@@ -98,6 +98,7 @@ model Child {
 model Vault {
   id           String    @id @default(cuid())
   childId      String    @unique
+  coverUrl     String?
   revealDate   DateTime?
   deliveryTime String    @default("08:00")
   timezone     String    @default("America/Chicago")

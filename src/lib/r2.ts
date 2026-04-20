@@ -60,18 +60,24 @@ export async function deleteR2Object(key: string): Promise<void> {
   await getClient().send(cmd);
 }
 
-// Build a safe storage key. Two surfaces use this:
+// Build a safe storage key. Three surfaces use this:
 //   target=entry              → entries/{id}/{kind}/{ts}-{name}
 //   target=capsuleContribution → capsule-contributions/{id}/{kind}/{ts}-{name}
+//   target=vault              → vaults/{id}/cover/{ts}-{name}
 // The complete + delete routes parse the prefix back so the right
-// table receives the update — keep these two in sync if either
-// pattern changes.
-export type MediaTarget = "entry" | "capsuleContribution";
+// table receives the update — keep these in sync if either pattern
+// changes.
+export type MediaTarget = "entry" | "capsuleContribution" | "vault";
 
 export function mediaKeyPrefix(target: MediaTarget, id: string): string {
-  return target === "entry"
-    ? `entries/${id}`
-    : `capsule-contributions/${id}`;
+  switch (target) {
+    case "entry":
+      return `entries/${id}`;
+    case "capsuleContribution":
+      return `capsule-contributions/${id}`;
+    case "vault":
+      return `vaults/${id}`;
+  }
 }
 
 export function buildMediaKey({

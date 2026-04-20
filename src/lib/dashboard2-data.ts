@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 import type { VaultCardData } from "@/components/dashboard2/VaultCard";
 import type { GiftCapsuleCreatingData } from "@/components/dashboard2/GiftCapsuleCreatingCard";
 import type { GiftCapsuleReceivedData } from "@/components/dashboard2/GiftCapsuleReceivedCard";
@@ -90,14 +91,32 @@ export async function loadDashboard2Data({
   const receivedStats = aggregateStats(receivedContributions, "capsuleId");
   const newByCapsule = new Map(newCounts.map((n) => [n.capsuleId, n._count]));
 
+  // Sign a short-lived GET URL for each vault cover so the bucket
+  // can stay private. Falls back to null if R2 isn't configured —
+  // the card component then renders its gradient placeholder.
+  const signedCovers = await Promise.all(
+    children.map(async (c) => {
+      const key = c.vault?.coverUrl;
+      if (!key || !r2IsConfigured()) return { vaultId: c.vault?.id ?? "", url: null };
+      try {
+        const url = await signGetUrl(key);
+        return { vaultId: c.vault!.id, url };
+      } catch {
+        return { vaultId: c.vault!.id, url: null };
+      }
+    }),
+  );
+  const coverByVault = new Map(signedCovers.map((s) => [s.vaultId, s.url]));
+
   const vaults: VaultCardData[] = children
     .filter((c) => c.vault !== null)
     .map((c) => {
       const stats = vaultStats.get(c.vault!.id) ?? { entries: 0, photos: 0, voices: 0 };
       return {
         childId: c.id,
+        vaultId: c.vault!.id,
         firstName: c.firstName,
-        coverUrl: null,
+        coverUrl: coverByVault.get(c.vault!.id) ?? null,
         entryCount: stats.entries,
         photoCount: stats.photos,
         voiceCount: stats.voices,

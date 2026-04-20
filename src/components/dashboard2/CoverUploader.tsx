@@ -1,0 +1,411 @@
+"use client";
+
+import Cropper, { type Area } from "react-easy-crop";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { X, ZoomIn, ZoomOut } from "lucide-react";
+
+type Props = {
+  vaultId: string;
+  childFirstName: string;
+  currentCoverUrl: string | null;
+  onClose: () => void;
+};
+
+// Target output for the cropped cover. 1600x1200 is plenty for the
+// retina landing-page hero and gets object-cover'd down to card size.
+const OUTPUT_WIDTH = 1600;
+const OUTPUT_HEIGHT = 1200;
+
+/**
+ * CoverUploader — Instagram-style crop dialog for a vault cover.
+ *
+ *   pick a file → pan + zoom in a 4:3 frame → save
+ *
+ * Pipeline on save:
+ *   1. Canvas-crop the loaded file to `cropAreaPixels` bounds
+ *   2. Resize to 1600x1200 and encode JPEG q=0.9
+ *   3. POST /api/upload/sign for a signed PUT URL
+ *   4. PUT blob to R2 directly
+ *   5. PATCH /api/account/vaults/{id}/cover with the object key
+ *   6. router.refresh() and close
+ */
+export function CoverUploader({
+  vaultId,
+  childFirstName,
+  currentCoverUrl,
+  onClose,
+}: Props) {
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [filename, setFilename] = useState<string>("cover.jpg");
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [cropAreaPixels, setCropAreaPixels] = useState<Area | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !saving) onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose, saving]);
+
+  const onCropComplete = useCallback((_area: Area, areaPixels: Area) => {
+    setCropAreaPixels(areaPixels);
+  }, []);
+
+  const onFilePicked = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please pick an image file.");
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setError("Image is larger than 15MB.");
+      return;
+    }
+    setError(null);
+    setFilename(file.name || "cover.jpg");
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setImageSrc(reader.result);
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+    const fakeEvent = {
+      target: { files: [file] },
+    } as unknown as React.ChangeEvent<HTMLInputElement>;
+    onFilePicked(fakeEvent);
+  };
+
+  const onSave = async () => {
+    if (!imageSrc || !cropAreaPixels) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const blob = await cropToBlob(imageSrc, cropAreaPixels);
+      if (!blob) throw new Error("Could not crop image.");
+      if (blob.size > 10 * 1024 * 1024) {
+        throw new Error("Cropped image is still larger than 10MB.");
+      }
+
+      const safeName = `${filename.replace(/\.[^/.]+$/, "") || "cover"}.jpg`;
+      const signRes = await fetch("/api/upload/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          target: "vault",
+          targetId: vaultId,
+          kind: "photo",
+          contentType: "image/jpeg",
+          filename: safeName,
+          size: blob.size,
+        }),
+      });
+      if (!signRes.ok) {
+        const err = (await signRes.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(err.error ?? "Couldn't prepare upload.");
+      }
+      const { uploadUrl, key } = (await signRes.json()) as {
+        uploadUrl: string;
+        key: string;
+      };
+
+      const putRes = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": "image/jpeg" },
+        body: blob,
+      });
+      if (!putRes.ok) throw new Error("Upload to storage failed.");
+
+      const patchRes = await fetch(
+        `/api/account/vaults/${vaultId}/cover`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key }),
+        },
+      );
+      if (!patchRes.ok) {
+        const err = (await patchRes.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(err.error ?? "Couldn't save cover.");
+      }
+
+      router.refresh();
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const onRemove = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/account/vaults/${vaultId}/cover`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(err.error ?? "Couldn't remove cover.");
+      }
+      router.refresh();
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !saving) onClose();
+      }}
+    >
+      <div className="w-full max-w-[560px] max-h-[92vh] flex flex-col bg-cream rounded-2xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] overflow-hidden">
+        <header className="flex items-center justify-between px-5 py-4 border-b border-navy/5">
+          <h2 className="text-[17px] font-bold text-navy tracking-[-0.2px]">
+            {childFirstName}&rsquo;s cover photo
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            aria-label="Close"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-ink-mid hover:text-navy hover:bg-white transition-colors disabled:opacity-40"
+          >
+            <X size={18} strokeWidth={2} />
+          </button>
+        </header>
+
+        <div className="flex-1 overflow-y-auto">
+          {!imageSrc ? (
+            <Picker
+              fileInputRef={fileInputRef}
+              onFilePicked={onFilePicked}
+              onDrop={onDrop}
+              currentCoverUrl={currentCoverUrl}
+            />
+          ) : (
+            <div className="flex flex-col">
+              <div className="relative w-full aspect-[4/3] bg-black">
+                <Cropper
+                  image={imageSrc}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={4 / 3}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                  showGrid={true}
+                  objectFit="contain"
+                  zoomSpeed={0.25}
+                  minZoom={1}
+                  maxZoom={4}
+                />
+              </div>
+
+              <div className="px-5 py-4 border-t border-navy/5 flex items-center gap-3">
+                <ZoomOut size={16} strokeWidth={1.75} className="text-ink-light" aria-hidden="true" />
+                <input
+                  type="range"
+                  min={1}
+                  max={4}
+                  step={0.01}
+                  value={zoom}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  disabled={saving}
+                  aria-label="Zoom"
+                  className="flex-1 accent-amber"
+                />
+                <ZoomIn size={16} strokeWidth={1.75} className="text-ink-light" aria-hidden="true" />
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div className="mx-5 mb-4 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-[13px] text-red-700">
+              {error}
+            </div>
+          )}
+        </div>
+
+        <footer className="px-5 py-4 border-t border-navy/5 flex items-center gap-2 justify-between">
+          {imageSrc ? (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setImageSrc(null);
+                  setCropAreaPixels(null);
+                }}
+                disabled={saving}
+                className="text-[13px] font-semibold text-ink-mid hover:text-navy transition-colors disabled:opacity-40"
+              >
+                Pick different
+              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={saving}
+                  className="px-4 py-2 rounded-lg border border-navy/10 text-[13px] font-semibold text-ink-mid hover:text-navy hover:border-navy/20 transition-colors disabled:opacity-40"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={onSave}
+                  disabled={saving || !cropAreaPixels}
+                  className="px-4 py-2 rounded-lg bg-amber text-white text-[13px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
+                >
+                  {saving ? "Saving…" : "Save cover"}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              {currentCoverUrl ? (
+                <button
+                  type="button"
+                  onClick={onRemove}
+                  disabled={saving}
+                  className="text-[13px] font-semibold text-red-700 hover:text-red-800 transition-colors disabled:opacity-40"
+                >
+                  Remove cover
+                </button>
+              ) : (
+                <span />
+              )}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={saving}
+                className="px-4 py-2 rounded-lg bg-amber text-white text-[13px] font-bold hover:bg-amber-dark transition-colors"
+              >
+                Choose photo
+              </button>
+            </>
+          )}
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+function Picker({
+  fileInputRef,
+  onFilePicked,
+  onDrop,
+  currentCoverUrl,
+}: {
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  onFilePicked: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDrop: (e: React.DragEvent) => void;
+  currentCoverUrl: string | null;
+}) {
+  return (
+    <div className="p-5">
+      <div
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={onDrop}
+        className="rounded-2xl border-2 border-dashed border-amber/40 bg-white/60 py-12 px-6 flex flex-col items-center gap-3 text-center"
+      >
+        <p className="text-[14px] text-navy font-semibold">
+          Drop a photo here or choose from your device
+        </p>
+        <p className="text-[12px] text-ink-light">
+          Shown at 4:3 — you&rsquo;ll be able to pan and zoom before saving.
+        </p>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="mt-2 px-4 py-2 rounded-lg bg-amber text-white text-[13px] font-bold hover:bg-amber-dark transition-colors"
+        >
+          Choose photo
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={onFilePicked}
+        />
+        {currentCoverUrl && (
+          <div className="mt-4 w-full">
+            <p className="text-[12px] text-ink-light mb-2">Current cover</p>
+            <img
+              src={currentCoverUrl}
+              alt=""
+              className="w-full aspect-[4/3] object-cover rounded-xl border border-amber/20"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Crops the source image to the given pixel rectangle, downscales to
+ * OUTPUT_WIDTH x OUTPUT_HEIGHT, and returns a JPEG blob. Returns null
+ * if the canvas cannot produce a blob (shouldn't happen in any
+ * supported browser).
+ */
+async function cropToBlob(
+  imageSrc: string,
+  area: Area,
+): Promise<Blob | null> {
+  const img = await loadImage(imageSrc);
+  const canvas = document.createElement("canvas");
+  canvas.width = OUTPUT_WIDTH;
+  canvas.height = OUTPUT_HEIGHT;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  ctx.drawImage(
+    img,
+    area.x,
+    area.y,
+    area.width,
+    area.height,
+    0,
+    0,
+    OUTPUT_WIDTH,
+    OUTPUT_HEIGHT,
+  );
+  return new Promise((resolve) => {
+    canvas.toBlob((b) => resolve(b), "image/jpeg", 0.9);
+  });
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Could not load image."));
+    img.src = src;
+  });
+}
