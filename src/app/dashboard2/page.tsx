@@ -2,7 +2,10 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { DashboardGreeting } from "@/components/dashboard2/DashboardGreeting";
+import { MobileTabBar } from "@/components/dashboard2/MobileTabBar";
 import { LogoSvg } from "@/components/ui/LogoSvg";
+import { countDashboardUpdates } from "@/lib/dashboard-updates";
 
 export const metadata = {
   title: "Your Vault (v2) — untilThen",
@@ -36,8 +39,10 @@ export default async function DashboardV2Page() {
     }
   }
 
+  const updatesCount = await countDashboardUpdates(user.id);
+
   return (
-    <main className="min-h-screen bg-cream">
+    <main className="min-h-screen bg-cream pb-[120px] md:pb-10">
       <header className="mx-auto max-w-[960px] px-6 lg:px-10 pt-6 pb-4 flex items-center justify-between">
         <Link href="/" aria-label="untilThen home">
           <LogoSvg variant="dark" width={120} height={24} />
@@ -51,14 +56,11 @@ export default async function DashboardV2Page() {
         </Link>
       </header>
 
-      <section className="mx-auto max-w-[960px] px-6 lg:px-10 pt-6">
-        <h1 className="font-brush text-[48px] sm:text-[56px] leading-none text-navy">
-          {firstName ? `Hi, ${firstName}` : "Welcome back"} ♡
-        </h1>
-        <p className="mt-4 text-[18px] sm:text-[20px] leading-[1.4] text-navy max-w-[520px]">
-          Every moment you capture becomes something unforgettable.
-        </p>
-      </section>
+      <div className="mx-auto max-w-[960px] px-6 lg:px-10 pt-4">
+        <DashboardGreeting firstName={firstName} updatesCount={updatesCount} />
+      </div>
+
+      <MobileTabBar />
     </main>
   );
 }
