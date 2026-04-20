@@ -10,7 +10,7 @@ function RisingDotsOverlay() {
     left: `${(i * 8.5 + 3) % 100}%`,
     delay: `${((i * 0.8) % 7).toFixed(2)}s`,
     duration: `${(5 + ((i * 0.6) % 4)).toFixed(2)}s`,
-    size: 2 + (i % 3),
+    size: 3 + (i % 3),
     drift: drifts[i] ?? 0,
   }));
 
@@ -57,7 +57,7 @@ function ConfettiOverlay() {
     delay: `${((i * 0.73) % 5).toFixed(2)}s`,
     duration: `${(4 + ((i * 0.5) % 3)).toFixed(2)}s`,
     color: colors[i % colors.length],
-    size: 3 + (i % 3),
+    size: 4 + (i % 3),
     shape: i % 2 === 0 ? "circle" : "square",
   }));
 
@@ -477,6 +477,22 @@ function MobilePricingSwiper({
         </button>
       </div>
 
+      {/* Dots — between toggle and card */}
+      <div className="flex justify-center gap-2 mb-4">
+        <button
+          type="button"
+          onClick={() => setTab("time")}
+          aria-label="Time Capsules"
+          className={`w-2.5 h-2.5 rounded-full transition-colors ${tab === "time" ? "bg-amber" : "bg-navy/15"}`}
+        />
+        <button
+          type="button"
+          onClick={() => setTab("gift")}
+          aria-label="Gift Capsules"
+          className={`w-2.5 h-2.5 rounded-full transition-colors ${tab === "gift" ? "bg-amber" : "bg-navy/15"}`}
+        />
+      </div>
+
       {/* Swipeable cards */}
       <div
         className="overflow-hidden"
@@ -501,22 +517,6 @@ function MobilePricingSwiper({
           <div className="w-full shrink-0"><TimeCapsulePlan /></div>
           <div className="w-full shrink-0">{giftCapsulePlan}</div>
         </div>
-      </div>
-
-      {/* Dots */}
-      <div className="flex justify-center gap-2 mt-4">
-        <button
-          type="button"
-          onClick={() => setTab("time")}
-          aria-label="Time Capsules"
-          className={`w-2 h-2 rounded-full transition-colors ${tab === "time" ? "bg-amber" : "bg-navy/15"}`}
-        />
-        <button
-          type="button"
-          onClick={() => setTab("gift")}
-          aria-label="Gift Capsules"
-          className={`w-2 h-2 rounded-full transition-colors ${tab === "gift" ? "bg-amber" : "bg-navy/15"}`}
-        />
       </div>
     </div>
   );

@@ -88,6 +88,20 @@ export function CardSwipePanel({ defaultPanel, cards, pills }: Props) {
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
+      {/* Dot indicators — sit at the top of the card. */}
+      <div className="flex items-center justify-center gap-2 pt-1 pb-4">
+        <span
+          className={`w-2.5 h-2.5 rounded-full transition-colors ${
+            panel === 0 ? "bg-amber" : "bg-navy/15"
+          }`}
+        />
+        <span
+          className={`w-2.5 h-2.5 rounded-full transition-colors ${
+            panel === 1 ? "bg-amber" : "bg-navy/15"
+          }`}
+        />
+      </div>
+
       {/* Sliding track — both panels side-by-side. */}
       <div
         className="flex flex-1 transition-transform duration-300 ease-out"
@@ -120,20 +134,6 @@ export function CardSwipePanel({ defaultPanel, cards, pills }: Props) {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Dot indicators — sit at the very bottom of the card. */}
-      <div className="flex items-center justify-center gap-2 pt-4 pb-1">
-        <span
-          className={`w-2 h-2 rounded-full transition-colors ${
-            panel === 0 ? "bg-amber" : "bg-navy/15"
-          }`}
-        />
-        <span
-          className={`w-2 h-2 rounded-full transition-colors ${
-            panel === 1 ? "bg-amber" : "bg-navy/15"
-          }`}
-        />
       </div>
     </div>
   );
