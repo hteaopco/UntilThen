@@ -35,7 +35,19 @@ export default async function CapsuleLandingPage({
 
   return (
     <main className="min-h-screen bg-cream pb-16">
-      <header className="mx-auto max-w-[1020px] px-6 lg:px-10 pt-6 pb-4 flex items-center justify-between gap-4">
+      {/* Mobile header: small avatar on the left, Alex Brush title on the right. */}
+      <header className="sm:hidden mx-auto max-w-[1020px] px-6 pt-5 pb-3 flex items-center justify-between gap-3">
+        <div className="[&_button]:w-8 [&_button]:h-8 [&_button]:text-[11px]">
+          <Avatar />
+        </div>
+        <h1 className="font-brush text-[26px] leading-[1.05] text-navy text-right min-w-0 truncate">
+          {child.firstName}&rsquo;s Time Capsule{" "}
+          <span className="text-amber">♡</span>
+        </h1>
+      </header>
+
+      {/* Desktop header: back link on the left, avatar on the right. */}
+      <header className="hidden sm:flex mx-auto max-w-[1020px] px-6 lg:px-10 pt-6 pb-4 items-center justify-between gap-4">
         <Link
           href="/dashboard"
           prefetch={false}
@@ -47,7 +59,7 @@ export default async function CapsuleLandingPage({
         <Avatar />
       </header>
 
-      <div className="mx-auto max-w-[1020px] px-6 lg:px-10 pt-4 space-y-10">
+      <div className="mx-auto max-w-[1020px] px-6 lg:px-10 pt-2 sm:pt-4 space-y-8 sm:space-y-10">
         <CapsuleHero
           childId={child.id}
           childFirstName={child.firstName}
@@ -57,7 +69,7 @@ export default async function CapsuleLandingPage({
         <section>
           <div className="flex items-center justify-between gap-4 mb-5">
             <h2 className="text-[22px] sm:text-[26px] font-extrabold text-navy tracking-[-0.4px]">
-              {child.firstName}&rsquo;s Capsules
+              {child.firstName}&rsquo;s Collections
             </h2>
             <Link
               href="/dashboard/preview"
@@ -102,7 +114,7 @@ function EmptyCollections({ childFirstName }: { childFirstName: string }) {
   return (
     <div className="rounded-2xl border border-dashed border-navy/10 bg-white/60 px-6 py-10 text-center">
       <p className="text-[14px] text-ink-mid leading-[1.5]">
-        No capsules yet for {childFirstName}. Create your first milestone
+        No collections yet for {childFirstName}. Create your first milestone
         below to start collecting moments.
       </p>
     </div>
@@ -130,7 +142,7 @@ function AddMilestoneCta({
       </span>
       <div className="flex-1 min-w-0">
         <div className="text-[15px] sm:text-[16px] font-bold text-navy tracking-[-0.2px]">
-          Add a New Milestone Capsule
+          Add a New Milestone Collection
         </div>
         <div className="text-[13px] text-ink-mid mt-0.5">
           Capture another meaningful moment for {childFirstName}.
