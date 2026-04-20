@@ -40,7 +40,7 @@ export type VaultCardData = {
 export function VaultCard({ vault }: { vault: VaultCardData }) {
   const [uploaderOpen, setUploaderOpen] = useState(false);
   const mock = mockCounts(vault.firstName);
-  const detailHref = `/account/capsules/${vault.childId}`;
+  const detailHref = `/capsule/${vault.childId}`;
   const hasCover = !!vault.coverUrl;
 
   return (
