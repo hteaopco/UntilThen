@@ -35,7 +35,8 @@ export function DashboardGreeting({
         </div>
       </div>
 
-      <p className="mt-2 sm:-mt-10 text-[16px] sm:text-[18px] leading-[1.4] text-navy sm:max-w-[460px]">
+      <p className="mt-2 sm:-mt-10 text-[16px] sm:text-[18px] leading-[1.4] text-navy sm:max-w-[520px]">
+        <span className="font-bold text-amber">Welcome to your Vault.</span>{" "}
         Every moment you capture becomes something unforgettable.
       </p>
     </section>

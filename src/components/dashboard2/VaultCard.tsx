@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FileText, Image as ImageIcon, Lock, AudioLines } from "lucide-react";
+import { FileText, Image as ImageIcon, Pencil, AudioLines } from "lucide-react";
 
 export type VaultCardData = {
   childId: string;
@@ -15,9 +15,9 @@ export type VaultCardData = {
  * white card with a gradient-placeholder (or real cover) image on
  * top and a white footer carrying the child name + three stat pills.
  *
- * Stats currently render mock values keyed off the child's name so
- * demo vaults look alive while we're pre-content. Swap in the real
- * counts passed via props once entries start piling up.
+ * Pencil badge currently just renders — wiring it to an upload +
+ * crop modal is a follow-up once the Vault.coverUrl column + R2
+ * vault-target support are in place.
  */
 export function VaultCard({ vault }: { vault: VaultCardData }) {
   const mock = mockCounts(vault.firstName);
@@ -25,9 +25,9 @@ export function VaultCard({ vault }: { vault: VaultCardData }) {
     <Link
       href={`/account/capsules/${vault.childId}`}
       prefetch={false}
-      className="snap-start shrink-0 w-[72vw] max-w-[260px] sm:w-[240px] rounded-2xl bg-white border border-amber/10 shadow-[0_8px_24px_-8px_rgba(196,122,58,0.2)] hover:shadow-[0_12px_32px_-8px_rgba(196,122,58,0.3)] transition-shadow overflow-hidden flex flex-col"
+      className="snap-start shrink-0 w-[72vw] max-w-[260px] sm:w-[240px] rounded-2xl bg-white border-2 border-amber/60 shadow-[0_8px_24px_-8px_rgba(196,122,58,0.2)] hover:shadow-[0_12px_32px_-8px_rgba(196,122,58,0.3)] transition-shadow overflow-hidden flex flex-col"
     >
-      <div className="relative aspect-square bg-gradient-to-br from-amber/20 via-cream to-gold/20 rounded-t-2xl overflow-hidden">
+      <div className="relative aspect-[4/3] sm:aspect-square bg-gradient-to-br from-amber/20 via-cream to-gold/20 rounded-t-2xl overflow-hidden">
         {vault.coverUrl ? (
           <img
             src={vault.coverUrl}
@@ -38,7 +38,7 @@ export function VaultCard({ vault }: { vault: VaultCardData }) {
           <PlaceholderPattern seed={vault.firstName} />
         )}
         <div className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-[0_2px_8px_rgba(15,31,61,0.15)]">
-          <Lock size={16} strokeWidth={2} className="text-amber" />
+          <Pencil size={15} strokeWidth={2} className="text-amber" />
         </div>
       </div>
 
