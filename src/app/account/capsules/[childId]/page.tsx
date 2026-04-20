@@ -1,7 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
+import { ChildDangerZone } from "@/components/account/ChildDangerZone";
 import { ChildEditForm } from "@/components/account/ChildEditForm";
+import { VaultDeliverySettings } from "@/components/account/VaultDeliverySettings";
 
 export const metadata = {
   title: "Time Capsule Details — untilThen",
@@ -35,14 +37,30 @@ export default async function AccountChildEditPage({
   if (!child || child.parentId !== user.id) redirect("/account/capsules");
 
   return (
-    <ChildEditForm
-      childId={child.id}
-      firstName={child.firstName}
-      dateOfBirth={child.dateOfBirth?.toISOString() ?? null}
-      revealDate={child.vault?.revealDate?.toISOString() ?? null}
-      trusteeName={child.trusteeName ?? ""}
-      trusteeEmail={child.trusteeEmail ?? ""}
-      trusteePhone={child.trusteePhone ?? ""}
-    />
+    <div className="space-y-10">
+      <ChildEditForm
+        childId={child.id}
+        firstName={child.firstName}
+        dateOfBirth={child.dateOfBirth?.toISOString() ?? null}
+        revealDate={child.vault?.revealDate?.toISOString() ?? null}
+        trusteeName={child.trusteeName ?? ""}
+        trusteeEmail={child.trusteeEmail ?? ""}
+        trusteePhone={child.trusteePhone ?? ""}
+      />
+
+      {child.vault && (
+        <>
+          <hr className="border-navy/[0.06]" />
+          <VaultDeliverySettings
+            childId={child.id}
+            deliveryTime={child.vault.deliveryTime}
+            timezone={child.vault.timezone}
+          />
+        </>
+      )}
+
+      <hr className="border-navy/[0.06]" />
+      <ChildDangerZone childId={child.id} firstName={child.firstName} />
+    </div>
   );
 }
