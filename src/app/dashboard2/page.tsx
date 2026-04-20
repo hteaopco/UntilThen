@@ -92,7 +92,7 @@ export default async function DashboardV2Page() {
                   <span className="w-12 h-12 rounded-full bg-amber-tint flex items-center justify-center">
                     <Plus size={22} strokeWidth={2} />
                   </span>
-                  <span className="text-[13px] font-semibold">Add a vault</span>
+                  <span className="text-[13px] font-semibold">Add a time capsule</span>
                 </div>
               </Link>
             </HorizontalCardRail>

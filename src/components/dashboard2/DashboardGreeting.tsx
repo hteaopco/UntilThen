@@ -20,7 +20,7 @@ export function DashboardGreeting({
           </span>
         </h1>
 
-        <div className="shrink-0 grid grid-cols-2 gap-2 sm:gap-3">
+        <div className="shrink-0 flex items-start gap-3 sm:gap-4">
           <ChipCard
             href="/dashboard/preview"
             label="Updates"
@@ -55,20 +55,23 @@ function ChipCard({
 }) {
   const showBadge = typeof badge === "number" && badge > 0;
   return (
-    <Link
-      href={href}
-      prefetch={false}
-      className="relative w-[72px] sm:w-[88px] h-[88px] sm:h-[104px] rounded-2xl bg-white border border-amber/15 shadow-[0_4px_12px_-4px_rgba(196,122,58,0.15)] flex flex-col items-center justify-center gap-1.5 sm:gap-2 hover:border-amber/40 transition-colors"
-    >
-      {icon}
-      <span className="text-[11px] sm:text-[12px] font-semibold text-navy text-center leading-tight px-1">
+    <div className="flex flex-col items-center gap-1.5">
+      <Link
+        href={href}
+        prefetch={false}
+        aria-label={label}
+        className="relative w-[72px] sm:w-[80px] h-[72px] sm:h-[80px] rounded-2xl bg-white border border-amber/15 shadow-[0_4px_12px_-4px_rgba(196,122,58,0.15)] flex items-center justify-center hover:border-amber/40 transition-colors"
+      >
+        {icon}
+        {showBadge && (
+          <span className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1.5 rounded-full bg-amber text-white text-[11px] font-bold flex items-center justify-center shadow-[0_2px_4px_rgba(196,122,58,0.35)]">
+            {badge! > 99 ? "99+" : badge}
+          </span>
+        )}
+      </Link>
+      <span className="text-[12px] sm:text-[13px] font-semibold text-navy">
         {label}
       </span>
-      {showBadge && (
-        <span className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1.5 rounded-full bg-amber text-white text-[11px] font-bold flex items-center justify-center shadow-[0_2px_4px_rgba(196,122,58,0.35)]">
-          {badge! > 99 ? "99+" : badge}
-        </span>
-      )}
-    </Link>
+    </div>
   );
 }

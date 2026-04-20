@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChevronRight, Sparkles } from "lucide-react";
+import { ChevronRight, Plus, Sparkles, User } from "lucide-react";
 
 export type GiftCapsuleCreatingData = {
   id: string;
@@ -11,9 +11,10 @@ export type GiftCapsuleCreatingData = {
 };
 
 /**
- * Horizontal card for "Gift Capsules You're Creating" row. Shows a
- * small cover, title, contributor count + avatar stack, and a "N new"
- * pill when there are fresh contributions or pending approvals.
+ * Horizontal card for "Gift Capsules You're Creating". Left: sparkles
+ * badge + cover thumbnail. Middle: title, contributor count, avatar
+ * row (3 visible + overflow counter + invite affordance). Right:
+ * "N new" pill + chevron.
  */
 export function GiftCapsuleCreatingCard({ capsule }: { capsule: GiftCapsuleCreatingData }) {
   return (
@@ -44,7 +45,7 @@ export function GiftCapsuleCreatingCard({ capsule }: { capsule: GiftCapsuleCreat
         <p className="mt-0.5 text-[13px] text-ink-light">
           {capsule.contributorCount} {capsule.contributorCount === 1 ? "contributor" : "contributors"}
         </p>
-        <AvatarStack names={capsule.contributorNames} total={capsule.contributorCount} />
+        <AvatarRow total={capsule.contributorCount} />
       </div>
 
       <div className="shrink-0 flex items-center gap-2">
@@ -59,50 +60,53 @@ export function GiftCapsuleCreatingCard({ capsule }: { capsule: GiftCapsuleCreat
   );
 }
 
-function AvatarStack({ names, total }: { names: string[]; total: number }) {
-  const visible = names.slice(0, 4);
-  const extra = Math.max(0, total - visible.length);
-  if (visible.length === 0) return null;
+/**
+ * Avatar row: 3 default User-icon avatars, a "+N" counter when there
+ * are more contributors, and a dashed "+" affordance at the end for
+ * inviting new ones. All decorative for now — no wiring.
+ */
+function AvatarRow({ total }: { total: number }) {
+  const visible = Math.min(3, total);
+  const extra = Math.max(0, total - visible);
   return (
-    <div className="mt-1.5 flex items-center -space-x-1.5">
-      {visible.map((name, i) => (
-        <span
-          key={`${name}-${i}`}
-          className={`w-6 h-6 rounded-full border-2 border-white text-[10px] font-bold flex items-center justify-center text-white ${avatarBg(name)}`}
-          title={name}
-        >
-          {initials(name)}
-        </span>
-      ))}
-      {extra > 0 && (
-        <span className="w-6 h-6 rounded-full border-2 border-white bg-[#e7e3db] text-ink-mid text-[10px] font-semibold flex items-center justify-center">
-          +{extra}
-        </span>
-      )}
+    <div className="mt-2 flex items-center gap-1.5">
+      <div className="flex items-center -space-x-1.5">
+        {Array.from({ length: visible }).map((_, i) => (
+          <DefaultAvatar key={i} index={i} />
+        ))}
+        {extra > 0 && (
+          <span className="w-6 h-6 rounded-full border-2 border-white bg-[#e7e3db] text-ink-mid text-[10px] font-semibold flex items-center justify-center">
+            +{extra}
+          </span>
+        )}
+      </div>
+      <span
+        aria-hidden="true"
+        className="w-6 h-6 rounded-full border border-dashed border-amber/50 bg-white flex items-center justify-center text-amber ml-1"
+      >
+        <Plus size={12} strokeWidth={2.25} />
+      </span>
     </div>
   );
 }
 
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-}
-
 const AVATAR_BGS = [
-  "bg-amber",
-  "bg-gold",
-  "bg-sage",
+  "bg-[#d6b49c]",
   "bg-[#a08b73]",
   "bg-[#8aa4bd]",
   "bg-[#c58e7a]",
+  "bg-[#b0a088]",
 ];
 
-function avatarBg(seed: string): string {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  return AVATAR_BGS[hash % AVATAR_BGS.length];
+function DefaultAvatar({ index }: { index: number }) {
+  const bg = AVATAR_BGS[index % AVATAR_BGS.length];
+  return (
+    <span
+      className={`w-6 h-6 rounded-full border-2 border-white ${bg} flex items-center justify-center text-white`}
+    >
+      <User size={12} strokeWidth={2} />
+    </span>
+  );
 }
 
 const CREATING_GRADIENTS = [
