@@ -107,65 +107,6 @@ export function ChooseYourVault() {
         </div>
 
         <div className="grid gap-5 sm:gap-8 lg:grid-cols-2 items-stretch max-w-[960px] mx-auto">
-          {/* ── Time Capsule card ─────────────────────────── */}
-          <div
-            className="rounded-[20px] border-[1.5px] overflow-hidden"
-            style={{
-              background: "#fef6ec",
-              borderColor: "rgba(196,122,58,0.2)",
-              boxShadow: "0 4px 24px rgba(196,122,58,0.1)",
-            }}
-          >
-            <CardSwipePanel
-              cards={TIME_CAPSULE_STACK}
-              defaultPanel={
-                <div className="p-7 lg:p-8 flex flex-col">
-                  <div className="mb-6 -mx-1 select-none pointer-events-none">
-                    <Image
-                      src="/write%20now.png"
-                      alt=""
-                      width={493}
-                      height={343}
-                      priority={false}
-                      className="w-full h-auto"
-                    />
-                  </div>
-                  <CardLabel icon={CalendarDays} color="amber">
-                    Time Capsule
-                  </CardLabel>
-                  <h3 className="text-[18px] sm:text-[22px] font-extrabold text-navy tracking-[-0.5px] leading-[1.25]">
-                    Write now. They&rsquo;ll open later.
-                  </h3>
-                  <p className="text-[15px] text-ink-mid leading-[1.6] mt-1">
-                    A private capsule between you and one other person —
-                    letters, voice notes, photos, and videos they&rsquo;ll
-                    unlock on a birthday, graduation, or any milestone you
-                    choose.
-                  </p>
-                  <ul className="space-y-2 mt-3">
-                    <Bullet icon={CalendarDays} color="amber">
-                      Choose the reveal date
-                    </Bullet>
-                    <Bullet icon={Lock} color="amber">
-                      Just for them
-                    </Bullet>
-                    <Bullet icon={Heart} color="amber">
-                      Build it over time
-                    </Bullet>
-                  </ul>
-                  <div className="mt-auto pt-5">
-                    <Link
-                      href="/sign-up"
-                      className="block w-full text-center bg-amber text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors hover:bg-amber-dark"
-                    >
-                      Start a Time Capsule
-                    </Link>
-                  </div>
-                </div>
-              }
-            />
-          </div>
-
           {/* ── Gift Capsule card ─────────────────────────── */}
           <div
             className="rounded-[20px] border-[1.5px] overflow-hidden"
@@ -218,6 +159,65 @@ export function ChooseYourVault() {
                       className="block w-full text-center bg-navy text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors hover:bg-navy-mid"
                     >
                       Create a Gift Capsule
+                    </Link>
+                  </div>
+                </div>
+              }
+            />
+          </div>
+
+          {/* ── Time Capsule card ─────────────────────────── */}
+          <div
+            className="rounded-[20px] border-[1.5px] overflow-hidden"
+            style={{
+              background: "#fef6ec",
+              borderColor: "rgba(196,122,58,0.2)",
+              boxShadow: "0 4px 24px rgba(196,122,58,0.1)",
+            }}
+          >
+            <CardSwipePanel
+              cards={TIME_CAPSULE_STACK}
+              defaultPanel={
+                <div className="p-7 lg:p-8 flex flex-col">
+                  <div className="mb-6 -mx-1 select-none pointer-events-none">
+                    <Image
+                      src="/write%20now.png"
+                      alt=""
+                      width={493}
+                      height={343}
+                      priority={false}
+                      className="w-full h-auto"
+                    />
+                  </div>
+                  <CardLabel icon={CalendarDays} color="amber">
+                    Time Capsule
+                  </CardLabel>
+                  <h3 className="text-[18px] sm:text-[22px] font-extrabold text-navy tracking-[-0.5px] leading-[1.25]">
+                    Write now. They&rsquo;ll open later.
+                  </h3>
+                  <p className="text-[15px] text-ink-mid leading-[1.6] mt-1">
+                    A private capsule between you and one other person —
+                    letters, voice notes, photos, and videos they&rsquo;ll
+                    unlock on a birthday, graduation, or any milestone you
+                    choose.
+                  </p>
+                  <ul className="space-y-2 mt-3">
+                    <Bullet icon={CalendarDays} color="amber">
+                      Choose the reveal date
+                    </Bullet>
+                    <Bullet icon={Lock} color="amber">
+                      Just for them
+                    </Bullet>
+                    <Bullet icon={Heart} color="amber">
+                      Build it over time
+                    </Bullet>
+                  </ul>
+                  <div className="mt-auto pt-5">
+                    <Link
+                      href="/sign-up"
+                      className="block w-full text-center bg-amber text-white font-bold text-[16px] py-3.5 px-6 rounded-[10px] transition-colors hover:bg-amber-dark"
+                    >
+                      Start a Time Capsule
                     </Link>
                   </div>
                 </div>
