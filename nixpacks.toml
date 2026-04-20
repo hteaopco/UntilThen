@@ -10,9 +10,7 @@ cmds = [
 
 [phases.build]
 cmds = [
-  "npm run build",
-  "echo '[verify] checking generated Prisma client mode'",
-  "grep -q '\"copyEngine\": true' node_modules/.prisma/client/index.js || (echo 'ERROR: Prisma client was generated with --no-engine'; exit 1)",
+  "bash -c 'set -e; echo \"[diag] PRISMA_* env vars present:\"; env | grep -i \"^PRISMA\" || echo \"(none)\"; unset PRISMA_GENERATE_DATAPROXY PRISMA_GENERATE_NO_ENGINE PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION PRISMA_ACCELERATE_URL; rm -rf node_modules/.prisma; npx prisma generate; echo \"[diag] copyEngine line in generated client:\"; grep -m1 copyEngine node_modules/.prisma/client/index.js || true; if ! grep -q \"\\\"copyEngine\\\": true\" node_modules/.prisma/client/index.js; then echo \"ERROR: Prisma client was generated with --no-engine\"; exit 1; fi; npm run build'",
 ]
 
 [start]
