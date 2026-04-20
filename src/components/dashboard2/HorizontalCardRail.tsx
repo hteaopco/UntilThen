@@ -64,7 +64,7 @@ export function HorizontalCardRail({
     <div className="relative" aria-label={ariaLabel}>
       <div
         ref={scrollerRef}
-        className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 -mx-6 px-6 lg:mx-0 lg:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 -mx-6 px-6 scroll-pl-6 scroll-pr-6 lg:mx-0 lg:px-0 lg:scroll-pl-0 lg:scroll-pr-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {children}
       </div>

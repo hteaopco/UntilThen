@@ -101,7 +101,6 @@ export default async function DashboardV2Page() {
           <SectionHeader
             icon={<Gift size={18} strokeWidth={1.75} />}
             title="Gift Capsules You're Creating"
-            viewAllHref={data.creating.length > 0 ? "/capsules" : undefined}
           />
           {data.creating.length === 0 ? (
             <EmptyState
@@ -114,6 +113,10 @@ export default async function DashboardV2Page() {
               {data.creating.slice(0, 3).map((c) => (
                 <GiftCapsuleCreatingCard key={c.id} capsule={c} />
               ))}
+              <ViewAllButton
+                href="/capsules"
+                hiddenCount={Math.max(0, data.creating.length - 3)}
+              />
             </div>
           )}
         </section>
@@ -162,5 +165,34 @@ function EmptyState({
         </Link>
       )}
     </div>
+  );
+}
+
+function ViewAllButton({
+  href,
+  hiddenCount,
+}: {
+  href: string;
+  hiddenCount: number;
+}) {
+  const hasMore = hiddenCount > 0;
+  if (!hasMore) {
+    return (
+      <div
+        aria-disabled="true"
+        className="w-full text-center rounded-xl border border-navy/8 bg-white/40 px-4 py-3 text-[13px] font-semibold text-ink-light/60 cursor-default select-none"
+      >
+        View all
+      </div>
+    );
+  }
+  return (
+    <Link
+      href={href}
+      prefetch={false}
+      className="block w-full text-center rounded-xl border border-amber/40 bg-amber-tint px-4 py-3 text-[13px] font-bold text-amber hover:bg-amber-tint/80 transition-colors"
+    >
+      View all ({hiddenCount})
+    </Link>
   );
 }
