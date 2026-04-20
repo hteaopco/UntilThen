@@ -20,8 +20,8 @@ export function DashboardGreeting({
           </span>
         </h1>
         <p className="mt-1.5 sm:mt-1 text-[14px] sm:text-[18px] leading-[1.35] text-navy sm:max-w-[520px]">
-          <span className="font-bold text-amber">Welcome to your Vault.</span>{" "}
-          Every moment you capture becomes something unforgettable.
+          <span className="font-bold text-amber">Welcome to your Vault!</span>{" "}
+          Every moment captured becomes timeless.
         </p>
       </div>
 
