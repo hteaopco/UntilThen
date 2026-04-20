@@ -35,6 +35,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-dm-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        brush: ["var(--font-alex-brush)", "ui-serif", "cursive"],
       },
       keyframes: {
         // Slow, warm fade used for the capsule preview / reveal
