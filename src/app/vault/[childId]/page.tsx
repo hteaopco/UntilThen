@@ -1,9 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, ChevronRight, Eye, Heart, Plus } from "lucide-react";
+import { ChevronRight, Eye, Heart, Plus } from "lucide-react";
 
 import { Avatar } from "@/components/ui/Avatar";
+import { LogoSvg } from "@/components/ui/LogoSvg";
 import { CapsuleHero } from "@/components/capsule-landing/CapsuleHero";
 import { CollectionCard } from "@/components/capsule-landing/CollectionCard";
 import {
@@ -35,33 +36,27 @@ export default async function CapsuleLandingPage({
 
   return (
     <main className="min-h-screen bg-cream pb-16">
-      {/* Mobile header: small avatar on the left, Alex Brush title on the right. */}
-      <header className="sm:hidden mx-auto max-w-[1020px] px-6 pt-5 pb-3 flex items-center justify-between gap-3">
-        <div className="[&_button]:w-8 [&_button]:h-8 [&_button]:text-[11px]">
+      {/* Standard header — logo left, avatar right (matches /dashboard). */}
+      <header className="mx-auto max-w-[1020px] px-6 lg:px-10 pt-5 pb-3 flex items-center justify-between gap-4">
+        <Link href="/dashboard" aria-label="Back to your vault">
+          <LogoSvg variant="dark" width={120} height={24} />
+        </Link>
+        <div className="[&_button]:w-8 [&_button]:h-8 [&_button]:text-[11px] sm:[&_button]:w-9 sm:[&_button]:h-9 sm:[&_button]:text-[13px]">
           <Avatar />
         </div>
-        <h1 className="font-brush text-[26px] leading-[1.05] text-navy text-right min-w-0 truncate">
-          {child.firstName}&rsquo;s Time Capsule{" "}
-          <span className="text-amber">♡</span>
-        </h1>
       </header>
 
-      {/* Desktop header: back link on the left, avatar on the right. */}
-      <header className="hidden sm:flex mx-auto max-w-[1020px] px-6 lg:px-10 pt-6 pb-4 items-center justify-between gap-4">
-        <Link
-          href="/dashboard"
-          prefetch={false}
-          className="inline-flex items-center gap-2 text-[14px] font-semibold text-ink-mid hover:text-navy transition-colors"
-        >
-          <ArrowLeft size={16} strokeWidth={1.75} />
-          Back to Your Time Capsules
-        </Link>
-        <Avatar />
-      </header>
+      {/* Mobile-only title band under the header. */}
+      <div className="sm:hidden mx-auto max-w-[1020px] px-6 pt-1 pb-4 text-center">
+        <h1 className="font-brush text-[30px] leading-[1.05] text-navy inline-flex items-baseline gap-2">
+          {child.firstName}&rsquo;s Time Capsule
+          <span className="text-amber">♡</span>
+        </h1>
+      </div>
 
       <div className="mx-auto max-w-[1020px] px-6 lg:px-10 pt-2 sm:pt-4 space-y-8 sm:space-y-10">
         <CapsuleHero
-          childId={child.id}
+          vaultId={vault.id}
           childFirstName={child.firstName}
           vaultCoverUrl={vault.coverUrl}
         />
