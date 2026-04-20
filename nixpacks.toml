@@ -3,10 +3,17 @@
 nixPkgs = ["nodejs_22", "openssl"]
 
 [phases.install]
-cmds = ["npm ci --prefer-offline --no-audit"]
+cmds = [
+  "rm -rf node_modules .next",
+  "npm ci --no-audit --no-fund",
+]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = [
+  "npm run build",
+  "echo '[verify] checking generated Prisma client mode'",
+  "grep -q '\"copyEngine\": true' node_modules/.prisma/client/index.js || (echo 'ERROR: Prisma client was generated with --no-engine'; exit 1)",
+]
 
 [start]
 cmd = "sh -c 'set -e; echo \"[start] running prisma migrate deploy\"; npx prisma migrate deploy; echo \"[start] launching next server\"; npm run start'"
