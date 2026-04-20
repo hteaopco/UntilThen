@@ -11,32 +11,33 @@ export function DashboardGreeting({
   const greetingName = firstName ? `Hi, ${firstName}` : "Welcome back";
 
   return (
-    <section className="flex items-start justify-between gap-4 sm:gap-8">
-      <div className="min-w-0 flex-1">
+    <section>
+      <div className="flex items-start justify-between gap-4 sm:gap-8">
         <h1 className="font-brush text-[44px] sm:text-[56px] leading-none text-navy">
           {greetingName}
           <span className="ml-2 align-middle text-amber text-[28px] sm:text-[32px]">
             ♡
           </span>
         </h1>
-        <p className="mt-3 sm:mt-4 text-[16px] sm:text-[18px] leading-[1.4] text-navy max-w-[460px]">
-          Every moment you capture becomes something unforgettable.
-        </p>
+
+        <div className="shrink-0 grid grid-cols-2 gap-2 sm:gap-3">
+          <ChipCard
+            href="/dashboard/preview"
+            label="Updates"
+            icon={<Sparkles size={24} strokeWidth={1.5} className="text-amber" />}
+            badge={updatesCount}
+          />
+          <ChipCard
+            href="/capsules/new"
+            label="Gift Capsules"
+            icon={<Gift size={24} strokeWidth={1.5} className="text-amber" />}
+          />
+        </div>
       </div>
 
-      <div className="shrink-0 grid grid-cols-2 gap-2 sm:gap-3">
-        <ChipCard
-          href="/dashboard/preview"
-          label="Updates"
-          icon={<Sparkles size={24} strokeWidth={1.5} className="text-amber" />}
-          badge={updatesCount}
-        />
-        <ChipCard
-          href="/capsules/new"
-          label="Gift Capsules"
-          icon={<Gift size={24} strokeWidth={1.5} className="text-amber" />}
-        />
-      </div>
+      <p className="mt-3 sm:mt-4 text-[16px] sm:text-[18px] leading-[1.4] text-navy sm:max-w-[460px]">
+        Every moment you capture becomes something unforgettable.
+      </p>
     </section>
   );
 }
