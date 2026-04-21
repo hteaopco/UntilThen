@@ -2,7 +2,6 @@
 
 import {
   AlertTriangle,
-  ArrowLeft,
   Check,
   Mail,
   Paperclip,
@@ -21,7 +20,6 @@ import {
   type Attachment,
 } from "@/components/editor/MediaAttachments";
 import { TiptapEditor } from "@/components/editor/TiptapEditor";
-import { LogoSvg } from "@/components/ui/LogoSvg";
 import { formatLong } from "@/lib/dateFormatters";
 import { OCCASION_LABELS, recipientPronounOf } from "@/lib/capsules";
 
@@ -202,19 +200,6 @@ export function CapsuleOverview({
 
   return (
     <main className="min-h-screen bg-cream">
-      <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
-        <div className="mx-auto max-w-[840px] px-6 lg:px-10 py-4 flex items-center justify-between">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 text-sm text-ink-mid hover:text-navy transition-colors"
-          >
-            <ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />
-            <span>Back to Dashboard</span>
-          </Link>
-          <LogoSvg variant="dark" width={110} height={22} />
-        </div>
-      </header>
-
       <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10 pb-2">
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.14em] uppercase text-amber">

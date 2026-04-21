@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import {
   AudioLines,
   BookHeart,
@@ -10,6 +13,8 @@ import {
   Video,
 } from "lucide-react";
 
+import { CoverUploader } from "@/components/dashboard2/CoverUploader";
+import { EditCollectionDetailsModal } from "@/components/capsule-landing/EditCollectionDetailsModal";
 import { formatLong } from "@/lib/dateFormatters";
 
 export type CollectionLandingEntry = {
@@ -28,21 +33,32 @@ export type CollectionLandingProps = {
   /** Optional — renders below the description ("Opens June 14, 2032 · Age 18"). */
   revealLine: string | null;
   /** If true, this is the synthetic Main Capsule Diary — edit pills
-   * remain visible but non-functional since there's no underlying
-   * Collection row. Real collections pass false. */
+   * render dimmed + non-interactive since there's no underlying row
+   * to PATCH. Real collections pass false and get functional pills. */
   isDiary: boolean;
   /** Href the "+" FAB routes to — deep-links the editor with the
    * right collectionId pre-selected. */
   addMemoryHref: string;
   childFirstName: string;
   entries: CollectionLandingEntry[];
+  /** Identifier for the editable row. Required when isDiary is false. */
+  collectionId?: string;
+  /** Needed by the modals — they clamp the picker to ≤ vault date. */
+  vaultRevealDate?: string | null;
+  /** Raw reveal date (ISO) so the edit modal can pre-populate. */
+  collectionRevealDate?: string | null;
 };
 
 /**
  * Shared landing view for any collection-shaped page — the synthetic
  * Main Capsule Diary and every real Collection share this layout so
- * UI edits live in a single component. Consumers (server pages) are
- * responsible for auth / ownership + loading the entries list.
+ * UI edits live in a single component.
+ *
+ * Edit pills are wired for real collections: "Edit Details" opens
+ * EditCollectionDetailsModal (PATCH name/description/revealDate) and
+ * "Edit Cover Photo" opens the shared CoverUploader with target=
+ * "collection". The Main Diary renders them dimmed since there's no
+ * row to edit.
  */
 export function CollectionLandingView({
   title,
@@ -53,7 +69,14 @@ export function CollectionLandingView({
   addMemoryHref,
   childFirstName,
   entries,
+  collectionId,
+  vaultRevealDate = null,
+  collectionRevealDate = null,
 }: CollectionLandingProps) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [coverOpen, setCoverOpen] = useState(false);
+  const canEdit = !isDiary && Boolean(collectionId);
+
   return (
     <>
       <section className="mx-auto max-w-[720px] px-6 pt-6">
@@ -86,24 +109,19 @@ export function CollectionLandingView({
           </div>
         </div>
 
-        {/* Action pills under the header — identical treatment on
-            diary and real collections. Wiring to the edit modals is
-            a follow-up; the labels keep the pattern in place. */}
         <div className="mt-4 flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            className="inline-flex items-center gap-1.5 rounded-full border border-navy/10 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-mid hover:text-amber hover:border-amber/40 transition-colors"
-          >
-            <Pencil size={13} strokeWidth={1.75} />
-            Edit Details
-          </button>
-          <button
-            type="button"
-            className="inline-flex items-center gap-1.5 rounded-full border border-navy/10 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-mid hover:text-amber hover:border-amber/40 transition-colors"
-          >
-            <ImagePlus size={13} strokeWidth={1.75} />
-            Edit Cover Photo
-          </button>
+          <EditPill
+            icon={<Pencil size={13} strokeWidth={1.75} />}
+            label="Edit Details"
+            enabled={canEdit}
+            onClick={() => setDetailsOpen(true)}
+          />
+          <EditPill
+            icon={<ImagePlus size={13} strokeWidth={1.75} />}
+            label="Edit Cover Photo"
+            enabled={canEdit}
+            onClick={() => setCoverOpen(true)}
+          />
         </div>
 
         <div className="mt-6">
@@ -133,7 +151,60 @@ export function CollectionLandingView({
       >
         <Plus size={45} strokeWidth={1.75} />
       </Link>
+
+      {canEdit && detailsOpen && collectionId && (
+        <EditCollectionDetailsModal
+          collectionId={collectionId}
+          vaultRevealDate={vaultRevealDate}
+          initial={{
+            title,
+            description,
+            revealDate: collectionRevealDate,
+          }}
+          onClose={() => setDetailsOpen(false)}
+        />
+      )}
+
+      {canEdit && coverOpen && collectionId && (
+        <CoverUploader
+          target="collection"
+          targetId={collectionId}
+          childFirstName={childFirstName}
+          currentCoverUrl={coverUrl}
+          onClose={() => setCoverOpen(false)}
+        />
+      )}
     </>
+  );
+}
+
+function EditPill({
+  icon,
+  label,
+  enabled,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  enabled: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={enabled ? onClick : undefined}
+      disabled={!enabled}
+      aria-disabled={!enabled}
+      title={enabled ? undefined : "Not editable for Main Capsule Diary"}
+      className={`inline-flex items-center gap-1.5 rounded-full border border-navy/10 bg-white px-3 py-1.5 text-[12px] font-semibold transition-colors ${
+        enabled
+          ? "text-ink-mid hover:text-amber hover:border-amber/40"
+          : "text-ink-light/50 cursor-not-allowed"
+      }`}
+    >
+      {icon}
+      {label}
+    </button>
   );
 }
 

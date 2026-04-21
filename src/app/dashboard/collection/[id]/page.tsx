@@ -111,6 +111,9 @@ export default async function CollectionPage({
         addMemoryHref={`/vault/${collection.vault.child.id}/new?collectionId=${collection.id}`}
         childFirstName={collection.vault.child.firstName}
         entries={entries}
+        collectionId={collection.id}
+        vaultRevealDate={collection.vault.revealDate?.toISOString() ?? null}
+        collectionRevealDate={collection.revealDate?.toISOString() ?? null}
       />
     </main>
   );

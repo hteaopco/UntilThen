@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 import type { Attachment } from "@/components/editor/MediaAttachments";
+import { TopNav } from "@/components/ui/TopNav";
 import { effectiveStatus, findOwnedCapsule } from "@/lib/capsules";
 import { r2IsConfigured, signGetUrl, type MediaKind } from "@/lib/r2";
 
@@ -59,8 +60,10 @@ export default async function CapsulePage({
   }
 
   return (
-    <CapsuleOverview
-      capsule={{
+    <>
+      <TopNav />
+      <CapsuleOverview
+        capsule={{
         id: capsule.id,
         title: capsule.title,
         recipientName: capsule.recipientName,
@@ -99,5 +102,6 @@ export default async function CapsulePage({
         inviteToken: i.inviteToken,
       }))}
     />
+    </>
   );
 }
