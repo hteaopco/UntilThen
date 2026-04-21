@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 import { Gift, Heart, Lock, Plus, Sparkles } from "lucide-react";
 
 import { DashboardGreeting } from "@/components/dashboard2/DashboardGreeting";
-import { GiftCapsuleCreatingCard } from "@/components/dashboard2/GiftCapsuleCreatingCard";
 import { GiftCapsuleReceivedCard } from "@/components/dashboard2/GiftCapsuleReceivedCard";
+import { GiftCapsulesSection } from "@/components/dashboard2/GiftCapsulesSection";
 import { HorizontalCardRail } from "@/components/dashboard2/HorizontalCardRail";
 import { SectionHeader } from "@/components/dashboard2/SectionHeader";
 import { VaultCard } from "@/components/dashboard2/VaultCard";
@@ -98,15 +98,7 @@ export default async function DashboardPage() {
               ctaLabel="New Gift Capsule"
             />
           ) : (
-            <div className="space-y-3">
-              {data.creating.slice(0, 3).map((c) => (
-                <GiftCapsuleCreatingCard key={c.id} capsule={c} />
-              ))}
-              <ViewAllButton
-                href="/capsules"
-                hiddenCount={Math.max(0, data.creating.length - 3)}
-              />
-            </div>
+            <GiftCapsulesSection capsules={data.creating} />
           )}
         </section>
 
@@ -157,34 +149,6 @@ function EmptyState({
   );
 }
 
-function ViewAllButton({
-  href,
-  hiddenCount,
-}: {
-  href: string;
-  hiddenCount: number;
-}) {
-  const hasMore = hiddenCount > 0;
-  if (!hasMore) {
-    return (
-      <div
-        aria-disabled="true"
-        className="w-full text-center rounded-xl border border-navy/8 bg-white/40 px-4 py-3 text-[13px] font-semibold text-ink-light/60 cursor-default select-none"
-      >
-        View all
-      </div>
-    );
-  }
-  return (
-    <Link
-      href={href}
-      prefetch={false}
-      className="block w-full text-center rounded-xl border border-amber/40 bg-amber-tint px-4 py-3 text-[13px] font-bold text-amber hover:bg-amber-tint/80 transition-colors"
-    >
-      View all ({hiddenCount})
-    </Link>
-  );
-}
 
 function DbMissing() {
   return (

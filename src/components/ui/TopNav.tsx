@@ -34,9 +34,9 @@ export function TopNav() {
           <Link
             href={homeHref}
             aria-label="untilThen home"
-            className="hidden sm:inline-flex items-center"
+            className="inline-flex items-center shrink-0"
           >
-            <LogoSvg variant="dark" width={120} height={24} />
+            <LogoSvg variant="dark" width={100} height={20} />
           </Link>
         </div>
         {userId && (

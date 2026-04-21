@@ -115,14 +115,14 @@ export default async function MainDiaryPage({
             className="inline-flex items-center gap-1.5 rounded-full border border-navy/10 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-mid hover:text-amber hover:border-amber/40 transition-colors"
           >
             <Pencil size={13} strokeWidth={1.75} />
-            Edit collection details
+            Edit Details
           </button>
           <button
             type="button"
             className="inline-flex items-center gap-1.5 rounded-full border border-navy/10 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-mid hover:text-amber hover:border-amber/40 transition-colors"
           >
             <ImagePlus size={13} strokeWidth={1.75} />
-            Edit collection image
+            Edit Cover Photo
           </button>
         </div>
 

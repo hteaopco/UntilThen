@@ -5,8 +5,17 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X, ZoomIn, ZoomOut } from "lucide-react";
 
+type CoverTarget = "vault" | "collection";
+
 type Props = {
-  vaultId: string;
+  /** Which row the cover lives on. Drives the sign-URL body + the
+   * PATCH / DELETE endpoints: /api/account/{target}s/{id}/cover. */
+  target?: CoverTarget;
+  /** Kept for back-compat with the original vault-only signature. */
+  vaultId?: string;
+  /** Preferred. Required when `target` is "collection". */
+  targetId?: string;
+  /** Used to personalize the dialog heading. */
   childFirstName: string;
   currentCoverUrl: string | null;
   onClose: () => void;
@@ -31,12 +40,16 @@ const OUTPUT_HEIGHT = 1200;
  *   6. router.refresh() and close
  */
 export function CoverUploader({
+  target = "vault",
   vaultId,
+  targetId,
   childFirstName,
   currentCoverUrl,
   onClose,
 }: Props) {
   const router = useRouter();
+  const resolvedTargetId = targetId ?? vaultId ?? "";
+  const patchUrl = `/api/account/${target}s/${resolvedTargetId}/cover`;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [filename, setFilename] = useState<string>("cover.jpg");
@@ -108,8 +121,8 @@ export function CoverUploader({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          target: "vault",
-          targetId: vaultId,
+          target,
+          targetId: resolvedTargetId,
           kind: "photo",
           contentType: "image/jpeg",
           filename: safeName,
@@ -135,7 +148,7 @@ export function CoverUploader({
       if (!putRes.ok) throw new Error("Upload to storage failed.");
 
       const patchRes = await fetch(
-        `/api/account/vaults/${vaultId}/cover`,
+        patchUrl,
         {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -162,7 +175,7 @@ export function CoverUploader({
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/account/vaults/${vaultId}/cover`, {
+      const res = await fetch(patchUrl, {
         method: "DELETE",
       });
       if (!res.ok) {

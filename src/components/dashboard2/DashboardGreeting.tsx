@@ -27,7 +27,7 @@ export function DashboardGreeting({
 
       <div className="shrink-0 flex items-start gap-2 sm:gap-4">
         <ChipCard
-          href="/dashboard/preview"
+          href="/dashboard/updates"
           label="Updates"
           icon={<Sparkles size={20} strokeWidth={1.5} className="text-amber sm:hidden" />}
           iconLg={<Sparkles size={24} strokeWidth={1.5} className="text-amber hidden sm:block" />}

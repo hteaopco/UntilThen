@@ -59,7 +59,10 @@ export function CapsuleContributeForm({
   const capsuleTone: CapsuleTone = capsule.tone ?? "CELEBRATION";
   const isEditing = Boolean(existingContribution);
   const [phase, setPhase] = useState<Phase>(isEditing ? "editor" : "splash");
-  const [name, setName] = useState(invite.name);
+  // Invite-supplied name is suggested via placeholder only — we leave
+  // the input empty so the grey "From {name}" reads as guidance, not
+  // a value the contributor has already typed.
+  const [name, setName] = useState("");
   const [title, setTitle] = useState(existingContribution?.title ?? "");
   const [body, setBody] = useState(existingContribution?.body ?? "");
   const [saving, setSaving] = useState(false);

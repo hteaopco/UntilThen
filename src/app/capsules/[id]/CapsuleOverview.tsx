@@ -384,7 +384,7 @@ export function CapsuleOverview({
         className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10"
       >
         <div className="rounded-2xl border border-amber/25 bg-amber-tint/40 px-6 py-6 space-y-3">
-          <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] whitespace-nowrap">
+          <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] text-balance break-words">
             {isDraft ? `Invite everyone who loves ${pronoun}` : `${recipientDisplayName}\u2019s capsule is live`}
           </h2>
           <p className="text-sm text-ink-mid leading-[1.6]">
