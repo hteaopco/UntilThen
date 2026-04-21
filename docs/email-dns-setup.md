@@ -27,7 +27,7 @@ four records are Cloudflare TXT / MX entries, proxy disabled.
 | ---- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----- |
 | TXT  | `resend._domainkey`   | `v=DKIM1; k=rsa; p=<full key Resend generates>`                                                                                         | Selector is `resend`. Copy the entire `v=DKIM1; k=rsa; p=…` string from the Resend dashboard |
 | TXT  | `@`                   | `v=spf1 include:amazonses.com include:spf.protection.outlook.com ~all`                                                                  | One record only per host — merge new senders into this one |
-| MX   | `sendfeedback`        | `smtp.us-east-1.amazonses.com` priority 10                                                                                              | Bounce / feedback loop for SES under Resend — follow the exact Name + Value Resend shows (the subdomain label and hostname have shifted across Resend revisions) |
+| MX   | `send`                | `feedback-smtp.us-east-1.amazonses.com` priority 10                                                                                     | Bounce / feedback loop for SES under Resend |
 | TXT  | `_dmarc`              | `v=DMARC1; p=none; rua=mailto:re+<token>@dmarc.postmarkapp.com; adkim=r; aspf=r`                                                        | `<token>` comes from Postmark DMARC Digests — sign up at https://dmarc.postmarkapp.com and paste the emailed token in place |
 
 After DNS propagates (5–15 min) click **Verify** in Resend → the
@@ -69,7 +69,7 @@ Once DNS propagates (5–15 min):
 dig TXT resend._domainkey.untilthenapp.io +short
 dig TXT untilthenapp.io +short
 dig TXT _dmarc.untilthenapp.io +short
-dig MX sendfeedback.untilthenapp.io +short
+dig MX send.untilthenapp.io +short
 ```
 
 All four should return the values from the table above.
