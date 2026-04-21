@@ -43,7 +43,7 @@ export function VaultCard({ vault }: { vault: VaultCardData }) {
   const hasCover = !!vault.coverUrl;
 
   return (
-    <div className="relative snap-start shrink-0 w-[72vw] max-w-[260px] sm:w-[240px] rounded-2xl bg-white border border-amber/60 shadow-[0_8px_24px_-8px_rgba(196,122,58,0.2)] hover:shadow-[0_12px_32px_-8px_rgba(196,122,58,0.3)] transition-shadow overflow-hidden">
+    <div className="relative snap-start shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl bg-white border border-amber/60 shadow-[0_8px_24px_-8px_rgba(196,122,58,0.2)] hover:shadow-[0_12px_32px_-8px_rgba(196,122,58,0.3)] transition-shadow overflow-hidden">
       {hasCover ? (
         <Link
           href={detailHref}
@@ -73,15 +73,15 @@ export function VaultCard({ vault }: { vault: VaultCardData }) {
       <Link
         href={detailHref}
         prefetch={false}
-        className="block p-4 border-t border-amber/15 bg-white"
+        className="block p-3 border-t border-amber/15 bg-white"
       >
-        <h3 className="text-[22px] font-bold text-navy tracking-[-0.3px] leading-tight">
+        <h3 className="text-[17px] font-bold text-navy tracking-[-0.3px] leading-tight">
           {vault.firstName}
         </h3>
-        <div className="mt-2 flex items-center gap-4 text-ink-light">
-          <StatPill icon={<FileText size={16} strokeWidth={1.75} />} count={vault.letterCount} />
-          <StatPill icon={<ImageIcon size={16} strokeWidth={1.75} />} count={vault.photoCount} />
-          <StatPill icon={<AudioLines size={16} strokeWidth={1.75} />} count={vault.voiceCount} />
+        <div className="mt-1.5 flex items-center gap-3 text-ink-light">
+          <StatPill icon={<FileText size={13} strokeWidth={1.75} />} count={vault.letterCount} />
+          <StatPill icon={<ImageIcon size={13} strokeWidth={1.75} />} count={vault.photoCount} />
+          <StatPill icon={<AudioLines size={13} strokeWidth={1.75} />} count={vault.voiceCount} />
         </div>
       </Link>
 
@@ -90,9 +90,9 @@ export function VaultCard({ vault }: { vault: VaultCardData }) {
           type="button"
           onClick={() => setUploaderOpen(true)}
           aria-label={`Edit ${vault.firstName}'s cover photo`}
-          className="absolute top-3 right-3 w-9 h-9 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-[0_2px_8px_rgba(15,31,61,0.15)] text-amber hover:bg-white hover:scale-105 transition-all"
+          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-[0_2px_8px_rgba(15,31,61,0.15)] text-amber hover:bg-white hover:scale-105 transition-all"
         >
-          <Pencil size={15} strokeWidth={2} />
+          <Pencil size={12} strokeWidth={2} />
         </button>
       )}
 
@@ -110,7 +110,7 @@ export function VaultCard({ vault }: { vault: VaultCardData }) {
 
 function StatPill({ icon, count }: { icon: React.ReactNode; count: number }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-[13px] font-medium">
+    <span className="inline-flex items-center gap-1 text-[11px] font-medium">
       <span aria-hidden="true">{icon}</span>
       <span>{count}</span>
     </span>

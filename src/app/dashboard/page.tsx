@@ -75,7 +75,7 @@ export default async function DashboardPage() {
               <Link
                 href="/account/capsules/new"
                 prefetch={false}
-                className="snap-start shrink-0 w-[72vw] max-w-[260px] sm:w-[240px] rounded-2xl border-2 border-dashed border-amber/40 bg-white/50 flex flex-col items-center justify-center gap-2 text-amber hover:bg-white transition-colors py-10"
+                className="snap-start shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl border-2 border-dashed border-amber/40 bg-white/50 flex flex-col items-center justify-center gap-2 text-amber hover:bg-white transition-colors py-8"
               >
                 <span className="w-12 h-12 rounded-full bg-amber-tint flex items-center justify-center">
                   <Plus size={22} strokeWidth={2} />
