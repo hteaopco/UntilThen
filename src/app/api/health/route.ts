@@ -50,10 +50,15 @@ export async function GET() {
 }
 
 async function runWarmup(): Promise<void> {
+  const startedAt = Date.now();
+  console.log("[health] warmup started");
+
   // 1. Prisma ping — hot the connection pool so the first real
   // DB-touching request doesn't wait for a handshake.
   const { prisma } = await import("@/lib/prisma");
+  const prismaStart = Date.now();
   await prisma.$queryRaw`SELECT 1`;
+  console.log(`[health] prisma ping ok (${Date.now() - prismaStart}ms)`);
 
   // 2. Touch the middleware-covered public routes so Clerk fetches
   // its JWKS, Upstash's rate-limit client opens its HTTP keep-alive,
@@ -62,9 +67,23 @@ async function runWarmup(): Promise<void> {
   // the whole container cold.
   const port = process.env.PORT ?? "3000";
   const host = `http://127.0.0.1:${port}`;
-  await Promise.allSettled([
+  const fetchStart = Date.now();
+  const results = await Promise.allSettled([
     fetch(`${host}/`, { cache: "no-store", redirect: "manual" }),
     fetch(`${host}/sign-in`, { cache: "no-store", redirect: "manual" }),
     fetch(`${host}/dashboard`, { cache: "no-store", redirect: "manual" }),
   ]);
+  const fetchMs = Date.now() - fetchStart;
+  results.forEach((r, i) => {
+    const path = ["/", "/sign-in", "/dashboard"][i];
+    if (r.status === "fulfilled") {
+      console.log(`[health] warm-fetch ${path} → ${r.value.status}`);
+    } else {
+      console.warn(`[health] warm-fetch ${path} FAILED:`, r.reason);
+    }
+  });
+  console.log(
+    `[health] warmup complete in ${Date.now() - startedAt}ms ` +
+      `(prisma + ${fetchMs}ms loopback)`,
+  );
 }
