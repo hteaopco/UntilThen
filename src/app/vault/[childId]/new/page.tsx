@@ -50,7 +50,7 @@ export default async function NewMemoryPage({
         include: {
           collections: {
             orderBy: { createdAt: "desc" },
-            select: { id: true, title: true },
+            select: { id: true, title: true, revealDate: true },
           },
         },
       },
@@ -74,6 +74,11 @@ export default async function NewMemoryPage({
       childFirstName={child.firstName}
       revealDate={child.vault.revealDate?.toISOString() ?? null}
       initialCollectionId={collectionId}
+      collections={child.vault.collections.map((c) => ({
+        id: c.id,
+        title: c.title,
+        revealDate: c.revealDate?.toISOString() ?? null,
+      }))}
     />
   );
 }

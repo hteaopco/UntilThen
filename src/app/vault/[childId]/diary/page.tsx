@@ -4,8 +4,11 @@ import { redirect } from "next/navigation";
 import {
   ArrowLeft,
   AudioLines,
+  BookHeart,
   FileText,
   Image as ImageIcon,
+  ImagePlus,
+  Pencil,
   Plus,
   Video,
 } from "lucide-react";
@@ -95,8 +98,8 @@ export default async function MainDiaryPage({
           Back to {child.firstName}&rsquo;s Time Capsule
         </Link>
 
-        <div className="mt-3 flex items-end justify-between gap-4">
-          <div>
+        <div className="mt-3 flex items-stretch justify-between gap-4">
+          <div className="flex-1 min-w-0 flex flex-col">
             <h1 className="text-[26px] sm:text-[32px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
               Main Capsule Diary
             </h1>
@@ -105,12 +108,36 @@ export default async function MainDiaryPage({
               specific collection.
             </p>
           </div>
+          <div
+            aria-hidden="true"
+            className="shrink-0 w-[110px] sm:w-[140px] aspect-square rounded-2xl overflow-hidden border border-amber/30 bg-gradient-to-br from-amber/30 via-cream to-amber/15 flex items-center justify-center text-amber"
+          >
+            <BookHeart size={36} strokeWidth={1.5} />
+          </div>
+        </div>
+
+        {/* Action pills under the header */}
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-full border border-navy/10 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-mid hover:text-amber hover:border-amber/40 transition-colors"
+          >
+            <Pencil size={13} strokeWidth={1.75} />
+            Edit collection details
+          </button>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-full border border-navy/10 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-mid hover:text-amber hover:border-amber/40 transition-colors"
+          >
+            <ImagePlus size={13} strokeWidth={1.75} />
+            Edit collection image
+          </button>
           <Link
             href={`/vault/${child.id}/new`}
             prefetch={false}
-            className="shrink-0 inline-flex items-center gap-2 bg-amber text-white px-4 py-2 rounded-lg text-[13px] font-bold hover:bg-amber-dark transition-colors"
+            className="ml-auto inline-flex items-center gap-1.5 bg-amber text-white px-3 py-1.5 rounded-full text-[12px] font-bold hover:bg-amber-dark transition-colors"
           >
-            <Plus size={14} strokeWidth={2} />
+            <Plus size={13} strokeWidth={2} />
             Add memory
           </Link>
         </div>

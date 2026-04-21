@@ -86,6 +86,8 @@ export default async function CapsuleLandingPage({
             </ul>
           )}
 
+          <hr className="border-t border-navy/[0.08] mt-8 mb-6" />
+
           <AddMemoryCta
             vaultId={vault.id}
             childId={child.id}
@@ -126,7 +128,7 @@ function AddMemoryCta({
     <Link
       href={`/vault/${childId}/new`}
       prefetch={false}
-      className="mt-4 flex items-center gap-4 rounded-2xl border-2 border-dashed border-amber/40 bg-white/60 px-5 py-4 hover:bg-white hover:border-amber/60 transition-colors group"
+      className="flex items-center gap-4 rounded-2xl border-2 border-dashed border-amber/40 bg-white/60 px-5 py-4 hover:bg-white hover:border-amber/60 transition-colors group"
     >
       <span
         aria-hidden="true"

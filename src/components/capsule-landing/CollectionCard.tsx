@@ -99,26 +99,24 @@ export function CollectionCard({ childId, collection, age }: Props) {
         </div>
       </Link>
 
-      <div className="shrink-0 flex items-center gap-1.5 sm:gap-2">
+      <div className="shrink-0 flex flex-col gap-1.5">
         {!collection.isMainDiary && (
           <Link
             href={`/dashboard/collection/${collection.id}`}
             prefetch={false}
             aria-label={`Edit ${collection.title}`}
-            className="inline-flex items-center gap-1 rounded-full border border-navy/10 bg-white px-2 py-1.5 sm:px-3 sm:py-1.5 text-ink-mid hover:text-amber hover:border-amber/40 transition-colors"
+            className="w-9 h-9 rounded-full border border-navy/10 bg-white text-ink-mid hover:text-amber hover:border-amber/40 transition-colors flex items-center justify-center"
           >
-            <Pencil size={13} strokeWidth={1.75} />
-            <span className="hidden sm:inline text-[11px] font-semibold">Edit</span>
+            <Pencil size={14} strokeWidth={1.75} />
           </Link>
         )}
         <Link
           href={newHref}
           prefetch={false}
           aria-label={`Add a new memory to ${collection.title}`}
-          className="inline-flex items-center gap-1 rounded-full bg-amber-tint border border-amber/40 px-2 py-1.5 sm:px-3 sm:py-1.5 text-amber hover:bg-amber hover:text-white transition-colors"
+          className="w-9 h-9 rounded-full bg-amber-tint border border-amber/40 text-amber hover:bg-amber hover:text-white transition-colors flex items-center justify-center"
         >
-          <Plus size={13} strokeWidth={2} />
-          <span className="hidden sm:inline text-[11px] font-bold">New</span>
+          <Plus size={15} strokeWidth={2} />
         </Link>
       </div>
     </div>
