@@ -46,14 +46,6 @@ export default async function CapsuleLandingPage({
         </div>
       </header>
 
-      {/* Mobile-only title band under the header. */}
-      <div className="sm:hidden mx-auto max-w-[1020px] px-6 pt-1 pb-4 text-center">
-        <h1 className="font-brush text-[30px] leading-[1.05] text-navy inline-flex items-baseline gap-2">
-          {child.firstName}&rsquo;s Time Capsule
-          <span className="text-amber">♡</span>
-        </h1>
-      </div>
-
       <div className="mx-auto max-w-[1020px] px-6 lg:px-10 pt-2 sm:pt-4 space-y-8 sm:space-y-10">
         <CapsuleHero
           vaultId={vault.id}
