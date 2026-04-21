@@ -21,10 +21,8 @@ export function HeroImageCrossfade() {
 
   return (
     <div
-      className="relative mx-auto overflow-hidden"
+      className="relative mx-auto overflow-hidden w-[92vw] lg:w-full max-w-[640px]"
       style={{
-        width: "92vw",
-        maxWidth: 640,
         background: "#fdf8f2",
       }}
     >

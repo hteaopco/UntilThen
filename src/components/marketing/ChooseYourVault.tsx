@@ -89,7 +89,7 @@ const GIFT_OCCASION_PILLS = [
 export function ChooseYourVault() {
   return (
     <section className="bg-cream">
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-10 lg:pt-16 pb-10 lg:pb-24">
+      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-14 lg:pt-24 pb-10 lg:pb-24">
         {/* Header */}
         <div className="text-center max-w-[640px] mx-auto mb-12 lg:mb-14">
           <div className="inline-flex items-center gap-2 text-xs font-bold tracking-[0.12em] uppercase text-amber bg-amber-tint px-[14px] py-1.5 rounded-md mb-6">

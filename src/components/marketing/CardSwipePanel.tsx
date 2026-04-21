@@ -88,8 +88,11 @@ export function CardSwipePanel({ defaultPanel, cards, pills }: Props) {
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      {/* Dot indicators — sit at the top of the card. */}
-      <div className="flex items-center justify-center gap-2 pt-1 pb-4">
+      {/* Dot indicators — sit near the top of the card with some
+          breathing room above and below so they don't crowd the
+          image. Shared across both panels so Gift / Time stay
+          vertically aligned. */}
+      <div className="flex items-center justify-center gap-2 pt-5 pb-5">
         <span
           className={`w-2.5 h-2.5 rounded-full transition-colors ${
             panel === 0 ? "bg-amber" : "bg-navy/15"

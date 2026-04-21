@@ -370,7 +370,7 @@ export function Pricing() {
   return (
     <section id="pricing" className="bg-cream">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-14 py-10 lg:py-24">
-        <div className="mb-12">
+        <div className="mb-12 lg:text-center">
           <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-2.5">
             Pricing
           </p>
@@ -389,7 +389,7 @@ export function Pricing() {
         <MobilePricingSwiper tab={tab} setTab={setTab} />
 
         {/* Desktop: side by side */}
-        <div className="hidden md:grid gap-5 md:grid-cols-2 max-w-[760px] mx-auto items-stretch">
+        <div className="hidden md:grid gap-6 lg:gap-8 md:grid-cols-2 max-w-[880px] lg:max-w-[960px] mx-auto items-stretch">
           <TimeCapsulePlan />
           {giftCapsulePlan}
         </div>
