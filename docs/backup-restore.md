@@ -72,23 +72,28 @@ Response includes the R2 key, byte count, and duration.
 
 ---
 
-## 3. R2 media versioning
+## 3. R2 media protection
 
 Media (letters, photos, voice, video) lives in the `untilthen-media`
-R2 bucket. A one-time toggle makes sure deleted/overwritten objects
-are recoverable.
+R2 bucket. Cloudflare doesn't currently offer bucket-level object
+versioning in the R2 dashboard (on their roadmap, not shipped yet),
+so the protection layer here is **code discipline rather than
+infrastructure**:
 
-**Steps (user):**
+- Every call to `deleteR2Object` in `src/lib/r2.ts` must be guarded
+  by user confirmation on the client side **or** a single-row
+  delete authorized by the owning user's Clerk session.
+- No bulk-delete endpoint exists today — don't add one without a
+  two-step confirmation UI (type the child / collection name) and
+  an audit-log row written before the delete fires.
+- `scripts/` must not grow a "clean up orphaned media" one-liner
+  that runs unattended. If orphan sweep becomes necessary, write
+  it as a dry-run-by-default tool with an explicit `--apply`
+  flag and a per-run cap.
 
-1. Cloudflare dashboard → R2 → `untilthen-media` → **Settings**
-2. **Object versioning** → Enable
-3. Add a lifecycle rule:
-   - Prefix: `` (blank = entire bucket)
-   - Action: **Delete non-current versions after 30 days**
-4. Save
-
-Current object keys stay stable. Previous versions are reachable via
-the Cloudflare dashboard or the S3 `ListObjectVersions` API.
+Revisit this section when Cloudflare ships object versioning for
+R2; the original plan was bucket versioning + 30-day non-current
+retention.
 
 ---
 
