@@ -1,7 +1,7 @@
 export function HowItWorks() {
   return (
     <section id="how" className="bg-cream">
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-10 lg:pt-24 pb-3 lg:pb-7 lg:text-center">
+      <div className="mx-auto max-w-[1080px] px-6 lg:px-14 pt-10 lg:pt-24 pb-3 lg:pb-7 lg:text-center">
         <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-3.5">
           How it works
         </p>

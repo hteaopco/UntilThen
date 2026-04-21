@@ -3,7 +3,7 @@ import { HeroImageCrossfade } from "@/components/landing/HeroImageCrossfade";
 export function Hero() {
   return (
     <section id="top" className="bg-cream overflow-hidden">
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-[120px] lg:pt-[140px] pb-10 lg:pb-20">
+      <div className="mx-auto max-w-[1080px] px-6 lg:px-14 pt-[120px] lg:pt-[140px] pb-10 lg:pb-20">
         {/* Mobile / tablet: stacked and centered — same as before.
             Desktop (lg+): two-column grid with copy on the left
             (left-aligned) and the crossfade art on the right. */}

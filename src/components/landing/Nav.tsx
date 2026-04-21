@@ -46,7 +46,7 @@ export function Nav() {
       }`}
       style={{ WebkitBackdropFilter: scrolled ? "blur(12px)" : "none" }}
     >
-      <div className="mx-auto max-w-[1280px] px-5 lg:px-14 py-4 lg:py-5 flex items-center justify-between">
+      <div className="mx-auto max-w-[1080px] px-5 lg:px-14 py-4 lg:py-5 flex items-center justify-between">
         <Link href="/" aria-label="untilThen home" className="flex items-center">
           <LogoSvg variant="dark" />
         </Link>

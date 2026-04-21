@@ -5,7 +5,7 @@ import { Mic, Pencil } from "lucide-react";
 export function Features() {
   return (
     <section id="features" className="bg-cream">
-      <div className="mx-auto max-w-[1280px] px-6 lg:px-14 pt-3 lg:pt-7 pb-0">
+      <div className="mx-auto max-w-[1080px] px-6 lg:px-14 pt-3 lg:pt-7 pb-0">
         <div className="space-y-4 lg:space-y-5">
           <div className="grid gap-2 sm:gap-3 lg:gap-5 grid-cols-2">
             {/* Voice Notes */}
