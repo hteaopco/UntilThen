@@ -166,9 +166,9 @@ export default async function MainDiaryPage({
         href={`/vault/${child.id}/new`}
         prefetch={false}
         aria-label="Add a new memory"
-        className="fixed bottom-6 left-6 z-30 w-14 h-14 rounded-full bg-white border border-amber/40 text-amber flex items-center justify-center shadow-[0_6px_20px_-6px_rgba(196,122,58,0.25)] hover:bg-amber-tint/60 hover:border-amber/60 transition-colors"
+        className="fixed bottom-6 left-6 z-30 w-[140px] h-[140px] rounded-full bg-white border border-amber/40 text-amber flex items-center justify-center shadow-[0_10px_32px_-8px_rgba(196,122,58,0.3)] hover:bg-amber-tint/60 hover:border-amber/60 transition-colors"
       >
-        <Plus size={24} strokeWidth={2} />
+        <Plus size={60} strokeWidth={1.75} />
       </Link>
     </main>
   );
