@@ -31,6 +31,7 @@ const VALID_TARGETS: MediaTarget[] = [
   "entry",
   "capsuleContribution",
   "vault",
+  "collection",
 ];
 
 export async function POST(req: Request) {
@@ -171,7 +172,7 @@ export async function POST(req: Request) {
           return NextResponse.json({ error: "Forbidden." }, { status: 403 });
         }
       }
-    } else {
+    } else if (target === "vault") {
       // vault — only the vault owner (child's parent) can upload a
       // cover. Covers are always "photo"; keep kind guard tight.
       if (kind !== "photo") {
@@ -191,6 +192,31 @@ export async function POST(req: Request) {
         );
       const parent = await prisma.user.findUnique({
         where: { id: vault.child.parentId },
+        select: { clerkId: true },
+      });
+      if (parent?.clerkId !== userId) {
+        return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+      }
+    } else {
+      // collection — only the vault owner (parent of the child this
+      // collection belongs to) can upload a cover. Photo-only.
+      if (kind !== "photo") {
+        return NextResponse.json(
+          { error: "Collection covers must be photos." },
+          { status: 400 },
+        );
+      }
+      const collection = await prisma.collection.findUnique({
+        where: { id: targetId },
+        include: { vault: { include: { child: { select: { parentId: true } } } } },
+      });
+      if (!collection)
+        return NextResponse.json(
+          { error: "Collection not found." },
+          { status: 404 },
+        );
+      const parent = await prisma.user.findUnique({
+        where: { id: collection.vault.child.parentId },
         select: { clerkId: true },
       });
       if (parent?.clerkId !== userId) {

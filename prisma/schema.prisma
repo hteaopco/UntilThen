@@ -120,6 +120,7 @@ model Collection {
   title       String
   description String?
   coverEmoji  String?
+  coverUrl    String?
   revealDate  DateTime?
   isSealed    Boolean   @default(false)
   createdAt   DateTime  @default(now())

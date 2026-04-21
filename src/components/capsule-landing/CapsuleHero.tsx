@@ -4,11 +4,13 @@ import { useState } from "react";
 import { Pencil, Plus } from "lucide-react";
 
 import { CoverUploader } from "@/components/dashboard2/CoverUploader";
+import { CreateCollectionModal } from "@/components/capsule-landing/CreateCollectionModal";
 
 type Props = {
   vaultId: string;
   childFirstName: string;
   vaultCoverUrl: string | null;
+  vaultRevealDate: string | null;
 };
 
 /**
@@ -29,8 +31,10 @@ export function CapsuleHero({
   vaultId,
   childFirstName,
   vaultCoverUrl,
+  vaultRevealDate,
 }: Props) {
   const [uploaderOpen, setUploaderOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
 
   return (
     <section>
@@ -51,7 +55,7 @@ export function CapsuleHero({
             Time Capsule <span className="text-amber">♡</span>
           </h1>
           <div className="mt-auto">
-            <CreateCollectionCard compact />
+            <CreateCollectionCard compact onClick={() => setCreateOpen(true)} />
           </div>
         </div>
       </div>
@@ -77,7 +81,7 @@ export function CapsuleHero({
             {childFirstName}, {childFirstName}.
           </p>
           <div className="mt-5 max-w-[380px]">
-            <CreateCollectionCard compact={false} />
+            <CreateCollectionCard compact={false} onClick={() => setCreateOpen(true)} />
           </div>
         </div>
       </div>
@@ -88,6 +92,15 @@ export function CapsuleHero({
           childFirstName={childFirstName}
           currentCoverUrl={vaultCoverUrl}
           onClose={() => setUploaderOpen(false)}
+        />
+      )}
+
+      {createOpen && (
+        <CreateCollectionModal
+          vaultId={vaultId}
+          vaultRevealDate={vaultRevealDate}
+          childFirstName={childFirstName}
+          onClose={() => setCreateOpen(false)}
         />
       )}
     </section>
@@ -134,10 +147,17 @@ function CapsuleCover({
   );
 }
 
-function CreateCollectionCard({ compact }: { compact: boolean }) {
+function CreateCollectionCard({
+  compact,
+  onClick,
+}: {
+  compact: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className={`w-full flex items-center justify-between gap-3 rounded-full bg-white border border-amber/30 shadow-[0_4px_14px_-6px_rgba(196,122,58,0.15)] hover:border-amber/50 hover:shadow-[0_6px_18px_-6px_rgba(196,122,58,0.25)] transition-all ${
         compact ? "pl-4 pr-1.5 py-1.5" : "pl-5 pr-2 py-2"
       }`}

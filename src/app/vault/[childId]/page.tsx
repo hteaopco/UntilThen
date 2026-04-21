@@ -42,6 +42,7 @@ export default async function CapsuleLandingPage({
           vaultId={vault.id}
           childFirstName={child.firstName}
           vaultCoverUrl={vault.coverUrl}
+          vaultRevealDate={vault.revealDate?.toISOString() ?? null}
         />
 
         <section>
