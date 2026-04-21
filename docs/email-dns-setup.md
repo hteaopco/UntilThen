@@ -20,30 +20,41 @@ threshold on a single invite blast.
 ## Records in production
 
 Resend-issued DKIM + merged SPF (Resend + Microsoft 365 for the
-inbound `hello@` mailbox) + Postmark-hosted DMARC reports. All
-four records are Cloudflare TXT / MX entries, proxy disabled.
+inbound `hello@` mailbox) + a minimal DMARC record in monitor
+mode. All four records are Cloudflare TXT / MX entries, proxy
+disabled.
 
 | Type | Name                  | Content                                                                                                                                 | Notes |
 | ---- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----- |
 | TXT  | `resend._domainkey`   | `v=DKIM1; k=rsa; p=<full key Resend generates>`                                                                                         | Selector is `resend`. Copy the entire `v=DKIM1; k=rsa; p=…` string from the Resend dashboard |
 | TXT  | `@`                   | `v=spf1 include:amazonses.com include:spf.protection.outlook.com ~all`                                                                  | One record only per host — merge new senders into this one |
 | MX   | `send`                | `feedback-smtp.us-east-1.amazonses.com` priority 10                                                                                     | Bounce / feedback loop for SES under Resend |
-| TXT  | `_dmarc`              | `v=DMARC1; p=none; rua=mailto:re+<token>@dmarc.postmarkapp.com; adkim=r; aspf=r`                                                        | `<token>` comes from Postmark DMARC Digests — sign up at https://dmarc.postmarkapp.com and paste the emailed token in place |
+| TXT  | `_dmarc`              | `v=DMARC1; p=none; adkim=r; aspf=r`                                                                                                     | Monitor mode, no reporting ingestor yet — add `rua=` at the `p=quarantine` step |
 
 After DNS propagates (5–15 min) click **Verify** in Resend → the
 domain should flip to Verified with green ticks on SPF + DKIM.
 
 ### DMARC ramp
 
-Start at `p=none` (monitor only). Review Postmark's weekly digest
-for two weeks. Once there are no unauthorised sources and alignment
-is passing, raise:
+Start at `p=none` (monitor only). At `p=none`, nothing gets blocked
+or spam-foldered regardless of alignment — the policy is purely
+advisory — so the reports aren't actionable yet. Skipping the
+ingestor keeps today's setup minimal.
 
-- Week 3+: `p=quarantine` (suspicious mail lands in spam)
-- Week 5+: `p=reject` (hard fail on unaligned mail)
+When you're ready to tighten the policy:
 
-Edit the `_dmarc` TXT record in place for each step — no other
-changes needed.
+- **Week 3+**: sign up `untilthenapp.io` at
+  https://dmarc.postmarkapp.com (free, readable UI). Paste the
+  emailed token into a new `rua=` tag and tighten to `quarantine`:
+  ```
+  v=DMARC1; p=quarantine; rua=mailto:re+<token>@dmarc.postmarkapp.com; adkim=r; aspf=r
+  ```
+  Review Postmark digests weekly for 2 weeks. Any unexpected
+  sources or alignment failures get investigated here before the
+  next step.
+- **Week 5+**: `p=reject` — hard fail on unaligned mail.
+
+Edit the `_dmarc` TXT record in place for each step.
 
 ---
 
@@ -91,13 +102,12 @@ and review the 10/10 scorecard there.
 
 ## Monitor
 
-DMARC aggregate reports land in Postmark's UI via the `rua=` address
-in the `_dmarc` record. Log in at https://dmarc.postmarkapp.com
-weekly for the first month — look for:
+No DMARC reporting set up at the `p=none` stage — reports without
+an enforcement policy are mostly noise. Revisit when the policy
+moves to `p=quarantine` (see the DMARC ramp section above), at
+which point Postmark's free ingestor becomes worth the 2-minute
+signup.
 
-- **Alignment** staying at 100% (no unexpected sources)
-- **Pass rate** staying > 98% (the remaining 2% is typically
-  forwarders + auto-replies that strip DKIM — expected background
-  noise)
-- New domains/IPs showing up in the "Sources" panel — investigate
-  any unknown source before tightening past `p=none`
+In the meantime, eyeball deliverability by sending a weekly test
+through `/admin/emails` → a Gmail + an Outlook + an iCloud inbox
+→ confirm all three land in the primary inbox, not spam.
