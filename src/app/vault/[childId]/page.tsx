@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ChevronRight, Eye, Plus } from "lucide-react";
+import { Eye } from "lucide-react";
 
 import { CapsuleHero } from "@/components/capsule-landing/CapsuleHero";
 import { CollectionCard } from "@/components/capsule-landing/CollectionCard";
@@ -77,14 +77,6 @@ export default async function CapsuleLandingPage({
               ))}
             </ul>
           )}
-
-          <hr className="border-t border-navy/[0.08] mt-8 mb-6" />
-
-          <AddMemoryCta
-            vaultId={vault.id}
-            childId={child.id}
-            childFirstName={child.firstName}
-          />
         </section>
       </div>
     </main>
@@ -107,42 +99,3 @@ function EmptyCollections({ childFirstName }: { childFirstName: string }) {
  * capsule contributor form) without a collectionId, so new entries
  * land in the "Main Capsule Diary" bucket (collectionId: null).
  */
-function AddMemoryCta({
-  vaultId: _vaultId,
-  childId,
-  childFirstName,
-}: {
-  vaultId: string;
-  childId: string;
-  childFirstName: string;
-}) {
-  return (
-    <Link
-      href={`/vault/${childId}/new`}
-      prefetch={false}
-      className="flex items-center gap-4 rounded-2xl border-2 border-dashed border-amber/40 bg-white/60 px-5 py-4 hover:bg-white hover:border-amber/60 transition-colors group"
-    >
-      <span
-        aria-hidden="true"
-        className="shrink-0 w-11 h-11 rounded-full border-2 border-amber/60 text-amber flex items-center justify-center"
-      >
-        <Plus size={20} strokeWidth={2} />
-      </span>
-      <div className="flex-1 min-w-0">
-        <div className="text-[15px] sm:text-[16px] font-bold text-navy tracking-[-0.2px]">
-          Add a new memory
-        </div>
-        <div className="text-[13px] text-ink-mid mt-0.5">
-          Capture another meaningful moment for {childFirstName}.
-        </div>
-      </div>
-      <ChevronRight
-        size={18}
-        strokeWidth={1.75}
-        className="text-ink-light group-hover:text-amber transition-colors shrink-0"
-        aria-hidden="true"
-      />
-    </Link>
-  );
-}
-

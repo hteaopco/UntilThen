@@ -128,20 +128,31 @@ export async function DELETE(
   const { id } = await ctx.params;
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
-  // Two delete modes:
-  //   { deleteEntries: false } (default) — detach the entries so
-  //     they survive as standalone memories in the vault, then
-  //     drop the collection.
-  //   { deleteEntries: true }            — delete the collection
-  //     and every memory inside in one transaction.
-  // Body is optional so a plain `DELETE` still works (defaults to
-  // detach), matching the previous behaviour.
+  // Three delete modes:
+  //   { deleteEntries: true }             — hard-delete everything
+  //     (entries + collection) in one transaction.
+  //   { moveEntriesTo: "<collectionId>" } — reparent entries to
+  //     another sibling collection, then drop the collection. Use
+  //     an empty string / null / "main-diary" to mean "move to the
+  //     Main Capsule Diary" (i.e. collectionId = null).
+  //   (neither)                           — detach the entries
+  //     (collectionId: null, orderIndex: null) and drop the
+  //     collection. Keeps the previous default.
   let deleteEntries = false;
+  let moveEntriesTo: string | null | undefined = undefined;
   try {
     const body = (await req.json().catch(() => null)) as
-      | { deleteEntries?: unknown }
+      | { deleteEntries?: unknown; moveEntriesTo?: unknown }
       | null;
     if (body && body.deleteEntries === true) deleteEntries = true;
+    if (body && typeof body.moveEntriesTo === "string") {
+      moveEntriesTo =
+        body.moveEntriesTo.trim() && body.moveEntriesTo !== "main-diary"
+          ? body.moveEntriesTo.trim()
+          : null;
+    } else if (body && body.moveEntriesTo === null) {
+      moveEntriesTo = null;
+    }
   } catch {
     /* no body — keep default */
   }
@@ -156,12 +167,46 @@ export async function DELETE(
 
   try {
     const { prisma } = await import("@/lib/prisma");
+
+    // Validate the move target if one was supplied (sibling
+    // collection on the same vault, owned by the caller). A null
+    // target means "Main Capsule Diary" (collectionId = null on
+    // each entry) and is always allowed.
+    let safeTarget: string | null | undefined = moveEntriesTo;
+    if (typeof safeTarget === "string") {
+      const target = await prisma.collection.findUnique({
+        where: { id: safeTarget },
+        select: { vaultId: true, authorId: true },
+      });
+      if (
+        !target ||
+        target.authorId !== owned.user?.id ||
+        target.vaultId !== owned.collection.vaultId
+      ) {
+        return NextResponse.json(
+          { error: "Invalid target collection." },
+          { status: 400 },
+        );
+      }
+    }
+
     if (deleteEntries) {
       // Hard delete every memory inside the collection, then the
       // collection itself. Single transaction so a failure mid-way
       // doesn't leave orphaned entries pointing at a missing FK.
       await prisma.$transaction([
         prisma.entry.deleteMany({ where: { collectionId: id } }),
+        prisma.collection.delete({ where: { id } }),
+      ]);
+    } else if (moveEntriesTo !== undefined) {
+      // Reparent entries to the chosen target (null = Main Diary,
+      // a string = a sibling Collection). Drop orderIndex so
+      // re-ordered positions don't leak into the new parent.
+      await prisma.$transaction([
+        prisma.entry.updateMany({
+          where: { collectionId: id },
+          data: { collectionId: safeTarget ?? null, orderIndex: null },
+        }),
         prisma.collection.delete({ where: { id } }),
       ]);
     } else {

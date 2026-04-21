@@ -162,11 +162,11 @@ export function PreviewClient({
                   The vault is still empty. Go write {childFirstName} something.
                 </p>
                 <Link
-                  href="/dashboard/new"
+                  href="/dashboard"
                   prefetch={false}
                   className="inline-block bg-gold text-navy px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-gold-light transition-colors"
                 >
-                  Write your first letter
+                  Back to your vault
                 </Link>
               </div>
             ) : (

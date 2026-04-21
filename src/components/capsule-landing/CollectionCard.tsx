@@ -35,7 +35,7 @@ export function CollectionCard({ childId, collection, age }: Props) {
   const hasDate = !!collection.revealDate;
   const detailHref = collection.isMainDiary
     ? `/vault/${childId}/diary`
-    : `/dashboard/collection/${collection.id}`;
+    : `/vault/${childId}/collection/${collection.id}`;
   const newHref = collection.isMainDiary
     ? `/vault/${childId}/new`
     : `/vault/${childId}/new?collectionId=${collection.id}`;
@@ -102,7 +102,7 @@ export function CollectionCard({ childId, collection, age }: Props) {
       <div className="shrink-0 flex flex-col gap-1.5">
         {!collection.isMainDiary && (
           <Link
-            href={`/dashboard/collection/${collection.id}`}
+            href={`/vault/${childId}/collection/${collection.id}`}
             prefetch={false}
             aria-label={`Edit ${collection.title}`}
             className="w-9 h-9 rounded-full border border-navy/10 bg-white text-ink-mid hover:text-amber hover:border-amber/40 transition-colors flex items-center justify-center"

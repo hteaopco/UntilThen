@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { CoverUploader } from "@/components/dashboard2/CoverUploader";
+import { DeleteCollectionModal } from "@/components/capsule-landing/DeleteCollectionModal";
 import { EditCollectionDetailsModal } from "@/components/capsule-landing/EditCollectionDetailsModal";
 import { formatLong } from "@/lib/dateFormatters";
 
@@ -43,10 +44,17 @@ export type CollectionLandingProps = {
   entries: CollectionLandingEntry[];
   /** Identifier for the editable row. Required when isDiary is false. */
   collectionId?: string;
+  /** Used to route back to the vault after a successful delete, and
+   * for the "Main Capsule Diary" destination in the move-entries
+   * option inside DeleteCollectionModal. */
+  childId?: string;
   /** Needed by the modals — they clamp the picker to ≤ vault date. */
   vaultRevealDate?: string | null;
   /** Raw reveal date (ISO) so the edit modal can pre-populate. */
   collectionRevealDate?: string | null;
+  /** Other collections on the same vault. DeleteCollectionModal
+   * offers these as targets in the "move entries to…" dropdown. */
+  siblingCollections?: { id: string; title: string }[];
 };
 
 /**
@@ -70,11 +78,14 @@ export function CollectionLandingView({
   childFirstName,
   entries,
   collectionId,
+  childId,
   vaultRevealDate = null,
   collectionRevealDate = null,
+  siblingCollections = [],
 }: CollectionLandingProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [coverOpen, setCoverOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const canEdit = !isDiary && Boolean(collectionId);
 
   return (
@@ -109,20 +120,29 @@ export function CollectionLandingView({
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <EditPill
-            icon={<Pencil size={13} strokeWidth={1.75} />}
-            label="Edit Details"
-            enabled={canEdit}
-            onClick={() => setDetailsOpen(true)}
-          />
-          <EditPill
-            icon={<ImagePlus size={13} strokeWidth={1.75} />}
-            label="Edit Cover Photo"
-            enabled={canEdit}
-            onClick={() => setCoverOpen(true)}
-          />
-        </div>
+        {/* Edit pills are only for real collections — the Main
+            Capsule Diary is the catch-all bucket and isn't
+            user-customizable. */}
+        {canEdit && (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setDetailsOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-navy/10 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-mid hover:text-amber hover:border-amber/40 transition-colors"
+            >
+              <Pencil size={13} strokeWidth={1.75} />
+              Edit Details
+            </button>
+            <button
+              type="button"
+              onClick={() => setCoverOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-navy/10 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-mid hover:text-amber hover:border-amber/40 transition-colors"
+            >
+              <ImagePlus size={13} strokeWidth={1.75} />
+              Edit Cover Photo
+            </button>
+          </div>
+        )}
 
         <div className="mt-6">
           {entries.length === 0 ? (
@@ -140,6 +160,20 @@ export function CollectionLandingView({
             </ul>
           )}
         </div>
+
+        {/* Subtle destructive affordance. Real collections only —
+            the Main Capsule Diary can't be deleted. */}
+        {canEdit && (
+          <div className="mt-16 mb-4 text-center">
+            <button
+              type="button"
+              onClick={() => setDeleteOpen(true)}
+              className="text-[12px] text-ink-light/70 hover:text-red-600 transition-colors"
+            >
+              Delete collection
+            </button>
+          </div>
+        )}
       </section>
 
       {/* Floating add-memory FAB, bottom-right. */}
@@ -174,37 +208,18 @@ export function CollectionLandingView({
           onClose={() => setCoverOpen(false)}
         />
       )}
-    </>
-  );
-}
 
-function EditPill({
-  icon,
-  label,
-  enabled,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  enabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={enabled ? onClick : undefined}
-      disabled={!enabled}
-      aria-disabled={!enabled}
-      title={enabled ? undefined : "Not editable for Main Capsule Diary"}
-      className={`inline-flex items-center gap-1.5 rounded-full border border-navy/10 bg-white px-3 py-1.5 text-[12px] font-semibold transition-colors ${
-        enabled
-          ? "text-ink-mid hover:text-amber hover:border-amber/40"
-          : "text-ink-light/50 cursor-not-allowed"
-      }`}
-    >
-      {icon}
-      {label}
-    </button>
+      {canEdit && deleteOpen && collectionId && childId && (
+        <DeleteCollectionModal
+          collectionId={collectionId}
+          collectionTitle={title}
+          childId={childId}
+          entryCount={entries.length}
+          siblings={siblingCollections}
+          onClose={() => setDeleteOpen(false)}
+        />
+      )}
+    </>
   );
 }
 
