@@ -91,7 +91,7 @@ export function CollectionLandingView({
   return (
     <>
       <section className="mx-auto max-w-[720px] px-6 pt-6">
-        <div className="mt-3 flex items-stretch justify-between gap-4">
+        <div className="mt-3 flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0 flex flex-col">
             <h1 className="text-[26px] sm:text-[32px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
               {title}
@@ -107,42 +107,44 @@ export function CollectionLandingView({
               </p>
             )}
           </div>
-          <div className="shrink-0 w-[110px] sm:w-[140px] aspect-square rounded-2xl overflow-hidden border border-amber/30 bg-gradient-to-br from-amber/30 via-cream to-amber/15 flex items-center justify-center text-amber">
-            {coverUrl ? (
-              <img
-                src={coverUrl}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <BookHeart size={36} strokeWidth={1.5} aria-hidden="true" />
+          {/* Right column: cover stacked above the Edit Details pill.
+              Pencil overlays the cover's top-right corner (real
+              collections only) and opens the cover-only uploader
+              directly. */}
+          <div className="shrink-0 w-[110px] sm:w-[140px] flex flex-col gap-2">
+            <div className="relative aspect-square rounded-2xl overflow-hidden border border-amber/30 bg-gradient-to-br from-amber/30 via-cream to-amber/15 flex items-center justify-center text-amber">
+              {coverUrl ? (
+                <img
+                  src={coverUrl}
+                  alt=""
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <BookHeart size={36} strokeWidth={1.5} aria-hidden="true" />
+              )}
+              {canEdit && (
+                <button
+                  type="button"
+                  onClick={() => setCoverOpen(true)}
+                  aria-label="Edit cover photo"
+                  className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-[0_2px_8px_rgba(15,31,61,0.15)] text-amber hover:bg-white hover:scale-105 transition-all"
+                >
+                  <Pencil size={13} strokeWidth={2} />
+                </button>
+              )}
+            </div>
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => setDetailsOpen(true)}
+                className="w-full inline-flex items-center justify-center gap-1.5 rounded-full border border-navy/10 bg-white px-2.5 py-1.5 text-[12px] font-semibold text-ink-mid hover:text-amber hover:border-amber/40 transition-colors"
+              >
+                <Pencil size={12} strokeWidth={1.75} />
+                Edit Details
+              </button>
             )}
           </div>
         </div>
-
-        {/* Edit pills are only for real collections — the Main
-            Capsule Diary is the catch-all bucket and isn't
-            user-customizable. */}
-        {canEdit && (
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setDetailsOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-navy/10 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-mid hover:text-amber hover:border-amber/40 transition-colors"
-            >
-              <Pencil size={13} strokeWidth={1.75} />
-              Edit Details
-            </button>
-            <button
-              type="button"
-              onClick={() => setCoverOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-navy/10 bg-white px-3 py-1.5 text-[12px] font-semibold text-ink-mid hover:text-amber hover:border-amber/40 transition-colors"
-            >
-              <ImagePlus size={13} strokeWidth={1.75} />
-              Edit Cover Photo
-            </button>
-          </div>
-        )}
 
         <div className="mt-6">
           {entries.length === 0 ? (
@@ -194,6 +196,7 @@ export function CollectionLandingView({
             title,
             description,
             revealDate: collectionRevealDate,
+            coverUrl,
           }}
           onClose={() => setDetailsOpen(false)}
         />

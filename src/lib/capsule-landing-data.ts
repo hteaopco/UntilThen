@@ -89,6 +89,23 @@ export async function loadCapsuleLandingData({
     }
   }
 
+  // Sign each collection's cover in parallel so real thumbnails
+  // render on the vault landing — otherwise the gradient
+  // placeholder keeps showing even after a cover was uploaded.
+  const signedCollectionCovers = await Promise.all(
+    collections.map(async (c) => {
+      if (!c.coverUrl || !r2IsConfigured()) return { id: c.id, url: null };
+      try {
+        return { id: c.id, url: await signGetUrl(c.coverUrl) };
+      } catch {
+        return { id: c.id, url: null };
+      }
+    }),
+  );
+  const coverByCollection = new Map(
+    signedCollectionCovers.map((x) => [x.id, x.url]),
+  );
+
   const mainDiaryRow: CollectionRow = {
     id: MAIN_DIARY_ID,
     title: "Main Capsule Diary",
@@ -106,7 +123,7 @@ export async function loadCapsuleLandingData({
       id: c.id,
       title: c.title,
       description: c.description,
-      coverUrl: null,
+      coverUrl: coverByCollection.get(c.id) ?? null,
       revealDate: c.revealDate,
       isSealed: c.isSealed,
       stats: aggregateEntryStats(c.entries),

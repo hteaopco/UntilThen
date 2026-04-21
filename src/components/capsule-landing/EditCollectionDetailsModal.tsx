@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import Cropper, { type Area } from "react-easy-crop";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
+import { ImagePlus, X, ZoomIn, ZoomOut } from "lucide-react";
 
 import { formatLong } from "@/lib/dateFormatters";
 
@@ -16,16 +17,25 @@ type Props = {
     title: string;
     description: string | null;
     revealDate: string | null;
+    coverUrl: string | null;
   };
   onClose: () => void;
 };
 
+// Matches CreateCollectionModal + vault cover output.
+const OUTPUT_WIDTH = 1600;
+const OUTPUT_HEIGHT = 1200;
+
 /**
- * Edit-mode companion to CreateCollectionModal: pre-populated with
- * the collection's current values, PATCHes /api/collections/{id}
- * with whatever the user changes, and calls router.refresh() so the
- * landing view picks up the new values. Cover-photo editing lives in
- * the separate CoverUploader flow triggered by the other pill.
+ * Edit-mode companion to CreateCollectionModal. Lets the viewer
+ * update a collection's name, cover photo, description, and reveal
+ * date in one place.
+ *
+ * On save:
+ *   1. PATCH /api/collections/{id} with title + description + reveal
+ *   2. If a new cover crop was produced, sign + PUT to R2, then
+ *      PATCH /api/account/collections/{id}/cover with the key
+ *   3. router.refresh() so the landing view re-renders
  */
 export function EditCollectionDetailsModal({
   collectionId,
@@ -34,11 +44,16 @@ export function EditCollectionDetailsModal({
   onClose,
 }: Props) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(initial.title);
   const [description, setDescription] = useState(initial.description ?? "");
   const [revealDate, setRevealDate] = useState(
     initial.revealDate ? initial.revealDate.slice(0, 10) : "",
   );
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [cropAreaPixels, setCropAreaPixels] = useState<Area | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,6 +64,33 @@ export function EditCollectionDetailsModal({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose, saving]);
+
+  const onCropComplete = useCallback((_area: Area, areaPixels: Area) => {
+    setCropAreaPixels(areaPixels);
+  }, []);
+
+  const onFilePicked = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setError("Please pick an image file.");
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setError("Image is larger than 15MB.");
+      return;
+    }
+    setError(null);
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        setImageSrc(reader.result);
+        setCrop({ x: 0, y: 0 });
+        setZoom(1);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -71,7 +113,8 @@ export function EditCollectionDetailsModal({
     setSaving(true);
     setError(null);
     try {
-      const res = await fetch(`/api/collections/${collectionId}`, {
+      // 1. PATCH the collection metadata
+      const patchRes = await fetch(`/api/collections/${collectionId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -80,10 +123,50 @@ export function EditCollectionDetailsModal({
           revealDate: revealDate || null,
         }),
       });
-      if (!res.ok) {
-        const err = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!patchRes.ok) {
+        const err = (await patchRes.json().catch(() => ({}))) as {
+          error?: string;
+        };
         throw new Error(err.error ?? "Couldn't save changes.");
       }
+
+      // 2. If a new cover was cropped, upload it + PATCH coverUrl
+      if (imageSrc && cropAreaPixels) {
+        const blob = await cropToBlob(imageSrc, cropAreaPixels);
+        if (blob) {
+          const signRes = await fetch("/api/upload/sign", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              target: "collection",
+              targetId: collectionId,
+              kind: "photo",
+              contentType: "image/jpeg",
+              filename: "cover.jpg",
+              size: blob.size,
+            }),
+          });
+          if (signRes.ok) {
+            const { uploadUrl, key } = (await signRes.json()) as {
+              uploadUrl: string;
+              key: string;
+            };
+            const putRes = await fetch(uploadUrl, {
+              method: "PUT",
+              headers: { "Content-Type": "image/jpeg" },
+              body: blob,
+            });
+            if (putRes.ok) {
+              await fetch(`/api/account/collections/${collectionId}/cover`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ key }),
+              });
+            }
+          }
+        }
+      }
+
       router.refresh();
       onClose();
     } catch (err) {
@@ -99,7 +182,7 @@ export function EditCollectionDetailsModal({
         if (e.target === e.currentTarget && !saving) onClose();
       }}
     >
-      <div className="w-full max-w-[520px] max-h-[94vh] flex flex-col bg-cream rounded-2xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] overflow-hidden">
+      <div className="w-full max-w-[560px] max-h-[94vh] flex flex-col bg-cream rounded-2xl shadow-[0_20px_60px_-10px_rgba(0,0,0,0.5)] overflow-hidden">
         <header className="flex items-center justify-between px-5 py-4 border-b border-navy/5">
           <h2 className="text-[17px] font-bold text-navy tracking-[-0.2px]">
             Edit collection details
@@ -129,6 +212,94 @@ export function EditCollectionDetailsModal({
                 maxLength={80}
                 autoFocus
                 className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/50 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] uppercase tracking-[0.08em] font-semibold text-ink-light mb-1">
+                Cover photo
+              </label>
+              {imageSrc ? (
+                <div className="space-y-2">
+                  <div className="relative w-full aspect-[4/3] bg-black rounded-xl overflow-hidden border border-amber/30">
+                    <Cropper
+                      image={imageSrc}
+                      crop={crop}
+                      zoom={zoom}
+                      aspect={4 / 3}
+                      onCropChange={setCrop}
+                      onZoomChange={setZoom}
+                      onCropComplete={onCropComplete}
+                      showGrid={true}
+                      objectFit="contain"
+                      zoomSpeed={0.25}
+                      minZoom={1}
+                      maxZoom={4}
+                    />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <ZoomOut size={14} strokeWidth={1.75} className="text-ink-light" />
+                    <input
+                      type="range"
+                      min={1}
+                      max={4}
+                      step={0.01}
+                      value={zoom}
+                      onChange={(e) => setZoom(Number(e.target.value))}
+                      disabled={saving}
+                      aria-label="Zoom"
+                      className="flex-1 accent-amber"
+                    />
+                    <ZoomIn size={14} strokeWidth={1.75} className="text-ink-light" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImageSrc(null);
+                        setCropAreaPixels(null);
+                      }}
+                      disabled={saving}
+                      className="text-[11px] font-semibold text-ink-mid hover:text-navy transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : initial.coverUrl ? (
+                <div className="flex items-center gap-3">
+                  <img
+                    src={initial.coverUrl}
+                    alt=""
+                    className="shrink-0 w-[120px] aspect-[4/3] object-cover rounded-xl border border-amber/20"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={saving}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-amber/40 bg-amber-tint text-amber px-3 py-2 text-[13px] font-semibold hover:bg-amber hover:text-white transition-colors"
+                  >
+                    <ImagePlus size={14} strokeWidth={1.75} />
+                    Replace photo
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={saving}
+                  className="w-full aspect-[4/3] rounded-xl border-2 border-dashed border-amber/40 bg-white/60 flex flex-col items-center justify-center gap-2 text-amber hover:bg-white hover:border-amber/60 transition-colors"
+                >
+                  <span className="w-12 h-12 rounded-full bg-amber-tint flex items-center justify-center">
+                    <ImagePlus size={22} strokeWidth={1.75} />
+                  </span>
+                  <span className="text-[13px] font-semibold">Add cover photo</span>
+                </button>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={onFilePicked}
               />
             </div>
 
@@ -195,4 +366,36 @@ export function EditCollectionDetailsModal({
       </div>
     </div>
   );
+}
+
+async function cropToBlob(imageSrc: string, area: Area): Promise<Blob | null> {
+  const img = await loadImage(imageSrc);
+  const canvas = document.createElement("canvas");
+  canvas.width = OUTPUT_WIDTH;
+  canvas.height = OUTPUT_HEIGHT;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return null;
+  ctx.drawImage(
+    img,
+    area.x,
+    area.y,
+    area.width,
+    area.height,
+    0,
+    0,
+    OUTPUT_WIDTH,
+    OUTPUT_HEIGHT,
+  );
+  return new Promise((resolve) => {
+    canvas.toBlob((b) => resolve(b), "image/jpeg", 0.9);
+  });
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Could not load image."));
+    img.src = src;
+  });
 }
