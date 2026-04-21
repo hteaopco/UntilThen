@@ -38,7 +38,7 @@ export default function SignInPage() {
         path="/sign-in"
         routing="path"
         signUpUrl="/sign-up"
-        forceRedirectUrl="/onboarding"
+        forceRedirectUrl="/dashboard"
         fallbackRedirectUrl="/dashboard"
       />
     </main>
