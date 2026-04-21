@@ -1,6 +1,9 @@
 # Nixpacks config for Railway
 [phases.setup]
-nixPkgs = ["nodejs_22", "openssl"]
+# postgresql_17 ships pg_dump / psql — used by the /api/cron/db-backup
+# endpoint to stream a nightly dump to R2 as a belt-and-suspenders
+# alongside Railway's native Postgres backups.
+nixPkgs = ["nodejs_22", "openssl", "postgresql_17"]
 
 [phases.install]
 cmds = [

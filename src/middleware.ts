@@ -57,6 +57,11 @@ function rateLimitKindFor(
     /^\/api\/capsules\/[^/]+\/refresh-token$/.test(path)
   )
     return "email";
+  if (
+    method === "POST" &&
+    /^\/api\/account\/contributors\/[^/]+\/resend$/.test(path)
+  )
+    return "email";
 
   // Auth-strict — account creation
   if (method === "POST" && path === "/api/onboarding") return "auth";
@@ -64,6 +69,10 @@ function rateLimitKindFor(
   // Public anonymous surfaces
   if (path.startsWith("/api/contribute/capsule/")) return "public";
   if (path.startsWith("/api/capsules/open/")) return "public";
+  // Token-gated invite lookup — no Clerk auth, so cap abuse.
+  // The /accept subpath is Clerk-gated and falls through to
+  // the authenticated bucket intentionally.
+  if (method === "GET" && /^\/api\/invites\/[^/]+$/.test(path)) return "public";
 
   // Default for any other API hit
   return "authenticated";

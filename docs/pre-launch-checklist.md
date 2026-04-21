@@ -8,9 +8,9 @@
 
 - [ ] **Square payment integration** — $9.99 Gift Capsule activation currently uses placeholder receipt, anyone can activate for free
 - [ ] **PIN vault lock** — re-enable or remove. Schema ready (`pinHash` live), just needs lock screen wired back into `dashboard/layout.tsx` (one-line re-add)
-- [ ] **Backup + restore verification** — actually restore a capsule from backup, not just confirm backup ran. This is a "for life" product; data loss = broken promise
-- [ ] **Rate limiting audit** — signup, contributor invite endpoints, password reset
-- [ ] **Email deliverability** — SPF/DKIM/DMARC verified in production DNS; warm-up plan for invite-blast volume
+- [~] **Backup + restore verification** — infrastructure shipped (nightly pg_dump → R2 at `/api/cron/db-backup`, restore CLI at `scripts/restore-db.ts`, runbook at `docs/backup-restore.md`). Still needs: (1) enable Railway native PG backups in dashboard, (2) create Railway cron service pointing at the new endpoint, (3) enable R2 object versioning + lifecycle rule, (4) run the end-to-end restore drill into staging
+- [~] **Rate limiting audit** — audit complete. Patched `/api/account/contributors/[id]/resend` (was 100/min → now email bucket 10/10min) and `/api/invites/[token]` GET (was 100/min → now public bucket 20/min). No other real gaps found; password reset is handled by Clerk's hosted UI, not custom API
+- [~] **Email deliverability** — Resend + `hello@untilthenapp.io` confirmed. DNS setup doc shipped at `docs/email-dns-setup.md`. Needs user to paste Resend DKIM records into Cloudflare DNS and add SPF + DMARC. Warm-up plan: start `p=none`, escalate after 2 weeks
 
 ---
 
