@@ -87,6 +87,7 @@ export default async function CapsuleLandingPage({
 
           <AddMemoryCta
             vaultId={vault.id}
+            childId={child.id}
             childFirstName={child.firstName}
           />
         </section>
@@ -107,21 +108,22 @@ function EmptyCollections({ childFirstName }: { childFirstName: string }) {
 }
 
 /**
- * Routes to the shared entry editor without a collectionId — that
- * flow defaults new entries to the vault's "Main Capsule Diary"
- * bucket (collectionId: null). Users can assign a collection
- * inside the editor if they want.
+ * Routes to the vault's polished memory editor (modeled on the gift
+ * capsule contributor form) without a collectionId, so new entries
+ * land in the "Main Capsule Diary" bucket (collectionId: null).
  */
 function AddMemoryCta({
-  vaultId,
+  vaultId: _vaultId,
+  childId,
   childFirstName,
 }: {
   vaultId: string;
+  childId: string;
   childFirstName: string;
 }) {
   return (
     <Link
-      href={`/dashboard/new?vault=${vaultId}`}
+      href={`/vault/${childId}/new`}
       prefetch={false}
       className="mt-4 flex items-center gap-4 rounded-2xl border-2 border-dashed border-amber/40 bg-white/60 px-5 py-4 hover:bg-white hover:border-amber/60 transition-colors group"
     >
