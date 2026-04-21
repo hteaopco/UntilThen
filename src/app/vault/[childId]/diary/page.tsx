@@ -132,17 +132,28 @@ export default async function MainDiaryPage({
             <ImagePlus size={13} strokeWidth={1.75} />
             Edit collection image
           </button>
-          <Link
-            href={`/vault/${child.id}/new`}
-            prefetch={false}
-            className="ml-auto inline-flex items-center gap-1.5 bg-amber text-white px-3 py-1.5 rounded-full text-[12px] font-bold hover:bg-amber-dark transition-colors"
-          >
-            <Plus size={13} strokeWidth={2} />
-            Add memory
-          </Link>
         </div>
 
-        <div className="mt-6">
+        {/* Dashed Add-a-new-memory card (compact; title only). */}
+        <Link
+          href={`/vault/${child.id}/new`}
+          prefetch={false}
+          className="mt-3 flex items-center gap-4 rounded-2xl border-2 border-dashed border-amber/40 bg-white/60 px-5 py-3 hover:bg-white hover:border-amber/60 transition-colors group"
+        >
+          <span
+            aria-hidden="true"
+            className="shrink-0 w-10 h-10 rounded-full border-2 border-amber/60 text-amber flex items-center justify-center"
+          >
+            <Plus size={18} strokeWidth={2} />
+          </span>
+          <span className="flex-1 min-w-0 text-[15px] sm:text-[16px] font-bold text-navy tracking-[-0.2px]">
+            Add a new memory
+          </span>
+        </Link>
+
+        <hr className="border-t border-navy/[0.08] mt-6 mb-6" />
+
+        <div>
           {entries.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-navy/10 bg-white/60 px-6 py-10 text-center">
               <p className="text-[14px] text-ink-mid leading-[1.5]">
