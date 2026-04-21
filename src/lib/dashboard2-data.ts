@@ -111,13 +111,17 @@ export async function loadDashboard2Data({
   const vaults: VaultCardData[] = children
     .filter((c) => c.vault !== null)
     .map((c) => {
-      const stats = vaultStats.get(c.vault!.id) ?? { entries: 0, photos: 0, voices: 0 };
+      const stats = vaultStats.get(c.vault!.id) ?? {
+        letters: 0,
+        photos: 0,
+        voices: 0,
+      };
       return {
         childId: c.id,
         vaultId: c.vault!.id,
         firstName: c.firstName,
         coverUrl: coverByVault.get(c.vault!.id) ?? null,
-        entryCount: stats.entries,
+        letterCount: stats.letters,
         photoCount: stats.photos,
         voiceCount: stats.voices,
       };
@@ -138,12 +142,16 @@ export async function loadDashboard2Data({
   });
 
   const received: GiftCapsuleReceivedData[] = receivedCapsules.map((c) => {
-    const stats = receivedStats.get(c.id) ?? { entries: 0, photos: 0, voices: 0 };
+    const stats = receivedStats.get(c.id) ?? {
+      letters: 0,
+      photos: 0,
+      voices: 0,
+    };
     return {
       id: c.id,
       title: c.title,
       coverUrl: null,
-      entryCount: stats.entries,
+      entryCount: stats.letters,
       photoCount: stats.photos,
       voiceCount: stats.voices,
     };
@@ -155,14 +163,22 @@ export async function loadDashboard2Data({
 function aggregateStats(
   rows: { type: string; mediaTypes: string[] }[],
   idKey: "vaultId" | "capsuleId",
-): Map<string, { entries: number; photos: number; voices: number }> {
-  const out = new Map<string, { entries: number; photos: number; voices: number }>();
+): Map<string, { letters: number; photos: number; voices: number }> {
+  // "letters" counts text-only memories so the three pills stay
+  // distinct — an entry with a photo attached is a photo, not a
+  // letter + a photo.
+  const out = new Map<string, { letters: number; photos: number; voices: number }>();
   for (const r of rows) {
     const key = (r as unknown as Record<string, string>)[idKey];
-    const current = out.get(key) ?? { entries: 0, photos: 0, voices: 0 };
-    current.entries += 1;
-    if (r.type === "PHOTO" || r.mediaTypes.includes("photo")) current.photos += 1;
-    if (r.type === "VOICE" || r.mediaTypes.includes("voice")) current.voices += 1;
+    const current = out.get(key) ?? { letters: 0, photos: 0, voices: 0 };
+    const hasPhoto = r.type === "PHOTO" || r.mediaTypes.includes("photo");
+    const hasVoice = r.type === "VOICE" || r.mediaTypes.includes("voice");
+    const hasVideo = r.type === "VIDEO" || r.mediaTypes.includes("video");
+    if (hasPhoto) current.photos += 1;
+    if (hasVoice) current.voices += 1;
+    if (r.type === "TEXT" && !hasPhoto && !hasVoice && !hasVideo) {
+      current.letters += 1;
+    }
     out.set(key, current);
   }
   return out;

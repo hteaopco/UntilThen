@@ -34,10 +34,10 @@ export default async function CapsuleLandingPage({
   const { child, vault, collections } = data;
 
   return (
-    <main className="min-h-screen bg-cream pb-16">
+    <main className="min-h-screen bg-cream pb-16 overflow-x-clip">
       <TopNav />
 
-      <div className="mx-auto max-w-[1020px] px-6 lg:px-10 pt-6 space-y-8 sm:space-y-10">
+      <div className="mx-auto max-w-[1020px] px-5 sm:px-6 lg:px-10 pt-6 space-y-8 sm:space-y-10">
         <CapsuleHero
           vaultId={vault.id}
           childFirstName={child.firstName}

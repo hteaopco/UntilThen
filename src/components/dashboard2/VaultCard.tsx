@@ -17,7 +17,7 @@ export type VaultCardData = {
   vaultId: string;
   firstName: string;
   coverUrl: string | null;
-  entryCount: number;
+  letterCount: number;
   photoCount: number;
   voiceCount: number;
 };
@@ -39,7 +39,6 @@ export type VaultCardData = {
  */
 export function VaultCard({ vault }: { vault: VaultCardData }) {
   const [uploaderOpen, setUploaderOpen] = useState(false);
-  const mock = mockCounts(vault.firstName);
   const detailHref = `/vault/${vault.childId}`;
   const hasCover = !!vault.coverUrl;
 
@@ -80,9 +79,9 @@ export function VaultCard({ vault }: { vault: VaultCardData }) {
           {vault.firstName}
         </h3>
         <div className="mt-2 flex items-center gap-4 text-ink-light">
-          <StatPill icon={<FileText size={16} strokeWidth={1.75} />} count={mock.entries} />
-          <StatPill icon={<ImageIcon size={16} strokeWidth={1.75} />} count={mock.photos} />
-          <StatPill icon={<AudioLines size={16} strokeWidth={1.75} />} count={mock.voices} />
+          <StatPill icon={<FileText size={16} strokeWidth={1.75} />} count={vault.letterCount} />
+          <StatPill icon={<ImageIcon size={16} strokeWidth={1.75} />} count={vault.photoCount} />
+          <StatPill icon={<AudioLines size={16} strokeWidth={1.75} />} count={vault.voiceCount} />
         </div>
       </Link>
 
@@ -116,21 +115,4 @@ function StatPill({ icon, count }: { icon: React.ReactNode; count: number }) {
       <span>{count}</span>
     </span>
   );
-}
-
-function hashOf(seed: string): number {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  return hash;
-}
-
-// Mock counts until real entry/photo/voice counts start landing. Hash-
-// driven so each child gets a distinct-feeling set without hand-picking.
-function mockCounts(name: string): { entries: number; photos: number; voices: number } {
-  const h = hashOf(name);
-  return {
-    entries: 20 + (h % 30),
-    photos: 8 + ((h >>> 5) % 20),
-    voices: 2 + ((h >>> 10) % 12),
-  };
 }
