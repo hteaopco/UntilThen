@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Layers, Pencil, ShoppingBag } from "lucide-react";
+import { Pencil, ShoppingBag } from "lucide-react";
 
 import { CoverUploader } from "@/components/dashboard2/CoverUploader";
 
@@ -15,12 +15,13 @@ type Props = {
  * Top-of-page hero for the capsule landing.
  *
  * Mobile (<sm): two-column row — a 120px square cover on the left
- *   paired with a flex-1 right column that holds a right-aligned
+ *   paired with a flex-1 right column that holds a left-aligned
  *   Alex Brush "{Child}'s Time Capsule ♡" title (wraps to two
- *   lines) followed by the two toggle buttons stacked vertically.
+ *   lines) with the "Create One Collection" toggle pinned to the
+ *   bottom of the column so it lines up with the cover's footer.
  *
  * Desktop (sm+): horizontal hero — 260–300px cover on the left,
- *   serif title + description + toggle row on the right.
+ *   serif title + description + single toggle on the right.
  *
  * The pencil on the cover opens the shared CoverUploader modal.
  */
@@ -43,13 +44,20 @@ export function CapsuleHero({
             compact
           />
         </div>
-        <div className="flex-1 min-w-0 flex flex-col gap-4">
-          <h1 className="font-brush text-[26px] leading-[1.05] text-navy text-right">
+        <div className="flex-1 min-w-0 h-[120px] flex flex-col">
+          <h1 className="font-brush font-bold text-[31px] leading-[1.02] text-navy text-left">
             {childFirstName}&rsquo;s
             <br />
             Time Capsule <span className="text-amber">♡</span>
           </h1>
-          <FloatingToggles compact />
+          <div className="mt-auto">
+            <ToggleCard
+              icon={<ShoppingBag size={18} strokeWidth={1.75} />}
+              title="Create One Collection"
+              body="A single collection to be opened on a special day."
+              compact
+            />
+          </div>
         </div>
       </div>
 
@@ -73,8 +81,13 @@ export function CapsuleHero({
             Capture the moments, memories and milestones that make{" "}
             {childFirstName}, {childFirstName}.
           </p>
-          <div className="mt-5">
-            <FloatingToggles />
+          <div className="mt-5 max-w-[380px]">
+            <ToggleCard
+              icon={<ShoppingBag size={22} strokeWidth={1.75} />}
+              title="Create One Collection"
+              body="A single collection to be opened on a special day."
+              compact={false}
+            />
           </div>
         </div>
       </div>
@@ -131,27 +144,6 @@ function CapsuleCover({
   );
 }
 
-function FloatingToggles({ compact = false }: { compact?: boolean }) {
-  return (
-    <div
-      className={`grid ${compact ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"} gap-2 sm:gap-3`}
-    >
-      <ToggleCard
-        icon={<ShoppingBag size={compact ? 18 : 22} strokeWidth={1.75} />}
-        title="Create One Collection"
-        body="A single collection to be opened on a special day."
-        compact={compact}
-      />
-      <ToggleCard
-        icon={<Layers size={compact ? 18 : 22} strokeWidth={1.75} />}
-        title="Create Multiple Collections"
-        body="Organize by milestones, years, or special moments."
-        compact={compact}
-      />
-    </div>
-  );
-}
-
 function ToggleCard({
   icon,
   title,
@@ -166,14 +158,14 @@ function ToggleCard({
   return (
     <button
       type="button"
-      className={`flex items-start gap-2.5 rounded-2xl bg-white border border-amber/20 shadow-[0_4px_14px_-6px_rgba(196,122,58,0.15)] text-left hover:border-amber/40 hover:shadow-[0_6px_18px_-6px_rgba(196,122,58,0.25)] transition-all ${
-        compact ? "px-3 py-2.5" : "px-4 py-3 gap-3"
+      className={`w-full flex items-start gap-2.5 rounded-2xl bg-white border border-amber/20 shadow-[0_4px_14px_-6px_rgba(196,122,58,0.15)] text-left hover:border-amber/40 hover:shadow-[0_6px_18px_-6px_rgba(196,122,58,0.25)] transition-all ${
+        compact ? "px-3 py-2" : "px-4 py-3 gap-3"
       }`}
     >
       <span
         aria-hidden="true"
         className={`shrink-0 rounded-xl bg-amber-tint text-amber flex items-center justify-center ${
-          compact ? "w-9 h-9" : "w-11 h-11"
+          compact ? "w-8 h-8" : "w-11 h-11"
         }`}
       >
         {icon}
@@ -181,13 +173,13 @@ function ToggleCard({
       <div className="min-w-0">
         <div
           className={`font-bold text-navy tracking-[-0.2px] leading-tight ${
-            compact ? "text-[12px]" : "text-[14px]"
+            compact ? "text-[11px]" : "text-[14px]"
           }`}
         >
           {title}
         </div>
         <div
-          className={`text-ink-mid leading-[1.35] mt-0.5 ${
+          className={`text-ink-mid leading-[1.3] mt-0.5 ${
             compact ? "text-[10px]" : "text-[12px]"
           }`}
         >
