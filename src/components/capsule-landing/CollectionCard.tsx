@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   AudioLines,
+  BookHeart,
   Calendar,
   FileText,
   Image as ImageIcon,
@@ -12,32 +13,33 @@ import { formatLong } from "@/lib/dateFormatters";
 import type { CollectionRow } from "@/lib/capsule-landing-data";
 
 type Props = {
+  childId: string;
   collection: CollectionRow;
   age: number | null;
 };
 
 /**
- * Single row for the "Olivia's Capsules" list. Cover (or gradient
+ * Single row for the "{Child}'s Collections" list. Cover (or gradient
  * placeholder) on the left, title + description + stats in the middle,
  * reveal date + computed age on the right, and a pencil edit button at
  * the far right.
  *
- * Clicking anywhere in the main body navigates to the collection
- * detail; the pencil is a sibling link to the edit flow so the two
- * actions don't conflict.
+ * When the row is the synthetic Main Capsule Diary (collection with
+ * isMainDiary=true, no DB row) the card routes to /vault/{childId}/diary
+ * and swaps the pencil for a plain status badge — there's nothing to
+ * "edit" on a virtual collection.
  */
-export function CollectionCard({ collection, age }: Props) {
-  const status = collection.isSealed ? "Sealed" : "Upcoming";
-  const statusStyle = collection.isSealed
-    ? "text-gold bg-gold-tint"
-    : "text-amber bg-amber-tint";
+export function CollectionCard({ childId, collection, age }: Props) {
   const { photos, videos, letters, voices } = collection.stats;
   const hasDate = !!collection.revealDate;
+  const detailHref = collection.isMainDiary
+    ? `/vault/${childId}/diary`
+    : `/dashboard/collection/${collection.id}`;
 
   return (
     <div className="relative rounded-2xl border border-amber/25 bg-white shadow-[0_4px_14px_-6px_rgba(196,122,58,0.15)] hover:border-amber/45 transition-colors">
       <Link
-        href={`/dashboard/collection/${collection.id}`}
+        href={detailHref}
         prefetch={false}
         className="flex flex-col sm:flex-row items-stretch"
       >
@@ -48,6 +50,8 @@ export function CollectionCard({ collection, age }: Props) {
               alt=""
               className="w-full h-full object-cover"
             />
+          ) : collection.isMainDiary ? (
+            <MainDiaryPlaceholder />
           ) : (
             <CollectionPlaceholder seed={collection.title} />
           )}
@@ -59,11 +63,7 @@ export function CollectionCard({ collection, age }: Props) {
               <h3 className="text-[17px] sm:text-[19px] font-bold text-navy tracking-[-0.2px] leading-tight">
                 {collection.title}
               </h3>
-              <span
-                className={`text-[10px] uppercase tracking-[0.08em] font-bold px-2 py-0.5 rounded-full ${statusStyle}`}
-              >
-                {status}
-              </span>
+              <StatusPill collection={collection} />
             </div>
             {collection.description && (
               <p className="mt-1 text-[13px] sm:text-[14px] text-ink-mid leading-[1.45]">
@@ -81,7 +81,7 @@ export function CollectionCard({ collection, age }: Props) {
           <div className="shrink-0 sm:w-[160px] sm:border-l sm:border-navy/[0.06] sm:pl-5 flex flex-col justify-center">
             <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] font-semibold text-ink-light">
               <Calendar size={12} strokeWidth={1.75} aria-hidden="true" />
-              To be opened on
+              {collection.isMainDiary ? "Opens with vault" : "To be opened on"}
             </div>
             {hasDate ? (
               <>
@@ -93,24 +93,49 @@ export function CollectionCard({ collection, age }: Props) {
                 )}
               </>
             ) : (
-              <div className="mt-1 text-[15px] font-bold text-navy">Choose a date</div>
+              <div className="mt-1 text-[15px] font-bold text-navy">
+                {collection.isMainDiary ? "Not set" : "Choose a date"}
+              </div>
             )}
           </div>
         </div>
       </Link>
 
-      <Link
-        href={`/dashboard/collection/${collection.id}`}
-        prefetch={false}
-        aria-label={`Edit ${collection.title}`}
-        className="absolute right-3 top-3 sm:right-5 sm:top-1/2 sm:-translate-y-1/2 flex flex-col items-center gap-1 text-ink-mid hover:text-amber transition-colors"
-      >
-        <span className="w-9 h-9 rounded-full border border-navy/10 bg-white flex items-center justify-center">
-          <Pencil size={14} strokeWidth={1.75} />
-        </span>
-        <span className="hidden sm:block text-[11px] font-semibold">Edit</span>
-      </Link>
+      {!collection.isMainDiary && (
+        <Link
+          href={`/dashboard/collection/${collection.id}`}
+          prefetch={false}
+          aria-label={`Edit ${collection.title}`}
+          className="absolute right-3 top-3 sm:right-5 sm:top-1/2 sm:-translate-y-1/2 flex flex-col items-center gap-1 text-ink-mid hover:text-amber transition-colors"
+        >
+          <span className="w-9 h-9 rounded-full border border-navy/10 bg-white flex items-center justify-center">
+            <Pencil size={14} strokeWidth={1.75} />
+          </span>
+          <span className="hidden sm:block text-[11px] font-semibold">Edit</span>
+        </Link>
+      )}
     </div>
+  );
+}
+
+function StatusPill({ collection }: { collection: CollectionRow }) {
+  if (collection.isMainDiary) {
+    return (
+      <span className="text-[10px] uppercase tracking-[0.08em] font-bold px-2 py-0.5 rounded-full text-amber bg-amber-tint">
+        Diary
+      </span>
+    );
+  }
+  const status = collection.isSealed ? "Sealed" : "Upcoming";
+  const statusStyle = collection.isSealed
+    ? "text-gold bg-gold-tint"
+    : "text-amber bg-amber-tint";
+  return (
+    <span
+      className={`text-[10px] uppercase tracking-[0.08em] font-bold px-2 py-0.5 rounded-full ${statusStyle}`}
+    >
+      {status}
+    </span>
   );
 }
 
@@ -137,5 +162,16 @@ function CollectionPlaceholder({ seed }: { seed: string }) {
   const gradient = COLLECTION_GRADIENTS[hash % COLLECTION_GRADIENTS.length];
   return (
     <div className={`w-full h-full bg-gradient-to-br ${gradient}`} aria-hidden="true" />
+  );
+}
+
+function MainDiaryPlaceholder() {
+  return (
+    <div
+      aria-hidden="true"
+      className="w-full h-full bg-gradient-to-br from-amber/30 via-cream to-amber/15 flex items-center justify-center text-amber"
+    >
+      <BookHeart size={34} strokeWidth={1.5} />
+    </div>
   );
 }

@@ -23,7 +23,13 @@ export type CollectionRow = {
   revealDate: Date | null;
   isSealed: boolean;
   stats: { photos: number; videos: number; letters: number; voices: number };
+  /** True for the synthetic "Main Capsule Diary" row that represents
+   * entries with collectionId=null. Used by the landing page to
+   * tweak card behavior (different link, hidden edit, etc.). */
+  isMainDiary?: boolean;
 };
+
+export const MAIN_DIARY_ID = "main-diary";
 
 /**
  * All data the capsule landing page needs. Validates ownership and
@@ -49,19 +55,30 @@ export async function loadCapsuleLandingData({
   });
   if (!child || child.parentId !== user.id || !child.vault) return null;
 
-  const collections = await prisma.collection.findMany({
-    where: { vaultId: child.vault.id },
-    orderBy: [{ revealDate: "asc" }, { createdAt: "asc" }],
-    include: {
-      entries: {
-        where: {
-          isSealed: true,
-          approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+  const [collections, looseEntries] = await Promise.all([
+    prisma.collection.findMany({
+      where: { vaultId: child.vault.id },
+      orderBy: [{ revealDate: "asc" }, { createdAt: "asc" }],
+      include: {
+        entries: {
+          where: {
+            isSealed: true,
+            approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+          },
+          select: { type: true, mediaTypes: true },
         },
-        select: { type: true, mediaTypes: true },
       },
-    },
-  });
+    }),
+    prisma.entry.findMany({
+      where: {
+        vaultId: child.vault.id,
+        collectionId: null,
+        isSealed: true,
+        approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+      },
+      select: { type: true, mediaTypes: true },
+    }),
+  ]);
 
   let signedCoverUrl: string | null = null;
   if (child.vault.coverUrl && r2IsConfigured()) {
@@ -72,15 +89,29 @@ export async function loadCapsuleLandingData({
     }
   }
 
-  const collectionRows: CollectionRow[] = collections.map((c) => ({
-    id: c.id,
-    title: c.title,
-    description: c.description,
+  const mainDiaryRow: CollectionRow = {
+    id: MAIN_DIARY_ID,
+    title: "Main Capsule Diary",
+    description: "Memories not tied to a specific collection.",
     coverUrl: null,
-    revealDate: c.revealDate,
-    isSealed: c.isSealed,
-    stats: aggregateEntryStats(c.entries),
-  }));
+    revealDate: child.vault.revealDate,
+    isSealed: false,
+    stats: aggregateEntryStats(looseEntries),
+    isMainDiary: true,
+  };
+
+  const collectionRows: CollectionRow[] = [
+    mainDiaryRow,
+    ...collections.map((c) => ({
+      id: c.id,
+      title: c.title,
+      description: c.description,
+      coverUrl: null,
+      revealDate: c.revealDate,
+      isSealed: c.isSealed,
+      stats: aggregateEntryStats(c.entries),
+    })),
+  ];
 
   return {
     child: {

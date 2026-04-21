@@ -77,6 +77,7 @@ export default async function CapsuleLandingPage({
               {collections.map((c) => (
                 <li key={c.id}>
                   <CollectionCard
+                    childId={child.id}
                     collection={c}
                     age={ageOnDate(child.dateOfBirth, c.revealDate)}
                   />
