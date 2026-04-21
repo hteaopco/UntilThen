@@ -1,4 +1,4 @@
-import { CapsuleCreationFlow } from "./CapsuleCreationFlow";
+import { CapsuleIntroGate } from "./CapsuleIntroGate";
 
 export const metadata = {
   title: "Create a Gift Capsule — untilThen",
@@ -8,9 +8,10 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 // The page itself is public — visitors from the landing page's
-// pricing CTA should be able to fill out step 1 before being
-// asked to sign up. Step 2 (which hits the API) triggers the
-// sign-up hand-off inside CapsuleCreationFlow.
+// pricing CTA (and the dashboard Gift Capsules chip) land on the
+// intro card first. Clicking "Create Gift Capsule" swaps the
+// intro for the existing CapsuleCreationFlow wizard client-side,
+// so the URL stays /capsules/new throughout.
 export default function NewCapsulePage() {
-  return <CapsuleCreationFlow />;
+  return <CapsuleIntroGate />;
 }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Gift, Sparkles } from "lucide-react";
+import { Gift, Plus, Sparkles } from "lucide-react";
 
 export function DashboardGreeting({
   firstName,
@@ -38,6 +38,7 @@ export function DashboardGreeting({
           label="Gift Capsules"
           icon={<Gift size={20} strokeWidth={1.5} className="text-amber sm:hidden" />}
           iconLg={<Gift size={24} strokeWidth={1.5} className="text-amber hidden sm:block" />}
+          showPlus
         />
       </div>
     </section>
@@ -50,12 +51,16 @@ function ChipCard({
   icon,
   iconLg,
   badge,
+  showPlus = false,
 }: {
   href: string;
   label: string;
   icon: React.ReactNode;
   iconLg: React.ReactNode;
   badge?: number;
+  /** When true, render a small amber + circle in the bottom-right
+   * of the chip as an "add new" affordance. */
+  showPlus?: boolean;
 }) {
   const showBadge = typeof badge === "number" && badge > 0;
   return (
@@ -71,6 +76,14 @@ function ChipCard({
         {showBadge && (
           <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-[20px] px-1 rounded-full bg-amber text-white text-[10px] sm:text-[11px] font-bold flex items-center justify-center shadow-[0_2px_4px_rgba(196,122,58,0.35)]">
             {badge! > 99 ? "99+" : badge}
+          </span>
+        )}
+        {showPlus && (
+          <span
+            aria-hidden="true"
+            className="absolute -bottom-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-amber text-white flex items-center justify-center shadow-[0_2px_4px_rgba(196,122,58,0.35)] border-2 border-cream"
+          >
+            <Plus size={12} strokeWidth={2.5} />
           </span>
         )}
       </Link>

@@ -71,6 +71,7 @@ export default async function CapsulePage({
         recipientEmail: capsule.recipientEmail,
         recipientPhone: capsule.recipientPhone,
         occasionType: capsule.occasionType,
+        tone: capsule.tone,
         revealDate: capsule.revealDate.toISOString(),
         contributorDeadline:
           capsule.contributorDeadline?.toISOString() ?? null,

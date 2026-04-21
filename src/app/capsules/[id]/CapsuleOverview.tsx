@@ -22,6 +22,7 @@ import {
 import { TiptapEditor } from "@/components/editor/TiptapEditor";
 import { formatLong } from "@/lib/dateFormatters";
 import { OCCASION_LABELS, recipientPronounOf } from "@/lib/capsules";
+import { TONE_EDITOR_HINT, type CapsuleTone } from "@/lib/tone";
 
 type CapsuleSummary = {
   id: string;
@@ -31,6 +32,7 @@ type CapsuleSummary = {
   recipientEmail: string | null;
   recipientPhone: string | null;
   occasionType: keyof typeof OCCASION_LABELS;
+  tone: CapsuleTone;
   revealDate: string;
   contributorDeadline: string | null;
   status: "DRAFT" | "ACTIVE" | "SEALED" | "REVEALED";
@@ -240,10 +242,6 @@ export function CapsuleOverview({
         ) : (
           <p className="mt-2 text-[15px] text-ink-mid">
             For {capsule.recipientName}
-            {capsule.recipientEmail && <> · {capsule.recipientEmail}</>}
-            {!capsule.recipientEmail && capsule.recipientPhone && (
-              <> · {capsule.recipientPhone}</>
-            )}
           </p>
         )}
 
@@ -279,6 +277,7 @@ export function CapsuleOverview({
           recipientName={capsule.recipientName}
           recipientDisplayName={recipientDisplayName}
           possessivePronoun={possessivePronoun}
+          tone={capsule.tone}
           contribution={ownContribution ?? null}
           initialAttachments={ownAttachments}
         />
@@ -498,6 +497,7 @@ function OwnContribution({
   recipientName,
   recipientDisplayName,
   possessivePronoun,
+  tone,
   contribution,
   initialAttachments,
 }: {
@@ -505,6 +505,7 @@ function OwnContribution({
   recipientName: string;
   recipientDisplayName: string;
   possessivePronoun: string;
+  tone: CapsuleTone;
   contribution: ContributionRow | null;
   initialAttachments: Attachment[];
 }) {
@@ -520,6 +521,7 @@ function OwnContribution({
   const [body, setBody] = useState(contribution?.body ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [extraHeight, setExtraHeight] = useState(0);
 
   // Refs so the ensureContribution callback always sees the
   // latest typed state without re-creating itself on every
@@ -706,39 +708,88 @@ function OwnContribution({
 
   if (editing) {
     return (
-      <form
-        onSubmit={save}
-        className="rounded-2xl border border-amber/40 bg-white shadow-[0_4px_18px_rgba(196,122,58,0.08)] overflow-hidden"
-      >
-        <div className="px-6 pt-6 pb-1">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Title (optional)"
-            aria-label="Contribution title"
-            className="w-full px-0 py-2 text-[24px] lg:text-[28px] font-extrabold text-navy bg-transparent border-0 outline-none placeholder-ink-light/40 tracking-[-0.4px] leading-tight border-b border-navy/[0.06] pb-3"
-          />
-        </div>
-        <div className="relative px-6 pt-3 pb-4">
-          <TiptapEditor
-            initialContent={body}
-            onUpdate={setBody}
-            placeholder={`Dear ${recipientName.split(" ")[0]},`}
-          />
-          <div className="absolute top-3 right-3 bottom-4 w-px flex flex-col items-center pointer-events-none">
-            <div className="w-[3px] flex-1 rounded-full bg-gradient-to-b from-amber via-amber/60 to-transparent" />
-            <div className="w-2.5 h-2.5 rounded-full border-2 border-amber/40 bg-white mt-1" />
-            <div className="w-px flex-1 border-l border-dashed border-amber/30" />
+      <form onSubmit={save} className="space-y-2.5">
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Add a title (optional)"
+          aria-label="Contribution title"
+          className="w-full mb-2.5 px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+        />
+
+        {/* ── Writing card (matches /contribute/capsule/[token]) ── */}
+        <div className="rounded-2xl border border-amber/40 bg-white shadow-[0_4px_18px_rgba(196,122,58,0.08)] overflow-hidden">
+          <div className="mx-3 mt-3 rounded-lg bg-[#eef0f8] border border-[#d4d8e8] px-4 py-3">
+            <div className="flex items-start gap-2.5">
+              <span className="mt-0.5 text-amber shrink-0" aria-hidden="true">
+                <Sparkles size={10} strokeWidth={2} className="inline -mt-1" />
+                <Pencil size={16} strokeWidth={1.75} className="inline" />
+              </span>
+              <div>
+                <p className="text-[13px] font-bold text-navy leading-snug">
+                  Write something meaningful.
+                </p>
+                <p className="mt-0.5 text-[12px] text-ink-mid leading-[1.4]">
+                  {TONE_EDITOR_HINT[tone]}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            className="relative px-5 pt-3 pb-2 transition-all"
+            style={{
+              minHeight: extraHeight ? `${180 + extraHeight}px` : undefined,
+            }}
+          >
+            <TiptapEditor
+              initialContent={body}
+              onUpdate={setBody}
+              placeholder={`Dear ${recipientName.split(" ")[0]},`}
+            />
+            <div className="absolute top-3 right-2.5 bottom-2 w-px flex flex-col items-center pointer-events-none">
+              <div className="w-[3px] flex-1 rounded-full bg-gradient-to-b from-amber via-amber/60 to-transparent" />
+              <div className="w-2.5 h-2.5 rounded-full border-2 border-amber/40 bg-white mt-1" />
+              <div className="w-px flex-1 border-l border-dashed border-amber/30" />
+            </div>
+          </div>
+          <div className="px-5 pb-2 flex items-center justify-between">
+            <div className="flex gap-3">
+              {extraHeight > 0 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExtraHeight(Math.max(0, extraHeight - 180))
+                  }
+                  className="text-[11px] text-amber/70 hover:text-amber transition-colors"
+                >
+                  Collapse
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setExtraHeight(extraHeight + 180)}
+                className="text-[11px] text-amber/70 hover:text-amber transition-colors"
+              >
+                Expand
+              </button>
+            </div>
+            <span className="text-[11px] text-ink-light/50 italic">
+              Write as much as you&rsquo;d like.
+            </span>
           </div>
         </div>
-        <div className="px-6 pb-3 text-right">
-          <span className="text-[11px] text-ink-light/50 italic">
-            Write as much as you&rsquo;d like.
-          </span>
-        </div>
 
-        <div className="px-6 pt-2 pb-4 border-t border-navy/[0.06]">
+        {/* ── Media card ─────────────────────────────────────── */}
+        <div className="mt-2.5 rounded-2xl border border-amber/30 bg-white shadow-[0_2px_10px_rgba(196,122,58,0.05)] px-5 py-4">
+          <p className="text-[14px] font-bold text-navy">
+            Add a photo, voice note, or video
+          </p>
+          <p className="mt-0.5 text-[12px] text-ink-mid">
+            Your voice makes it even more special.
+          </p>
+          <div className="mt-2.5">
             <MediaAttachments
               target="capsuleContribution"
               capsuleId={capsuleId}
@@ -747,26 +798,17 @@ function OwnContribution({
               ensureEntry={ensureContribution}
               canAttach={Boolean(contributionId) || hasContent()}
             />
+          </div>
         </div>
 
         {error && (
-          <p className="px-6 pb-3 text-sm text-red-600" role="alert">
+          <p className="text-sm text-red-600 text-center" role="alert">
             {error}
           </p>
         )}
 
-        <div className="px-6 py-4 border-t border-navy/[0.06] flex items-center gap-3">
-          <button
-            type="submit"
-            disabled={saving}
-            className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
-          >
-            {saving
-              ? "Saving…"
-              : contribution
-                ? "Save changes"
-                : "Save my message"}
-          </button>
+        {/* ── Actions: Save bottom-right with Cancel to its left ── */}
+        <div className="mt-4 flex items-center justify-end gap-2">
           <button
             type="button"
             onClick={() => {
@@ -776,9 +818,20 @@ function OwnContribution({
               setError(null);
             }}
             disabled={saving}
-            className="text-sm font-medium text-ink-mid hover:text-navy transition-colors disabled:opacity-50"
+            className="px-4 py-2 rounded-lg border border-navy/10 text-[13px] font-semibold text-ink-mid hover:text-navy hover:border-navy/20 transition-colors disabled:opacity-50"
           >
             Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-4 py-2 rounded-lg bg-amber text-white text-[13px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
+          >
+            {saving
+              ? "Saving…"
+              : contribution
+                ? "Save changes"
+                : "Save my message"}
           </button>
         </div>
       </form>
