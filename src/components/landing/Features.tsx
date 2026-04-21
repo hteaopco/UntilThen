@@ -6,8 +6,12 @@ export function Features() {
   return (
     <section id="features" className="bg-cream">
       <div className="mx-auto max-w-[1080px] px-6 lg:px-14 pt-3 lg:pt-7 pb-0">
-        <div className="space-y-4 lg:space-y-5">
-          <div className="grid gap-2 sm:gap-3 lg:gap-5 grid-cols-2">
+        {/* Mobile: Voice + Keep Writing side-by-side, Reveal below.
+            Desktop (lg+): 2-col grid — left column stacks Voice
+            over Keep Writing, right column is the Reveal card at
+            matching height via items-stretch. */}
+        <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-5 lg:items-stretch">
+          <div className="grid gap-2 sm:gap-3 grid-cols-2 lg:grid-cols-1 lg:gap-5">
             {/* Voice Notes */}
             <div className="relative rounded-2xl border border-amber/10 overflow-hidden" style={{ background: "#fef0dc" }}>
               <div className="relative z-[1] p-4 sm:p-6 lg:p-8">
@@ -49,8 +53,9 @@ export function Features() {
             </div>
           </div>
 
-          {/* ── The Reveal — image sets card height ── */}
-          <div className="relative rounded-2xl border border-amber/15 overflow-hidden grid grid-cols-[1fr_auto]" style={{ background: "#fef0dc" }}>
+          {/* ── The Reveal — image sets card height on mobile,
+              grid row-height sets it on desktop ── */}
+          <div className="relative rounded-2xl border border-amber/15 overflow-hidden grid grid-cols-[1fr_auto] lg:h-full" style={{ background: "#fef0dc" }}>
             <div className="relative z-[2] p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
               <div className="flex items-center gap-2.5 mb-4">
                 <span className="text-gold" aria-hidden="true">
