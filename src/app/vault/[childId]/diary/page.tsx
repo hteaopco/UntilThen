@@ -160,15 +160,15 @@ export default async function MainDiaryPage({
         </div>
       </section>
 
-      {/* Floating add-memory FAB, bottom-left. Subtle styling — white
+      {/* Floating add-memory FAB, bottom-right. Subtle styling — white
           background with an amber ring so it doesn't feel heavy. */}
       <Link
         href={`/vault/${child.id}/new`}
         prefetch={false}
         aria-label="Add a new memory"
-        className="fixed bottom-6 left-6 z-30 w-[140px] h-[140px] rounded-full bg-white border border-amber/40 text-amber flex items-center justify-center shadow-[0_10px_32px_-8px_rgba(196,122,58,0.3)] hover:bg-amber-tint/60 hover:border-amber/60 transition-colors"
+        className="fixed bottom-6 right-6 z-30 w-[105px] h-[105px] rounded-full bg-white border border-amber/40 text-amber flex items-center justify-center shadow-[0_10px_32px_-8px_rgba(196,122,58,0.3)] hover:bg-amber-tint/60 hover:border-amber/60 transition-colors"
       >
-        <Plus size={60} strokeWidth={1.75} />
+        <Plus size={45} strokeWidth={1.75} />
       </Link>
     </main>
   );
