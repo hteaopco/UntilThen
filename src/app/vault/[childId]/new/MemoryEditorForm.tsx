@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  BookHeart,
-  Heart,
-  Lightbulb,
-  Pencil,
-  Smile,
-  Sparkles,
-  Star,
-  Sun,
-} from "lucide-react";
+import { Pencil, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState, type FormEvent } from "react";
@@ -35,15 +26,6 @@ type Props = {
 };
 
 const MAIN_DIARY_VALUE = "__main_diary__";
-
-const PROMPTS: { icon: React.ReactNode; label: string }[] = [
-  { icon: <Smile size={14} strokeWidth={1.75} />, label: "What made you laugh today?" },
-  { icon: <Heart size={14} strokeWidth={1.75} />, label: "Something I love about you" },
-  { icon: <BookHeart size={14} strokeWidth={1.75} />, label: "A favorite memory together" },
-  { icon: <Star size={14} strokeWidth={1.75} />, label: "A milestone worth remembering" },
-  { icon: <Sun size={14} strokeWidth={1.75} />, label: "What I hope for your future" },
-  { icon: <Lightbulb size={14} strokeWidth={1.75} />, label: "Something I want you to know" },
-];
 
 /**
  * Vault-side clone of the CapsuleContributeForm editor phase. Same
@@ -251,42 +233,6 @@ export function MemoryEditorForm({
             placeholder="Add a title (optional)"
             className="w-full mb-2.5 px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
           />
-
-          {/* ── Inspiration card ─────────────────────────── */}
-          <div className="mb-2.5 rounded-2xl border border-amber/40 bg-white shadow-[0_4px_18px_rgba(196,122,58,0.08)] overflow-hidden">
-            <div className="mx-3 mt-3 rounded-lg bg-[#eef0f8] border border-[#d4d8e8] px-4 py-3">
-              <div className="flex items-start gap-2.5">
-                <span className="mt-0.5 text-amber shrink-0" aria-hidden="true">
-                  <Sparkles size={10} strokeWidth={2} className="inline -mt-1" />
-                  <Lightbulb size={16} strokeWidth={1.75} className="inline" />
-                </span>
-                <div>
-                  <p className="text-[13px] font-bold text-navy leading-snug">
-                    Need a little inspiration?
-                  </p>
-                  <p className="mt-0.5 text-[12px] text-ink-mid leading-[1.4]">
-                    Tap a prompt to drop it into your title — then take it
-                    wherever feels right.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="px-4 py-3 grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {PROMPTS.map((p) => (
-                <button
-                  key={p.label}
-                  type="button"
-                  onClick={() => setTitle(p.label)}
-                  className="flex items-center gap-2 rounded-lg border border-amber/20 bg-white px-3 py-2 text-left text-[12px] font-semibold text-navy hover:border-amber/50 hover:bg-amber-tint/40 transition-colors"
-                >
-                  <span className="shrink-0 w-7 h-7 rounded-full bg-amber-tint text-amber flex items-center justify-center">
-                    {p.icon}
-                  </span>
-                  <span className="min-w-0 truncate">{p.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* ── Writing card ─────────────────────────────── */}
           <div className="rounded-2xl border border-amber/40 bg-white shadow-[0_4px_18px_rgba(196,122,58,0.08)] overflow-hidden">
