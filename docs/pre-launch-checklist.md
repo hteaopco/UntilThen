@@ -8,7 +8,7 @@
 
 - [ ] **Square payment integration** — $9.99 Gift Capsule activation currently uses placeholder receipt, anyone can activate for free
 - [ ] **PIN vault lock** — re-enable or remove. Schema ready (`pinHash` live), just needs lock screen wired back into `dashboard/layout.tsx` (one-line re-add)
-- [~] **Backup + restore verification** — infrastructure shipped (nightly pg_dump → R2 at `/api/cron/db-backup`, restore CLI at `scripts/restore-db.ts`, runbook at `docs/backup-restore.md`). Still needs: (1) enable Railway native PG backups in dashboard, (2) create Railway cron service pointing at the new endpoint, (3) enable R2 object versioning + lifecycle rule, (4) run the end-to-end restore drill into staging
+- [~] **Backup + restore verification** — code shipped (`/api/cron/db-backup`, `scripts/restore-db.ts`, `docs/backup-restore.md`). Railway native PG backups enabled, Railway cron service scheduled, R2 `backup-expiry` lifecycle rule live. **Only remaining step**: run the end-to-end restore drill into staging after tomorrow's 07:00 UTC cron produces the first backup
 - [~] **Rate limiting audit** — audit complete. Patched `/api/account/contributors/[id]/resend` (was 100/min → now email bucket 10/10min) and `/api/invites/[token]` GET (was 100/min → now public bucket 20/min). No other real gaps found; password reset is handled by Clerk's hosted UI, not custom API
 - [x] **Email deliverability** — Resend + `hello@untilthenapp.io` verified. DKIM / SPF / DMARC live in Cloudflare. Test emails land in Gmail/Outlook inboxes with SPF + DKIM PASS aligned to `untilthenapp.io`. DMARC ramp to `p=quarantine` scheduled for **~May 5, 2026** (2 weeks out); wire up Postmark DMARC ingestor at the same time. See `docs/email-dns-setup.md`.
 
