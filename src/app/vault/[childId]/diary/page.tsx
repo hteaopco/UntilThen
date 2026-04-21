@@ -134,26 +134,7 @@ export default async function MainDiaryPage({
           </button>
         </div>
 
-        {/* Dashed Add-a-new-memory card (compact; title only). */}
-        <Link
-          href={`/vault/${child.id}/new`}
-          prefetch={false}
-          className="mt-3 flex items-center gap-4 rounded-2xl border-2 border-dashed border-amber/40 bg-white/60 px-5 py-3 hover:bg-white hover:border-amber/60 transition-colors group"
-        >
-          <span
-            aria-hidden="true"
-            className="shrink-0 w-10 h-10 rounded-full border-2 border-amber/60 text-amber flex items-center justify-center"
-          >
-            <Plus size={18} strokeWidth={2} />
-          </span>
-          <span className="flex-1 min-w-0 text-[15px] sm:text-[16px] font-bold text-navy tracking-[-0.2px]">
-            Add a new memory
-          </span>
-        </Link>
-
-        <hr className="border-t border-navy/[0.08] mt-6 mb-6" />
-
-        <div>
+        <div className="mt-6">
           {entries.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-navy/10 bg-white/60 px-6 py-10 text-center">
               <p className="text-[14px] text-ink-mid leading-[1.5]">
@@ -178,6 +159,17 @@ export default async function MainDiaryPage({
           )}
         </div>
       </section>
+
+      {/* Floating add-memory FAB, bottom-left. Subtle styling — white
+          background with an amber ring so it doesn't feel heavy. */}
+      <Link
+        href={`/vault/${child.id}/new`}
+        prefetch={false}
+        aria-label="Add a new memory"
+        className="fixed bottom-6 left-6 z-30 w-14 h-14 rounded-full bg-white border border-amber/40 text-amber flex items-center justify-center shadow-[0_6px_20px_-6px_rgba(196,122,58,0.25)] hover:bg-amber-tint/60 hover:border-amber/60 transition-colors"
+      >
+        <Plus size={24} strokeWidth={2} />
+      </Link>
     </main>
   );
 }
