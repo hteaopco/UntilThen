@@ -42,7 +42,7 @@ function RisingDotsOverlay() {
   );
 }
 
-function ConfettiOverlay() {
+export function ConfettiOverlay() {
   type Piece = {
     left: string;
     delay: string;
@@ -89,7 +89,7 @@ function ConfettiOverlay() {
 
 type PlanVariant = "featured" | "gift";
 
-function Plan({
+export function Plan({
   variant,
   tag,
   name,
@@ -99,6 +99,7 @@ function Plan({
   features,
   cta,
   ctaHref = "#cta",
+  onCtaClick,
   ctaNote,
   overlay,
   ribbon,
@@ -112,8 +113,11 @@ function Plan({
   priceNote?: string;
   features: string[];
   cta: string;
-  /** Destination for the plan CTA; defaults to sign-up. */
+  /** Destination for the plan CTA; defaults to sign-up. Ignored
+   * when onCtaClick is provided (then the CTA renders as a
+   * <button> instead of an <a>). */
   ctaHref?: string;
+  onCtaClick?: () => void;
   ctaNote?: string;
   overlay?: ReactNode;
   ribbon?: string;
@@ -212,12 +216,22 @@ function Plan({
             </li>
           ))}
         </ul>
-        <a
-          href={ctaHref}
-          className={`block text-center py-3 px-5 rounded-xl text-[13px] font-bold tracking-[0.01em] transition-all ${ctaClasses}`}
-        >
-          {cta}
-        </a>
+        {onCtaClick ? (
+          <button
+            type="button"
+            onClick={onCtaClick}
+            className={`block w-full text-center py-3 px-5 rounded-xl text-[13px] font-bold tracking-[0.01em] transition-all ${ctaClasses}`}
+          >
+            {cta}
+          </button>
+        ) : (
+          <a
+            href={ctaHref}
+            className={`block text-center py-3 px-5 rounded-xl text-[13px] font-bold tracking-[0.01em] transition-all ${ctaClasses}`}
+          >
+            {cta}
+          </a>
+        )}
         {ctaNote && (
           <p
             className={`mt-2.5 text-[11px] italic text-center ${
@@ -243,7 +257,7 @@ const BASE_FEATURES = [
 ];
 
 // PRICING: Gift Capsules — $9.99 one-time per capsule.
-const GIFT_CAPSULE_FEATURES = [
+export const GIFT_CAPSULE_FEATURES = [
   "Works for any moment",
   "Invite everyone who loves them",
   "No account needed to contribute",
@@ -312,7 +326,7 @@ const OCCASIONS = [
   "Just Because",
 ];
 
-function OccasionTicker() {
+export function OccasionTicker() {
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
