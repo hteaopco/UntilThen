@@ -190,10 +190,10 @@ export function MemoryEditorForm({
             Cancel
           </Link>
         </div>
-        {/* Collection picker — replaces the static reveal-date sentence.
-            Reveal date now hangs off the right side and reflects the
-            chosen collection (or vault default for Main Diary). */}
-        <div className="mt-3 flex items-center gap-2 rounded-xl border border-navy/10 bg-white px-3 py-2">
+        {/* Collection picker — the dropdown owns the whole bar width
+            now. The reveal date renders as its own line underneath
+            (between the picker and the title input). */}
+        <div className="mt-3 flex items-center gap-3 rounded-xl border border-navy/10 bg-white px-3 py-2">
           <label
             htmlFor="collection-picker"
             className="text-[11px] uppercase tracking-[0.08em] font-semibold text-ink-light shrink-0"
@@ -208,7 +208,7 @@ export function MemoryEditorForm({
                 e.target.value === MAIN_DIARY_VALUE ? null : e.target.value,
               )
             }
-            className="flex-1 min-w-0 bg-transparent text-[14px] font-semibold text-navy outline-none cursor-pointer"
+            className="flex-1 min-w-0 bg-transparent text-[14px] font-semibold text-navy outline-none cursor-pointer truncate"
           >
             <option value={MAIN_DIARY_VALUE}>Main Capsule Diary</option>
             {collections.map((c) => (
@@ -217,12 +217,12 @@ export function MemoryEditorForm({
               </option>
             ))}
           </select>
-          <span className="shrink-0 text-[12px] text-ink-mid italic">
-            {effectiveRevealDate
-              ? `Reveals on ${formatLong(effectiveRevealDate)}`
-              : "No reveal date set"}
-          </span>
         </div>
+        <p className="mt-1.5 text-[12px] text-ink-mid italic">
+          {effectiveRevealDate
+            ? `Reveals on ${formatLong(effectiveRevealDate)}`
+            : "No reveal date set"}
+        </p>
 
         <form onSubmit={submit} className="mt-3">
           {/* Title */}
