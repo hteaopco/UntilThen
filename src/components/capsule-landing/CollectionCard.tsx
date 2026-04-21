@@ -4,7 +4,6 @@ import {
   BookHeart,
   FileText,
   Image as ImageIcon,
-  Pencil,
   Plus,
   Sparkles,
   Video,
@@ -99,17 +98,7 @@ export function CollectionCard({ childId, collection, age }: Props) {
         </div>
       </Link>
 
-      <div className="shrink-0 flex flex-col gap-1.5">
-        {!collection.isMainDiary && (
-          <Link
-            href={`/vault/${childId}/collection/${collection.id}`}
-            prefetch={false}
-            aria-label={`Edit ${collection.title}`}
-            className="w-9 h-9 rounded-full border border-navy/10 bg-white text-ink-mid hover:text-amber hover:border-amber/40 transition-colors flex items-center justify-center"
-          >
-            <Pencil size={14} strokeWidth={1.75} />
-          </Link>
-        )}
+      <div className="shrink-0">
         <Link
           href={newHref}
           prefetch={false}
