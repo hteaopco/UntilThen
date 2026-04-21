@@ -17,137 +17,87 @@ threshold on a single invite blast.
 
 ---
 
-## Step 1 — Let Resend generate the DKIM selector
+## Records in production
 
-1. Log in to Resend → **Domains** → **Add Domain**
-2. Enter `untilthenapp.io`
-3. Resend will show a set of DNS records. The exact selector is
-   account-specific (usually `resend._domainkey` but can differ)
+Resend-issued DKIM + merged SPF (Resend + Microsoft 365 for the
+inbound `hello@` mailbox) + Postmark-hosted DMARC reports. All
+four records are Cloudflare TXT / MX entries, proxy disabled.
 
-Copy the records Resend gives you. They'll look roughly like:
+| Type | Name                  | Content                                                                                                                                 | Notes |
+| ---- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| TXT  | `resend._domainkey`   | `v=DKIM1; k=rsa; p=<full key Resend generates>`                                                                                         | Selector is `resend`. Copy the entire `v=DKIM1; k=rsa; p=…` string from the Resend dashboard |
+| TXT  | `@`                   | `v=spf1 include:amazonses.com include:spf.protection.outlook.com ~all`                                                                  | One record only per host — merge new senders into this one |
+| MX   | `sendfeedback`        | `smtp.us-east-1.amazonses.com` priority 10                                                                                              | Bounce / feedback loop for SES under Resend — follow the exact Name + Value Resend shows (the subdomain label and hostname have shifted across Resend revisions) |
+| TXT  | `_dmarc`              | `v=DMARC1; p=none; rua=mailto:re+<token>@dmarc.postmarkapp.com; adkim=r; aspf=r`                                                        | `<token>` comes from Postmark DMARC Digests — sign up at https://dmarc.postmarkapp.com and paste the emailed token in place |
 
-| Host                        | Type  | Value                                  |
-| --------------------------- | ----- | -------------------------------------- |
-| `send.untilthenapp.io`      | MX    | `feedback-smtp.us-east-1.amazonses.com` priority 10 |
-| `send.untilthenapp.io`      | TXT   | `v=spf1 include:amazonses.com ~all`    |
-| `resend._domainkey.untilthenapp.io` | TXT | `p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADC...` (long key) |
+After DNS propagates (5–15 min) click **Verify** in Resend → the
+domain should flip to Verified with green ticks on SPF + DKIM.
 
-**Paste them into Cloudflare (or whichever DNS provider hosts
-`untilthenapp.io`) exactly as Resend shows them.** Then click
-**Verify** in Resend.
+### DMARC ramp
 
----
+Start at `p=none` (monitor only). Review Postmark's weekly digest
+for two weeks. Once there are no unauthorised sources and alignment
+is passing, raise:
 
-## Step 2 — Apex SPF record
+- Week 3+: `p=quarantine` (suspicious mail lands in spam)
+- Week 5+: `p=reject` (hard fail on unaligned mail)
 
-If the domain already sends mail from other services (Google
-Workspace, Mailgun, etc.), SPF records from multiple senders need
-to be **merged into one TXT record**. You can't have two `v=spf1`
-records on the same host.
-
-For Resend-only, add:
-
-```
-Host:  @  (apex / untilthenapp.io)
-Type:  TXT
-Value: v=spf1 include:amazonses.com ~all
-```
-
-If Google Workspace handles inbound, merge:
-
-```
-v=spf1 include:_spf.google.com include:amazonses.com ~all
-```
-
-`~all` = soft-fail (recommended during ramp-up). Tighten to `-all`
-after a few weeks of clean DMARC reports.
+Edit the `_dmarc` TXT record in place for each step — no other
+changes needed.
 
 ---
 
-## Step 3 — DMARC record
-
-Start in **monitor mode** so we can see what's happening without
-breaking deliverability.
-
-```
-Host:  _dmarc  (resolves to _dmarc.untilthenapp.io)
-Type:  TXT
-Value: v=DMARC1; p=none; rua=mailto:dmarc@untilthenapp.io; ruf=mailto:dmarc@untilthenapp.io; fo=1; adkim=s; aspf=s; pct=100
-```
-
-What each tag does:
-
-- `p=none` — don't reject or quarantine yet, just report
-- `rua=` — aggregate reports (daily XML from Gmail/etc.) go here
-- `ruf=` — forensic reports (per-message failures) go here
-- `fo=1` — request a forensic report on any SPF *or* DKIM failure
-- `adkim=s aspf=s` — strict alignment (subdomain mismatches count as fail)
-- `pct=100` — apply the policy to 100% of mail
-
-**After 2 weeks of reports** with no unauthorized sources showing
-up, tighten to `p=quarantine` (spam folder). Another 2 weeks clean
-and you can move to `p=reject`.
-
----
-
-## Step 4 — Reply-to mailbox
+## Reply-to mailbox
 
 `hello@untilthenapp.io` is set as both From and Reply-To on every
-transactional email. Make sure that mailbox:
+transactional email, and the apex SPF includes
+`spf.protection.outlook.com` because inbound `hello@` is handled by
+Microsoft 365. Make sure that mailbox:
 
-- Actually exists and is monitored (Google Workspace, Fastmail, etc.)
-- Has its own MX records configured (unrelated to Resend's
-  `send.untilthenapp.io` MX — that one is for Resend's bounce
-  processing)
-- Has an auto-responder if you don't want to monitor 24/7
-
----
-
-## Step 5 — Verify
-
-Once DNS propagates (a few minutes to an hour):
-
-1. Resend dashboard → Domains → `untilthenapp.io` → should show
-   **Verified** for SPF and DKIM
-2. Send a test email from `/admin/emails`
-3. Receive it in Gmail → "Show original" → check:
-   - **SPF: PASS**
-   - **DKIM: PASS**
-   - **DMARC: PASS**
-4. Paste the raw headers into https://dmarcian.com/dmarc-inspector/
-   or https://www.mail-tester.com for a second opinion and a
-   spam-score breakdown
+- Exists and is monitored (M365)
+- Has its own MX + autodiscover records pointing at Microsoft
+  (those are separate from the `sendfeedback` MX for Resend bounces)
+- Has an auto-responder if it isn't going to be monitored 24/7
 
 ---
 
-## Step 6 — Monitor
+## Verify
 
-DMARC aggregate reports arrive as daily XML attachments at whatever
-you set for `rua=`. If you'd rather not stare at XML, plug the
-mailbox into one of the free ingestors:
+Once DNS propagates (5–15 min):
 
-- Postmark DMARC (free, good UI): https://dmarc.postmarkapp.com
-- Dmarcian (free tier)
-- Valimail Monitor (free tier)
+```sh
+dig TXT resend._domainkey.untilthenapp.io +short
+dig TXT untilthenapp.io +short
+dig TXT _dmarc.untilthenapp.io +short
+dig MX sendfeedback.untilthenapp.io +short
+```
 
-Point `rua=` at their provided ingest address instead of
-`dmarc@untilthenapp.io`.
+All four should return the values from the table above.
+
+Then in Gmail:
+
+1. Send a test from `/admin/emails`
+2. Open the received email → ⋮ menu → **Show original**
+3. Confirm:
+   - **SPF: PASS** with domain `untilthenapp.io`
+   - **DKIM: 'PASS' with domain untilthenapp.io**
+   - **DMARC: 'PASS'** with domain `untilthenapp.io`
+
+For a second opinion and a full spam-score breakdown, send the
+same test to the temporary address at https://www.mail-tester.com
+and review the 10/10 scorecard there.
 
 ---
 
-## What I need from you
+## Monitor
 
-When you're ready to kick this off, send me:
+DMARC aggregate reports land in Postmark's UI via the `rua=` address
+in the `_dmarc` record. Log in at https://dmarc.postmarkapp.com
+weekly for the first month — look for:
 
-1. **Resend DKIM record(s)** — the exact TXT host + value Resend
-   shows in the Domains panel after you add `untilthenapp.io`. I
-   can format them into a paste-ready block for your DNS provider.
-2. **DMARC reporting email** — keep it at `dmarc@untilthenapp.io`
-   (need to create this mailbox), or switch to a third-party
-   ingestor like Postmark (free, readable UI).
-3. **Strict DMARC timeline** — confirm you're OK starting at
-   `p=none`, moving to `p=quarantine` after 2 weeks, `p=reject`
-   after another 2. If you want to be more aggressive, say so.
-4. **Any other senders on `untilthenapp.io`?** — Google Workspace,
-   Mailchimp, transactional from a CRM, etc. All need to be merged
-   into the single SPF record.
+- **Alignment** staying at 100% (no unexpected sources)
+- **Pass rate** staying > 98% (the remaining 2% is typically
+  forwarders + auto-replies that strip DKIM — expected background
+  noise)
+- New domains/IPs showing up in the "Sources" panel — investigate
+  any unknown source before tightening past `p=none`
