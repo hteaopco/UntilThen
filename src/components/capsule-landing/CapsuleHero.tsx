@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, ShoppingBag } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 
 import { CoverUploader } from "@/components/dashboard2/CoverUploader";
 
@@ -45,18 +45,13 @@ export function CapsuleHero({
           />
         </div>
         <div className="flex-1 min-w-0 h-[120px] flex flex-col">
-          <h1 className="font-brush font-bold text-[31px] leading-[1.02] text-navy text-left">
+          <h1 className="font-brush text-[31px] leading-[1.02] text-navy text-left">
             {childFirstName}&rsquo;s
             <br />
             Time Capsule <span className="text-amber">♡</span>
           </h1>
           <div className="mt-auto">
-            <ToggleCard
-              icon={<ShoppingBag size={18} strokeWidth={1.75} />}
-              title="Create One Collection"
-              body="A single collection to be opened on a special day."
-              compact
-            />
+            <CreateCollectionCard compact />
           </div>
         </div>
       </div>
@@ -82,12 +77,7 @@ export function CapsuleHero({
             {childFirstName}, {childFirstName}.
           </p>
           <div className="mt-5 max-w-[380px]">
-            <ToggleCard
-              icon={<ShoppingBag size={22} strokeWidth={1.75} />}
-              title="Create One Collection"
-              body="A single collection to be opened on a special day."
-              compact={false}
-            />
+            <CreateCollectionCard compact={false} />
           </div>
         </div>
       </div>
@@ -144,48 +134,29 @@ function CapsuleCover({
   );
 }
 
-function ToggleCard({
-  icon,
-  title,
-  body,
-  compact,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  body: string;
-  compact: boolean;
-}) {
+function CreateCollectionCard({ compact }: { compact: boolean }) {
   return (
     <button
       type="button"
-      className={`w-full flex items-start gap-2.5 rounded-2xl bg-white border border-amber/20 shadow-[0_4px_14px_-6px_rgba(196,122,58,0.15)] text-left hover:border-amber/40 hover:shadow-[0_6px_18px_-6px_rgba(196,122,58,0.25)] transition-all ${
-        compact ? "px-3 py-2" : "px-4 py-3 gap-3"
+      className={`w-full flex items-center justify-between gap-3 rounded-full bg-white border border-amber/30 shadow-[0_4px_14px_-6px_rgba(196,122,58,0.15)] hover:border-amber/50 hover:shadow-[0_6px_18px_-6px_rgba(196,122,58,0.25)] transition-all ${
+        compact ? "pl-4 pr-1.5 py-1.5" : "pl-5 pr-2 py-2"
       }`}
     >
       <span
-        aria-hidden="true"
-        className={`shrink-0 rounded-xl bg-amber-tint text-amber flex items-center justify-center ${
-          compact ? "w-8 h-8" : "w-11 h-11"
+        className={`font-bold text-navy tracking-[-0.2px] leading-tight truncate ${
+          compact ? "text-[12px]" : "text-[14px]"
         }`}
       >
-        {icon}
+        Create New Collection
       </span>
-      <div className="min-w-0">
-        <div
-          className={`font-bold text-navy tracking-[-0.2px] leading-tight ${
-            compact ? "text-[11px]" : "text-[14px]"
-          }`}
-        >
-          {title}
-        </div>
-        <div
-          className={`text-ink-mid leading-[1.3] mt-0.5 ${
-            compact ? "text-[10px]" : "text-[12px]"
-          }`}
-        >
-          {body}
-        </div>
-      </div>
+      <span
+        aria-hidden="true"
+        className={`shrink-0 rounded-full bg-amber-tint text-amber flex items-center justify-center ${
+          compact ? "w-7 h-7" : "w-9 h-9"
+        }`}
+      >
+        <Plus size={compact ? 16 : 18} strokeWidth={2} />
+      </span>
     </button>
   );
 }

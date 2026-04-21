@@ -41,7 +41,7 @@ export default async function CapsuleLandingPage({
         <Link href="/dashboard" aria-label="Back to your vault">
           <LogoSvg variant="dark" width={120} height={24} />
         </Link>
-        <div className="[&_button]:w-8 [&_button]:h-8 [&_button]:text-[11px] sm:[&_button]:w-9 sm:[&_button]:h-9 sm:[&_button]:text-[13px]">
+        <div className="[&>div>button]:w-8 [&>div>button]:h-8 [&>div>button]:text-[11px] sm:[&>div>button]:w-9 sm:[&>div>button]:h-9 sm:[&>div>button]:text-[13px]">
           <Avatar />
         </div>
       </header>
@@ -85,8 +85,8 @@ export default async function CapsuleLandingPage({
             </ul>
           )}
 
-          <AddMilestoneCta
-            childId={child.id}
+          <AddMemoryCta
+            vaultId={vault.id}
             childFirstName={child.firstName}
           />
         </section>
@@ -106,16 +106,22 @@ function EmptyCollections({ childFirstName }: { childFirstName: string }) {
   );
 }
 
-function AddMilestoneCta({
-  childId,
+/**
+ * Routes to the shared entry editor without a collectionId — that
+ * flow defaults new entries to the vault's "Main Capsule Diary"
+ * bucket (collectionId: null). Users can assign a collection
+ * inside the editor if they want.
+ */
+function AddMemoryCta({
+  vaultId,
   childFirstName,
 }: {
-  childId: string;
+  vaultId: string;
   childFirstName: string;
 }) {
   return (
     <Link
-      href={`/dashboard?vault=${childId}&new=collection`}
+      href={`/dashboard/new?vault=${vaultId}`}
       prefetch={false}
       className="mt-4 flex items-center gap-4 rounded-2xl border-2 border-dashed border-amber/40 bg-white/60 px-5 py-4 hover:bg-white hover:border-amber/60 transition-colors group"
     >
@@ -127,7 +133,7 @@ function AddMilestoneCta({
       </span>
       <div className="flex-1 min-w-0">
         <div className="text-[15px] sm:text-[16px] font-bold text-navy tracking-[-0.2px]">
-          Add a New Milestone Collection
+          Add a new memory
         </div>
         <div className="text-[13px] text-ink-mid mt-0.5">
           Capture another meaningful moment for {childFirstName}.
