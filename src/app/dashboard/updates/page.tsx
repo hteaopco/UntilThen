@@ -1,7 +1,10 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
+import type { MediaItem } from "@/components/editor/MediaDisplay";
 import { TopNav } from "@/components/ui/TopNav";
+import { r2IsConfigured, signGetUrl } from "@/lib/r2";
+
 import { UpdatesList, type PendingUpdate } from "./UpdatesList";
 
 export const metadata = {
@@ -15,7 +18,8 @@ export const dynamic = "force-dynamic";
  * Approval inbox for the signed-in user. Lists every
  * capsuleContribution whose approvalStatus is PENDING_REVIEW on a
  * capsule they organise, with per-row and bulk approve / deny
- * controls on the client side.
+ * controls on the client side. Each row carries the capsule's
+ * reveal date and any media attachments (signed for playback).
  */
 export default async function UpdatesPage() {
   const { userId } = auth();
@@ -35,21 +39,54 @@ export default async function UpdatesPage() {
       capsule: { organiserId: user.id },
     },
     include: {
-      capsule: { select: { id: true, title: true, recipientName: true } },
+      capsule: {
+        select: {
+          id: true,
+          title: true,
+          recipientName: true,
+          revealDate: true,
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  const rows: PendingUpdate[] = pending.map((c) => ({
-    id: c.id,
-    capsuleId: c.capsuleId,
-    capsuleTitle: c.capsule.title,
-    recipientName: c.capsule.recipientName,
-    authorName: c.authorName,
-    title: c.title,
-    body: c.body,
-    createdAt: c.createdAt.toISOString(),
-  }));
+  const canSign = r2IsConfigured();
+
+  const rows: PendingUpdate[] = await Promise.all(
+    pending.map(async (c) => {
+      const media: MediaItem[] = [];
+      if (canSign) {
+        for (let i = 0; i < c.mediaUrls.length; i++) {
+          const key = c.mediaUrls[i];
+          const rawKind = c.mediaTypes[i];
+          const kind: MediaItem["kind"] | null =
+            rawKind === "photo" || rawKind === "voice" || rawKind === "video"
+              ? rawKind
+              : null;
+          if (!kind) continue;
+          try {
+            const url = await signGetUrl(key);
+            media.push({ kind, url });
+          } catch {
+            /* skip media we can't sign */
+          }
+        }
+      }
+      return {
+        id: c.id,
+        capsuleId: c.capsuleId,
+        capsuleTitle: c.capsule.title,
+        recipientName: c.capsule.recipientName,
+        capsuleRevealDate: c.capsule.revealDate.toISOString(),
+        authorName: c.authorName,
+        title: c.title,
+        body: c.body,
+        createdAt: c.createdAt.toISOString(),
+        media,
+      };
+    }),
+  );
 
   return (
     <main className="min-h-screen bg-cream pb-16">

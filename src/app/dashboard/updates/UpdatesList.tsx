@@ -1,9 +1,10 @@
 "use client";
 
-import { Check, Gift, Inbox, X } from "lucide-react";
+import { Calendar, Check, Gift, Inbox, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { MediaDisplay, type MediaItem } from "@/components/editor/MediaDisplay";
 import { formatLong } from "@/lib/dateFormatters";
 
 export type PendingUpdate = {
@@ -11,10 +12,12 @@ export type PendingUpdate = {
   capsuleId: string;
   capsuleTitle: string;
   recipientName: string;
+  capsuleRevealDate: string;
   authorName: string;
   title: string | null;
   body: string | null;
   createdAt: string;
+  media: MediaItem[];
 };
 
 type Props = {
@@ -171,6 +174,8 @@ export function UpdatesList({ rows }: Props) {
   );
 }
 
+const BODY_PREVIEW_CHAR_CAP = 260;
+
 function UpdateRow({
   row,
   checked,
@@ -186,9 +191,12 @@ function UpdateRow({
   onApprove: () => void;
   onDeny: () => void;
 }) {
-  const snippet = (row.body ?? "").replace(/<[^>]*>/g, "").trim();
-  const preview = row.title?.trim() || snippet.slice(0, 160) || "Untitled";
-  const sub = row.title && snippet ? snippet.slice(0, 200) : "";
+  const [expanded, setExpanded] = useState(false);
+  const bodyText = (row.body ?? "").replace(/<[^>]*>/g, "").trim();
+  const canExpand = bodyText.length > BODY_PREVIEW_CHAR_CAP;
+  const shownBody =
+    expanded || !canExpand ? bodyText : bodyText.slice(0, BODY_PREVIEW_CHAR_CAP).trimEnd() + "…";
+
   return (
     <article className="rounded-2xl border border-amber/20 bg-white shadow-[0_2px_10px_rgba(196,122,58,0.05)] p-4 sm:p-5 flex items-start gap-3">
       <input
@@ -200,23 +208,68 @@ function UpdateRow({
       />
 
       <div className="flex-1 min-w-0">
+        {/* 1. Capsule pill */}
         <div className="flex items-center gap-2 flex-wrap">
           <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.08em] font-semibold text-amber bg-amber-tint px-2 py-0.5 rounded-full">
             <Gift size={12} strokeWidth={1.75} />
             {row.capsuleTitle}
           </span>
-          <span className="text-[11px] uppercase tracking-[0.08em] font-semibold text-ink-light">
-            {formatLong(row.createdAt)}
+        </div>
+
+        {/* 2. Reveal date */}
+        <div className="mt-1 inline-flex items-center gap-1.5 text-[12px] text-ink-light">
+          <Calendar size={12} strokeWidth={1.75} aria-hidden="true" />
+          <span>
+            Reveals on{" "}
+            <span className="font-semibold text-ink-mid">
+              {formatLong(row.capsuleRevealDate)}
+            </span>
           </span>
         </div>
-        <h3 className="mt-1.5 text-[15px] sm:text-[16px] font-bold text-navy tracking-[-0.2px] leading-tight">
-          From {row.authorName} · {preview}
+
+        {/* 3. From {author} — bold */}
+        <h3 className="mt-2 text-[15px] sm:text-[16px] font-bold text-navy tracking-[-0.2px] leading-tight">
+          From {row.authorName}
+          {row.title?.trim() ? ` · ${row.title.trim()}` : ""}
         </h3>
-        {sub && (
-          <p className="mt-1 text-[13px] text-ink-mid leading-[1.5] line-clamp-3">
-            {sub}
+
+        {/* 4. Body preview — with expand/collapse */}
+        {bodyText ? (
+          <>
+            <p
+              className={`mt-1.5 text-[13px] text-ink-mid leading-[1.55] ${
+                expanded ? "" : "line-clamp-3"
+              }`}
+            >
+              {shownBody}
+            </p>
+            {canExpand && (
+              <button
+                type="button"
+                onClick={() => setExpanded((v) => !v)}
+                className="mt-1 text-[12px] font-semibold text-amber hover:text-amber-dark transition-colors"
+              >
+                {expanded ? "Show less" : "Show more"}
+              </button>
+            )}
+          </>
+        ) : (
+          <p className="mt-1.5 text-[13px] italic text-ink-light/70">
+            (no written message)
           </p>
         )}
+
+        {/* 5. Divider */}
+        <hr className="mt-4 border-navy/[0.06]" />
+
+        {/* 6. Media row */}
+        <div className="mt-3">
+          {row.media.length === 0 ? (
+            <p className="text-[12px] italic text-ink-light/70">No media</p>
+          ) : (
+            <MediaDisplay items={row.media} />
+          )}
+        </div>
       </div>
 
       <div className="shrink-0 flex flex-col gap-1.5">
