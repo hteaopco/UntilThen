@@ -7,7 +7,6 @@ import { useCallback, useRef, useState, type FormEvent } from "react";
 
 import { MediaAttachments } from "@/components/editor/MediaAttachments";
 import { TiptapEditor } from "@/components/editor/TiptapEditor";
-import { LogoSvg } from "@/components/ui/LogoSvg";
 import { formatLong } from "@/lib/dateFormatters";
 
 type CollectionOption = {
@@ -167,17 +166,14 @@ export function MemoryEditorForm({
 
   return (
     <main className="min-h-screen bg-cream">
-      <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
-        <div className="px-6 py-4 flex items-center justify-between max-w-[720px] mx-auto">
-          <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
-            <Sparkles size={14} strokeWidth={1.75} aria-hidden="true" />
-            {childFirstName}&rsquo;s Time Capsule
-          </span>
-          <LogoSvg variant="dark" width={110} height={22} />
-        </div>
-      </header>
+      <div className="mx-auto max-w-[720px] px-6 pt-3">
+        <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
+          <Sparkles size={14} strokeWidth={1.75} aria-hidden="true" />
+          {childFirstName}&rsquo;s Time Capsule
+        </span>
+      </div>
 
-      <section className="mx-auto max-w-[720px] px-6 pt-4 pb-20">
+      <section className="mx-auto max-w-[720px] px-6 pt-3 pb-20">
         <div className="flex items-center justify-between gap-4">
           <h1 className="text-balance text-[26px] lg:text-[36px] font-extrabold text-navy leading-[1.08] tracking-[-0.8px]">
             A new memory for {childFirstName}

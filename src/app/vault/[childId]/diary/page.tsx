@@ -13,8 +13,7 @@ import {
   Video,
 } from "lucide-react";
 
-import { Avatar } from "@/components/ui/Avatar";
-import { LogoSvg } from "@/components/ui/LogoSvg";
+import { TopNav } from "@/components/ui/TopNav";
 import { formatLong } from "@/lib/dateFormatters";
 
 export const metadata = {
@@ -79,16 +78,9 @@ export default async function MainDiaryPage({
 
   return (
     <main className="min-h-screen bg-cream pb-16">
-      <header className="mx-auto max-w-[720px] px-6 pt-5 pb-3 flex items-center justify-between gap-4">
-        <Link href="/dashboard" aria-label="untilThen">
-          <LogoSvg variant="dark" width={120} height={24} />
-        </Link>
-        <div className="[&>div>button]:w-8 [&>div>button]:h-8 [&>div>button]:text-[11px] sm:[&>div>button]:w-9 sm:[&>div>button]:h-9 sm:[&>div>button]:text-[13px]">
-          <Avatar />
-        </div>
-      </header>
+      <TopNav />
 
-      <section className="mx-auto max-w-[720px] px-6 pt-2">
+      <section className="mx-auto max-w-[720px] px-6 pt-6">
         <Link
           href={`/vault/${child.id}`}
           prefetch={false}

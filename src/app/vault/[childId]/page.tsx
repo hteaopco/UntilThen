@@ -3,10 +3,9 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ChevronRight, Eye, Plus } from "lucide-react";
 
-import { Avatar } from "@/components/ui/Avatar";
-import { LogoSvg } from "@/components/ui/LogoSvg";
 import { CapsuleHero } from "@/components/capsule-landing/CapsuleHero";
 import { CollectionCard } from "@/components/capsule-landing/CollectionCard";
+import { TopNav } from "@/components/ui/TopNav";
 import {
   ageOnDate,
   loadCapsuleLandingData,
@@ -36,17 +35,9 @@ export default async function CapsuleLandingPage({
 
   return (
     <main className="min-h-screen bg-cream pb-16">
-      {/* Standard header — logo left, avatar right (matches /dashboard). */}
-      <header className="mx-auto max-w-[1020px] px-6 lg:px-10 pt-5 pb-3 flex items-center justify-between gap-4">
-        <Link href="/dashboard" aria-label="Back to your vault">
-          <LogoSvg variant="dark" width={120} height={24} />
-        </Link>
-        <div className="[&>div>button]:w-8 [&>div>button]:h-8 [&>div>button]:text-[11px] sm:[&>div>button]:w-9 sm:[&>div>button]:h-9 sm:[&>div>button]:text-[13px]">
-          <Avatar />
-        </div>
-      </header>
+      <TopNav />
 
-      <div className="mx-auto max-w-[1020px] px-6 lg:px-10 pt-2 sm:pt-4 space-y-8 sm:space-y-10">
+      <div className="mx-auto max-w-[1020px] px-6 lg:px-10 pt-6 space-y-8 sm:space-y-10">
         <CapsuleHero
           vaultId={vault.id}
           childFirstName={child.firstName}

@@ -9,8 +9,7 @@ import { GiftCapsuleReceivedCard } from "@/components/dashboard2/GiftCapsuleRece
 import { HorizontalCardRail } from "@/components/dashboard2/HorizontalCardRail";
 import { SectionHeader } from "@/components/dashboard2/SectionHeader";
 import { VaultCard } from "@/components/dashboard2/VaultCard";
-import { Avatar } from "@/components/ui/Avatar";
-import { LogoSvg } from "@/components/ui/LogoSvg";
+import { TopNav } from "@/components/ui/TopNav";
 import { countDashboardUpdates } from "@/lib/dashboard-updates";
 import { loadDashboard2Data } from "@/lib/dashboard2-data";
 
@@ -51,14 +50,9 @@ export default async function DashboardPage() {
 
   return (
     <main className="min-h-screen bg-cream pb-16">
-      <header className="mx-auto max-w-[960px] px-6 lg:px-10 pt-6 pb-4 flex items-center justify-between">
-        <Link href="/" aria-label="untilThen home">
-          <LogoSvg variant="dark" width={120} height={24} />
-        </Link>
-        <Avatar />
-      </header>
+      <TopNav />
 
-      <div className="mx-auto max-w-[960px] px-6 lg:px-10 pt-4">
+      <div className="mx-auto max-w-[960px] px-6 lg:px-10 pt-6">
         <DashboardGreeting firstName={firstName} updatesCount={updatesCount} />
 
         <section className="mt-4 sm:mt-10">

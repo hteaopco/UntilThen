@@ -1,6 +1,8 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
+import { TopNav } from "@/components/ui/TopNav";
+
 import { MemoryEditorForm } from "./MemoryEditorForm";
 
 export const metadata = {
@@ -68,17 +70,20 @@ export default async function NewMemoryPage({
     : null;
 
   return (
-    <MemoryEditorForm
-      vaultId={child.vault.id}
-      childId={child.id}
-      childFirstName={child.firstName}
-      revealDate={child.vault.revealDate?.toISOString() ?? null}
-      initialCollectionId={collectionId}
-      collections={child.vault.collections.map((c) => ({
-        id: c.id,
-        title: c.title,
-        revealDate: c.revealDate?.toISOString() ?? null,
-      }))}
-    />
+    <>
+      <TopNav />
+      <MemoryEditorForm
+        vaultId={child.vault.id}
+        childId={child.id}
+        childFirstName={child.firstName}
+        revealDate={child.vault.revealDate?.toISOString() ?? null}
+        initialCollectionId={collectionId}
+        collections={child.vault.collections.map((c) => ({
+          id: c.id,
+          title: c.title,
+          revealDate: c.revealDate?.toISOString() ?? null,
+        }))}
+      />
+    </>
   );
 }
