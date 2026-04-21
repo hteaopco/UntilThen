@@ -7,7 +7,7 @@ export function Features() {
     <section id="features" className="bg-cream">
       <div className="mx-auto max-w-[1080px] px-6 lg:px-14 pt-3 lg:pt-7 pb-0">
         <div className="space-y-4 lg:space-y-5">
-          <div className="grid gap-2 sm:gap-3 lg:gap-5 grid-cols-1">
+          <div className="grid gap-2 sm:gap-3 lg:gap-5 grid-cols-2">
             {/* Voice Notes */}
             <div className="relative rounded-2xl border border-amber/10 overflow-hidden" style={{ background: "#fef0dc" }}>
               <div className="relative z-[1] p-4 sm:p-6 lg:p-8">
