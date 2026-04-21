@@ -13,13 +13,13 @@ export const metadata: Metadata = {
     title: "You have a message waiting for you.",
     description: "Someone left you something special on untilThen.",
     siteName: "untilThen",
-    images: [{ url: `${SITE_URL}/og-image.jpg`, width: 1200, height: 630 }],
+    images: [{ url: `${SITE_URL}/og-image.png`, width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title: "You have a message waiting for you.",
     description: "Someone left you something special on untilThen.",
-    images: [`${SITE_URL}/og-image.jpg`],
+    images: [`${SITE_URL}/og-image.png`],
   },
 };
 

@@ -44,7 +44,7 @@ export const viewport: Viewport = {
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://untilthenapp.io";
 
-const OG_IMAGE_URL = `${SITE_URL}/og-image.jpg`;
+const OG_IMAGE_URL = `${SITE_URL}/og-image.png`;
 
 const DEFAULT_TITLE =
   "untilThen — Moments from the past, opened in the future.";
