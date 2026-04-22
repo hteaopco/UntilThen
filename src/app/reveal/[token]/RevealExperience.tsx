@@ -35,6 +35,10 @@ const MUSIC_VOLUME = 0.25;
 /** Ducked volume while a voice card or non-muted video is
  *  actively playing. Music stays audible but steps back. */
 const MUSIC_DUCKED_VOLUME = 0.15;
+/** Fade-to-silent duration when the recipient leaves the
+ *  highlight reel for the gallery — the narrative "music
+ *  carried you here, now the memories are yours" beat. */
+const MUSIC_FADE_OUT_MS = 1500;
 
 /**
  * Any reveal card that produces audio calls duck() on play and
@@ -153,10 +157,22 @@ export function RevealExperience({
   // stays referentially stable across re-renders.
   const duckCountRef = useRef(0);
   const [, setDuckTick] = useState(0);
+  // While fading to silent, duck/unduck calls no-op so they
+  // can't fight the fade's ramp. Any in-flight fade animation
+  // frame also bails when the element is torn down.
+  const fadingRef = useRef(false);
+  const fadeFrameRef = useRef<number | null>(null);
 
   const startMusic = useCallback(() => {
     if (!MUSIC_URL) return;
     if (musicRef.current) return;
+    // A previous fade may have torn the element down — fadingRef
+    // stays true until we're ready for a fresh start.
+    fadingRef.current = false;
+    if (fadeFrameRef.current !== null) {
+      cancelAnimationFrame(fadeFrameRef.current);
+      fadeFrameRef.current = null;
+    }
     const el = new Audio(MUSIC_URL);
     el.loop = true;
     el.volume = duckCountRef.current > 0 ? MUSIC_DUCKED_VOLUME : MUSIC_VOLUME;
@@ -168,6 +184,41 @@ export function RevealExperience({
     musicRef.current = el;
   }, [muted]);
 
+  const fadeOutMusic = useCallback((durationMs = MUSIC_FADE_OUT_MS) => {
+    if (!musicRef.current) return;
+    if (fadingRef.current) return;
+    fadingRef.current = true;
+    const el = musicRef.current;
+    const startVolume = el.volume;
+    const startTime = performance.now();
+
+    function step(now: number) {
+      if (!musicRef.current) {
+        // element got torn down elsewhere — nothing to do
+        fadingRef.current = false;
+        fadeFrameRef.current = null;
+        return;
+      }
+      const elapsed = now - startTime;
+      const t = Math.min(1, elapsed / durationMs);
+      musicRef.current.volume = startVolume * (1 - t);
+      if (t < 1) {
+        fadeFrameRef.current = requestAnimationFrame(step);
+        return;
+      }
+      // Fade complete. Pause + release the element so a
+      // subsequent startMusic() (e.g. replay) can spin up a
+      // fresh one without fighting a stale reference.
+      musicRef.current.pause();
+      musicRef.current.src = "";
+      musicRef.current = null;
+      fadingRef.current = false;
+      fadeFrameRef.current = null;
+    }
+
+    fadeFrameRef.current = requestAnimationFrame(step);
+  }, []);
+
   // Mirror mute state to the music element any time it flips.
   useEffect(() => {
     if (musicRef.current) {
@@ -178,6 +229,10 @@ export function RevealExperience({
   // Stop music on unmount (tab close, route change, etc.).
   useEffect(() => {
     return () => {
+      if (fadeFrameRef.current !== null) {
+        cancelAnimationFrame(fadeFrameRef.current);
+        fadeFrameRef.current = null;
+      }
       if (musicRef.current) {
         musicRef.current.pause();
         musicRef.current.src = "";
@@ -186,7 +241,20 @@ export function RevealExperience({
     };
   }, []);
 
+  // When the recipient lands in the gallery — whether via the
+  // transition screen's 'Explore everything' CTA, by ending the
+  // story deck when there were only five memories (no transition
+  // screen), or by tapping ✕ to exit stories early — fade the
+  // music out. Gallery is a reflective surface; the bed carries
+  // through the guided reveal and then lets the memories speak.
+  useEffect(() => {
+    if (phase === "gallery" && musicRef.current) {
+      fadeOutMusic();
+    }
+  }, [phase, fadeOutMusic]);
+
   const duck = useCallback(() => {
+    if (fadingRef.current) return;
     duckCountRef.current += 1;
     if (musicRef.current) {
       musicRef.current.volume = MUSIC_DUCKED_VOLUME;
@@ -194,6 +262,7 @@ export function RevealExperience({
     setDuckTick((n) => n + 1);
   }, []);
   const unduck = useCallback(() => {
+    if (fadingRef.current) return;
     duckCountRef.current = Math.max(0, duckCountRef.current - 1);
     if (musicRef.current && duckCountRef.current === 0) {
       musicRef.current.volume = MUSIC_VOLUME;
@@ -292,7 +361,12 @@ export function RevealExperience({
         onReplay={() => {
           // Replay is session-only — recipientCompletedAt is not
           // reset on the server. The recipient gets the cinematic
-          // intro again, then lands back here.
+          // intro again, then lands back here. The replay tap
+          // itself is a user gesture, so it's safe to spin up a
+          // fresh music element (the previous one was torn down
+          // by the gallery-entering fade-out) without running
+          // into autoplay restrictions.
+          startMusic();
           setPhase("entry");
         }}
       />

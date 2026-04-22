@@ -13,13 +13,16 @@ import { useRevealAnalytics } from "./analytics";
  * date. The Begin button slides up from the bottom a beat after
  * the rest of the content has faded in.
  *
- * Choreography (all CSS, no JS timers):
- *   0ms   heart begins fade-in
- *   120ms headline begins fade-in
- *   240ms rule begins fade-in
- *   340ms date begins fade-in
- *   1000ms Begin button starts its slide-up + fade (≈ 250ms
- *         after the date finishes its 600ms fade)
+ * Choreography (all CSS, no JS timers) — total ~2000ms:
+ *   0ms    heart begins fade-in
+ *   200ms  headline begins fade-in
+ *   400ms  rule begins fade-in
+ *   550ms  date begins fade-in
+ *   1400ms Begin button starts its slide-up + fade
+ *   2000ms Begin button fully visible — total opening lands
+ *
+ * Each element fades in over 900ms (the Begin button over 600ms),
+ * so the slower pace feels contemplative rather than rushed.
  *
  * The reveal-experience background music is already playing by
  * the time we mount (the Gate phase satisfied the autoplay
@@ -64,7 +67,7 @@ export function EntryScreen({
         />
       </FadeIn>
 
-      <FadeIn delay={120}>
+      <FadeIn delay={200}>
         <h1
           className="font-serif text-navy leading-[1.12] tracking-[-0.4px] max-w-[18ch]"
           style={{ fontSize: "clamp(34px, 8.5vw, 44px)" }}
@@ -77,11 +80,11 @@ export function EntryScreen({
         </h1>
       </FadeIn>
 
-      <FadeIn delay={240}>
+      <FadeIn delay={400}>
         <DecorativeRule />
       </FadeIn>
 
-      <FadeIn delay={340}>
+      <FadeIn delay={550}>
         <p className="font-sans text-amber font-semibold text-[12px] tracking-[0.28em] uppercase">
           {dateLabel}
         </p>
@@ -97,7 +100,7 @@ export function EntryScreen({
         style={{
           boxShadow: "0 8px 24px rgba(196,122,58,0.25)",
           animation:
-            "entryBeginRise 600ms cubic-bezier(0.2, 0.7, 0.2, 1) 1000ms both",
+            "entryBeginRise 600ms cubic-bezier(0.2, 0.7, 0.2, 1) 1400ms both",
         }}
       >
         Begin
@@ -139,7 +142,7 @@ function FadeIn({
   return (
     <div
       style={{
-        animation: `entryFadeIn 600ms ease-out ${delay}ms both`,
+        animation: `entryFadeIn 900ms ease-out ${delay}ms both`,
       }}
     >
       {children}
