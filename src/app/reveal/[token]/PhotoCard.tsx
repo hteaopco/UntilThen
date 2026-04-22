@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { useMusicDuck } from "./RevealExperience";
 import type { RevealContribution } from "./RevealClient";
 
 /**
@@ -33,6 +34,31 @@ export function PhotoCard({
       null,
     [contribution.media, isVideo],
   );
+
+  // Duck the reveal's background music whenever an audible
+  // (non-muted) video is rendered. Silent looping videos on
+  // story cards leave the music bed at its normal volume.
+  const { duck, unduck } = useMusicDuck();
+  const duckedRef = useRef(false);
+  const shouldDuck = isVideo && !failed && !!media && !muted;
+  useEffect(() => {
+    if (shouldDuck && !duckedRef.current) {
+      duckedRef.current = true;
+      duck();
+    } else if (!shouldDuck && duckedRef.current) {
+      duckedRef.current = false;
+      unduck();
+    }
+  }, [shouldDuck, duck, unduck]);
+  useEffect(() => {
+    return () => {
+      if (duckedRef.current) {
+        duckedRef.current = false;
+        unduck();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const caption = deriveCaption(contribution);
   const initial = (contribution.authorName || "·").trim().charAt(0).toUpperCase();

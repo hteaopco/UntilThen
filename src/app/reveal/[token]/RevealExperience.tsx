@@ -1,9 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 import { EntryScreen } from "./EntryScreen";
 import { GalleryScreen } from "./GalleryScreen";
+import { GateScreen } from "./GateScreen";
 import { StoryCards } from "./StoryCards";
 import { TransitionScreen } from "./TransitionScreen";
 
@@ -18,7 +28,39 @@ const STORY_LIMIT = 5;
  * isn't obvious.
  */
 const MUSIC_URL = process.env.NEXT_PUBLIC_REVEAL_MUSIC_URL ?? "";
+/** Base music volume. Voice recordings play at 1.0, video audio
+ *  at whatever the source encodes to, so we keep the bed quiet
+ *  enough that narration reads cleanly. */
 const MUSIC_VOLUME = 0.25;
+/** Ducked volume while a voice card or non-muted video is
+ *  actively playing. Music stays audible but steps back. */
+const MUSIC_DUCKED_VOLUME = 0.15;
+
+/**
+ * Any reveal card that produces audio calls duck() on play and
+ * unduck() on pause / end / unmount. The provider refcounts the
+ * active audio sources so multiple overlapping plays (unlikely
+ * in practice but possible) don't un-duck prematurely.
+ */
+type MusicDuckApi = {
+  duck: () => void;
+  unduck: () => void;
+};
+const MusicDuckContext = createContext<MusicDuckApi | null>(null);
+
+export function useMusicDuck(): MusicDuckApi {
+  const ctx = useContext(MusicDuckContext);
+  return (
+    ctx ?? {
+      duck: () => {
+        /* no-op outside provider (admin mock preview) */
+      },
+      unduck: () => {
+        /* no-op */
+      },
+    }
+  );
+}
 
 export type RevealMedia = {
   kind: "photo" | "voice" | "video";
@@ -52,7 +94,7 @@ export type RevealCapsule = {
   hasCompleted: boolean;
 };
 
-type Phase = "entry" | "stories" | "transition" | "gallery";
+type Phase = "gate" | "entry" | "stories" | "transition" | "gallery";
 
 /**
  * Pure phase state machine — takes a fully-loaded capsule +
@@ -90,8 +132,12 @@ export function RevealExperience({
    *  subhead trimmed to just the counts). Defaults to capsule. */
   variant?: "capsule" | "vault";
 }) {
+  // Returning visitors skip both gate + entry — they already
+  // saw the cinematic flow and we drop them in the gallery.
+  // First-timers start at the gate so the single tap (a) grants
+  // audio autoplay permission and (b) triggers the entry fade.
   const [phase, setPhase] = useState<Phase>(() =>
-    capsule.hasCompleted ? "gallery" : "entry",
+    capsule.hasCompleted ? "gallery" : "gate",
   );
   // Muted state is hoisted to the root so the story-card ✕ chrome
   // toggle, the gallery music button, the embedded voice cards,
@@ -102,23 +148,25 @@ export function RevealExperience({
   // Background music. Ref-held so it survives phase changes
   // without remounting; ignored entirely when no URL is set.
   const musicRef = useRef<HTMLAudioElement | null>(null);
+  // Count of currently-playing voice / video sources. Music
+  // stays ducked while > 0. Using a ref + setter so duck/unduck
+  // stays referentially stable across re-renders.
+  const duckCountRef = useRef(0);
+  const [, setDuckTick] = useState(0);
 
-  // Start music on the first Begin tap (the user gesture iOS
-  // requires). Kept as a fire-and-forget — if the file 404s or
-  // the browser rejects, we silently run without music.
-  function startMusic() {
+  const startMusic = useCallback(() => {
     if (!MUSIC_URL) return;
     if (musicRef.current) return;
     const el = new Audio(MUSIC_URL);
     el.loop = true;
-    el.volume = MUSIC_VOLUME;
+    el.volume = duckCountRef.current > 0 ? MUSIC_DUCKED_VOLUME : MUSIC_VOLUME;
     el.muted = muted;
     el.play().catch(() => {
       // Autoplay blocked, file failed, etc. — silently run
       // without music rather than prompting or erroring.
     });
     musicRef.current = el;
-  }
+  }, [muted]);
 
   // Mirror mute state to the music element any time it flips.
   useEffect(() => {
@@ -137,6 +185,25 @@ export function RevealExperience({
       }
     };
   }, []);
+
+  const duck = useCallback(() => {
+    duckCountRef.current += 1;
+    if (musicRef.current) {
+      musicRef.current.volume = MUSIC_DUCKED_VOLUME;
+    }
+    setDuckTick((n) => n + 1);
+  }, []);
+  const unduck = useCallback(() => {
+    duckCountRef.current = Math.max(0, duckCountRef.current - 1);
+    if (musicRef.current && duckCountRef.current === 0) {
+      musicRef.current.volume = MUSIC_VOLUME;
+    }
+    setDuckTick((n) => n + 1);
+  }, []);
+  const musicDuckApi = useMemo<MusicDuckApi>(
+    () => ({ duck, unduck }),
+    [duck, unduck],
+  );
 
   const remaining = Math.max(0, contributions.length - STORY_LIMIT);
   const contributorCount = useMemo(
@@ -161,16 +228,28 @@ export function RevealExperience({
   // change and the CSS fade-in animation re-runs. 300ms matches
   // the brief's "phase transitions: opacity fade, 300ms ease".
   const phaseContent = (() => {
+    if (phase === "gate") {
+      return (
+        <GateScreen
+          onEnter={() => {
+            // This tap is the autoplay-unlocking user gesture.
+            // Start the bed here BEFORE transitioning so the
+            // entry screen fades in with music already playing.
+            startMusic();
+            setPhase("entry");
+          }}
+        />
+      );
+    }
     if (phase === "entry") {
       return (
         <EntryScreen
           recipientName={capsule.recipientName}
           revealDate={capsule.revealDate}
           onBegin={() => {
-            // This tap is the iOS autoplay gesture — kick off
-            // music here, before state change triggers a
-            // re-render.
-            startMusic();
+            // Music already started on mount (or on the first
+            // document-level tap for iOS) — nothing to do here
+            // audio-wise.
             setPhase(contributions.length === 0 ? "gallery" : "stories");
           }}
         />
@@ -229,5 +308,9 @@ export function RevealExperience({
   // the organiser / vault preview top bar (z-[250]). Keeping the
   // phase root un-wrapped lets each takeover stack against the
   // preview bar at the document root level.
-  return <div key={phase}>{phaseContent}</div>;
+  return (
+    <MusicDuckContext.Provider value={musicDuckApi}>
+      <div key={phase}>{phaseContent}</div>
+    </MusicDuckContext.Provider>
+  );
 }

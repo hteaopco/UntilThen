@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ContributorAvatar } from "@/components/ui/ContributorAvatar";
 
 import { useRevealAnalytics } from "./analytics";
+import { useMusicDuck } from "./RevealExperience";
 import type { RevealContribution } from "./RevealClient";
 
 /**
@@ -28,10 +29,28 @@ export function VoiceCard({
   muted: boolean;
 }) {
   const { capture } = useRevealAnalytics();
+  const { duck, unduck } = useMusicDuck();
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  // Track the duck state locally so we can release it on unmount
+  // or when the contribution changes, without relying on the
+  // audio element's pause event firing reliably across browsers.
+  const duckedRef = useRef(false);
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState<number>(0);
   const [position, setPosition] = useState<number>(0);
+
+  function applyDuck() {
+    if (!duckedRef.current) {
+      duckedRef.current = true;
+      duck();
+    }
+  }
+  function releaseDuck() {
+    if (duckedRef.current) {
+      duckedRef.current = false;
+      unduck();
+    }
+  }
 
   const audio = useMemo(
     () => contribution.media.find((m) => m.kind === "voice") ?? null,
@@ -46,7 +65,9 @@ export function VoiceCard({
     if (muted && !el.paused) {
       el.pause();
       setPlaying(false);
+      releaseDuck();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [muted]);
 
   // Reset internal position state if the contribution changes
@@ -55,7 +76,18 @@ export function VoiceCard({
     setPosition(0);
     setDuration(0);
     setPlaying(false);
+    releaseDuck();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contribution.id]);
+
+  // Safety net: release any held duck on unmount so music doesn't
+  // stay stuck at the ducked volume after the card is gone.
+  useEffect(() => {
+    return () => {
+      releaseDuck();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function toggle() {
     const el = audioRef.current;
@@ -63,10 +95,12 @@ export function VoiceCard({
     if (playing) {
       el.pause();
       setPlaying(false);
+      releaseDuck();
     } else {
       el.play().then(
         () => {
           setPlaying(true);
+          applyDuck();
           capture("reveal_voice_played", {
             contributionId: contribution.id,
             authorName: contribution.authorName,
@@ -162,6 +196,7 @@ export function VoiceCard({
           onEnded={() => {
             setPlaying(false);
             setPosition(duration);
+            releaseDuck();
           }}
         />
       )}

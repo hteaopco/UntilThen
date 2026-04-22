@@ -8,16 +8,23 @@ import { useRevealAnalytics } from "./analytics";
 /**
  * Phase 1 — Entry Screen.
  *
- * The sealed-moment-before-opening. Full-screen, no chrome, warm
- * bokeh background, recipient's name in Playfair, the reveal date
- * in DM Sans caps, and an amber pill Begin button.
+ * The sealed-moment-before-opening. Warm bokeh background, the
+ * recipient's name in Playfair, a decorative rule, and the reveal
+ * date. The Begin button slides up from the bottom a beat after
+ * the rest of the content has faded in.
  *
- * Tap Begin → caller advances to Phase 2 (Story Cards).
+ * Choreography (all CSS, no JS timers):
+ *   0ms   heart begins fade-in
+ *   120ms headline begins fade-in
+ *   240ms rule begins fade-in
+ *   340ms date begins fade-in
+ *   1000ms Begin button starts its slide-up + fade (≈ 250ms
+ *         after the date finishes its 600ms fade)
  *
- * The bokeh background is faked with layered radial gradients
- * for now; swap for a high-quality static asset
- * (`/reveal-bokeh.jpg` or similar) once design lands one — the
- * surrounding layout doesn't need to change.
+ * The reveal-experience background music is already playing by
+ * the time we mount (the Gate phase satisfied the autoplay
+ * gesture), so the fade-in reads as intro music → visuals
+ * blooming in.
  */
 export function EntryScreen({
   recipientName,
@@ -41,10 +48,6 @@ export function EntryScreen({
       className="min-h-screen w-full flex flex-col items-center justify-center px-6 text-center"
       style={{
         background:
-          // Three radial gradients stacked = warm bokeh-ish
-          // texture without depending on an image asset. Tones
-          // chosen to read as "cream + amber" so it matches the
-          // brand without the visual noise of a stock photo.
           "radial-gradient(ellipse at 18% 22%, rgba(224, 154, 90, 0.18) 0%, transparent 38%), " +
           "radial-gradient(ellipse at 82% 78%, rgba(196, 122, 58, 0.22) 0%, transparent 42%), " +
           "radial-gradient(ellipse at 50% 50%, rgba(253, 243, 233, 1) 0%, rgba(253, 248, 242, 1) 100%)",
@@ -52,29 +55,37 @@ export function EntryScreen({
         paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
       }}
     >
-      <Heart
-        size={20}
-        strokeWidth={1.75}
-        className="text-amber mb-7"
-        aria-hidden="true"
-      />
+      <FadeIn delay={0}>
+        <Heart
+          size={20}
+          strokeWidth={1.75}
+          className="text-amber mb-7"
+          aria-hidden="true"
+        />
+      </FadeIn>
 
-      <h1
-        className="font-serif text-navy leading-[1.12] tracking-[-0.4px] max-w-[18ch]"
-        style={{ fontSize: "clamp(34px, 8.5vw, 44px)" }}
-      >
-        {recipientName ? `${recipientName},` : "This"}
-        <br />
-        this was made
-        <br />
-        for you.
-      </h1>
+      <FadeIn delay={120}>
+        <h1
+          className="font-serif text-navy leading-[1.12] tracking-[-0.4px] max-w-[18ch]"
+          style={{ fontSize: "clamp(34px, 8.5vw, 44px)" }}
+        >
+          {recipientName ? `${recipientName},` : "This"}
+          <br />
+          this was made
+          <br />
+          for you.
+        </h1>
+      </FadeIn>
 
-      <DecorativeRule />
+      <FadeIn delay={240}>
+        <DecorativeRule />
+      </FadeIn>
 
-      <p className="font-sans text-amber font-semibold text-[12px] tracking-[0.28em] uppercase">
-        {dateLabel}
-      </p>
+      <FadeIn delay={340}>
+        <p className="font-sans text-amber font-semibold text-[12px] tracking-[0.28em] uppercase">
+          {dateLabel}
+        </p>
+      </FadeIn>
 
       <button
         type="button"
@@ -83,11 +94,56 @@ export function EntryScreen({
           onBegin();
         }}
         className="mt-10 inline-flex items-center justify-center w-full max-w-[280px] rounded-full bg-amber px-8 py-4 text-white text-[15px] font-semibold tracking-[0.02em] hover:bg-amber-dark active:opacity-90 transition-colors"
-        style={{ boxShadow: "0 8px 24px rgba(196,122,58,0.25)" }}
+        style={{
+          boxShadow: "0 8px 24px rgba(196,122,58,0.25)",
+          animation:
+            "entryBeginRise 600ms cubic-bezier(0.2, 0.7, 0.2, 1) 1000ms both",
+        }}
       >
         Begin
       </button>
+
+      <style jsx global>{`
+        @keyframes entryFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @keyframes entryBeginRise {
+          from {
+            opacity: 0;
+            transform: translateY(24px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </main>
+  );
+}
+
+function FadeIn({
+  delay,
+  children,
+}: {
+  delay: number;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      style={{
+        animation: `entryFadeIn 600ms ease-out ${delay}ms both`,
+      }}
+    >
+      {children}
+    </div>
   );
 }
 
