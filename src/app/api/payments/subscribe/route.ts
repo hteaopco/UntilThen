@@ -150,23 +150,37 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       });
     }
 
-    // 2. Save card on file.
-    const cardResp = await square.cards.create({
-      // Square caps idempotency_key at 45 chars. "crd-" + cuid
-      // (25) + "-" + base36 timestamp (~8) = ~38 chars. The
-      // timestamp ensures a new card entry generates a new key
-      // (so repeat subscribe attempts after an explicit cancel
-      // don't get Square's cached response for the old card).
-      idempotencyKey: `crd-${user.id}-${Date.now().toString(36)}`,
-      sourceId,
-      card: {
-        customerId: squareCustomerId,
-        referenceId: user.id,
-      },
+    // 2. Get or save card on file. Reuse an existing saved card
+    //    if the user already has one — otherwise creating a new
+    //    card on every retry would:
+    //      a) clutter the customer with duplicate cards, and
+    //      b) change the sourceId on the proration payment, which
+    //         trips Square's idempotency key reuse check on retry
+    //         (same key, different request parameters = 400).
+    let cardId: string | undefined;
+    const existingCards = await square.cards.list({
+      customerId: squareCustomerId,
     });
-    const cardId = cardResp.card?.id;
-    if (!cardId) {
-      throw new Error("Square card create returned no id.");
+    const existingCard = (existingCards.data ?? []).find(
+      (c) => c.enabled !== false,
+    );
+    if (existingCard?.id) {
+      cardId = existingCard.id;
+    } else {
+      const cardResp = await square.cards.create({
+        // Stable key per user — retries return the same card
+        // instead of spawning duplicates. "crd-" (4) + cuid (25) = 29.
+        idempotencyKey: `crd-${user.id}`,
+        sourceId,
+        card: {
+          customerId: squareCustomerId,
+          referenceId: user.id,
+        },
+      });
+      cardId = cardResp.card?.id;
+      if (!cardId) {
+        throw new Error("Square card create returned no id.");
+      }
     }
 
     const now = new Date();
@@ -184,25 +198,39 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         // keeps the key under Square's 45-char idempotency limit:
         // "sp-" (3) + cuid (25) + "-" (1) + "YYYYMMDD" (8) = 37.
         const yyyymmdd = now.toISOString().slice(0, 10).replace(/-/g, "");
-        const payResp = await square.payments.create({
-          idempotencyKey: `sp-${user.id}-${yyyymmdd}`,
-          sourceId: cardId,
-          customerId: squareCustomerId,
-          amountMoney: {
-            amount: BigInt(amountTodayCents),
-            currency: "USD",
-          },
-          locationId: SQUARE_LOCATION_ID,
-          note: "untilThen subscription · prorated start",
-          referenceId: user.id,
-        });
-        if (payResp.payment?.status !== "COMPLETED") {
-          return NextResponse.json(
-            {
-              error:
-                "Your card was declined. Please try a different card.",
+        try {
+          const payResp = await square.payments.create({
+            idempotencyKey: `sp-${user.id}-${yyyymmdd}`,
+            sourceId: cardId,
+            customerId: squareCustomerId,
+            amountMoney: {
+              amount: BigInt(amountTodayCents),
+              currency: "USD",
             },
-            { status: 402 },
+            locationId: SQUARE_LOCATION_ID,
+            note: "untilThen subscription · prorated start",
+            referenceId: user.id,
+          });
+          if (payResp.payment?.status !== "COMPLETED") {
+            return NextResponse.json(
+              {
+                error:
+                  "Your card was declined. Please try a different card.",
+              },
+              { status: 402 },
+            );
+          }
+        } catch (err) {
+          // If Square tells us the key was already used, a
+          // prior attempt already ran the charge — treat that
+          // as success and proceed to subscription creation so
+          // the user isn't locked out after a half-completed
+          // first attempt.
+          const code = (err as { errors?: { code?: string }[] })
+            .errors?.[0]?.code;
+          if (code !== "IDEMPOTENCY_KEY_REUSED") throw err;
+          console.log(
+            `[payments/subscribe] proration already charged for ${user.id} today — skipping`,
           );
         }
       }
@@ -267,7 +295,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       message?: string;
     };
     const code = e?.errors?.[0]?.code ?? "";
-    console.error("[payments/subscribe] error:", code, e?.message ?? e);
+    const detail = e?.errors?.[0]?.detail ?? "";
+    console.error(
+      "[payments/subscribe] error:",
+      code,
+      detail,
+      e?.message ?? e,
+    );
+    // Misconfigured Square plan variation IDs — bubble up a
+    // clearer message for the UI instead of the generic retry
+    // prompt. Almost always means the SQUARE_PLAN_* env vars
+    // point at plan IDs, not plan variation IDs.
+    if (
+      code === "BAD_REQUEST" &&
+      detail.includes("SUBSCRIPTION_PLAN_VARIATION")
+    ) {
+      return NextResponse.json(
+        {
+          error:
+            "Payments aren't set up correctly yet. Please reach out — our team has been notified.",
+        },
+        { status: 503 },
+      );
+    }
     if (
       code === "CARD_DECLINED" ||
       code === "GENERIC_DECLINE" ||

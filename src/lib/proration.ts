@@ -38,14 +38,20 @@ function daysInMonth(now: Date): number {
   return new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
 }
 
-/** 1st of next month, used as the monthly subscription start date. */
+/** 1st of next month, used as the monthly subscription start date.
+ *  Anchored to noon UTC so the ISO string renders as the intended
+ *  calendar day in every US timezone (midnight UTC drifts back to
+ *  the previous day in CT/MT/PT). */
 export function nextFirstOfMonth(now: Date): Date {
-  return new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 12));
 }
 
-/** Same calendar date one year out, used as the annual renewal. */
+/** Same calendar date one year out, used as the annual renewal.
+ *  Same noon-UTC trick as nextFirstOfMonth. */
 export function oneYearLater(now: Date): Date {
-  return new Date(now.getFullYear() + 1, now.getMonth(), now.getDate());
+  return new Date(
+    Date.UTC(now.getUTCFullYear() + 1, now.getUTCMonth(), now.getUTCDate(), 12),
+  );
 }
 
 /**
