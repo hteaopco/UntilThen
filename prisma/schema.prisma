@@ -392,5 +392,11 @@ model Subscription {
 model AppConfig {
   id             String   @id @default("singleton")
   paywallEnabled Boolean  @default(false)
+  // Kill switch for the 90-day manual-lock-toggle cooldown.
+  // When true, /api/account/vaults/[id]/lock ignores
+  // lastLockToggleAt and lets users rotate capsules freely.
+  // Used during pre-launch testing to move state around without
+  // burning the cooldown.
+  lockThrottleDisabled Boolean @default(false)
   updatedAt      DateTime @updatedAt
 }

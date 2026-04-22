@@ -1,5 +1,6 @@
 import { AdminHeader } from "@/app/admin/AdminHeader";
 
+import { LockThrottleToggle } from "./LockThrottleToggle";
 import { PaywallToggle } from "./PaywallToggle";
 import { SquareOrderTemplateSetup } from "./SquareOrderTemplateSetup";
 import { SquarePlanVariations } from "./SquarePlanVariations";
@@ -42,6 +43,21 @@ export default async function AdminSettingsPage() {
             activates freely &mdash; used for pre-launch testing.
           </p>
           <PaywallToggle initialEnabled={config.paywallEnabled} />
+        </section>
+
+        <section className="mt-12 pt-10 border-t border-navy/[0.06]">
+          <p className="text-[11px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-3">
+            Lock / unlock cooldown
+          </p>
+          <p className="text-sm text-ink-mid mb-5 max-w-[560px]">
+            Users can only lock or unlock a capsule once every 90 days to
+            prevent rotating a single paid slot across many capsules. Flip
+            this OFF during QA to move lock state around freely; turn it
+            back ON before launch.
+          </p>
+          <LockThrottleToggle
+            initialDisabled={config.lockThrottleDisabled}
+          />
         </section>
 
         <section className="mt-12 pt-10 border-t border-navy/[0.06]">

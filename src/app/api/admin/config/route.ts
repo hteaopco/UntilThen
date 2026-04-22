@@ -47,12 +47,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const config = await getOrCreateConfig();
   return NextResponse.json({
     paywallEnabled: config.paywallEnabled,
+    lockThrottleDisabled: config.lockThrottleDisabled,
     updatedAt: config.updatedAt.toISOString(),
   });
 }
 
 interface PatchBody {
   paywallEnabled?: boolean;
+  lockThrottleDisabled?: boolean;
 }
 
 export async function PATCH(req: NextRequest): Promise<NextResponse> {
@@ -72,9 +74,19 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  if (typeof body.paywallEnabled !== "boolean") {
+  const update: {
+    paywallEnabled?: boolean;
+    lockThrottleDisabled?: boolean;
+  } = {};
+  if (typeof body.paywallEnabled === "boolean") {
+    update.paywallEnabled = body.paywallEnabled;
+  }
+  if (typeof body.lockThrottleDisabled === "boolean") {
+    update.lockThrottleDisabled = body.lockThrottleDisabled;
+  }
+  if (Object.keys(update).length === 0) {
     return NextResponse.json(
-      { error: "paywallEnabled must be a boolean." },
+      { error: "Nothing to update." },
       { status: 400 },
     );
   }
@@ -82,16 +94,18 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
   const { prisma } = await import("@/lib/prisma");
   const config = await prisma.appConfig.upsert({
     where: { id: "singleton" },
-    update: { paywallEnabled: body.paywallEnabled },
+    update,
     create: {
       id: "singleton",
-      paywallEnabled: body.paywallEnabled,
+      paywallEnabled: update.paywallEnabled ?? false,
+      lockThrottleDisabled: update.lockThrottleDisabled ?? false,
     },
   });
 
   return NextResponse.json({
     success: true,
     paywallEnabled: config.paywallEnabled,
+    lockThrottleDisabled: config.lockThrottleDisabled,
     updatedAt: config.updatedAt.toISOString(),
   });
 }

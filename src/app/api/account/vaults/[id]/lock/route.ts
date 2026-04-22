@@ -63,17 +63,25 @@ export async function POST(
 
   if (owned.vault.isLocked) return NextResponse.json({ success: true });
 
-  // 90-day rate limit on manual toggles.
+  // 90-day rate limit on manual toggles. Admin can flip off via
+  // AppConfig.lockThrottleDisabled while testing.
   if (owned.vault.lastLockToggleAt) {
-    const nextAllowed = nextToggleDate(owned.vault.lastLockToggleAt);
-    if (nextAllowed > new Date()) {
-      return NextResponse.json(
-        {
-          error: `You can change this capsule's lock state once every ${TOGGLE_COOLDOWN_DAYS} days. Available again on ${nextAllowed.toLocaleDateString()}.`,
-          nextAllowedAt: nextAllowed.toISOString(),
-        },
-        { status: 429 },
-      );
+    const { prisma: throttlePrisma } = await import("@/lib/prisma");
+    const config = await throttlePrisma.appConfig.findUnique({
+      where: { id: "singleton" },
+      select: { lockThrottleDisabled: true },
+    });
+    if (!config?.lockThrottleDisabled) {
+      const nextAllowed = nextToggleDate(owned.vault.lastLockToggleAt);
+      if (nextAllowed > new Date()) {
+        return NextResponse.json(
+          {
+            error: `You can change this capsule's lock state once every ${TOGGLE_COOLDOWN_DAYS} days. Available again on ${nextAllowed.toLocaleDateString()}.`,
+            nextAllowedAt: nextAllowed.toISOString(),
+          },
+          { status: 429 },
+        );
+      }
     }
   }
 
@@ -107,17 +115,25 @@ export async function DELETE(
 
   if (!owned.vault.isLocked) return NextResponse.json({ success: true });
 
-  // Same 90-day rate limit on unlocks.
+  // Same 90-day rate limit on unlocks. Admin can flip off via
+  // AppConfig.lockThrottleDisabled while testing.
   if (owned.vault.lastLockToggleAt) {
-    const nextAllowed = nextToggleDate(owned.vault.lastLockToggleAt);
-    if (nextAllowed > new Date()) {
-      return NextResponse.json(
-        {
-          error: `You can change this capsule's lock state once every ${TOGGLE_COOLDOWN_DAYS} days. Available again on ${nextAllowed.toLocaleDateString()}.`,
-          nextAllowedAt: nextAllowed.toISOString(),
-        },
-        { status: 429 },
-      );
+    const { prisma: throttlePrisma } = await import("@/lib/prisma");
+    const config = await throttlePrisma.appConfig.findUnique({
+      where: { id: "singleton" },
+      select: { lockThrottleDisabled: true },
+    });
+    if (!config?.lockThrottleDisabled) {
+      const nextAllowed = nextToggleDate(owned.vault.lastLockToggleAt);
+      if (nextAllowed > new Date()) {
+        return NextResponse.json(
+          {
+            error: `You can change this capsule's lock state once every ${TOGGLE_COOLDOWN_DAYS} days. Available again on ${nextAllowed.toLocaleDateString()}.`,
+            nextAllowedAt: nextAllowed.toISOString(),
+          },
+          { status: 429 },
+        );
+      }
     }
   }
 

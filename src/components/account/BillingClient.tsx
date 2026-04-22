@@ -1,8 +1,16 @@
 "use client";
 
-import { Lock, MinusCircle, PlusCircle, TrendingDown, TrendingUp, X } from "lucide-react";
+import {
+  HelpCircle,
+  Lock,
+  MinusCircle,
+  PlusCircle,
+  TrendingDown,
+  TrendingUp,
+  X,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 import { AddOnCheckout } from "@/components/checkout/AddOnCheckout";
 import { SubscriptionCheckout } from "@/components/checkout/SubscriptionCheckout";
@@ -26,7 +34,18 @@ type Capsule = {
   vaultId: string | null;
   firstName: string;
   isLocked: boolean;
+  /** Most recent MANUAL lock/unlock toggle. Auto-locks from
+   *  addon removal don't set this. */
+  lastLockToggleAtIso: string | null;
 };
+
+/** Cooldown days kept in sync with TOGGLE_COOLDOWN_DAYS in
+ *  src/app/api/account/vaults/[id]/lock/route.ts. */
+const LOCK_COOLDOWN_DAYS = 90;
+
+function addDays(iso: string, days: number): Date {
+  return new Date(new Date(iso).getTime() + days * 86400000);
+}
 
 export type BillingClientProps = {
   capsuleCount: number;
@@ -417,12 +436,12 @@ export function BillingClient({
             {capsules.map((c) => (
               <li
                 key={c.childId}
-                className="rounded-xl border border-navy/[0.08] bg-white px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
+                className="rounded-xl border border-navy/[0.08] bg-white px-4 py-3 flex items-start justify-between gap-3 flex-wrap"
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
                   <div
                     aria-hidden="true"
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                       c.isLocked
                         ? "bg-navy/10 text-ink-mid"
                         : "bg-sage-tint text-sage"
@@ -430,13 +449,32 @@ export function BillingClient({
                   >
                     <Lock size={14} strokeWidth={1.75} />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <div className="font-semibold text-navy">
                       {c.firstName}&rsquo;s capsule
                     </div>
                     <div className="text-xs text-ink-light mt-0.5">
                       {c.isLocked ? "Locked · read-only" : "Active"}
                     </div>
+                    {c.lastLockToggleAtIso && (
+                      <div className="mt-2 flex items-start gap-1.5 text-[11px] text-ink-light leading-[1.5]">
+                        <div className="flex-1 min-w-0">
+                          <div>
+                            Last change: {formatLong(c.lastLockToggleAtIso)}
+                          </div>
+                          <div>
+                            Throttle lifted:{" "}
+                            {formatLong(
+                              addDays(
+                                c.lastLockToggleAtIso,
+                                LOCK_COOLDOWN_DAYS,
+                              ).toISOString(),
+                            )}
+                          </div>
+                        </div>
+                        <ThrottleHelp />
+                      </div>
+                    )}
                   </div>
                 </div>
                 {c.vaultId && sub?.status === "ACTIVE" && (
@@ -553,6 +591,49 @@ function UsageCell({ label, value }: { label: string; value: string }) {
       <dd className="mt-1 text-base font-bold text-navy tabular-nums">
         {value}
       </dd>
+    </div>
+  );
+}
+
+/** Question-mark pill that pops a tooltip explaining the 90-day
+ *  lock/unlock throttle. Click-to-toggle + outside-click-to-close
+ *  so it works on mobile (hover is unreliable on touch). */
+function ThrottleHelp() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label="About the lock cooldown"
+        className="w-5 h-5 rounded-full flex items-center justify-center text-ink-light hover:text-navy transition-colors"
+      >
+        <HelpCircle size={14} strokeWidth={1.75} aria-hidden="true" />
+      </button>
+      {open && (
+        <div
+          role="tooltip"
+          className="absolute right-0 top-6 w-[240px] z-20 rounded-xl border border-navy/10 bg-white shadow-[0_8px_24px_rgba(15,31,61,0.12)] px-4 py-3 text-[12px] text-ink-mid leading-[1.55]"
+        >
+          <p className="font-semibold text-navy mb-1">Lock cooldown</p>
+          <p>
+            Each capsule can be locked or unlocked once every 90 days.
+            Stops anyone from rotating one paid slot across multiple
+            capsules to get extra write access for free.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

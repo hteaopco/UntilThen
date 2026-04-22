@@ -42,6 +42,7 @@ export default async function AccountBillingPage() {
             select: {
               id: true,
               isLocked: true,
+              lastLockToggleAt: true,
               entries: {
                 where: { isSealed: true },
                 select: { type: true },
@@ -61,6 +62,8 @@ export default async function AccountBillingPage() {
       vaultId: c.vault?.id ?? null,
       firstName: c.firstName,
       isLocked: c.vault?.isLocked ?? false,
+      lastLockToggleAtIso:
+        c.vault?.lastLockToggleAt?.toISOString() ?? null,
     }));
 
   const props: BillingClientProps = {
