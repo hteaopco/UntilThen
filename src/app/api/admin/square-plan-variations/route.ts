@@ -47,6 +47,21 @@ const PARENT_PLAN_IDS = {
   ANNUAL_ADDON: "UOWOEMVRR7UZPYIDNKCHQ4BE",
 } as const;
 
+type Phase = {
+  uid?: string;
+  ordinal?: number;
+  cadence?: string;
+  pricing?: {
+    type?: string;
+    price_money?: { amount?: number; currency?: string };
+    discount_ids?: string[];
+  };
+  // Some Square accounts also expose the linked order template
+  // id at the phase level — surface whatever we find so the
+  // admin can eyeball it.
+  order_template_id?: string;
+};
+
 type CatalogObject = {
   type?: string;
   id?: string;
@@ -56,7 +71,7 @@ type CatalogObject = {
   };
   subscription_plan_variation_data?: {
     name?: string;
-    phases?: { cadence?: string }[];
+    phases?: Phase[];
   };
 };
 
@@ -66,11 +81,18 @@ type RetrieveResponse = {
   errors?: { code?: string; detail?: string }[];
 };
 
+type VariationSummary = {
+  id: string;
+  name: string;
+  cadence: string;
+  phases: Phase[];
+};
+
 type Row = {
   label: string;
   planId: string;
   configuredVariationId: string;
-  variations: { id: string; name: string; cadence: string }[];
+  variations: VariationSummary[];
   configuredMatches: boolean;
   error: string | null;
 };
@@ -140,13 +162,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           (o) => o.type === "SUBSCRIPTION_PLAN_VARIATION",
         );
         const seen = new Set<string>();
-        const variations = [...nested, ...related]
+        const variations: VariationSummary[] = [...nested, ...related]
           .filter((v) => v.id && !seen.has(v.id) && seen.add(v.id))
           .map((v) => ({
             id: v.id ?? "",
             name: v.subscription_plan_variation_data?.name ?? "(unnamed)",
             cadence:
               v.subscription_plan_variation_data?.phases?.[0]?.cadence ?? "?",
+            phases: v.subscription_plan_variation_data?.phases ?? [],
           }));
         row.variations = variations;
         row.configuredMatches = variations.some(

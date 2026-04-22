@@ -3,11 +3,27 @@
 import { AlertCircle, Check, Loader2, RefreshCw } from "lucide-react";
 import { useState } from "react";
 
+type Phase = {
+  uid?: string;
+  ordinal?: number;
+  cadence?: string;
+  pricing?: {
+    type?: string;
+    price_money?: { amount?: number; currency?: string };
+  };
+  order_template_id?: string;
+};
+
 type Row = {
   label: string;
   planId: string;
   configuredVariationId: string;
-  variations: { id: string; name: string; cadence: string }[];
+  variations: {
+    id: string;
+    name: string;
+    cadence: string;
+    phases: Phase[];
+  }[];
   configuredMatches: boolean;
   error: string | null;
 };
@@ -158,16 +174,22 @@ function Card({ row }: { row: Row }) {
       )}
 
       {row.variations.length > 0 && (
-        <div className="mt-3">
-          <p className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-1.5">
+        <div className="mt-3 space-y-3">
+          <p className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-mid">
             Variations on this plan
           </p>
-          <ul className="space-y-1">
-            {row.variations.map((v) => {
-              const isConfigured = v.id === row.configuredVariationId;
-              return (
-                <li
-                  key={v.id}
+          {row.variations.map((v) => {
+            const isConfigured = v.id === row.configuredVariationId;
+            return (
+              <div
+                key={v.id}
+                className={`rounded-lg border px-3 py-2 ${
+                  isConfigured
+                    ? "border-sage/40 bg-white/70"
+                    : "border-navy/10 bg-white/40"
+                }`}
+              >
+                <div
                   className={`flex items-center gap-2 text-[12px] ${
                     isConfigured ? "font-semibold text-navy" : "text-ink-mid"
                   }`}
@@ -186,10 +208,15 @@ function Card({ row }: { row: Row }) {
                       aria-hidden="true"
                     />
                   )}
-                </li>
-              );
-            })}
-          </ul>
+                </div>
+                {v.phases.length > 0 && (
+                  <pre className="mt-2 text-[10px] font-mono text-ink-mid leading-[1.5] whitespace-pre-wrap break-all bg-navy/[0.02] border border-navy/5 rounded px-2 py-1.5">
+                    {JSON.stringify(v.phases, null, 2)}
+                  </pre>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
