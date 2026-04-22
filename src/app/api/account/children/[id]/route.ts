@@ -10,6 +10,7 @@ type PatchBody = {
   lastName?: string;
   dateOfBirth?: string | null;
   revealDate?: string | null;
+  parentDisplayName?: string | null;
   trusteeName?: string | null;
   trusteeEmail?: string | null;
   trusteePhone?: string | null;
@@ -89,6 +90,18 @@ export async function PATCH(
         { status: 400 },
       );
     childData.dateOfBirth = d;
+  }
+  if ("parentDisplayName" in body) {
+    const v =
+      typeof body.parentDisplayName === "string"
+        ? body.parentDisplayName.trim()
+        : "";
+    if (v.length > 40)
+      return NextResponse.json(
+        { error: "Display name is too long (40 character max)." },
+        { status: 400 },
+      );
+    childData.parentDisplayName = v.length > 0 ? v : null;
   }
   if ("trusteeName" in body) {
     const v =

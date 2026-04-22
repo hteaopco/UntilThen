@@ -43,6 +43,7 @@ export default async function AccountChildEditPage({
         firstName={child.firstName}
         dateOfBirth={child.dateOfBirth?.toISOString() ?? null}
         revealDate={child.vault?.revealDate?.toISOString() ?? null}
+        parentDisplayName={child.parentDisplayName ?? ""}
         trusteeName={child.trusteeName ?? ""}
         trusteeEmail={child.trusteeEmail ?? ""}
         trusteePhone={child.trusteePhone ?? ""}

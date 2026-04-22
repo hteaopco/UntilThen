@@ -29,6 +29,7 @@ export function ChildEditForm({
   firstName: initialFirstName,
   dateOfBirth: initialDob,
   revealDate: initialReveal,
+  parentDisplayName: initialParentDisplayName,
   trusteeName: initialTrusteeName,
   trusteeEmail: initialTrusteeEmail,
   trusteePhone: initialTrusteePhone,
@@ -37,12 +38,22 @@ export function ChildEditForm({
   firstName: string;
   dateOfBirth: string | null;
   revealDate: string | null;
+  parentDisplayName: string;
   trusteeName: string;
   trusteeEmail: string;
   trusteePhone: string;
 }) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
+
+  const [parentDisplayName, setParentDisplayName] = useState(
+    initialParentDisplayName,
+  );
+  const [parentDisplayState, setParentDisplayState] =
+    useState<SaveState>("idle");
+  const [parentDisplayError, setParentDisplayError] = useState<string | null>(
+    null,
+  );
 
   // Trustee fields stay editable inline (not in the modal).
   const [trusteeName, setTrusteeName] = useState(initialTrusteeName);
@@ -54,27 +65,51 @@ export function ChildEditForm({
   const dobDisplay = initialDob ? formatDate(toDateInput(initialDob)) : "Not set";
   const revealDisplay = initialReveal ? formatDate(toDateInput(initialReveal)) : "Not set";
 
+  async function patchChild(body: Record<string, unknown>) {
+    const res = await fetch(`/api/account/children/${childId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      throw new Error(data.error ?? "Couldn't save.");
+    }
+  }
+
+  async function saveParentDisplay(e: FormEvent) {
+    e.preventDefault();
+    setParentDisplayState("saving");
+    setParentDisplayError(null);
+    try {
+      await patchChild({
+        firstName: initialFirstName,
+        dateOfBirth: initialDob ? toDateInput(initialDob) : null,
+        revealDate: initialReveal ? toDateInput(initialReveal) : null,
+        parentDisplayName: parentDisplayName.trim() || null,
+      });
+      setParentDisplayState("saved");
+      router.refresh();
+      setTimeout(() => setParentDisplayState("idle"), 2200);
+    } catch (err) {
+      setParentDisplayError((err as Error).message);
+      setParentDisplayState("error");
+    }
+  }
+
   async function saveTrustee(e: FormEvent) {
     e.preventDefault();
     setTrusteeState("saving");
     setTrusteeError(null);
     try {
-      const res = await fetch(`/api/account/children/${childId}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: initialFirstName,
-          dateOfBirth: initialDob ? toDateInput(initialDob) : null,
-          revealDate: initialReveal ? toDateInput(initialReveal) : null,
-          trusteeName: trusteeName.trim() || null,
-          trusteeEmail: trusteeEmail.trim() || null,
-          trusteePhone: trusteePhone.trim() || null,
-        }),
+      await patchChild({
+        firstName: initialFirstName,
+        dateOfBirth: initialDob ? toDateInput(initialDob) : null,
+        revealDate: initialReveal ? toDateInput(initialReveal) : null,
+        trusteeName: trusteeName.trim() || null,
+        trusteeEmail: trusteeEmail.trim() || null,
+        trusteePhone: trusteePhone.trim() || null,
       });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? "Couldn't save.");
-      }
       setTrusteeState("saved");
       router.refresh();
       setTimeout(() => setTrusteeState("idle"), 2200);
@@ -118,6 +153,57 @@ export function ChildEditForm({
           <ReadOnlyField label="Date of birth" value={dobDisplay} />
           <ReadOnlyField label="Reveal date" value={revealDisplay} />
         </div>
+      </section>
+
+      <hr className="border-navy/[0.06]" />
+
+      {/* ── What they call you ──────────────────────────────── */}
+      <section>
+        <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-2">
+          What they call you
+        </p>
+        <p className="text-sm text-ink-mid mb-5 max-w-[560px]">
+          Personalises the &ldquo;from&rdquo; line on this capsule&rsquo;s
+          reveal. Use whatever {initialFirstName} actually calls you &mdash;
+          &ldquo;Dad,&rdquo; &ldquo;Mom,&rdquo; &ldquo;Mama,&rdquo; or your
+          first name. Leave blank to fall back to your account display name.
+        </p>
+
+        <form onSubmit={saveParentDisplay} className="space-y-4">
+          <div className="max-w-[320px]">
+            <Field label={`Name shown to ${initialFirstName}`}>
+              <input
+                type="text"
+                value={parentDisplayName}
+                onChange={(e) => setParentDisplayName(e.target.value)}
+                placeholder="Dad"
+                className="account-input"
+                maxLength={40}
+              />
+            </Field>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              type="submit"
+              disabled={parentDisplayState === "saving"}
+              className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
+            >
+              {parentDisplayState === "saving" ? "Saving…" : "Save"}
+            </button>
+            {parentDisplayState === "saved" && (
+              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-sage">
+                <Check size={16} strokeWidth={2} aria-hidden="true" /> Saved
+              </span>
+            )}
+            {parentDisplayState === "error" && parentDisplayError && (
+              <span className="inline-flex items-center gap-1.5 text-sm font-medium text-red-600">
+                <AlertCircle size={16} strokeWidth={1.75} aria-hidden="true" />{" "}
+                {parentDisplayError}
+              </span>
+            )}
+          </div>
+        </form>
       </section>
 
       <hr className="border-navy/[0.06]" />

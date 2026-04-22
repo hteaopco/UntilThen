@@ -60,7 +60,11 @@ export default async function ChildViewPage({
   const entries = child.vault.entries.map((e) => ({
     id: e.id,
     type: e.type,
-    author: e.author.displayName || e.author.firstName || "someone",
+    author:
+      child.parentDisplayName?.trim() ||
+      e.author.displayName ||
+      e.author.firstName ||
+      "someone",
   }));
   const collections = child.vault.collections.map((c) => ({
     id: c.id,

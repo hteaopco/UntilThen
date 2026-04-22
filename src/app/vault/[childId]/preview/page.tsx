@@ -92,7 +92,11 @@ export default async function VaultPreviewPage({
         }
       }
 
+      // Per-capsule "what they call you" wins over the user's
+      // global display name. Falls through to displayName /
+      // firstName when the capsule hasn't been customised.
       const authorName =
+        child.parentDisplayName?.trim() ||
         entry.author.displayName?.trim() ||
         entry.author.firstName ||
         "Someone who loves you";

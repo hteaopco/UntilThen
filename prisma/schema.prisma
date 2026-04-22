@@ -96,6 +96,12 @@ model Child {
   trusteeName  String?
   trusteeEmail String?
   trusteePhone String?
+  // What this child calls the parent — "Dad", "Mom", "Mama",
+  // "Papa", "Jett", etc. Falls back to User.displayName /
+  // firstName when null. Per-capsule because the same parent
+  // wants different labels per child (e.g. "Dad" to one kid,
+  // first name to another).
+  parentDisplayName String?
   createdAt    DateTime  @default(now())
 
   parent User   @relation(fields: [parentId], references: [id])
