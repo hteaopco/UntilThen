@@ -1,6 +1,7 @@
 import { AdminHeader } from "@/app/admin/AdminHeader";
 
 import { PaywallToggle } from "./PaywallToggle";
+import { SquarePlanVariations } from "./SquarePlanVariations";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -40,6 +41,20 @@ export default async function AdminSettingsPage() {
             activates freely &mdash; used for pre-launch testing.
           </p>
           <PaywallToggle initialEnabled={config.paywallEnabled} />
+        </section>
+
+        <section className="mt-12 pt-10 border-t border-navy/[0.06]">
+          <p className="text-[11px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-3">
+            Square plan variations
+          </p>
+          <p className="text-sm text-ink-mid mb-5 max-w-[560px]">
+            Subscriptions require <em>plan variation</em> IDs, not plan IDs
+            (Square&rsquo;s Dashboard UI only surfaces the latter). Click below
+            to pull the four variations live from the Catalog API and compare
+            against what&rsquo;s configured in <code>SQUARE_PLAN_*</code> env vars.
+            Any mismatches need to be pasted into Railway.
+          </p>
+          <SquarePlanVariations />
         </section>
       </div>
     </main>
