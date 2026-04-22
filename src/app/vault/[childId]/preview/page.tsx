@@ -61,6 +61,7 @@ export default async function VaultPreviewPage({
             include: {
               author: { select: { firstName: true, displayName: true } },
               contributor: { select: { name: true, email: true } },
+              collection: { select: { title: true } },
             },
           },
         },
@@ -111,6 +112,7 @@ export default async function VaultPreviewPage({
         body: entry.body,
         media,
         createdAt: entry.createdAt.toISOString(),
+        collectionTitle: entry.collection?.title ?? null,
       };
     }),
   );

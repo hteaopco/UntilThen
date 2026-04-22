@@ -23,6 +23,11 @@ export type RevealContribution = {
   body: string | null;
   media: RevealMedia[];
   createdAt: string;
+  /** Optional grouping — populated for vault entries that belong
+   *  to a Collection, null for Main Diary entries and for every
+   *  gift-capsule contribution. When any contribution carries a
+   *  collection, the gallery shows collection filter chips. */
+  collectionTitle?: string | null;
 };
 
 export type RevealCapsule = {
