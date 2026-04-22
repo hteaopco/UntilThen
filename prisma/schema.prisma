@@ -74,11 +74,24 @@ model User {
   userType    UserType @default(PARENT)
   createdAt   DateTime @default(now())
 
+  // Payment access flags. When either is true, the matching
+  // paywall gate short-circuits to 'allowed' — used for
+  // employees, comped early testers, and anyone given permanent
+  // free access via the admin Users table. Defaults to false so
+  // the standard subscription gate applies.
+  freeVaultAccess Boolean @default(false)
+  freeGiftAccess  Boolean @default(false)
+  // Square Customer resource id, set once the user's card is
+  // saved on file during a SubscriptionCheckout flow. Null for
+  // users who have never completed a paid checkout.
+  squareCustomerId String?
+
   children                Child[]
   entries                 Entry[]
   collections             Collection[]
   memoryCapsules          MemoryCapsule[]
   notificationPreferences NotificationPreferences?
+  subscription            Subscription?
 }
 
 model Child {
@@ -249,8 +262,17 @@ model MemoryCapsule {
   contributorDeadline DateTime?
   status              CapsuleStatus @default(DRAFT)
   requiresApproval    Boolean       @default(false)
+  // paymentId holds the Square Payment resource id once the
+  // organiser's $9.99 one-time charge clears. Historic DRAFT
+  // rows with a placeholder value will remain until that data
+  // cycles out; new activations always write a real Square id.
   paymentId           String?
   isPaid              Boolean       @default(false)
+  // Timestamp of when isPaid flipped to true. Null for
+  // unactivated capsules; pinned on the payment webhook /
+  // activation transaction so refund/reversal flows can tell
+  // which charge to reverse.
+  paidAt              DateTime?
   accessToken         String        @unique @default(cuid())
   tokenExpiresAt      DateTime?
   recipientClerkId    String?
@@ -330,4 +352,56 @@ model NotificationPreferences {
   updatedAt           DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id])
+}
+
+// ── Payments ────────────────────────────────────────────────
+// See docs plan / `lib/paywall.ts` for how these gate vault
+// creation + gift-capsule activation. Both models stay opt-in
+// — they only come into play once AppConfig.paywallEnabled is
+// flipped to true.
+
+enum SubscriptionPlan {
+  MONTHLY
+  ANNUAL
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  PAST_DUE
+  LOCKED
+}
+
+model Subscription {
+  id                String             @id @default(cuid())
+  userId            String             @unique
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Square's Subscription resource id. Unique so webhook
+  // lookups by Square id can hit the index directly.
+  squareSubId       String             @unique
+  plan              SubscriptionPlan
+  status            SubscriptionStatus @default(ACTIVE)
+  // 3 base capsule slots are included in the standard plan;
+  // every additional capsule past that is an add-on that bumps
+  // addonCapsuleCount up by one at $0.99/mo or $6/yr.
+  baseCapsuleCount  Int                @default(3)
+  addonCapsuleCount Int                @default(0)
+  // End of the current billing period. Set at every renewal so
+  // CANCELLED subscriptions can stay 'active enough' until the
+  // paid period lapses.
+  currentPeriodEnd  DateTime
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+// Single-row config table. The id column is locked to the
+// string "singleton" via the default so every read / write
+// hits the same row — no other rows are ever created.
+// Seeded with paywallEnabled: false in the migration so
+// pre-launch testing doesn't immediately start demanding
+// payment.
+model AppConfig {
+  id             String   @id @default("singleton")
+  paywallEnabled Boolean  @default(false)
+  updatedAt      DateTime @updatedAt
 }
