@@ -8,6 +8,7 @@ import {
   NotYetOpenScreen,
 } from "./ErrorScreens";
 import { EntryScreen } from "./EntryScreen";
+import { StoryCards } from "./StoryCards";
 
 export type RevealMedia = {
   kind: "photo" | "voice" | "video";
@@ -148,19 +149,28 @@ export function RevealClient({ token }: { token: string }) {
       <EntryScreen
         recipientName={recipientName}
         revealDate={data.capsule.revealDate}
-        onBegin={() => {
-          // Chunk 2 will swap this for setPhase("stories").
-          // Until then, "Begin" is a visual no-op so QA can
-          // verify the entry screen renders correctly without
-          // a broken downstream phase.
-          setPhase("stories");
-        }}
+        onBegin={() => setPhase("stories")}
       />
     );
   }
 
-  // Chunk 2/3 phases land here as no-ops until those are built.
-  // Render the entry screen as a safe fallback.
+  if (phase === "stories" && data) {
+    return (
+      <StoryCards
+        contributions={data.contributions}
+        // Chunk 3 will swap both onClose + onComplete for the
+        // gallery + transition screens. Until then, exit/finish
+        // both drop back to the entry screen so the recipient
+        // isn't stranded.
+        onClose={() => setPhase("entry")}
+        onComplete={() => setPhase("entry")}
+      />
+    );
+  }
+
+  // Chunk 3 phases (transition / gallery) land here as no-ops
+  // until those are built. Render the entry screen as a safe
+  // fallback.
   if (data) {
     return (
       <EntryScreen
