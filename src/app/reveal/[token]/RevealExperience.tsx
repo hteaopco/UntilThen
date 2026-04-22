@@ -9,6 +9,17 @@ import { TransitionScreen } from "./TransitionScreen";
 
 const STORY_LIMIT = 5;
 
+/**
+ * Background music URL — set NEXT_PUBLIC_REVEAL_MUSIC_URL to a
+ * hot-linkable MP3 (public CDN or /public asset, e.g.
+ * /reveal-music.mp3). When unset, the reveal runs silent and
+ * every music-related UI stays hidden. Recommended vibe: soft
+ * strings / ambient, 2–4 min seamless loop so the loop point
+ * isn't obvious.
+ */
+const MUSIC_URL = process.env.NEXT_PUBLIC_REVEAL_MUSIC_URL ?? "";
+const MUSIC_VOLUME = 0.25;
+
 export type RevealMedia = {
   kind: "photo" | "voice" | "video";
   url: string;
@@ -82,6 +93,50 @@ export function RevealExperience({
   const [phase, setPhase] = useState<Phase>(() =>
     capsule.hasCompleted ? "gallery" : "entry",
   );
+  // Muted state is hoisted to the root so the story-card ✕ chrome
+  // toggle, the gallery music button, the embedded voice cards,
+  // and the background music element all stay in sync. One mute
+  // switch kills everything.
+  const [muted, setMuted] = useState(false);
+
+  // Background music. Ref-held so it survives phase changes
+  // without remounting; ignored entirely when no URL is set.
+  const musicRef = useRef<HTMLAudioElement | null>(null);
+
+  // Start music on the first Begin tap (the user gesture iOS
+  // requires). Kept as a fire-and-forget — if the file 404s or
+  // the browser rejects, we silently run without music.
+  function startMusic() {
+    if (!MUSIC_URL) return;
+    if (musicRef.current) return;
+    const el = new Audio(MUSIC_URL);
+    el.loop = true;
+    el.volume = MUSIC_VOLUME;
+    el.muted = muted;
+    el.play().catch(() => {
+      // Autoplay blocked, file failed, etc. — silently run
+      // without music rather than prompting or erroring.
+    });
+    musicRef.current = el;
+  }
+
+  // Mirror mute state to the music element any time it flips.
+  useEffect(() => {
+    if (musicRef.current) {
+      musicRef.current.muted = muted;
+    }
+  }, [muted]);
+
+  // Stop music on unmount (tab close, route change, etc.).
+  useEffect(() => {
+    return () => {
+      if (musicRef.current) {
+        musicRef.current.pause();
+        musicRef.current.src = "";
+        musicRef.current = null;
+      }
+    };
+  }, []);
 
   const remaining = Math.max(0, contributions.length - STORY_LIMIT);
   const contributorCount = useMemo(
@@ -111,9 +166,13 @@ export function RevealExperience({
         <EntryScreen
           recipientName={capsule.recipientName}
           revealDate={capsule.revealDate}
-          onBegin={() =>
-            setPhase(contributions.length === 0 ? "gallery" : "stories")
-          }
+          onBegin={() => {
+            // This tap is the iOS autoplay gesture — kick off
+            // music here, before state change triggers a
+            // re-render.
+            startMusic();
+            setPhase(contributions.length === 0 ? "gallery" : "stories");
+          }}
         />
       );
     }
@@ -121,6 +180,8 @@ export function RevealExperience({
       return (
         <StoryCards
           contributions={contributions}
+          muted={muted}
+          onToggleMuted={() => setMuted((m) => !m)}
           // ✕ from stories jumps straight to gallery (brief
           // explicitly says "exits to gallery immediately").
           // Reaching the end of the deck routes through the
@@ -146,6 +207,9 @@ export function RevealExperience({
         recipientName={capsule.recipientName}
         contributions={contributions}
         variant={variant}
+        muted={muted}
+        onToggleMuted={() => setMuted((m) => !m)}
+        musicEnabled={Boolean(MUSIC_URL)}
         onReplay={() => {
           // Replay is session-only — recipientCompletedAt is not
           // reset on the server. The recipient gets the cinematic

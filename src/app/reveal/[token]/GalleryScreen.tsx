@@ -9,6 +9,8 @@ import {
   RotateCcw,
   Search,
   Video,
+  Volume2,
+  VolumeX,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -41,6 +43,9 @@ export function GalleryScreen({
   contributions,
   onReplay,
   variant = "capsule",
+  muted = false,
+  onToggleMuted,
+  musicEnabled = false,
 }: {
   recipientName: string;
   contributions: RevealContribution[];
@@ -52,6 +57,14 @@ export function GalleryScreen({
    *  who love you' subhead. vault: time capsule — no contributor
    *  filter, compact subhead. */
   variant?: "capsule" | "vault";
+  /** Shared mute state from RevealExperience — kills both
+   *  background music and voice-card playback. */
+  muted?: boolean;
+  onToggleMuted?: () => void;
+  /** Whether reveal-wide background music is configured. When
+   *  false, the mute toggle in the gallery header stays hidden
+   *  (there's nothing to mute once stories are over). */
+  musicEnabled?: boolean;
 }) {
   const { capture } = useRevealAnalytics();
   const [searchQuery, setSearchQuery] = useState("");
@@ -185,7 +198,7 @@ export function GalleryScreen({
   return (
     <main className="min-h-screen bg-cream pb-20">
       <header
-        className="px-5"
+        className="relative px-5"
         style={{
           paddingTop: "max(env(safe-area-inset-top), 56px)",
         }}
@@ -211,6 +224,23 @@ export function GalleryScreen({
             ? `${sorted.length} ${sorted.length === 1 ? "memory" : "memories"} from ${formatContributorNames(contributors)}`
             : `${sorted.length} ${sorted.length === 1 ? "memory" : "memories"} from ${contributors.length} ${contributors.length === 1 ? "person" : "people"} who love you`}
         </p>
+        {musicEnabled && onToggleMuted && (
+          <button
+            type="button"
+            onClick={onToggleMuted}
+            aria-label={muted ? "Unmute background music" : "Mute background music"}
+            className="absolute right-5 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 border border-navy/10 text-ink-mid hover:text-navy hover:bg-white transition-colors"
+            style={{
+              top: "max(env(safe-area-inset-top), 56px)",
+            }}
+          >
+            {muted ? (
+              <VolumeX size={16} strokeWidth={2} />
+            ) : (
+              <Volume2 size={16} strokeWidth={2} />
+            )}
+          </button>
+        )}
       </header>
 
       {/* Search + view toggle row */}

@@ -35,6 +35,8 @@ export function StoryCards({
   contributions,
   onClose,
   onComplete,
+  muted,
+  onToggleMuted,
 }: {
   /** Full ordered list. We slice to first 5 here. */
   contributions: RevealContribution[];
@@ -42,6 +44,10 @@ export function StoryCards({
   onClose: () => void;
   /** Advancing past the last card — moves to Phase 3 (transition). */
   onComplete: () => void;
+  /** Shared mute state — the same switch kills background music
+   *  (owned by RevealExperience) and voice-card playback. */
+  muted: boolean;
+  onToggleMuted: () => void;
 }) {
   const { capture } = useRevealAnalytics();
   const cards = useMemo(
@@ -49,7 +55,6 @@ export function StoryCards({
     [contributions],
   );
   const [index, setIndex] = useState(0);
-  const [muted, setMuted] = useState(false);
 
   // Fire one view event per card — covers both the initial mount
   // and every subsequent advance. Index change = new card = new
@@ -173,7 +178,7 @@ export function StoryCards({
       </button>
       <button
         type="button"
-        onClick={() => setMuted((m) => !m)}
+        onClick={onToggleMuted}
         aria-label={muted ? "Unmute" : "Mute"}
         className="absolute top-3 right-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 backdrop-blur text-navy hover:bg-white transition-colors shadow-[0_2px_8px_rgba(15,31,61,0.08)]"
         style={{ marginTop: "max(env(safe-area-inset-top), 4px)" }}
