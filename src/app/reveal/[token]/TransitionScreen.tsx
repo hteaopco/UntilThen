@@ -35,7 +35,10 @@ export function TransitionScreen({
 
   return (
     <main
-      className="fixed inset-0 z-40 flex flex-col items-center justify-center px-6 text-center"
+      // z-[260] so the 'Explore everything' CTA and headline
+      // aren't partially covered by the preview top bar
+      // (z-[250]) during the gift-capsule / vault preview flows.
+      className="fixed inset-0 z-[260] flex flex-col items-center justify-center px-6 text-center"
       style={{
         background:
           "radial-gradient(ellipse at 18% 22%, rgba(224, 154, 90, 0.18) 0%, transparent 38%), " +

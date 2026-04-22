@@ -95,7 +95,12 @@ export function StoryCards({
 
   return (
     <main
-      className="fixed inset-0 z-40 bg-cream flex items-center justify-center select-none"
+      // z-[260] so the ✕ close button + progress bar + mute
+      // toggle aren't hidden behind the preview top bar
+      // (z-[250]) when running inside /capsules/[id]/preview or
+      // /vault/[childId]/preview. In the real recipient flow
+      // there's no preview bar, so the raised z is a no-op.
+      className="fixed inset-0 z-[260] bg-cream flex items-center justify-center select-none"
       style={{
         paddingTop: "max(env(safe-area-inset-top), 12px)",
         paddingBottom: "max(env(safe-area-inset-bottom), 12px)",
