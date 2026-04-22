@@ -13,8 +13,12 @@ import type { RevealCapsule, RevealContribution } from "./RevealExperience";
  * public MP3 — both stable and free.
  */
 
+// Stable, hot-linkable Unsplash photos. ?w=800&q=80 keeps the
+// payload small while staying sharp on retina story cards.
+// Birthday cake with candles — replaces the earlier balloon
+// shot, which was too flat on cream backgrounds.
 const PHOTO_BIRTHDAY =
-  "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&q=80";
+  "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=800&q=80";
 const PHOTO_BABY =
   "https://images.unsplash.com/photo-1519689680058-324335c77eba?w=800&q=80";
 const PHOTO_FAMILY =

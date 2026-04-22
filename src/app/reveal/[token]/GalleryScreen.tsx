@@ -1,6 +1,12 @@
 "use client";
 
-import { Image as ImageIcon, Mail, Mic, RotateCcw } from "lucide-react";
+import {
+  Image as ImageIcon,
+  Mail,
+  Mic,
+  RotateCcw,
+  Video,
+} from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { GalleryCard } from "./GalleryCard";
@@ -9,7 +15,7 @@ import type { RevealContribution } from "./RevealClient";
 
 type Filter =
   | { kind: "all" }
-  | { kind: "type"; type: "TEXT" | "PHOTO" | "VOICE" }
+  | { kind: "type"; type: "TEXT" | "PHOTO" | "VOICE" | "VIDEO" }
   | { kind: "author"; name: string };
 
 /**
@@ -62,25 +68,21 @@ export function GalleryScreen({
   const counts = useMemo(() => {
     let letters = 0;
     let photos = 0;
-    let voices = 0;
+    let audios = 0;
+    let videos = 0;
     for (const c of sorted) {
       if (c.type === "TEXT") letters++;
-      else if (c.type === "PHOTO" || c.type === "VIDEO") photos++;
-      else if (c.type === "VOICE") voices++;
+      else if (c.type === "PHOTO") photos++;
+      else if (c.type === "VOICE") audios++;
+      else if (c.type === "VIDEO") videos++;
     }
-    return { letters, photos, voices };
+    return { letters, photos, audios, videos };
   }, [sorted]);
 
   const filtered = useMemo(() => {
     if (filter.kind === "all") return sorted;
     if (filter.kind === "type") {
-      // PHOTO filter swallows VIDEO too — they live on the same
-      // gallery card type and the brief only exposes 3 type chips.
-      return sorted.filter((c) =>
-        filter.type === "PHOTO"
-          ? c.type === "PHOTO" || c.type === "VIDEO"
-          : c.type === filter.type,
-      );
+      return sorted.filter((c) => c.type === filter.type);
     }
     return sorted.filter((c) => c.authorName.trim() === filter.name);
   }, [filter, sorted]);
@@ -127,16 +129,7 @@ export function GalleryScreen({
           Nothing matches that filter.
         </p>
       ) : (
-        <section
-          className="mt-4 px-3"
-          style={{
-            // CSS columns gives us masonry-style packing without a
-            // JS layout pass. break-inside: avoid on each card
-            // keeps tiles intact.
-            columnCount: 2,
-            columnGap: "12px",
-          }}
-        >
+        <section className="mt-4 px-3 grid grid-cols-2 gap-3">
           {filtered.map((c) => (
             <GalleryCard
               key={c.id}
@@ -166,7 +159,7 @@ function FilterStrip({
   filter: Filter;
   onSelect: (f: Filter) => void;
   contributors: string[];
-  counts: { letters: number; photos: number; voices: number };
+  counts: { letters: number; photos: number; audios: number; videos: number };
 }) {
   return (
     <div
@@ -198,6 +191,15 @@ function FilterStrip({
             Letters
           </Chip>
         )}
+        {counts.audios > 0 && (
+          <Chip
+            active={filter.kind === "type" && filter.type === "VOICE"}
+            onClick={() => onSelect({ kind: "type", type: "VOICE" })}
+            icon={<Mic size={11} strokeWidth={2} aria-hidden="true" />}
+          >
+            Audio
+          </Chip>
+        )}
         {counts.photos > 0 && (
           <Chip
             active={filter.kind === "type" && filter.type === "PHOTO"}
@@ -207,13 +209,13 @@ function FilterStrip({
             Photos
           </Chip>
         )}
-        {counts.voices > 0 && (
+        {counts.videos > 0 && (
           <Chip
-            active={filter.kind === "type" && filter.type === "VOICE"}
-            onClick={() => onSelect({ kind: "type", type: "VOICE" })}
-            icon={<Mic size={11} strokeWidth={2} aria-hidden="true" />}
+            active={filter.kind === "type" && filter.type === "VIDEO"}
+            onClick={() => onSelect({ kind: "type", type: "VIDEO" })}
+            icon={<Video size={11} strokeWidth={2} aria-hidden="true" />}
           >
-            Voice
+            Videos
           </Chip>
         )}
         {contributors.map((name) => (

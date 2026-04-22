@@ -55,19 +55,19 @@ export function VaultPreviewClient({
   return (
     <div className="relative">
       <div
-        className="fixed top-0 inset-x-0 z-[250] flex items-center justify-between gap-3 px-3 py-2.5 bg-navy/90 backdrop-blur-md text-white"
+        className="fixed top-0 inset-x-0 z-[250] flex items-center justify-between gap-3 px-3 py-2.5 bg-cream/90 backdrop-blur-md text-navy border-b border-navy/[0.06]"
         style={{ paddingTop: "max(env(safe-area-inset-top), 10px)" }}
       >
         <Link
           href={`/vault/${childId}`}
           prefetch={false}
-          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-white/85 hover:text-white transition-colors"
+          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-ink-mid hover:text-navy transition-colors"
         >
           <ArrowLeft size={14} strokeWidth={2} />
           Back
         </Link>
 
-        <div className="flex items-center gap-1 rounded-full bg-white/10 p-0.5 border border-white/15">
+        <div className="flex items-center gap-1 rounded-full bg-white p-0.5 border border-navy/10 shadow-[0_2px_8px_rgba(15,31,61,0.04)]">
           <ToggleButton
             active={mode === "real"}
             onClick={() => setMode("real")}
@@ -91,7 +91,7 @@ export function VaultPreviewClient({
           </ToggleButton>
         </div>
 
-        <span className="text-[11px] uppercase tracking-[0.14em] text-white/50 font-semibold hidden sm:inline">
+        <span className="text-[11px] uppercase tracking-[0.14em] text-amber font-semibold hidden sm:inline">
           Preview
         </span>
       </div>
@@ -126,8 +126,8 @@ function ToggleButton({
       title={title}
       className={`px-3 py-1 rounded-full text-[12px] font-semibold transition-colors disabled:opacity-35 disabled:cursor-not-allowed ${
         active
-          ? "bg-white text-navy"
-          : "text-white/75 hover:text-white hover:bg-white/10"
+          ? "bg-amber text-white"
+          : "text-ink-mid hover:text-navy hover:bg-amber-tint"
       }`}
     >
       {children}

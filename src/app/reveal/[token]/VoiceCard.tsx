@@ -75,10 +75,12 @@ export function VoiceCard({
 
   return (
     <div
-      className="relative w-full h-full overflow-hidden flex flex-col items-center justify-center text-white px-6"
+      className="relative w-full h-full overflow-hidden flex flex-col items-center justify-center text-navy px-6"
       style={{
         background:
-          "radial-gradient(ellipse at 50% 30%, rgba(196,122,58,0.18) 0%, transparent 55%), linear-gradient(180deg, #0f1f3d 0%, #060d22 100%)",
+          "radial-gradient(ellipse at 50% 28%, rgba(224, 154, 90, 0.22) 0%, transparent 55%), " +
+          "radial-gradient(ellipse at 50% 90%, rgba(196, 122, 58, 0.14) 0%, transparent 45%), " +
+          "linear-gradient(180deg, #fdf3e9 0%, #fdf8f2 100%)",
       }}
     >
       <div className="flex flex-col items-center text-center">
@@ -95,15 +97,16 @@ export function VoiceCard({
             style={{
               background:
                 "linear-gradient(135deg, #c47a3a 0%, #e09a5a 100%)",
+              boxShadow: "0 8px 24px rgba(196,122,58,0.25)",
             }}
           >
             {initial}
           </span>
         )}
-        <p className="mt-5 font-sans font-semibold text-[20px] tracking-[-0.2px]">
+        <p className="mt-5 font-sans font-semibold text-[20px] tracking-[-0.2px] text-navy">
           {contribution.authorName}
         </p>
-        <p className="mt-1 text-[13px] text-white/55">{subtext}</p>
+        <p className="mt-1 text-[13px] text-ink-mid">{subtext}</p>
       </div>
 
       {/* Decorative waveform — purely visual, not tied to the
@@ -116,7 +119,7 @@ export function VoiceCard({
         {WAVEFORM_HEIGHTS.map((h, i) => (
           <span
             key={i}
-            className="block w-[3px] rounded-full bg-amber/70"
+            className="block w-[3px] rounded-full bg-amber/80"
             style={{ height: `${h}%` }}
           />
         ))}
@@ -127,7 +130,8 @@ export function VoiceCard({
         onClick={toggle}
         disabled={muted || !audio}
         aria-label={playing ? "Pause voice message" : "Play voice message"}
-        className="relative z-20 mt-10 flex h-[72px] w-[72px] items-center justify-center rounded-full border-2 border-amber/80 bg-transparent text-white hover:bg-amber/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        className="relative z-20 mt-10 flex h-[72px] w-[72px] items-center justify-center rounded-full border-2 border-amber bg-white text-amber hover:bg-amber hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        style={{ boxShadow: "0 8px 24px rgba(196,122,58,0.18)" }}
       >
         {playing ? (
           <Pause size={28} strokeWidth={2} />
@@ -136,7 +140,7 @@ export function VoiceCard({
         )}
       </button>
 
-      <p className="mt-5 text-white/65 text-[12px] tabular-nums tracking-wide">
+      <p className="mt-5 text-ink-mid text-[12px] tabular-nums tracking-wide">
         {formatTime(position)} / {duration > 0 ? formatTime(duration) : "--:--"}
       </p>
 

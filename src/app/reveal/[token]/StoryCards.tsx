@@ -73,7 +73,7 @@ export function StoryCards({
 
   return (
     <main
-      className="fixed inset-0 z-40 bg-black flex items-center justify-center select-none"
+      className="fixed inset-0 z-40 bg-cream flex items-center justify-center select-none"
       style={{
         paddingTop: "max(env(safe-area-inset-top), 12px)",
         paddingBottom: "max(env(safe-area-inset-bottom), 12px)",
@@ -88,10 +88,10 @@ export function StoryCards({
         {cards.map((_, i) => (
           <div
             key={i}
-            className="flex-1 h-[2px] rounded-full bg-white/25 overflow-hidden"
+            className="flex-1 h-[2px] rounded-full bg-navy/15 overflow-hidden"
           >
             <div
-              className="h-full bg-white transition-all duration-200"
+              className="h-full bg-amber transition-all duration-200"
               style={{
                 width:
                   i < index ? "100%" : i === index ? "100%" : "0%",
@@ -131,12 +131,15 @@ export function StoryCards({
         className="absolute top-0 bottom-0 right-0 w-1/2 z-10 cursor-default focus:outline-none"
       />
 
-      {/* Header: ✕ left, 🔊/🔇 right. z above tap zones. */}
+      {/* Header: ✕ left, 🔊/🔇 right. z above tap zones. Chrome
+          adapts to the card background underneath — Photo cards
+          darken it via bg-black/40 (see card impl) so the white
+          icons stay readable. */}
       <button
         type="button"
         onClick={onClose}
         aria-label="Close story view"
-        className="absolute top-3 left-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white/95 hover:bg-black/60 transition-colors"
+        className="absolute top-3 left-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 backdrop-blur text-navy hover:bg-white transition-colors shadow-[0_2px_8px_rgba(15,31,61,0.08)]"
         style={{ marginTop: "max(env(safe-area-inset-top), 4px)" }}
       >
         <X size={18} strokeWidth={2} />
@@ -145,7 +148,7 @@ export function StoryCards({
         type="button"
         onClick={() => setMuted((m) => !m)}
         aria-label={muted ? "Unmute" : "Mute"}
-        className="absolute top-3 right-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white/95 hover:bg-black/60 transition-colors"
+        className="absolute top-3 right-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 backdrop-blur text-navy hover:bg-white transition-colors shadow-[0_2px_8px_rgba(15,31,61,0.08)]"
         style={{ marginTop: "max(env(safe-area-inset-top), 4px)" }}
       >
         {muted ? (
@@ -160,13 +163,13 @@ export function StoryCards({
         className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-between px-4 pb-3"
         style={{ paddingBottom: "max(env(safe-area-inset-bottom), 12px)" }}
       >
-        <span aria-hidden="true" className="text-white/60 text-[12px] font-semibold tracking-[0.14em] uppercase">
+        <span aria-hidden="true" className="text-ink-mid text-[12px] font-semibold tracking-[0.14em] uppercase">
           {/* spacer to balance the right-side arrow */}
           &nbsp;
         </span>
         <span
           aria-live="polite"
-          className="text-white/85 text-[13px] font-semibold tabular-nums tracking-[0.04em]"
+          className="text-ink-mid text-[13px] font-semibold tabular-nums tracking-[0.04em] bg-white/70 backdrop-blur px-3 py-1 rounded-full shadow-[0_2px_8px_rgba(15,31,61,0.08)]"
         >
           {index + 1} / {total}
         </span>
@@ -174,7 +177,7 @@ export function StoryCards({
           type="button"
           onClick={advance}
           aria-label={index === total - 1 ? "Continue" : "Next card"}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 text-white/95 hover:bg-white/15 transition-colors"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-amber bg-white text-amber hover:bg-amber hover:text-white transition-colors shadow-[0_4px_12px_rgba(196,122,58,0.18)]"
         >
           <ChevronRight size={22} strokeWidth={2} />
         </button>

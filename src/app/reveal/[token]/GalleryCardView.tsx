@@ -33,7 +33,7 @@ export function GalleryCardView({
 
   return (
     <main
-      className="fixed inset-0 z-50 bg-black flex items-stretch justify-center select-none"
+      className="fixed inset-0 z-50 bg-cream flex items-stretch justify-center select-none"
       role="dialog"
       aria-modal="true"
       style={{
@@ -55,7 +55,7 @@ export function GalleryCardView({
         type="button"
         onClick={onClose}
         aria-label="Close"
-        className="absolute top-3 left-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white/95 hover:bg-black/60 transition-colors"
+        className="absolute top-3 left-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 backdrop-blur text-navy hover:bg-white transition-colors shadow-[0_2px_8px_rgba(15,31,61,0.08)]"
         style={{ marginTop: "max(env(safe-area-inset-top), 4px)" }}
       >
         <X size={18} strokeWidth={2} />

@@ -40,21 +40,25 @@ export function GalleryCard({
     <button
       type="button"
       onClick={onClick}
-      // break-inside avoid keeps each tile from splitting across the
-      // CSS columns that the parent uses for masonry packing.
-      className="block w-full text-left rounded-xl border border-navy/[0.08] bg-white overflow-hidden break-inside-avoid mb-3 hover:border-amber/30 hover:shadow-[0_6px_20px_rgba(15,31,61,0.06)] transition-all"
+      // Fixed height so every tile in the grid aligns cleanly
+      // (previously the CSS-columns masonry let heights drift
+      // based on body length, which looked uneven).
+      className="flex flex-col w-full text-left rounded-xl border border-navy/[0.08] bg-white overflow-hidden hover:border-amber/30 hover:shadow-[0_6px_20px_rgba(15,31,61,0.06)] transition-all"
+      style={{ height: "240px" }}
     >
       <Thumbnail contribution={contribution} />
-      <div className="px-3 py-3">
+      <div className="flex-1 min-h-0 px-3 py-3 flex flex-col">
         <p className="text-[12px] font-semibold text-warm-slate truncate">
           {contribution.authorName}
         </p>
-        {preview && (
+        {preview ? (
           <p className="mt-1 text-[11px] text-ink-mid leading-[1.45] line-clamp-2">
             {preview}
           </p>
+        ) : (
+          <span className="mt-1" aria-hidden="true" />
         )}
-        <p className="mt-1.5 text-[10px] text-ink-light">{dateLabel}</p>
+        <p className="mt-auto pt-1.5 text-[10px] text-ink-light">{dateLabel}</p>
       </div>
     </button>
   );
