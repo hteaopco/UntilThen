@@ -128,18 +128,43 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     where: { clerkId: userId },
     select: {
       id: true,
-      subscription: { select: { plan: true } },
+      subscription: {
+        select: {
+          plan: true,
+          status: true,
+          baseCapsuleCount: true,
+          addonCapsuleCount: true,
+        },
+      },
+      _count: { select: { children: true } },
     },
   });
   if (!user)
     return NextResponse.json({ error: "User not found." }, { status: 404 });
 
-  // Free setup: anyone signed in can create a capsule, add a
-  // cover photo, and organise collections. The paywall only
-  // fires when they try to write content (entries) — see the
-  // gates on /api/dashboard/entries + /api/upload/*. This lets
-  // users invest in setup before being asked to subscribe, which
-  // converts better than an up-front gate.
+  // Capsule-slot enforcement. Unsubscribed users stay free to
+  // create (enticement flow — they can set up the capsule without
+  // committing). Subscribed users are strictly limited to the
+  // slots they've paid for: base + addons. Creating a fourth
+  // capsule on a 3-slot plan returns 409 { needsAddOn: true } and
+  // AddChildModal mounts AddOnCheckout to buy the extra slot.
+  if (user.subscription && user.subscription.status === "ACTIVE") {
+    const allowed =
+      user.subscription.baseCapsuleCount + user.subscription.addonCapsuleCount;
+    if (user._count.children >= allowed) {
+      return NextResponse.json(
+        {
+          error:
+            "You've used every slot on your plan. Add one before creating another capsule.",
+          needsAddOn: true,
+          plan: user.subscription.plan,
+          usedSlots: user._count.children,
+          allowedSlots: allowed,
+        },
+        { status: 409 },
+      );
+    }
+  }
 
   // Default reveal = child's 18th birthday if we have a DOB.
   const defaultReveal = dateOfBirth
