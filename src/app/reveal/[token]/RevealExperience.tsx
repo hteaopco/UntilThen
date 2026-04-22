@@ -35,10 +35,6 @@ const MUSIC_VOLUME = 0.25;
 /** Ducked volume while a voice card or non-muted video is
  *  actively playing. Music stays audible but steps back. */
 const MUSIC_DUCKED_VOLUME = 0.15;
-/** Fade-to-silent duration when the recipient leaves the
- *  highlight reel for the gallery — the narrative "music
- *  carried you here, now the memories are yours" beat. */
-const MUSIC_FADE_OUT_MS = 1500;
 
 /**
  * Any reveal card that produces audio calls duck() on play and
@@ -158,10 +154,10 @@ export function RevealExperience({
   const duckCountRef = useRef(0);
   const [, setDuckTick] = useState(0);
   // While fading to silent, duck/unduck calls no-op so they
-  // can't fight the fade's ramp. Any in-flight fade animation
-  // frame also bails when the element is torn down.
+  // can't fight the fade's ramp. Any in-flight fade timer also
+  // bails when the element is torn down.
   const fadingRef = useRef(false);
-  const fadeFrameRef = useRef<number | null>(null);
+  const fadeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startMusic = useCallback(() => {
     if (!MUSIC_URL) return;
@@ -169,9 +165,9 @@ export function RevealExperience({
     // A previous fade may have torn the element down — fadingRef
     // stays true until we're ready for a fresh start.
     fadingRef.current = false;
-    if (fadeFrameRef.current !== null) {
-      cancelAnimationFrame(fadeFrameRef.current);
-      fadeFrameRef.current = null;
+    if (fadeTimerRef.current !== null) {
+      clearInterval(fadeTimerRef.current);
+      fadeTimerRef.current = null;
     }
     const el = new Audio(MUSIC_URL);
     el.loop = true;
@@ -184,39 +180,55 @@ export function RevealExperience({
     musicRef.current = el;
   }, [muted]);
 
-  const fadeOutMusic = useCallback((durationMs = MUSIC_FADE_OUT_MS) => {
+  /**
+   * Stepped fade-out when the recipient leaves the highlight
+   * reel for the gallery.
+   *
+   *   t=0     → volume 0.20   (immediate drop from 0.25)
+   *   t=400   → volume 0.15
+   *   t=800   → volume 0.10
+   *   t=1200  → volume 0.05
+   *   t=1600  → volume 0.00
+   *   t=2000  → pause + tear down
+   *
+   * Total 2000ms, each step 400ms. A discrete stepped fade
+   * (not a smooth ramp) feels more intentional on a narrative
+   * transition than a monotonic ramp — the music is consciously
+   * stepping away, not drifting.
+   */
+  const fadeOutMusic = useCallback(() => {
     if (!musicRef.current) return;
     if (fadingRef.current) return;
     fadingRef.current = true;
-    const el = musicRef.current;
-    const startVolume = el.volume;
-    const startTime = performance.now();
 
-    function step(now: number) {
+    const steps = [0.2, 0.15, 0.1, 0.05, 0.0];
+    // Immediate first drop so the transition into silence
+    // starts as soon as the user taps 'Explore everything'.
+    musicRef.current.volume = steps[0];
+    let nextIndex = 1;
+
+    fadeTimerRef.current = setInterval(() => {
       if (!musicRef.current) {
-        // element got torn down elsewhere — nothing to do
+        if (fadeTimerRef.current) clearInterval(fadeTimerRef.current);
+        fadeTimerRef.current = null;
         fadingRef.current = false;
-        fadeFrameRef.current = null;
         return;
       }
-      const elapsed = now - startTime;
-      const t = Math.min(1, elapsed / durationMs);
-      musicRef.current.volume = startVolume * (1 - t);
-      if (t < 1) {
-        fadeFrameRef.current = requestAnimationFrame(step);
+      if (nextIndex < steps.length) {
+        musicRef.current.volume = steps[nextIndex];
+        nextIndex++;
         return;
       }
-      // Fade complete. Pause + release the element so a
-      // subsequent startMusic() (e.g. replay) can spin up a
-      // fresh one without fighting a stale reference.
+      // Final tick after the 0.00 step — pause + release the
+      // element so startMusic() can spin up a fresh one later
+      // (e.g. on replay).
+      if (fadeTimerRef.current) clearInterval(fadeTimerRef.current);
+      fadeTimerRef.current = null;
       musicRef.current.pause();
       musicRef.current.src = "";
       musicRef.current = null;
       fadingRef.current = false;
-      fadeFrameRef.current = null;
-    }
-
-    fadeFrameRef.current = requestAnimationFrame(step);
+    }, 400);
   }, []);
 
   // Mirror mute state to the music element any time it flips.
@@ -229,9 +241,9 @@ export function RevealExperience({
   // Stop music on unmount (tab close, route change, etc.).
   useEffect(() => {
     return () => {
-      if (fadeFrameRef.current !== null) {
-        cancelAnimationFrame(fadeFrameRef.current);
-        fadeFrameRef.current = null;
+      if (fadeTimerRef.current !== null) {
+        clearInterval(fadeTimerRef.current);
+        fadeTimerRef.current = null;
       }
       if (musicRef.current) {
         musicRef.current.pause();
