@@ -21,7 +21,6 @@ const isPublicRoute = createRouteMatcher([
   // sign up. The API routes still gate on Clerk.
   "/capsules/new",
   "/contribute/capsule/(.*)",
-  "/capsule/(.*)/open",
   "/reveal/(.*)",
   "/api/contribute/capsule/(.*)",
   "/api/capsules/(.*)/refresh-token",
