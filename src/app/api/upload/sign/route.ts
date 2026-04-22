@@ -32,6 +32,7 @@ const VALID_TARGETS: MediaTarget[] = [
   "capsuleContribution",
   "vault",
   "collection",
+  "userAvatar",
 ];
 
 export async function POST(req: Request) {
@@ -197,7 +198,7 @@ export async function POST(req: Request) {
       if (parent?.clerkId !== userId) {
         return NextResponse.json({ error: "Forbidden." }, { status: 403 });
       }
-    } else {
+    } else if (target === "collection") {
       // collection — only the vault owner (parent of the child this
       // collection belongs to) can upload a cover. Photo-only.
       if (kind !== "photo") {
@@ -220,6 +221,22 @@ export async function POST(req: Request) {
         select: { clerkId: true },
       });
       if (parent?.clerkId !== userId) {
+        return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+      }
+    } else {
+      // userAvatar — only the user themselves can upload their
+      // own avatar. targetId must match the caller's User row id.
+      if (kind !== "photo") {
+        return NextResponse.json(
+          { error: "Avatars must be photos." },
+          { status: 400 },
+        );
+      }
+      const self = await prisma.user.findUnique({
+        where: { clerkId: userId },
+        select: { id: true },
+      });
+      if (!self || self.id !== targetId) {
         return NextResponse.json({ error: "Forbidden." }, { status: 403 });
       }
     }

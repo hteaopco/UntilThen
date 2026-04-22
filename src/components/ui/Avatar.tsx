@@ -5,7 +5,7 @@ import { Settings } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-export function Avatar() {
+export function Avatar({ avatarUrl }: { avatarUrl?: string | null } = {}) {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const [open, setOpen] = useState(false);
@@ -49,9 +49,18 @@ export function Avatar() {
         aria-expanded={open}
         aria-label="Account menu"
         disabled={!isLoaded}
-        className="w-9 h-9 rounded-full bg-amber text-white text-[13px] font-bold tracking-[0.02em] flex items-center justify-center hover:opacity-85 transition-opacity focus:outline-none focus:ring-2 focus:ring-amber/40 disabled:opacity-50"
+        className="w-9 h-9 rounded-full bg-amber text-white text-[13px] font-bold tracking-[0.02em] flex items-center justify-center overflow-hidden hover:opacity-85 transition-opacity focus:outline-none focus:ring-2 focus:ring-amber/40 disabled:opacity-50"
       >
-        {initials}
+        {avatarUrl ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={avatarUrl}
+            alt=""
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          initials
+        )}
       </button>
 
       {open && (

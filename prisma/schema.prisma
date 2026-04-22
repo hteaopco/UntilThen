@@ -68,6 +68,7 @@ model User {
   firstName   String
   lastName    String
   displayName String?
+  avatarUrl   String?
   pinHash     String?
   role        Role     @default(PARENT)
   userType    UserType @default(PARENT)

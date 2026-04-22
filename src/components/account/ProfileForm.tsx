@@ -1,24 +1,39 @@
 "use client";
 
 import { useClerk, useUser } from "@clerk/nextjs";
-import { AlertCircle, Check, KeyRound, Lock, Trash2 } from "lucide-react";
+import {
+  AlertCircle,
+  Check,
+  KeyRound,
+  Lock,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+
+import { AvatarUploader } from "@/components/account/AvatarUploader";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
 export function ProfileForm({
+  userId,
   firstName: initialFirstName,
   lastName: initialLastName,
   displayName: initialDisplayName,
+  avatarViewUrl,
 }: {
+  userId: string;
   firstName: string;
   lastName: string;
   displayName: string;
+  avatarViewUrl: string | null;
 }) {
   const router = useRouter();
   const { user } = useUser();
   const { openUserProfile, signOut } = useClerk();
+
+  const [avatarOpen, setAvatarOpen] = useState(false);
 
   const [firstName, setFirstName] = useState(initialFirstName);
   const [lastName, setLastName] = useState(initialLastName);
@@ -128,10 +143,39 @@ export function ProfileForm({
   return (
     <div className="space-y-10">
       <section>
-        <SectionLabel>Profile</SectionLabel>
-        <h2 className="text-2xl font-extrabold text-navy tracking-[-0.3px] mb-6">
-          Your details
-        </h2>
+        <div className="flex items-start justify-between gap-4 mb-6">
+          <div className="min-w-0">
+            <SectionLabel>Profile</SectionLabel>
+            <h2 className="text-2xl font-extrabold text-navy tracking-[-0.3px]">
+              Your details
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => setAvatarOpen(true)}
+            aria-label={avatarViewUrl ? "Change profile photo" : "Add profile photo"}
+            className="relative shrink-0 group"
+          >
+            <span className="flex w-20 h-20 rounded-full overflow-hidden border border-amber/25 bg-amber-tint items-center justify-center text-amber font-extrabold text-[22px] tracking-[-0.3px]">
+              {avatarViewUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={avatarViewUrl}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span>{initials(initialFirstName, initialLastName)}</span>
+              )}
+            </span>
+            <span
+              aria-hidden="true"
+              className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-amber text-white flex items-center justify-center shadow-[0_4px_12px_rgba(15,31,61,0.15)] group-hover:bg-amber-dark transition-colors"
+            >
+              <Pencil size={13} strokeWidth={2.25} />
+            </span>
+          </button>
+        </div>
 
         <form onSubmit={submit} className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -341,8 +385,22 @@ export function ProfileForm({
           </div>
         )}
       </section>
+
+      {avatarOpen && (
+        <AvatarUploader
+          userId={userId}
+          currentAvatarUrl={avatarViewUrl}
+          onClose={() => setAvatarOpen(false)}
+        />
+      )}
     </div>
   );
+}
+
+function initials(firstName: string, lastName: string): string {
+  const f = (firstName ?? "").trim().charAt(0).toUpperCase();
+  const l = (lastName ?? "").trim().charAt(0).toUpperCase();
+  return `${f}${l}` || "?";
 }
 
 function Field({

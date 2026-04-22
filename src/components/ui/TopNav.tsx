@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
 import { HomeBackNav } from "@/components/ui/HomeBackNav";
 import { LogoSvg } from "@/components/ui/LogoSvg";
+import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
 /**
  * Shared top navigation used across authenticated surfaces
@@ -17,14 +18,31 @@ import { LogoSvg } from "@/components/ui/LogoSvg";
  * the viewer is signed in, or to / otherwise — so this component
  * is safe to drop onto public pages too without double-logic.
  *
- * Kept as a server component so the auth check happens SSR and
- * the right home target is baked into the HTML. The inner
- * HomeBackNav and Avatar components handle their own client-only
- * behavior (router.back(), Clerk popover).
+ * Kept as a server component so the auth check happens SSR — we
+ * pick up the viewer's User.avatarUrl, sign a short-lived GET URL
+ * for the R2 object, and hand that down to the Avatar client
+ * component. HomeBackNav and Avatar still handle their own
+ * client-only bits (router.back(), dropdown state).
  */
-export function TopNav() {
+export async function TopNav() {
   const { userId } = auth();
   const homeHref = userId ? "/dashboard" : "/";
+
+  let avatarViewUrl: string | null = null;
+  if (userId && process.env.DATABASE_URL) {
+    try {
+      const { prisma } = await import("@/lib/prisma");
+      const u = await prisma.user.findUnique({
+        where: { clerkId: userId },
+        select: { avatarUrl: true },
+      });
+      if (u?.avatarUrl && r2IsConfigured()) {
+        avatarViewUrl = await signGetUrl(u.avatarUrl);
+      }
+    } catch (err) {
+      console.warn("[TopNav] avatar lookup failed:", err);
+    }
+  }
 
   return (
     <header className="border-b border-navy/[0.06] bg-cream">
@@ -41,7 +59,7 @@ export function TopNav() {
         </div>
         {userId && (
           <div className="[&>div>button]:w-9 [&>div>button]:h-9">
-            <Avatar />
+            <Avatar avatarUrl={avatarViewUrl} />
           </div>
         )}
       </div>

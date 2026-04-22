@@ -60,11 +60,12 @@ export async function deleteR2Object(key: string): Promise<void> {
   await getClient().send(cmd);
 }
 
-// Build a safe storage key. Four surfaces use this:
+// Build a safe storage key. Five surfaces use this:
 //   target=entry              → entries/{id}/{kind}/{ts}-{name}
 //   target=capsuleContribution → capsule-contributions/{id}/{kind}/{ts}-{name}
 //   target=vault              → vaults/{id}/{kind}/{ts}-{name}
 //   target=collection         → collections/{id}/{kind}/{ts}-{name}
+//   target=userAvatar         → users/{id}/avatar/{ts}-{name}
 // The complete + delete routes parse the prefix back so the right
 // table receives the update — keep these in sync if either pattern
 // changes.
@@ -72,7 +73,8 @@ export type MediaTarget =
   | "entry"
   | "capsuleContribution"
   | "vault"
-  | "collection";
+  | "collection"
+  | "userAvatar";
 
 export function mediaKeyPrefix(target: MediaTarget, id: string): string {
   switch (target) {
@@ -84,6 +86,8 @@ export function mediaKeyPrefix(target: MediaTarget, id: string): string {
       return `vaults/${id}`;
     case "collection":
       return `collections/${id}`;
+    case "userAvatar":
+      return `users/${id}`;
   }
 }
 
