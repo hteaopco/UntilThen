@@ -6,18 +6,46 @@ import {
   sendCapsuleActivated,
   sendCapsuleInvite,
 } from "@/lib/capsule-emails";
+import { userHasGiftAccess } from "@/lib/paywall";
 import { captureServerEvent } from "@/lib/posthog-server";
+import {
+  GIFT_CAPSULE_PRICE_CENTS,
+  SQUARE_LOCATION_ID,
+  getSquareClient,
+  squareIsConfigured,
+} from "@/lib/square";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Activate a capsule once payment settles.
+ * Activate a Gift Capsule + charge the organiser's card in a
+ * single atomic transition.
  *
- * TODO: Square payment — $9.99 one-time. Until Square is wired
- * up, any authenticated organiser can call this and the capsule
- * flips to ACTIVE. When Square lands, verify the payment on
- * the server before flipping `isPaid`.
+ * Body:
+ *   {
+ *     sourceId?: string,       // Square card nonce — required
+ *                              // when the paywall is on and the
+ *                              // organiser doesn't have
+ *                              // User.freeGiftAccess. Ignored
+ *                              // otherwise.
+ *     recipientEmail?: string, // at least one of email / phone
+ *     recipientPhone?: string, // must be set by the time this
+ *                              // returns
+ *   }
+ *
+ * Flow:
+ *   1. Ownership + DRAFT-state checks
+ *   2. Recipient contact validation
+ *   3. If payment required → charge $9.99 via Square
+ *      (idempotent on capsuleId + userId)
+ *   4. Flip the capsule to ACTIVE + promote STAGED invites,
+ *      dispatch invite emails, fire analytics
+ *
+ * Replaces the previous placeholder flow that accepted any
+ * paymentId string. Splitting payment into a separate endpoint
+ * would let a successful charge strand without activation (or
+ * vice-versa) if one side failed, so they stay coupled.
  */
 export async function POST(
   req: NextRequest,
@@ -37,22 +65,22 @@ export async function POST(
     });
   }
 
-  // Body shape: { paymentId, recipientEmail?, recipientPhone? }.
+  // Body shape: { sourceId?, recipientEmail?, recipientPhone? }.
   // Recipient contact is collected at the activation paywall
   // (deferred from creation) — at least one of email/phone must
   // be on the capsule by the time activation completes, so the
   // reveal-day message has somewhere to go.
-  let paymentId: string | null = null;
+  let sourceId: string | null = null;
   let incomingEmail: string | null | undefined;
   let incomingPhone: string | null | undefined;
   try {
     const body = (await req.json().catch(() => null)) as {
-      paymentId?: unknown;
+      sourceId?: unknown;
       recipientEmail?: unknown;
       recipientPhone?: unknown;
     } | null;
-    if (body && typeof body.paymentId === "string" && body.paymentId.trim()) {
-      paymentId = body.paymentId.trim();
+    if (body && typeof body.sourceId === "string" && body.sourceId.trim()) {
+      sourceId = body.sourceId.trim();
     }
     if (body && typeof body.recipientEmail === "string") {
       const v = body.recipientEmail.trim().toLowerCase();
@@ -94,6 +122,70 @@ export async function POST(
 
   try {
     const { prisma } = await import("@/lib/prisma");
+
+    // Resolve payment requirement before any DB writes — we'd
+    // rather reject a free-activation attempt than walk back a
+    // status flip.
+    const dbUser = owned.user;
+    const hasFree = await userHasGiftAccess(dbUser.id);
+    const paymentRequired = !hasFree;
+
+    // Charge via Square when payment is required. Idempotency
+    // key is stable per capsule+user so a client retry won't
+    // double-charge. Any Square failure short-circuits before
+    // the activation transaction so a declined card leaves the
+    // capsule in DRAFT, untouched.
+    let paymentId: string | null = null;
+    let paidAt: Date | null = null;
+    if (paymentRequired) {
+      if (!squareIsConfigured()) {
+        return NextResponse.json(
+          {
+            error:
+              "Payments aren't configured yet. Try again soon or contact support.",
+          },
+          { status: 503 },
+        );
+      }
+      if (!sourceId) {
+        return NextResponse.json(
+          { error: "Card details are required to send this capsule." },
+          { status: 400 },
+        );
+      }
+      try {
+        const client = getSquareClient();
+        const response = await client.payments.create({
+          sourceId,
+          idempotencyKey: `gift-capsule-${id}-${dbUser.id}`,
+          amountMoney: {
+            amount: BigInt(GIFT_CAPSULE_PRICE_CENTS),
+            currency: "USD",
+          },
+          locationId: SQUARE_LOCATION_ID || undefined,
+          note: `untilThen Gift Capsule · ${capsule.title}`.slice(0, 500),
+          referenceId: id,
+        });
+        const payment = response.payment;
+        if (!payment || payment.status !== "COMPLETED") {
+          return NextResponse.json(
+            {
+              error:
+                "Payment didn't complete. Please try a different card or contact support.",
+            },
+            { status: 402 },
+          );
+        }
+        paymentId = payment.id ?? null;
+        paidAt = new Date();
+      } catch (err) {
+        return NextResponse.json(
+          { error: mapSquareError(err) },
+          { status: 402 },
+        );
+      }
+    }
+
     // Token expiry is 30 days past the reveal date so the
     // recipient's magic link stays valid for a month after the
     // capsule opens.
@@ -113,6 +205,7 @@ export async function POST(
           status: "ACTIVE",
           isPaid: true,
           paymentId,
+          paidAt,
           tokenExpiresAt,
           recipientEmail: finalEmail,
           recipientPhone: finalPhone,
@@ -190,5 +283,36 @@ export async function POST(
       { error: "Couldn't activate the capsule." },
       { status: 500 },
     );
+  }
+}
+
+/**
+ * Turn a Square client error into a recipient-facing message.
+ * The SDK surfaces its first error code on `errors[0].code`; we
+ * map the handful we expect to see on a one-time card charge.
+ */
+function mapSquareError(err: unknown): string {
+  const e = err as {
+    errors?: { code?: string; detail?: string }[];
+    message?: string;
+  };
+  const code = e?.errors?.[0]?.code ?? "";
+  switch (code) {
+    case "CARD_DECLINED":
+    case "GENERIC_DECLINE":
+    case "TRANSACTION_LIMIT":
+      return "Your card was declined. Please try a different card.";
+    case "INVALID_CARD":
+    case "INVALID_EXPIRATION":
+    case "INVALID_EXPIRATION_DATE":
+    case "INVALID_EXPIRATION_YEAR":
+    case "INVALID_CARD_DATA":
+    case "VERIFY_CVV_FAILURE":
+      return "Card details are invalid. Please check and try again.";
+    case "INSUFFICIENT_FUNDS":
+      return "Insufficient funds. Please try a different card.";
+    default:
+      console.error("[capsules activate] square error:", code, e);
+      return "Payment failed. Please try again or contact support.";
   }
 }

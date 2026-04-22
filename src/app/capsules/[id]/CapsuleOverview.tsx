@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState, type FormEvent } from "react";
 
+import { GiftCapsuleCheckout } from "@/components/checkout/GiftCapsuleCheckout";
 import {
   MediaAttachments,
   type Attachment,
@@ -82,9 +83,15 @@ export function CapsuleOverview({
   contributions,
   ownAttachments,
   invites,
+  requiresPayment,
 }: {
   capsule: CapsuleSummary;
   currentUserClerkId: string;
+  /** True when the organiser's activation needs a real Square
+   *  charge — i.e. paywall is on and they don't have
+   *  User.freeGiftAccess. When false, the activation modal
+   *  skips the card-entry step. */
+  requiresPayment: boolean;
   contributions: ContributionRow[];
   /** Pre-signed view URLs for the organiser's own contribution
    * media. Server-rendered so MediaAttachments can hydrate the
@@ -488,6 +495,7 @@ export function CapsuleOverview({
       {activateOpen && (
         <ActivationModal
           capsuleId={capsule.id}
+          capsuleTitle={capsule.title}
           recipientName={capsule.recipientName}
           recipientDisplayName={recipientDisplayName}
           recipientPronoun={pronoun}
@@ -497,6 +505,7 @@ export function CapsuleOverview({
           initialPhone={capsule.recipientPhone}
           invitesStaged={invites.filter((i) => i.status === "STAGED").length}
           stagedInvites={invites.filter((i) => i.status === "STAGED")}
+          requiresPayment={requiresPayment}
           onClose={() => setActivateOpen(false)}
           onDone={() => {
             setActivateOpen(false);
@@ -1263,6 +1272,7 @@ function formatPhone(raw: string): string {
 
 function ActivationModal({
   capsuleId,
+  capsuleTitle,
   recipientName,
   recipientDisplayName,
   recipientPronoun,
@@ -1272,10 +1282,12 @@ function ActivationModal({
   initialPhone,
   invitesStaged,
   stagedInvites,
+  requiresPayment,
   onClose,
   onDone,
 }: {
   capsuleId: string;
+  capsuleTitle: string;
   recipientName: string;
   recipientDisplayName: string;
   recipientPronoun: "her" | "him" | "them";
@@ -1285,23 +1297,37 @@ function ActivationModal({
   initialPhone: string | null;
   invitesStaged: number;
   stagedInvites: InviteRow[];
+  requiresPayment: boolean;
   onClose: () => void;
   onDone: () => void;
 }) {
-  const [step, setStep] = useState<"pay" | "contact">("pay");
+  // Three possible steps:
+  //   summary  — contributor list + "Next" button (always)
+  //   pay      — card entry (only when requiresPayment)
+  //   contact  — email / phone + final activate
+  const [step, setStep] = useState<"summary" | "pay" | "contact">("summary");
   const [email, setEmail] = useState(initialEmail ?? "");
   const [phone, setPhone] = useState(
     initialPhone ? formatPhone(initialPhone) : "",
   );
   const [email2, setEmail2] = useState("");
   const [phone2, setPhone2] = useState("");
+  const [sourceId, setSourceId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function confirmPayment() {
-    // TODO: Square payment — $9.99 one-time. For now we just
-    // advance; the server still gets a placeholder receipt id
-    // on the activate POST so the wire format is final.
+  const squareAppId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID ?? "";
+  const squareLocationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID ?? "";
+
+  function confirmSummary() {
+    setError(null);
+    // Skip the card step entirely when this user has free gift
+    // access or the paywall is off.
+    setStep(requiresPayment ? "pay" : "contact");
+  }
+
+  async function handleTokenized(nonce: string) {
+    setSourceId(nonce);
     setError(null);
     setStep("contact");
   }
@@ -1319,6 +1345,15 @@ function ActivationModal({
       setError("Please enter a valid email.");
       return;
     }
+    if (requiresPayment && !sourceId) {
+      // Defensive — the UI flow shouldn't let us land here
+      // without a nonce, but if someone navigates back and
+      // forward, bounce them to the pay step instead of
+      // submitting a bad request.
+      setError("Please enter your card details first.");
+      setStep("pay");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -1326,7 +1361,7 @@ function ActivationModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          paymentId: "placeholder-square-receipt",
+          sourceId: sourceId ?? null,
           recipientEmail: trimmedEmail || null,
           recipientPhone: trimmedPhone || null,
         }),
@@ -1361,12 +1396,27 @@ function ActivationModal({
         <div className="px-7 py-5 border-b border-navy/[0.08] flex items-start justify-between gap-3">
           <div>
             <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-1">
-              {step === "pay" ? "Step 1 of 2" : "Step 2 of 2"}
+              {(() => {
+                const totalSteps = requiresPayment ? 3 : 2;
+                const current =
+                  step === "summary"
+                    ? 1
+                    : step === "pay"
+                      ? 2
+                      : requiresPayment
+                        ? 3
+                        : 2;
+                return `Step ${current} of ${totalSteps}`;
+              })()}
             </div>
             <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] leading-[1.25] whitespace-nowrap">
-              {step === "pay"
+              {step === "summary"
                 ? `Invite everyone who loves ${recipientPronoun}`
-                : isCouple ? "How should we reach them?" : `How should we reach ${recipientDisplayName}?`}
+                : step === "pay"
+                  ? "Add your card"
+                  : isCouple
+                    ? "How should we reach them?"
+                    : `How should we reach ${recipientDisplayName}?`}
             </h2>
           </div>
           <button
@@ -1382,17 +1432,21 @@ function ActivationModal({
           </button>
         </div>
 
-        {step === "pay" ? (
+        {step === "summary" ? (
           <div className="p-6 space-y-5">
             <div className="rounded-xl border border-navy/[0.08] bg-warm-surface/60 px-5 py-4 space-y-2">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="text-[11px] uppercase tracking-[0.1em] font-bold text-ink-light">
                   Gift Capsule
                 </span>
-                <span className="text-sm font-semibold text-navy">$9.99</span>
+                <span className="text-sm font-semibold text-navy">
+                  {requiresPayment ? "$9.99" : "No charge"}
+                </span>
               </div>
               <p className="text-xs italic text-ink-light">
-                One-time payment · No subscription required · No credit card saved · Takes less than 2 minutes.
+                {requiresPayment
+                  ? "One-time payment · No subscription required · Takes less than 2 minutes."
+                  : "Free activation · You'll still collect contributions and send the capsule."}
               </p>
             </div>
             <p className="text-sm text-ink-mid leading-[1.6]">
@@ -1443,7 +1497,7 @@ function ActivationModal({
             )}
             <button
               type="button"
-              onClick={confirmPayment}
+              onClick={confirmSummary}
               className="w-full bg-amber text-white py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
             >
               Next
@@ -1451,6 +1505,18 @@ function ActivationModal({
             <p className="text-sm font-semibold text-navy text-center">
               Nothing is sent to {recipientDisplayName} yet. You&rsquo;ll review everything before delivery.
             </p>
+          </div>
+        ) : step === "pay" ? (
+          <div className="p-6">
+            <GiftCapsuleCheckout
+              capsuleTitle={capsuleTitle}
+              applicationId={squareAppId}
+              locationId={squareLocationId}
+              onTokenized={handleTokenized}
+              onCancel={() => setStep("summary")}
+              isBusy={busy}
+              serverError={error}
+            />
           </div>
         ) : (
           <form onSubmit={saveAndActivate} className="p-6 space-y-4">

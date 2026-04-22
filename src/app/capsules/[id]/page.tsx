@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import type { Attachment } from "@/components/editor/MediaAttachments";
 import { TopNav } from "@/components/ui/TopNav";
 import { effectiveStatus, findOwnedCapsule } from "@/lib/capsules";
+import { userHasGiftAccess } from "@/lib/paywall";
 import { r2IsConfigured, signGetUrl, type MediaKind } from "@/lib/r2";
 
 import { CapsuleOverview } from "./CapsuleOverview";
@@ -26,6 +27,12 @@ export default async function CapsulePage({
   const { id } = await params;
   const owned = await findOwnedCapsule(userId, id);
   if (!owned.ok) redirect("/dashboard");
+
+  // Resolve paywall state once here + thread to the client. The
+  // activation modal uses this to decide whether to show the
+  // card-entry step or let the organiser skip straight through.
+  const giftAccessFree = await userHasGiftAccess(owned.user.id);
+  const requiresPayment = !giftAccessFree;
 
   const { prisma } = await import("@/lib/prisma");
   const capsule = await prisma.memoryCapsule.findUnique({
@@ -112,6 +119,7 @@ export default async function CapsulePage({
         accessToken: capsule.accessToken,
       }}
       currentUserClerkId={userId}
+      requiresPayment={requiresPayment}
       contributions={capsule.contributions.map((c) => ({
         id: c.id,
         authorName: c.authorName,
