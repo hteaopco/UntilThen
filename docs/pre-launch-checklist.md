@@ -375,9 +375,9 @@ is hands-on device QA.
 ## 🟠 UI Gaps (open items from April 20 audit)
 
 ### Tabled (product still deciding)
-- [ ] **Entry detail view** — can see entry rows but can't open a single memory. No `/vault/[id]/entry/[entryId]` page yet *(tabled pending product decision)*
-- [ ] **Entry editing** — once sealed, no way to edit. Needs decision: allow edits pre-reveal or lock permanently? *(tabled with entry detail)*
-- [ ] **Entry reading experience** — what does reading a sealed letter look like before reveal day? Gallery list/grid view may have solved this via the reveal Gallery surface, but pre-reveal viewing is still open *(tabled with entry detail)*
+- [ ] **Entry detail view** — entries are now tappable for edit (see below), but a dedicated read-only detail page (`/vault/[id]/entry/[entryId]`) doesn't exist. The reveal Gallery surface arguably covers post-reveal reading; pre-reveal "view without editing" is still tabled
+- [x] **Entry editing pre-reveal** — **decision shipped April 22: allow edits any time before the entry's effective reveal date** (collection.revealDate when in a collection, otherwise vault.revealDate). Tap any entry row in the Main Diary or a collection → opens the same MemoryEditorForm in edit mode (title, body, media, collection-move all in scope). Server-side PATCH guard refuses content edits after the reveal date. Entry rows render as static cards (no tap affordance) once past reveal
+- [ ] **Entry reading experience pre-reveal** — what does the parent see when they tap a sealed entry row before reveal day? Today they get the editor. If we want a separate "read-only quick look" surface, that's still open
 
 ### Still Open
 - [ ] **Mobile test pass** — Create Collection modal + Updates inbox still need on-device verification. *(Cover cropper + reveal experience both verified on iPhone during this session)*

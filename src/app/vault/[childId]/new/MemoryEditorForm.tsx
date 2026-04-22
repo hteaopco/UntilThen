@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useRef, useState, type FormEvent } from "react";
 
-import { MediaAttachments } from "@/components/editor/MediaAttachments";
+import { MediaAttachments, type Attachment } from "@/components/editor/MediaAttachments";
 import { TiptapEditor } from "@/components/editor/TiptapEditor";
 import { formatLong } from "@/lib/dateFormatters";
 
@@ -15,6 +15,20 @@ type CollectionOption = {
   revealDate: string | null;
 };
 
+/**
+ * Pre-loaded entry payload for edit mode. When set, the form
+ * skips the lazy-create draft path entirely and PATCHes the
+ * existing row on every save. The server side already enforced
+ * the pre-reveal-date check before it handed this to us.
+ */
+export type ExistingEntry = {
+  id: string;
+  title: string | null;
+  body: string | null;
+  collectionId: string | null;
+  attachments: Attachment[];
+};
+
 type Props = {
   vaultId: string;
   childId: string;
@@ -22,6 +36,10 @@ type Props = {
   revealDate: string | null;
   initialCollectionId: string | null;
   collections: CollectionOption[];
+  /** When provided, we're editing this entry rather than creating
+   *  a new one. UI labels swap and the save handler PATCHes
+   *  immediately instead of going through the lazy-create flow. */
+  existingEntry?: ExistingEntry | null;
 };
 
 const MAIN_DIARY_VALUE = "__main_diary__";
@@ -47,14 +65,20 @@ export function MemoryEditorForm({
   revealDate,
   initialCollectionId,
   collections,
+  existingEntry,
 }: Props) {
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
+  const isEditMode = Boolean(existingEntry);
+  const [title, setTitle] = useState(existingEntry?.title ?? "");
+  const [body, setBody] = useState(existingEntry?.body ?? "");
   const [collectionId, setCollectionId] = useState<string | null>(
     initialCollectionId,
   );
-  const [entryId, setEntryId] = useState<string | null>(null);
+  // In edit mode we already have a row id; create-mode lazy-creates
+  // on first interaction.
+  const [entryId, setEntryId] = useState<string | null>(
+    existingEntry?.id ?? null,
+  );
   const [extraHeight, setExtraHeight] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -176,7 +200,9 @@ export function MemoryEditorForm({
       <section className="mx-auto max-w-[720px] px-6 pt-3 pb-20">
         <div className="flex items-center justify-between gap-4">
           <h1 className="text-balance text-[26px] lg:text-[36px] font-extrabold text-navy leading-[1.08] tracking-[-0.8px]">
-            A new memory for {childFirstName}
+            {isEditMode
+              ? `Edit memory for ${childFirstName}`
+              : `A new memory for ${childFirstName}`}
           </h1>
           <Link
             href={`/vault/${childId}`}
@@ -306,7 +332,7 @@ export function MemoryEditorForm({
             <div className="mt-2.5">
               <MediaAttachments
                 entryId={entryId}
-                initial={[]}
+                initial={existingEntry?.attachments ?? []}
                 ensureEntry={ensureEntry}
                 canAttach={hasContent}
               />
@@ -334,7 +360,11 @@ export function MemoryEditorForm({
               disabled={saving}
               className="w-full max-w-[400px] bg-amber text-white py-3.5 rounded-xl text-[16px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60 shadow-[0_2px_8px_rgba(196,122,58,0.25)]"
             >
-              {saving ? "Saving…" : "Seal this memory"}
+              {saving
+                ? "Saving…"
+                : isEditMode
+                  ? "Save changes"
+                  : "Seal this memory"}
             </button>
           </div>
         </form>

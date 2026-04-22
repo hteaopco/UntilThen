@@ -88,6 +88,17 @@ export function CollectionLandingView({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const canEdit = !isDiary && Boolean(collectionId);
 
+  // Effective reveal date for entries on this surface. Collection
+  // entries inherit the collection's reveal date when set; Main
+  // Diary entries (or collection entries without an override) use
+  // the vault's reveal date. Entries become read-only after that
+  // date passes — the recipient's experience is frozen.
+  const effectiveRevealDate = collectionRevealDate ?? vaultRevealDate ?? null;
+  const pastReveal = Boolean(
+    effectiveRevealDate && new Date(effectiveRevealDate).getTime() <= Date.now(),
+  );
+  const canEditEntries = Boolean(childId) && !pastReveal;
+
   return (
     <>
       <section className="mx-auto max-w-[720px] px-6 pt-6">
@@ -156,7 +167,14 @@ export function CollectionLandingView({
             <ul className="space-y-3">
               {entries.map((e) => (
                 <li key={e.id}>
-                  <EntryRow {...e} />
+                  <EntryRow
+                    {...e}
+                    editHref={
+                      canEditEntries && childId
+                        ? `/vault/${childId}/new?entry=${encodeURIComponent(e.id)}`
+                        : null
+                    }
+                  />
                 </li>
               ))}
             </ul>
@@ -250,7 +268,8 @@ function EntryRow({
   type,
   mediaTypes,
   createdAt,
-}: CollectionLandingEntry) {
+  editHref,
+}: CollectionLandingEntry & { editHref: string | null }) {
   const snippet = (body ?? "").replace(/<[^>]*>/g, "").trim();
   const headline = title?.trim() || snippet.slice(0, 80) || "Untitled memory";
   const preview =
@@ -261,15 +280,32 @@ function EntryRow({
   const hasVoice = type === "VOICE" || mediaTypes.includes("voice");
   const isLetter = type === "TEXT" && !hasPhoto && !hasVoice && !hasVideo;
 
-  return (
-    <article className="rounded-2xl border border-amber/20 bg-white shadow-[0_2px_10px_rgba(196,122,58,0.05)] p-4 sm:p-5">
+  const cardClass =
+    "block rounded-2xl border border-amber/20 bg-white shadow-[0_2px_10px_rgba(196,122,58,0.05)] p-4 sm:p-5";
+  const hoverClass = editHref
+    ? " hover:border-amber/40 hover:shadow-[0_4px_14px_rgba(196,122,58,0.08)] transition-all group"
+    : "";
+
+  const innerContent = (
+    <>
       <div className="flex items-start justify-between gap-4">
         <h2 className="text-[15px] sm:text-[16px] font-bold text-navy tracking-[-0.2px] leading-tight truncate">
           {headline}
         </h2>
-        <span className="shrink-0 text-[11px] uppercase tracking-[0.08em] font-semibold text-ink-light">
-          {formatLong(createdAt)}
-        </span>
+        <div className="shrink-0 flex items-center gap-2">
+          {editHref && (
+            <span
+              aria-hidden="true"
+              className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-amber/0 group-hover:text-amber transition-colors"
+            >
+              <Pencil size={11} strokeWidth={2} />
+              Edit
+            </span>
+          )}
+          <span className="text-[11px] uppercase tracking-[0.08em] font-semibold text-ink-light">
+            {formatLong(createdAt)}
+          </span>
+        </div>
       </div>
       {preview && (
         <p className="mt-1.5 text-[13px] text-ink-mid leading-[1.5] line-clamp-2">
@@ -282,8 +318,17 @@ function EntryRow({
         {hasVideo && <TypeBadge icon={<Video size={14} strokeWidth={1.75} />} label="Video" />}
         {hasVoice && <TypeBadge icon={<AudioLines size={14} strokeWidth={1.75} />} label="Voice" />}
       </div>
-    </article>
+    </>
   );
+
+  if (editHref) {
+    return (
+      <Link href={editHref} prefetch={false} className={cardClass + hoverClass}>
+        {innerContent}
+      </Link>
+    );
+  }
+  return <article className={cardClass}>{innerContent}</article>;
 }
 
 function TypeBadge({ icon, label }: { icon: React.ReactNode; label: string }) {

@@ -61,12 +61,40 @@ export async function PATCH(
         isSealed: true,
         vaultId: true,
         type: true,
+        vault: { select: { revealDate: true } },
+        collection: { select: { revealDate: true } },
       },
     });
     if (!entry)
       return NextResponse.json({ error: "Entry not found." }, { status: 404 });
     if (entry.authorId !== user.id)
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+
+    // Once an entry's effective reveal date has passed, the
+    // recipient experience is frozen — no edits to body, title,
+    // collection, etc. (Approval flips are still allowed; those
+    // come from the parent's review queue and don't change what
+    // the recipient sees post-reveal.) Effective reveal date =
+    // collection.revealDate when in a collection, otherwise
+    // vault.revealDate.
+    const isContentEdit =
+      "title" in body ||
+      "body" in body ||
+      "collectionId" in body ||
+      "revealDate" in body;
+    if (isContentEdit) {
+      const effectiveReveal =
+        entry.collection?.revealDate ?? entry.vault?.revealDate ?? null;
+      if (effectiveReveal && effectiveReveal.getTime() <= Date.now()) {
+        return NextResponse.json(
+          {
+            error:
+              "This memory has already been revealed and can no longer be edited.",
+          },
+          { status: 403 },
+        );
+      }
+    }
 
     const data: Record<string, unknown> = {};
     if ("title" in body) {
