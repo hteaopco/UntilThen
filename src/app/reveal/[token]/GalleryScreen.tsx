@@ -208,7 +208,7 @@ export function GalleryScreen({
         </h1>
         <p className="mt-1 text-[13px] text-ink-mid">
           {variant === "vault"
-            ? `${sorted.length} ${sorted.length === 1 ? "memory" : "memories"} from ${contributors.length}`
+            ? `${sorted.length} ${sorted.length === 1 ? "memory" : "memories"} from ${formatContributorNames(contributors)}`
             : `${sorted.length} ${sorted.length === 1 ? "memory" : "memories"} from ${contributors.length} ${contributors.length === 1 ? "person" : "people"} who love you`}
         </p>
       </header>
@@ -561,4 +561,25 @@ function SmallChip({
       {children}
     </button>
   );
+}
+
+/**
+ * Vault subhead — names the contributors instead of just
+ * counting them. Time capsules usually have one author (the
+ * parent) so "from Dad" reads better than "from 1". Multi-author
+ * vaults list up to 3 names and collapse the rest into a count.
+ *
+ *   []                               → "you"
+ *   ["Dad"]                          → "Dad"
+ *   ["Dad", "Mom"]                   → "Dad and Mom"
+ *   ["Dad", "Mom", "Grandma Rose"]   → "Dad, Mom, and Grandma Rose"
+ *   ["Dad", "Mom", "Grandma", "Jo"]  → "Dad, Mom, and 2 others"
+ */
+function formatContributorNames(names: string[]): string {
+  if (names.length === 0) return "you";
+  if (names.length === 1) return names[0];
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  if (names.length === 3) return `${names[0]}, ${names[1]}, and ${names[2]}`;
+  const extra = names.length - 2;
+  return `${names[0]}, ${names[1]}, and ${extra} others`;
 }
