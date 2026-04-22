@@ -20,6 +20,7 @@ import {
   type Attachment,
 } from "@/components/editor/MediaAttachments";
 import { TiptapEditor } from "@/components/editor/TiptapEditor";
+import { ContributorAvatar } from "@/components/ui/ContributorAvatar";
 import { formatLong } from "@/lib/dateFormatters";
 import { OCCASION_LABELS, recipientPronounOf } from "@/lib/capsules";
 import { TONE_EDITOR_HINT, type CapsuleTone } from "@/lib/tone";
@@ -46,6 +47,9 @@ type CapsuleSummary = {
 type ContributionRow = {
   id: string;
   authorName: string;
+  /** Pre-signed R2 URL when the author is a signed-in user with
+   *  a profile photo. Null otherwise — UI falls back to initials. */
+  authorAvatarUrl: string | null;
   clerkUserId: string | null;
   type: "TEXT" | "PHOTO" | "VOICE" | "VIDEO";
   title: string | null;
@@ -322,8 +326,15 @@ export function CapsuleOverview({
                   key={c.id}
                   className="rounded-xl bg-white border border-gold/20 px-4 py-3"
                 >
-                  <div className="text-xs text-ink-light uppercase tracking-[0.1em] font-bold">
-                    {c.type.toLowerCase()} · {c.authorName}
+                  <div className="flex items-center gap-2.5">
+                    <ContributorAvatar
+                      name={c.authorName}
+                      imageUrl={c.authorAvatarUrl}
+                      size={28}
+                    />
+                    <div className="text-xs text-ink-light uppercase tracking-[0.1em] font-bold">
+                      {c.type.toLowerCase()} · {c.authorName}
+                    </div>
                   </div>
                   {c.body && (
                     <p className="mt-1.5 text-sm text-ink-mid line-clamp-3">
@@ -425,8 +436,15 @@ export function CapsuleOverview({
                   key={c.id}
                   className="rounded-xl border border-navy/[0.08] bg-white px-5 py-4"
                 >
-                  <div className="text-xs text-ink-light uppercase tracking-[0.1em] font-bold">
-                    {c.type.toLowerCase()} · {c.authorName}
+                  <div className="flex items-center gap-2.5">
+                    <ContributorAvatar
+                      name={c.authorName}
+                      imageUrl={c.authorAvatarUrl}
+                      size={32}
+                    />
+                    <div className="text-xs text-ink-light uppercase tracking-[0.1em] font-bold">
+                      {c.type.toLowerCase()} · {c.authorName}
+                    </div>
                   </div>
                   {c.title && (
                     <h3 className="mt-1.5 text-[15px] font-bold text-navy tracking-[-0.2px]">

@@ -51,6 +51,22 @@ export default async function UpdatesPage() {
     orderBy: { createdAt: "desc" },
   });
 
+  // Look up avatars for any contribution authors who are signed-in
+  // users. Batch the User query so we don't N+1 across the inbox.
+  const authorClerkIds = Array.from(
+    new Set(pending.map((c) => c.clerkUserId).filter((v): v is string => !!v)),
+  );
+  const authorAvatarKeys = new Map<string, string>();
+  if (authorClerkIds.length > 0) {
+    const authors = await prisma.user.findMany({
+      where: { clerkId: { in: authorClerkIds } },
+      select: { clerkId: true, avatarUrl: true },
+    });
+    for (const a of authors) {
+      if (a.avatarUrl) authorAvatarKeys.set(a.clerkId, a.avatarUrl);
+    }
+  }
+
   const canSign = r2IsConfigured();
 
   const rows: PendingUpdate[] = await Promise.all(
@@ -73,6 +89,18 @@ export default async function UpdatesPage() {
           }
         }
       }
+      let authorAvatarUrl: string | null = null;
+      const avatarKey = c.clerkUserId
+        ? authorAvatarKeys.get(c.clerkUserId)
+        : undefined;
+      if (avatarKey && canSign) {
+        try {
+          authorAvatarUrl = await signGetUrl(avatarKey);
+        } catch {
+          /* fall back to initials */
+        }
+      }
+
       return {
         id: c.id,
         capsuleId: c.capsuleId,
@@ -80,6 +108,7 @@ export default async function UpdatesPage() {
         recipientName: c.capsule.recipientName,
         capsuleRevealDate: c.capsule.revealDate.toISOString(),
         authorName: c.authorName,
+        authorAvatarUrl,
         title: c.title,
         body: c.body,
         createdAt: c.createdAt.toISOString(),

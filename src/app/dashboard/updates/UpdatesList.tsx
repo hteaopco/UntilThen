@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { MediaDisplay, type MediaItem } from "@/components/editor/MediaDisplay";
+import { ContributorAvatar } from "@/components/ui/ContributorAvatar";
 import { formatLong } from "@/lib/dateFormatters";
 
 export type PendingUpdate = {
@@ -14,6 +15,10 @@ export type PendingUpdate = {
   recipientName: string;
   capsuleRevealDate: string;
   authorName: string;
+  /** Pre-signed R2 URL when the author is a signed-in user with
+   *  a profile photo. Null for anonymous / no-photo contributors —
+   *  the avatar bubble falls back to amber initials. */
+  authorAvatarUrl: string | null;
   title: string | null;
   body: string | null;
   createdAt: string;
@@ -227,11 +232,18 @@ function UpdateRow({
           </span>
         </div>
 
-        {/* 3. From {author} — bold */}
-        <h3 className="mt-2 text-[15px] sm:text-[16px] font-bold text-navy tracking-[-0.2px] leading-tight">
-          From {row.authorName}
-          {row.title?.trim() ? ` · ${row.title.trim()}` : ""}
-        </h3>
+        {/* 3. Author avatar + From {author} */}
+        <div className="mt-2 flex items-center gap-2.5">
+          <ContributorAvatar
+            name={row.authorName}
+            imageUrl={row.authorAvatarUrl}
+            size={32}
+          />
+          <h3 className="text-[15px] sm:text-[16px] font-bold text-navy tracking-[-0.2px] leading-tight">
+            From {row.authorName}
+            {row.title?.trim() ? ` · ${row.title.trim()}` : ""}
+          </h3>
+        </div>
 
         {/* 4. Body preview — with expand/collapse */}
         {bodyText ? (

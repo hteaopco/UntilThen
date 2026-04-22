@@ -59,6 +59,36 @@ export default async function CapsulePage({
     );
   }
 
+  // Batch-resolve avatar keys for every contribution author who's a
+  // signed-in user, then sign GET URLs in parallel. Anonymous /
+  // photo-less authors fall back to amber initials in the UI.
+  const contributorClerkIds = Array.from(
+    new Set(
+      capsule.contributions
+        .map((c) => c.clerkUserId)
+        .filter((v): v is string => !!v),
+    ),
+  );
+  const avatarUrlByClerkId = new Map<string, string>();
+  if (contributorClerkIds.length > 0 && r2IsConfigured()) {
+    const authors = await prisma.user.findMany({
+      where: { clerkId: { in: contributorClerkIds } },
+      select: { clerkId: true, avatarUrl: true },
+    });
+    await Promise.all(
+      authors
+        .filter((a) => a.avatarUrl)
+        .map(async (a) => {
+          try {
+            const url = await signGetUrl(a.avatarUrl!);
+            avatarUrlByClerkId.set(a.clerkId, url);
+          } catch {
+            /* skip — initials fallback */
+          }
+        }),
+    );
+  }
+
   return (
     <>
       <TopNav />
@@ -85,6 +115,9 @@ export default async function CapsulePage({
       contributions={capsule.contributions.map((c) => ({
         id: c.id,
         authorName: c.authorName,
+        authorAvatarUrl: c.clerkUserId
+          ? avatarUrlByClerkId.get(c.clerkUserId) ?? null
+          : null,
         clerkUserId: c.clerkUserId,
         type: c.type,
         title: c.title,
