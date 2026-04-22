@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 import type { Attachment } from "@/components/editor/MediaAttachments";
+import { LockedCapsulePrompt } from "@/components/paywall/LockedCapsulePrompt";
 import { TopNav } from "@/components/ui/TopNav";
 import { r2IsConfigured, signGetUrl, type MediaKind } from "@/lib/r2";
 
@@ -73,6 +74,24 @@ export default async function NewMemoryPage({
   });
   if (!child || child.parentId !== user.id || !child.vault) {
     redirect("/dashboard");
+  }
+
+  // Editor-entry lock gate. If the vault is locked, render the
+  // prompt in place of MemoryEditorForm so the user isn't walked
+  // into writing something they can't save. Covers both manually
+  // locked capsules (from the billing page) and auto-locked
+  // ones (over-quota after an addon was removed).
+  if (child.vault.isLocked) {
+    return (
+      <>
+        <TopNav />
+        <LockedCapsulePrompt
+          vaultId={child.vault.id}
+          childId={child.id}
+          childFirstName={child.firstName}
+        />
+      </>
+    );
   }
 
   // Verify the requested collection actually belongs to this vault.

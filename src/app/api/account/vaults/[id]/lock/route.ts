@@ -35,6 +35,18 @@ async function ownedVault(userId: string, vaultId: string) {
   return { userId: user.id, vault };
 }
 
+/**
+ * Days a user must wait between manual lock/unlock toggles on
+ * the same vault. Blocks the abuse pattern where someone rotates
+ * one paid slot across many capsules to get continual write
+ * access to more capsules than they're paying for.
+ */
+const TOGGLE_COOLDOWN_DAYS = 90;
+
+function nextToggleDate(last: Date): Date {
+  return new Date(last.getTime() + TOGGLE_COOLDOWN_DAYS * 86400000);
+}
+
 export async function POST(
   _req: NextRequest,
   ctx: { params: Promise<{ id: string }> },
@@ -51,10 +63,25 @@ export async function POST(
 
   if (owned.vault.isLocked) return NextResponse.json({ success: true });
 
+  // 90-day rate limit on manual toggles.
+  if (owned.vault.lastLockToggleAt) {
+    const nextAllowed = nextToggleDate(owned.vault.lastLockToggleAt);
+    if (nextAllowed > new Date()) {
+      return NextResponse.json(
+        {
+          error: `You can change this capsule's lock state once every ${TOGGLE_COOLDOWN_DAYS} days. Available again on ${nextAllowed.toLocaleDateString()}.`,
+          nextAllowedAt: nextAllowed.toISOString(),
+        },
+        { status: 429 },
+      );
+    }
+  }
+
   const { prisma } = await import("@/lib/prisma");
+  const now = new Date();
   await prisma.vault.update({
     where: { id },
-    data: { isLocked: true, lockedAt: new Date() },
+    data: { isLocked: true, lockedAt: now, lastLockToggleAt: now },
   });
   await captureServerEvent(userId, "vault_locked", { vaultId: id });
   revalidatePath("/account/capsules");
@@ -79,6 +106,20 @@ export async function DELETE(
   const { prisma } = await import("@/lib/prisma");
 
   if (!owned.vault.isLocked) return NextResponse.json({ success: true });
+
+  // Same 90-day rate limit on unlocks.
+  if (owned.vault.lastLockToggleAt) {
+    const nextAllowed = nextToggleDate(owned.vault.lastLockToggleAt);
+    if (nextAllowed > new Date()) {
+      return NextResponse.json(
+        {
+          error: `You can change this capsule's lock state once every ${TOGGLE_COOLDOWN_DAYS} days. Available again on ${nextAllowed.toLocaleDateString()}.`,
+          nextAllowedAt: nextAllowed.toISOString(),
+        },
+        { status: 429 },
+      );
+    }
+  }
 
   // Slot check — unlocking only works if we're under the paid
   // slot total. The user has to lock another vault or buy an
@@ -123,7 +164,7 @@ export async function DELETE(
 
   await prisma.vault.update({
     where: { id },
-    data: { isLocked: false, lockedAt: null },
+    data: { isLocked: false, lockedAt: null, lastLockToggleAt: new Date() },
   });
   await captureServerEvent(userId, "vault_unlocked", { vaultId: id });
   revalidatePath("/account/capsules");
