@@ -156,22 +156,14 @@ export function RevealExperience({
     );
   })();
 
-  return (
-    <div key={phase} className="reveal-phase">
-      {phaseContent}
-      <style jsx global>{`
-        .reveal-phase {
-          animation: revealPhaseFade 300ms ease-out both;
-        }
-        @keyframes revealPhaseFade {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-      `}</style>
-    </div>
-  );
+  // Return the phase content directly, keyed by phase so React
+  // still remounts between phases. NOTE: we deliberately do NOT
+  // wrap in an opacity-animated div. Such a wrapper creates a
+  // stacking context during its fade (opacity < 1), which would
+  // sandbox the phase's fixed/z-[260] takeovers (StoryCards,
+  // TransitionScreen, ExpandedLetter, GalleryCardView) beneath
+  // the organiser / vault preview top bar (z-[250]). Keeping the
+  // phase root un-wrapped lets each takeover stack against the
+  // preview bar at the document root level.
+  return <div key={phase}>{phaseContent}</div>;
 }
