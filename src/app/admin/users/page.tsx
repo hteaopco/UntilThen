@@ -71,6 +71,8 @@ async function loadUsers(): Promise<LoadResult> {
       createdAt: u.createdAt.toISOString(),
       email: clerkLookup.get(u.clerkId)?.email ?? null,
       phone: clerkLookup.get(u.clerkId)?.phone ?? null,
+      freeVaultAccess: u.freeVaultAccess,
+      freeGiftAccess: u.freeGiftAccess,
       children: u.children.map((c) => ({
         id: c.id,
         firstName: c.firstName,

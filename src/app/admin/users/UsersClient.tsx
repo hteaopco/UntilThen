@@ -21,6 +21,8 @@ export type UserRow = {
   phone: string | null;
   createdAt: string; // ISO
   children: ChildRow[];
+  freeVaultAccess: boolean;
+  freeGiftAccess: boolean;
 };
 
 type SortKey = "name" | "joined";
@@ -232,21 +234,24 @@ export function UsersClient({
                       {formatDateCST(u.createdAt)}
                     </td>
                     <td className="py-3 px-4 text-right whitespace-nowrap">
-                      <button
-                        type="button"
-                        onClick={() => setEditing(u)}
-                        className="text-[11px] font-bold uppercase tracking-[0.06em] text-ink-mid hover:text-navy transition-colors mr-4"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(u)}
-                        disabled={deletingId === u.id}
-                        className="text-[11px] font-bold uppercase tracking-[0.06em] text-ink-light hover:text-red-600 transition-colors disabled:opacity-50"
-                      >
-                        {deletingId === u.id ? "…" : "Delete"}
-                      </button>
+                      <div className="inline-flex items-center gap-2">
+                        <FreeAccessPills user={u} />
+                        <button
+                          type="button"
+                          onClick={() => setEditing(u)}
+                          className="text-[11px] font-bold uppercase tracking-[0.06em] text-ink-mid hover:text-navy transition-colors ml-2"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(u)}
+                          disabled={deletingId === u.id}
+                          className="text-[11px] font-bold uppercase tracking-[0.06em] text-ink-light hover:text-red-600 transition-colors disabled:opacity-50"
+                        >
+                          {deletingId === u.id ? "…" : "Delete"}
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -513,3 +518,75 @@ function LabeledInput({
     </div>
   );
 }
+
+/**
+ * Two amber pills per user row. Clicking either toggles the
+ * corresponding free-access flag via PATCH /api/admin/users/
+ * [id]/free-access.
+ *
+ * Optimistic update with rollback on error. No confirmation
+ * dialog — the state is cheap to toggle back.
+ */
+function FreeAccessPills({ user }: { user: UserRow }) {
+  const router = useRouter();
+  const [vaultOn, setVaultOn] = useState(user.freeVaultAccess);
+  const [giftOn, setGiftOn] = useState(user.freeGiftAccess);
+  const [busy, setBusy] = useState<null | "vault" | "gift">(null);
+
+  async function flip(
+    flag: "freeVaultAccess" | "freeGiftAccess",
+    next: boolean,
+  ) {
+    const key = flag === "freeVaultAccess" ? "vault" : "gift";
+    if (flag === "freeVaultAccess") setVaultOn(next);
+    else setGiftOn(next);
+    setBusy(key);
+    try {
+      const res = await fetch(`/api/admin/users/${user.id}/free-access`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [flag]: next }),
+      });
+      if (!res.ok) throw new Error("update failed");
+      router.refresh();
+    } catch {
+      // roll back
+      if (flag === "freeVaultAccess") setVaultOn(!next);
+      else setGiftOn(!next);
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => flip("freeVaultAccess", !vaultOn)}
+        disabled={busy !== null}
+        title="Bypass the subscription gate for this user's vault creation"
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-[0.06em] border transition-colors ${
+          vaultOn
+            ? "bg-amber text-white border-amber"
+            : "bg-transparent text-ink-light border-navy/15 hover:border-navy/30"
+        } disabled:opacity-50`}
+      >
+        {vaultOn ? "✓ Free Capsules" : "Free Capsules"}
+      </button>
+      <button
+        type="button"
+        onClick={() => flip("freeGiftAccess", !giftOn)}
+        disabled={busy !== null}
+        title="Bypass the $9.99 charge on this user's Gift Capsules"
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-[0.06em] border transition-colors ${
+          giftOn
+            ? "bg-amber text-white border-amber"
+            : "bg-transparent text-ink-light border-navy/15 hover:border-navy/30"
+        } disabled:opacity-50`}
+      >
+        {giftOn ? "✓ Free Gifts" : "Free Gifts"}
+      </button>
+    </>
+  );
+}
+

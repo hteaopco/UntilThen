@@ -13,6 +13,7 @@ const TABS: Array<{ href: string; label: string }> = [
   { href: "/admin/previews", label: "Previews" },
   { href: "/admin/tones", label: "Tones" },
   { href: "/admin/qa", label: "QA" },
+  { href: "/admin/settings", label: "Settings" },
 ];
 
 export function AdminHeader({ actions }: { actions?: React.ReactNode }) {
