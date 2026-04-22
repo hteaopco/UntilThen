@@ -5,10 +5,12 @@ import { useState } from "react";
 import {
   AudioLines,
   BookHeart,
+  Eye,
   FileText,
   Image as ImageIcon,
   ImagePlus,
   Pencil,
+  Play,
   Video,
 } from "lucide-react";
 
@@ -184,6 +186,11 @@ export function CollectionLandingView({
                         ? `/vault/${childId}/entry/${encodeURIComponent(e.id)}`
                         : null
                     }
+                    editHref={
+                      canTapEntries && childId && !pastReveal
+                        ? `/vault/${childId}/new?entry=${encodeURIComponent(e.id)}`
+                        : null
+                    }
                     pastReveal={pastReveal}
                   />
                 </li>
@@ -280,9 +287,11 @@ function EntryRow({
   mediaTypes,
   createdAt,
   detailHref,
+  editHref,
   pastReveal,
 }: CollectionLandingEntry & {
   detailHref: string | null;
+  editHref: string | null;
   pastReveal: boolean;
 }) {
   const snippet = (body ?? "").replace(/<[^>]*>/g, "").trim();
@@ -294,61 +303,109 @@ function EntryRow({
   const hasVideo = type === "VIDEO" || mediaTypes.includes("video");
   const hasVoice = type === "VOICE" || mediaTypes.includes("voice");
   const isLetter = type === "TEXT" && !hasPhoto && !hasVoice && !hasVideo;
+  const hasMedia = hasPhoto || hasVideo || hasVoice;
 
-  const cardClass =
-    "block rounded-2xl border border-amber/20 bg-white shadow-[0_2px_10px_rgba(196,122,58,0.05)] p-4 sm:p-5";
-  const hoverClass = detailHref
-    ? " hover:border-amber/40 hover:shadow-[0_4px_14px_rgba(196,122,58,0.08)] transition-all group"
-    : "";
-
-  // On-hover affordance: pre-reveal rows hint at "Read or edit";
-  // post-reveal rows hint at "Read" only. Desktop only — mobile
-  // users just tap the row.
-  const hoverLabel = pastReveal ? "Read" : "Read or edit";
-
-  const innerContent = (
-    <>
-      <div className="flex items-start justify-between gap-4">
-        <h2 className="text-[15px] sm:text-[16px] font-bold text-navy tracking-[-0.2px] leading-tight truncate">
-          {headline}
-        </h2>
-        <div className="shrink-0 flex items-center gap-2">
-          {detailHref && (
-            <span
-              aria-hidden="true"
-              className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-amber/0 group-hover:text-amber transition-colors"
-            >
-              {pastReveal ? null : <Pencil size={11} strokeWidth={2} />}
-              {hoverLabel}
-            </span>
-          )}
-          <span className="text-[11px] uppercase tracking-[0.08em] font-semibold text-ink-light">
-            {formatLong(createdAt)}
-          </span>
-        </div>
-      </div>
-      {preview && (
-        <p className="mt-1.5 text-[13px] text-ink-mid leading-[1.5] line-clamp-2">
-          {preview}
-        </p>
+  return (
+    <article className="rounded-2xl border border-amber/20 bg-white shadow-[0_2px_10px_rgba(196,122,58,0.05)] p-4 sm:p-5 hover:border-amber/40 hover:shadow-[0_4px_14px_rgba(196,122,58,0.08)] transition-all">
+      {/* Headline + preview area still tappable as a single block
+          so card-level taps keep working — they route to the
+          detail page (which plays media + shows everything). */}
+      {detailHref ? (
+        <Link href={detailHref} prefetch={false} className="block">
+          <EntryHeadline
+            headline={headline}
+            preview={preview}
+            createdAt={createdAt}
+          />
+        </Link>
+      ) : (
+        <EntryHeadline
+          headline={headline}
+          preview={preview}
+          createdAt={createdAt}
+        />
       )}
+
       <div className="mt-3 flex items-center gap-4 text-ink-light">
         {isLetter && <TypeBadge icon={<FileText size={14} strokeWidth={1.75} />} label="Letter" />}
         {hasPhoto && <TypeBadge icon={<ImageIcon size={14} strokeWidth={1.75} />} label="Photo" />}
         {hasVideo && <TypeBadge icon={<Video size={14} strokeWidth={1.75} />} label="Video" />}
         {hasVoice && <TypeBadge icon={<AudioLines size={14} strokeWidth={1.75} />} label="Voice" />}
       </div>
+
+      {/* Action row — explicit Play / Edit / Preview buttons.
+          Play + Preview both go to the read-only detail page (it
+          renders the entry + plays media), but the labels make
+          intent clear. Edit only renders pre-reveal so post-reveal
+          entries stay frozen. */}
+      {detailHref && (
+        <div className="mt-4 pt-3 border-t border-navy/[0.05] flex items-center gap-2 flex-wrap">
+          {hasMedia && (
+            <ActionLink href={detailHref}>
+              <Play size={12} strokeWidth={2} aria-hidden="true" />
+              Play
+            </ActionLink>
+          )}
+          {editHref && (
+            <ActionLink href={editHref}>
+              <Pencil size={12} strokeWidth={2} aria-hidden="true" />
+              Edit
+            </ActionLink>
+          )}
+          <ActionLink href={detailHref}>
+            <Eye size={12} strokeWidth={2} aria-hidden="true" />
+            Preview
+          </ActionLink>
+        </div>
+      )}
+    </article>
+  );
+}
+
+function EntryHeadline({
+  headline,
+  preview,
+  createdAt,
+}: {
+  headline: string;
+  preview: string;
+  createdAt: string;
+}) {
+  return (
+    <>
+      <div className="flex items-start justify-between gap-4">
+        <h2 className="text-[15px] sm:text-[16px] font-bold text-navy tracking-[-0.2px] leading-tight truncate">
+          {headline}
+        </h2>
+        <span className="shrink-0 text-[11px] uppercase tracking-[0.08em] font-semibold text-ink-light">
+          {formatLong(createdAt)}
+        </span>
+      </div>
+      {preview && (
+        <p className="mt-1.5 text-[13px] text-ink-mid leading-[1.5] line-clamp-2">
+          {preview}
+        </p>
+      )}
     </>
   );
+}
 
-  if (detailHref) {
-    return (
-      <Link href={detailHref} prefetch={false} className={cardClass + hoverClass}>
-        {innerContent}
-      </Link>
-    );
-  }
-  return <article className={cardClass}>{innerContent}</article>;
+function ActionLink({
+  href,
+  children,
+}: {
+  href: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      prefetch={false}
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-navy/10 bg-white text-[12px] font-semibold text-ink-mid hover:text-amber hover:border-amber/40 transition-colors"
+    >
+      {children}
+    </Link>
+  );
 }
 
 function TypeBadge({ icon, label }: { icon: React.ReactNode; label: string }) {

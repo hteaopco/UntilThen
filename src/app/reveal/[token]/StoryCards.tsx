@@ -50,14 +50,21 @@ export function StoryCards({
   onToggleMuted: () => void;
 }) {
   const { capture } = useRevealAnalytics();
+  // Expand each contribution into one or more slides based on
+  // what it carries — text body → letter slide, voice media →
+  // voice slide, photo media → photo slide, video media → video
+  // slide. A single entry with letter+voice produces two slides
+  // so the recipient experiences both modalities separately, and
+  // we don't auto-play audio that's attached to a letter (the
+  // audio gets its own slide where the user must tap Play).
   const cards = useMemo(
-    () => contributions.slice(0, STORY_LIMIT),
+    () => expandContributionsToSlides(contributions).slice(0, STORY_LIMIT),
     [contributions],
   );
   const [index, setIndex] = useState(0);
 
-  // Fire one view event per card — covers both the initial mount
-  // and every subsequent advance. Index change = new card = new
+  // Fire one view event per slide — covers both the initial mount
+  // and every subsequent advance. Index change = new slide = new
   // impression.
   useEffect(() => {
     const card = cards[index];
@@ -65,8 +72,8 @@ export function StoryCards({
     capture("reveal_story_viewed", {
       index,
       total: cards.length,
-      type: card.type,
-      authorName: card.authorName,
+      type: card.view,
+      authorName: card.contribution.authorName,
     });
   }, [capture, cards, index]);
 
@@ -137,12 +144,15 @@ export function StoryCards({
       {/* Card body — behind chrome, fills viewport. Cards render
           their own backgrounds. */}
       <div className="relative w-full h-full flex items-stretch justify-center">
-        {current.type === "PHOTO" || current.type === "VIDEO" ? (
-          <PhotoCard contribution={current} muted={muted} />
-        ) : current.type === "VOICE" ? (
-          <VoiceCard contribution={current} muted={muted} />
+        {current.view === "PHOTO" || current.view === "VIDEO" ? (
+          <PhotoCard
+            contribution={photoOrVideoVariant(current.contribution, current.view)}
+            muted={muted}
+          />
+        ) : current.view === "VOICE" ? (
+          <VoiceCard contribution={current.contribution} muted={muted} />
         ) : (
-          <LetterCard contribution={current} />
+          <LetterCard contribution={current.contribution} />
         )}
       </div>
 
@@ -216,4 +226,57 @@ export function StoryCards({
       </div>
     </main>
   );
+}
+
+type SlideView = "letter" | "VOICE" | "PHOTO" | "VIDEO";
+type Slide = {
+  contribution: RevealContribution;
+  view: SlideView;
+};
+
+/**
+ * Expand contributions into per-modality slides. Every entry
+ * carries text (the editor requires a body) so we treat that as
+ * the implicit baseline; media attachments get their own slide
+ * each so audio doesn't auto-play under a letter and the
+ * recipient experiences each modality on its own beat.
+ *
+ * Slide order per entry: letter → voice → photo → video.
+ * Skip the letter slide for entries whose primary type is media
+ * (PHOTO/VOICE/VIDEO) AND whose body is empty / whitespace —
+ * otherwise the leading slide is a blank letter.
+ */
+function expandContributionsToSlides(
+  contributions: RevealContribution[],
+): Slide[] {
+  const slides: Slide[] = [];
+  for (const c of contributions) {
+    const bodyHasContent =
+      (c.body ?? "").replace(/<[^>]+>/g, " ").trim().length > 0 ||
+      (c.title?.trim().length ?? 0) > 0;
+    const wantLetter = c.type === "TEXT" || bodyHasContent;
+    if (wantLetter) slides.push({ contribution: c, view: "letter" });
+    if (c.media.some((m) => m.kind === "voice"))
+      slides.push({ contribution: c, view: "VOICE" });
+    if (c.media.some((m) => m.kind === "photo"))
+      slides.push({ contribution: c, view: "PHOTO" });
+    if (c.media.some((m) => m.kind === "video"))
+      slides.push({ contribution: c, view: "VIDEO" });
+  }
+  return slides;
+}
+
+/**
+ * PhotoCard reads `contribution.type` to pick photo vs video
+ * styling; when we route a slide through it for the secondary
+ * media on a multi-modal entry, cast the type so the card
+ * renders the right modality regardless of the entry's primary
+ * `type` field.
+ */
+function photoOrVideoVariant(
+  contribution: RevealContribution,
+  view: "PHOTO" | "VIDEO",
+): RevealContribution {
+  if (contribution.type === view) return contribution;
+  return { ...contribution, type: view };
 }

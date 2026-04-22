@@ -122,7 +122,26 @@ export function GalleryScreen({
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return sorted.filter((c) => {
-      if (typeFilter !== "all" && c.type !== typeFilter) return false;
+      if (typeFilter !== "all") {
+        // Type filter matches both the entry's PRIMARY type AND
+        // any media kind it carries — so a TEXT entry with a
+        // voice attachment shows up under both Letters and Audio,
+        // not just Letters. Recipients filtering for "Audio"
+        // expect to find every entry they could listen to.
+        const kindForType: Record<Exclude<TypeFilter, "all">, string | null> = {
+          TEXT: null,
+          PHOTO: "photo",
+          VOICE: "voice",
+          VIDEO: "video",
+        };
+        const expectedKind = kindForType[typeFilter];
+        const primary = c.type === typeFilter;
+        const media =
+          expectedKind != null
+            ? c.media.some((m) => m.kind === expectedKind)
+            : false;
+        if (!primary && !media) return false;
+      }
       if (authorFilter && c.authorName.trim() !== authorFilter) return false;
       if (
         collectionFilter &&
