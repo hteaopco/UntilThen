@@ -122,17 +122,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 /**
  * Unified upsert for subscription.created + subscription.updated.
  *
- * Our DB row is created synchronously inside POST /api/payments/
- * subscribe, so by the time the webhook fires we typically
- * already have a matching row keyed on squareSubId. This handler
- * syncs the status field based on the incoming Square status.
+ * Two lookup paths:
  *
- * If the row is missing (create webhook arrived before our
- * /subscribe route finished — rare but possible), we log and
- * exit without upserting. Our internal /subscribe call is the
- * source of truth for the link between userId ↔ squareSubId,
- * and inventing a row from webhook data risks orphaning it
- * from the user.
+ *   a) squareSubId matches → sync status / currentPeriodEnd on
+ *      the user's current sub.
+ *   b) pendingSquareSubId matches AND the incoming status is
+ *      ACTIVE → the scheduled plan switch just activated.
+ *      Promote pendingPlan + pendingSquareSubId into the primary
+ *      fields and clear the pending slots.
+ *
+ * If neither matches (create webhook arrived before our /subscribe
+ * route finished — rare but possible), we log and exit. Our
+ * internal /subscribe call is the source of truth for the
+ * userId ↔ squareSubId link; inventing a row from webhook data
+ * risks orphaning it from the user.
  */
 async function handleSubscriptionUpsert(event: WebhookEvent) {
   const sub = event.data?.object?.subscription;
@@ -141,6 +144,52 @@ async function handleSubscriptionUpsert(event: WebhookEvent) {
     return;
   }
   const { prisma } = await import("@/lib/prisma");
+  const incomingStatus = mapSubscriptionStatus(sub.status);
+
+  // Path (b): scheduled plan switch is activating. Check before
+  // the primary squareSubId lookup so an upgraded sub that's also
+  // in our DB somehow doesn't get handled as a normal status sync.
+  const pendingMatch = await prisma.subscription.findUnique({
+    where: { pendingSquareSubId: sub.id },
+    select: {
+      id: true,
+      userId: true,
+      plan: true,
+      pendingPlan: true,
+      pendingEffectiveDate: true,
+    },
+  });
+  if (pendingMatch) {
+    if (incomingStatus === "ACTIVE" && pendingMatch.pendingPlan) {
+      const newPeriodEnd =
+        pendingMatch.pendingPlan === "MONTHLY"
+          ? nextFirstOfMonth(new Date())
+          : oneYearLater(new Date());
+      await prisma.subscription.update({
+        where: { id: pendingMatch.id },
+        data: {
+          squareSubId: sub.id,
+          plan: pendingMatch.pendingPlan,
+          status: "ACTIVE",
+          currentPeriodEnd: newPeriodEnd,
+          pendingPlan: null,
+          pendingSquareSubId: null,
+          pendingEffectiveDate: null,
+        },
+      });
+      await captureServerEvent(
+        `user:${pendingMatch.userId}`,
+        "subscription_plan_switched",
+        {
+          from: pendingMatch.plan,
+          to: pendingMatch.pendingPlan,
+        },
+      );
+    }
+    return;
+  }
+
+  // Path (a): normal status sync on the primary subscription.
   const existing = await prisma.subscription.findUnique({
     where: { squareSubId: sub.id },
     select: {
@@ -149,6 +198,7 @@ async function handleSubscriptionUpsert(event: WebhookEvent) {
       plan: true,
       status: true,
       currentPeriodEnd: true,
+      pendingSquareSubId: true,
     },
   });
   if (!existing) {
@@ -158,20 +208,27 @@ async function handleSubscriptionUpsert(event: WebhookEvent) {
     return;
   }
 
-  const incomingStatus = mapSubscriptionStatus(sub.status);
   const updates: {
     status?: typeof existing.status;
     currentPeriodEnd?: Date;
   } = {};
   if (incomingStatus && incomingStatus !== existing.status) {
-    updates.status = incomingStatus;
+    // Skip a spurious CANCELLED flip when we have a pending
+    // switch queued up — the old sub *is* cancelled in Square,
+    // but our row should stay ACTIVE until the new sub promotes.
+    // Otherwise the paywall engages mid-period.
+    const skipCancel =
+      incomingStatus === "CANCELLED" && existing.pendingSquareSubId;
+    if (!skipCancel) {
+      updates.status = incomingStatus;
+    }
   }
 
   // On cancellation, pin currentPeriodEnd so UI copy can show
   // "access through <date>." If the Square subscription carries
   // a charged_through_date use that; otherwise fall back to our
   // computed next cycle edge.
-  if (incomingStatus === "CANCELLED") {
+  if (incomingStatus === "CANCELLED" && !existing.pendingSquareSubId) {
     const through =
       sub.charged_through_date ??
       sub.canceled_date ??

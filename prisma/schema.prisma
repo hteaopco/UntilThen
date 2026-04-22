@@ -352,6 +352,15 @@ model Subscription {
   // CANCELLED subscriptions can stay 'active enough' until the
   // paid period lapses.
   currentPeriodEnd  DateTime
+  // Scheduled plan switch. When the user upgrades monthly → annual
+  // or downgrades annual → monthly, the swap takes effect at the
+  // end of the current billing period. The new Square subscription
+  // is created immediately with a delayed start_date; these fields
+  // hold its details until the old sub expires and the webhook
+  // promotes them into `plan` + `squareSubId`.
+  pendingPlan          SubscriptionPlan?
+  pendingSquareSubId   String?           @unique
+  pendingEffectiveDate DateTime?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 }
