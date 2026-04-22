@@ -12,6 +12,7 @@ import {
   type CapsuleTone,
 } from "@/lib/tone";
 
+import { MockRevealPreview } from "./MockRevealPreview";
 import type { RecentCapsule } from "./page";
 
 type Preview =
@@ -21,7 +22,8 @@ type Preview =
   | "contributor-couple"
   | "pin"
   | "vault-locked"
-  | "vault-unlocked";
+  | "vault-unlocked"
+  | "mock-reveal";
 
 const MOCK_SINGLE_CAPSULE = {
   title: "Mom's 60th Birthday",
@@ -80,6 +82,10 @@ export function PreviewsClient({ capsules }: { capsules: RecentCapsule[] }) {
 
   if (active === "splash") {
     return <IntroSplash onComplete={() => setActive(null)} />;
+  }
+
+  if (active === "mock-reveal") {
+    return <MockRevealPreview onExit={() => setActive(null)} />;
   }
 
   if (active === "contributor-single") {
@@ -188,6 +194,11 @@ export function PreviewsClient({ capsules }: { capsules: RecentCapsule[] }) {
           Mock-data flows
         </h2>
         <div className="grid gap-3 sm:grid-cols-2">
+          <PreviewCard
+            title="Recipient Reveal — Mock Capsule"
+            description="Full Entry → Stories → Transition → Gallery flow with seed data: 9 contributions (letters, photos, voice notes) and public stock media. No real capsule needed."
+            onClick={() => setActive("mock-reveal")}
+          />
           <PreviewCard
             title="Intro Splash"
             description="The untilThen typewriter animation."

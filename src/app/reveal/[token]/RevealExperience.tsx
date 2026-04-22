@@ -1,0 +1,117 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+import { EntryScreen } from "./EntryScreen";
+import { GalleryScreen } from "./GalleryScreen";
+import { StoryCards } from "./StoryCards";
+import { TransitionScreen } from "./TransitionScreen";
+
+const STORY_LIMIT = 5;
+
+export type RevealMedia = {
+  kind: "photo" | "voice" | "video";
+  url: string;
+};
+
+export type RevealContribution = {
+  id: string;
+  authorName: string;
+  authorAvatarUrl: string | null;
+  type: "TEXT" | "PHOTO" | "VOICE" | "VIDEO";
+  title: string | null;
+  body: string | null;
+  media: RevealMedia[];
+  createdAt: string;
+};
+
+export type RevealCapsule = {
+  id: string;
+  title: string;
+  recipientName: string;
+  occasionType: string;
+  tone: string;
+  revealDate: string;
+  isFirstOpen: boolean;
+  hasCompleted: boolean;
+};
+
+type Phase = "entry" | "stories" | "transition" | "gallery";
+
+/**
+ * Pure phase state machine — takes a fully-loaded capsule +
+ * contributions and renders the four-phase reveal experience.
+ *
+ * No data fetching, no token handling, no error states. Both the
+ * real recipient route (RevealClient → fetch → here) and the
+ * admin mock preview (MockRevealPreview → seed data → here) drop
+ * into this component, so they exercise the exact same screens.
+ *
+ * Phase progression:
+ *   entry → stories → transition → gallery
+ *   (transition is skipped when contributions ≤ STORY_LIMIT)
+ *
+ * Returning visits (capsule.hasCompleted) start in the gallery
+ * directly — the cinematic intro is a one-shot.
+ */
+export function RevealExperience({
+  capsule,
+  contributions,
+}: {
+  capsule: RevealCapsule;
+  contributions: RevealContribution[];
+}) {
+  const [phase, setPhase] = useState<Phase>(() =>
+    capsule.hasCompleted ? "gallery" : "entry",
+  );
+
+  const remaining = Math.max(0, contributions.length - STORY_LIMIT);
+  const contributorCount = useMemo(
+    () =>
+      new Set(contributions.map((c) => c.authorName.trim()).filter(Boolean))
+        .size,
+    [contributions],
+  );
+
+  if (phase === "entry") {
+    return (
+      <EntryScreen
+        recipientName={capsule.recipientName}
+        revealDate={capsule.revealDate}
+        onBegin={() =>
+          setPhase(contributions.length === 0 ? "gallery" : "stories")
+        }
+      />
+    );
+  }
+
+  if (phase === "stories") {
+    return (
+      <StoryCards
+        contributions={contributions}
+        // ✕ from stories jumps straight to gallery (brief explicitly
+        // says "exits to gallery immediately"). Reaching the end of
+        // the deck routes through the transition screen first.
+        onClose={() => setPhase("gallery")}
+        onComplete={() => setPhase(remaining > 0 ? "transition" : "gallery")}
+      />
+    );
+  }
+
+  if (phase === "transition") {
+    return (
+      <TransitionScreen
+        remainingCount={remaining}
+        contributorCount={contributorCount}
+        onContinue={() => setPhase("gallery")}
+      />
+    );
+  }
+
+  return (
+    <GalleryScreen
+      recipientName={capsule.recipientName}
+      contributions={contributions}
+    />
+  );
+}
