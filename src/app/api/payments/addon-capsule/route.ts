@@ -178,7 +178,7 @@ export async function POST(): Promise<NextResponse> {
         ? nextFirstOfMonth(now).toISOString().slice(0, 10)
         : oneYearLater(now).toISOString().slice(0, 10);
 
-    await square.subscriptions.create({
+    const addonSubResp = await square.subscriptions.create({
       idempotencyKey: `addon-sub-${user.id}-${addonIndex}`,
       locationId: SQUARE_LOCATION_ID,
       planVariationId,
@@ -190,11 +190,19 @@ export async function POST(): Promise<NextResponse> {
       // need explicit phases supplying the dollar amount.
       phases: [{ ordinal: 0n, orderTemplateId }],
     });
+    const addonSquareSubId = addonSubResp.subscription?.id;
+    if (!addonSquareSubId) {
+      throw new Error("Square addon subscription create returned no id.");
+    }
 
-    // 3. Bump the count in our DB.
+    // 3. Bump the count + remember the Square sub id so the
+    //    billing page can offer a per-addon Remove button later.
     const updated = await prisma.subscription.update({
       where: { userId: user.id },
-      data: { addonCapsuleCount: { increment: 1 } },
+      data: {
+        addonCapsuleCount: { increment: 1 },
+        addonSquareSubIds: { push: addonSquareSubId },
+      },
       select: {
         addonCapsuleCount: true,
         baseCapsuleCount: true,

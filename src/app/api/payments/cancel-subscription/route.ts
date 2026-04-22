@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+import { backfillAddonSquareSubIds } from "@/lib/addon-backfill";
 import { captureServerEvent } from "@/lib/posthog-server";
 import { getSquareClient, squareIsConfigured } from "@/lib/square";
 
@@ -40,8 +41,19 @@ export async function POST(): Promise<NextResponse> {
     );
 
   const { prisma } = await import("@/lib/prisma");
-  const user = await prisma.user.findUnique({
+  const lookupUser = await prisma.user.findUnique({
     where: { clerkId: userId },
+    select: { id: true },
+  });
+  if (!lookupUser)
+    return NextResponse.json({ error: "User not found." }, { status: 404 });
+
+  // Backfill first so we can cancel legacy addons that weren't
+  // tracked when they were originally purchased.
+  await backfillAddonSquareSubIds(lookupUser.id);
+
+  const user = await prisma.user.findUnique({
+    where: { id: lookupUser.id },
     select: {
       id: true,
       subscription: {
@@ -50,12 +62,12 @@ export async function POST(): Promise<NextResponse> {
           squareSubId: true,
           status: true,
           pendingSquareSubId: true,
+          addonSquareSubIds: true,
         },
       },
     },
   });
-  if (!user)
-    return NextResponse.json({ error: "User not found." }, { status: 404 });
+  if (!user) return NextResponse.json({ error: "User not found." }, { status: 404 });
   const sub = user.subscription;
   if (!sub)
     return NextResponse.json(
@@ -82,6 +94,19 @@ export async function POST(): Promise<NextResponse> {
         // request still succeeds on the primary sub.
         console.error(
           "[payments/cancel-subscription] pending cancel failed:",
+          err,
+        );
+      }
+    }
+    // Dropping the base cancels every linked addon too — the
+    // user's rule: no addons without the base sub. Each one is
+    // a standalone Square subscription, so we loop and cancel.
+    for (const addonSubId of sub.addonSquareSubIds) {
+      try {
+        await square.subscriptions.cancel({ subscriptionId: addonSubId });
+      } catch (err) {
+        console.error(
+          `[payments/cancel-subscription] addon ${addonSubId} cancel failed:`,
           err,
         );
       }

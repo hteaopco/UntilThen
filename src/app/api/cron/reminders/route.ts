@@ -31,7 +31,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       },
       include: {
         children: {
-          include: { vault: { select: { id: true } } },
+          include: { vault: { select: { id: true, isLocked: true } } },
         },
         notificationPreferences: { select: { writingReminders: true, pausedUntil: true } },
       },
@@ -47,11 +47,15 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       if (prefs?.pausedUntil && prefs.pausedUntil > now) { skipped++; continue; }
       if (prefs && !prefs.writingReminders) { skipped++; continue; }
 
-      const vaultIds = user.children
-        .filter((c) => c.vault)
+      // Only consider unlocked vaults — locked ones are
+      // read-only so nudging their owner to "write a memory"
+      // would be annoying spam they can't act on.
+      const unlockedVaultIds = user.children
+        .filter((c) => c.vault && !c.vault.isLocked)
         .map((c) => c.vault!.id);
 
-      if (vaultIds.length === 0) { skipped++; continue; }
+      if (unlockedVaultIds.length === 0) { skipped++; continue; }
+      const vaultIds = unlockedVaultIds;
 
       const latestEntry = await prisma.entry.findFirst({
         where: { vaultId: { in: vaultIds }, authorId: user.id },

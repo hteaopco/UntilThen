@@ -136,6 +136,16 @@ export async function POST(req: Request) {
           { status: 402 },
         );
       }
+      if (entry.vault?.isLocked) {
+        return NextResponse.json(
+          {
+            error:
+              "This capsule is locked. Unlock it or free up a slot to add media.",
+            vaultLocked: true,
+          },
+          { status: 402 },
+        );
+      }
 
       // Photo quota — counted per vault per calendar year.
       if (kind === "photo") {

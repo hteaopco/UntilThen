@@ -1,6 +1,6 @@
 "use client";
 
-import { Lock, PlusCircle, TrendingDown, TrendingUp, X } from "lucide-react";
+import { Lock, MinusCircle, PlusCircle, TrendingDown, TrendingUp, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -21,6 +21,13 @@ type Subscription = {
   pendingEffectiveDateIso: string | null;
 };
 
+type Capsule = {
+  childId: string;
+  vaultId: string | null;
+  firstName: string;
+  isLocked: boolean;
+};
+
 export type BillingClientProps = {
   capsuleCount: number;
   photoCount: number;
@@ -28,19 +35,14 @@ export type BillingClientProps = {
   videoCount: number;
   hasCustomerOnFile: boolean;
   freeVaultAccess: boolean;
+  capsules: Capsule[];
   subscription: Subscription | null;
   squareApplicationId: string;
   squareLocationId: string;
 };
 
-type Mode = "idle" | "subscribe" | "addon" | "confirm-switch" | "confirm-cancel";
+type Mode = "idle" | "subscribe" | "addon" | "confirm-cancel";
 
-/**
- * Real billing surface. Reads the user's Subscription row and
- * renders one of four states: no-sub, active + no pending switch,
- * active + pending switch, or cancelled. Plan switches schedule
- * at the next billing date; cancel is scheduled at period end.
- */
 export function BillingClient({
   capsuleCount,
   photoCount,
@@ -48,6 +50,7 @@ export function BillingClient({
   videoCount,
   hasCustomerOnFile,
   freeVaultAccess,
+  capsules,
   subscription,
   squareApplicationId,
   squareLocationId,
@@ -59,9 +62,13 @@ export function BillingClient({
 
   const sub = subscription;
   const planLabel = sub?.plan === "ANNUAL" ? "Annual" : sub ? "Monthly" : "";
-  const planPriceCopy =
+  const basePriceCopy =
     sub?.plan === "ANNUAL" ? "$35.99 / year" : "$4.99 / month";
+  const addonPriceCopy =
+    sub?.plan === "ANNUAL" ? "$6 / year" : "$0.99 / month";
   const slotCount = sub ? sub.baseCapsuleCount + sub.addonCapsuleCount : 0;
+  const activeCount = capsules.filter((c) => !c.isLocked).length;
+  const lockedCount = capsules.length - activeCount;
 
   const pendingLabel =
     sub?.pendingPlan === "ANNUAL" ? "Annual" : sub?.pendingPlan === "MONTHLY" ? "Monthly" : null;
@@ -79,7 +86,6 @@ export function BillingClient({
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Couldn't switch plan.");
       }
-      setMode("idle");
       router.refresh();
     } catch (e) {
       setError((e as Error).message);
@@ -108,7 +114,43 @@ export function BillingClient({
     }
   }
 
-  // ── Subscription checkout overlay ──
+  async function removeAddon() {
+    if (!confirm("Remove one add-on? Your paid slots drop by one.")) return;
+    setWorking(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/payments/remove-addon", { method: "POST" });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? "Couldn't remove the add-on.");
+      }
+      router.refresh();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function toggleLock(vaultId: string, isLocked: boolean) {
+    setWorking(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/account/vaults/${vaultId}/lock`, {
+        method: isLocked ? "DELETE" : "POST",
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? "Couldn't update capsule lock state.");
+      }
+      router.refresh();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setWorking(false);
+    }
+  }
+
   if (mode === "subscribe") {
     return (
       <div className="max-w-[520px] mx-auto">
@@ -125,7 +167,6 @@ export function BillingClient({
     );
   }
 
-  // ── Add-on checkout overlay ──
   if (mode === "addon" && sub) {
     return (
       <div className="max-w-[520px] mx-auto">
@@ -152,7 +193,7 @@ export function BillingClient({
           Your plan
         </h2>
         <p className="text-sm text-ink-mid">
-          Manage your subscription, usage, and payment method.
+          Manage your subscription, capsules, and payment method.
         </p>
       </section>
 
@@ -178,8 +219,7 @@ export function BillingClient({
                 No active subscription
               </div>
               <div className="text-sm text-ink-mid mt-1">
-                Start a subscription to create a time capsule — $4.99/month or
-                $35.99/year.
+                Start a subscription to write to a time capsule — $4.99/month or $35.99/year.
               </div>
             </div>
             <button
@@ -195,7 +235,7 @@ export function BillingClient({
       )}
 
       {sub && (
-        <section className="rounded-2xl border border-navy/[0.08] bg-white px-6 py-6 space-y-4">
+        <section className="rounded-2xl border border-navy/[0.08] bg-white px-6 py-6 space-y-5">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <div className="text-[10px] uppercase tracking-[0.14em] font-bold text-amber mb-1.5">
@@ -205,14 +245,9 @@ export function BillingClient({
                 Base Plan · {planLabel}
               </div>
               <div className="text-sm text-ink-mid mt-1">
-                {planPriceCopy} ·{" "}
                 {sub.status === "CANCELLED"
                   ? `Access through ${formatLong(sub.currentPeriodEndIso)}`
-                  : `Next billing date ${formatLong(sub.currentPeriodEndIso)}`}
-              </div>
-              <div className="text-xs text-ink-light mt-2">
-                {capsuleCount} of {slotCount} capsule slot
-                {slotCount === 1 ? "" : "s"} used
+                  : `Renews ${formatLong(sub.currentPeriodEndIso)}`}
               </div>
             </div>
 
@@ -240,6 +275,80 @@ export function BillingClient({
             )}
           </div>
 
+          {/* Itemized plan line items. */}
+          <div className="border-t border-navy/[0.06] pt-4">
+            <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-2">
+              Plan items
+            </div>
+            <ul className="space-y-2">
+              <li className="flex items-center justify-between gap-3 text-[14px]">
+                <div>
+                  <div className="font-semibold text-navy">
+                    Base plan · {sub.baseCapsuleCount} capsules included
+                  </div>
+                  <div className="text-xs text-ink-light mt-0.5">
+                    Cancels everything below with it.
+                  </div>
+                </div>
+                <div className="font-bold text-navy tabular-nums">
+                  {basePriceCopy}
+                </div>
+              </li>
+              {Array.from({ length: sub.addonCapsuleCount }).map((_, i) => (
+                <li
+                  key={i}
+                  className="flex items-center justify-between gap-3 text-[14px]"
+                >
+                  <div>
+                    <div className="font-semibold text-navy">
+                      Add-on capsule #{i + 1}
+                    </div>
+                    <div className="text-xs text-ink-light mt-0.5">
+                      Extra slot on top of the base plan.
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-bold text-navy tabular-nums">
+                      +{addonPriceCopy}
+                    </span>
+                    {sub.status === "ACTIVE" && i === sub.addonCapsuleCount - 1 && (
+                      <button
+                        type="button"
+                        onClick={removeAddon}
+                        disabled={working}
+                        className="inline-flex items-center gap-1 text-[12px] font-semibold text-red-600 hover:text-red-700 disabled:opacity-60"
+                      >
+                        <MinusCircle size={14} strokeWidth={1.75} aria-hidden="true" />
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-3 pt-3 border-t border-navy/[0.06] flex items-center justify-between text-[14px]">
+              <span className="text-ink-mid">
+                {capsules.length} capsule{capsules.length === 1 ? "" : "s"} ·{" "}
+                {activeCount} active{lockedCount > 0 ? ` · ${lockedCount} locked` : ""} ·{" "}
+                {slotCount} paid slot{slotCount === 1 ? "" : "s"}
+              </span>
+            </div>
+          </div>
+
+          {sub.status === "ACTIVE" && (
+            <div className="border-t border-navy/[0.06] pt-4">
+              <button
+                type="button"
+                onClick={() => setMode("addon")}
+                disabled={working}
+                className="inline-flex items-center gap-2 text-[13px] font-semibold text-amber hover:text-amber-dark disabled:opacity-60"
+              >
+                <PlusCircle size={14} strokeWidth={1.75} aria-hidden="true" />
+                Add another capsule slot ({addonPriceCopy})
+              </button>
+            </div>
+          )}
+
           {pendingLabel && sub.pendingEffectiveDateIso && (
             <div className="rounded-xl border border-gold/40 bg-gold-tint/40 px-4 py-3">
               <p className="text-sm font-semibold text-navy">
@@ -260,8 +369,9 @@ export function BillingClient({
               </p>
               <p className="text-xs text-red-700/90 mt-1">
                 You&rsquo;ll keep access until{" "}
-                {formatLong(sub.currentPeriodEndIso)}, then the paywall
-                re-engages. Start a new subscription any time to resume.
+                {formatLong(sub.currentPeriodEndIso)}. After that, every
+                capsule locks (data is kept). Start a new subscription any
+                time to resume.
               </p>
             </div>
           )}
@@ -283,6 +393,62 @@ export function BillingClient({
         <p className="text-sm text-red-600" role="alert">
           {error}
         </p>
+      )}
+
+      {capsules.length > 0 && (
+        <section>
+          <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
+            Your capsules
+          </div>
+          <p className="text-xs text-ink-mid mb-3 max-w-[560px]">
+            Lock a capsule to free up its slot without losing data. Locked
+            capsules stay readable — you just can&rsquo;t add new memories
+            until you unlock them again.
+          </p>
+          <ul className="space-y-2">
+            {capsules.map((c) => (
+              <li
+                key={c.childId}
+                className="rounded-xl border border-navy/[0.08] bg-white px-4 py-3 flex items-center justify-between gap-3 flex-wrap"
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    aria-hidden="true"
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      c.isLocked
+                        ? "bg-navy/10 text-ink-mid"
+                        : "bg-sage-tint text-sage"
+                    }`}
+                  >
+                    <Lock size={14} strokeWidth={1.75} />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-navy">
+                      {c.firstName}&rsquo;s capsule
+                    </div>
+                    <div className="text-xs text-ink-light mt-0.5">
+                      {c.isLocked ? "Locked · read-only" : "Active"}
+                    </div>
+                  </div>
+                </div>
+                {c.vaultId && sub?.status === "ACTIVE" && (
+                  <button
+                    type="button"
+                    onClick={() => toggleLock(c.vaultId!, c.isLocked)}
+                    disabled={working}
+                    className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg border transition-colors disabled:opacity-60 ${
+                      c.isLocked
+                        ? "border-amber/40 text-amber hover:bg-amber-tint"
+                        : "border-navy/15 text-ink-mid hover:border-navy hover:text-navy"
+                    }`}
+                  >
+                    {c.isLocked ? "Unlock" : "Lock"}
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <section>
@@ -317,40 +483,6 @@ export function BillingClient({
       </section>
 
       {sub && sub.status === "ACTIVE" && (
-        <section>
-          <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
-            Plan options
-          </div>
-          <ul className="space-y-3">
-            <li>
-              <button
-                type="button"
-                onClick={() => setMode("addon")}
-                className="w-full flex items-center gap-3 rounded-xl border border-navy/[0.08] bg-white px-5 py-4 text-left hover:border-amber/25 hover:shadow-[0_4px_16px_rgba(15,31,61,0.05)] transition-all"
-              >
-                <div
-                  aria-hidden="true"
-                  className="shrink-0 w-9 h-9 rounded-full bg-amber-tint text-amber flex items-center justify-center"
-                >
-                  <PlusCircle size={16} strokeWidth={1.5} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-navy">
-                    Add a time capsule slot
-                  </div>
-                  <div className="text-sm text-ink-mid mt-0.5">
-                    {sub.plan === "ANNUAL"
-                      ? "$6 / year per additional capsule."
-                      : "$0.99 / month per additional capsule."}
-                  </div>
-                </div>
-              </button>
-            </li>
-          </ul>
-        </section>
-      )}
-
-      {sub && sub.status === "ACTIVE" && (
         <section className="pt-6 border-t border-navy/[0.06]">
           <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-red-600 mb-3">
             Danger zone
@@ -363,7 +495,7 @@ export function BillingClient({
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border-[1.5px] border-red-600 text-red-600 text-sm font-bold hover:bg-red-50 transition-colors"
             >
               <X size={16} strokeWidth={1.5} aria-hidden="true" />
-              Cancel subscription
+              Cancel entire subscription
             </button>
           ) : (
             <div className="rounded-xl border border-red-200 bg-red-50 px-5 py-5 max-w-[560px]">
@@ -371,11 +503,11 @@ export function BillingClient({
                 Cancel your subscription?
               </p>
               <p className="text-sm text-red-700/90 mb-4 leading-[1.6]">
-                You&rsquo;ll keep access until{" "}
-                {formatLong(sub.currentPeriodEndIso)}. After that, the
-                paywall re-engages and you won&rsquo;t be able to add new
-                entries. Existing entries stay preserved — you can
-                resubscribe at any time to pick up where you left off.
+                This cancels the base plan and every add-on. You&rsquo;ll
+                keep access until{" "}
+                {formatLong(sub.currentPeriodEndIso)}. After that, every
+                capsule locks (data is kept). You can resubscribe any time
+                to unlock them again.
               </p>
               <div className="flex flex-wrap items-center gap-3">
                 <button

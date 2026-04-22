@@ -110,6 +110,13 @@ model Vault {
   deliveryTime String    @default("08:00")
   timezone     String    @default("America/Chicago")
   unlockedAt   DateTime?
+  // Paywall lock state. A locked vault is read-only: entries
+  // stay visible but no new memories can be added and no media
+  // uploaded. Set when a user's active slot count drops below
+  // their capsule count (e.g. after an addon is removed) and
+  // toggleable manually from the capsules page.
+  isLocked     Boolean   @default(false)
+  lockedAt     DateTime?
   createdAt    DateTime  @default(now())
 
   child       Child        @relation(fields: [childId], references: [id])
@@ -348,6 +355,11 @@ model Subscription {
   // addonCapsuleCount up by one at $0.99/mo or $6/yr.
   baseCapsuleCount  Int                @default(3)
   addonCapsuleCount Int                @default(0)
+  // Square subscription ids for each $0.99/$6 addon. One entry
+  // per active addon. Lets us cancel a specific addon (pop one
+  // off and call Square cancel) without needing a per-capsule
+  // linkage — capsules and slots are decoupled.
+  addonSquareSubIds String[]           @default([])
   // End of the current billing period. Set at every renewal so
   // CANCELLED subscriptions can stay 'active enough' until the
   // paid period lapses.

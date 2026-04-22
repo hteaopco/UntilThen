@@ -105,6 +105,19 @@ export async function POST(req: Request) {
       ownedVaults[0];
     if (!vault)
       return NextResponse.json({ error: "No vault yet." }, { status: 404 });
+    // Locked vaults are read-only — the user's over-quota or has
+    // manually locked this capsule. Entries on other (unlocked)
+    // capsules still work.
+    if (vault.isLocked) {
+      return NextResponse.json(
+        {
+          error:
+            "This capsule is locked. Unlock it or free up a slot to keep writing.",
+          vaultLocked: true,
+        },
+        { status: 402 },
+      );
+    }
 
     let orderIndex: number | null = null;
     if (collectionId) {

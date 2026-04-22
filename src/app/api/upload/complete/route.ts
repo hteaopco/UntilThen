@@ -80,7 +80,10 @@ export async function POST(req: Request) {
     const { prisma } = await import("@/lib/prisma");
 
     if (target === "entry") {
-      const entry = await prisma.entry.findUnique({ where: { id: targetId } });
+      const entry = await prisma.entry.findUnique({
+        where: { id: targetId },
+        include: { vault: { select: { isLocked: true } } },
+      });
       if (!entry)
         return NextResponse.json(
           { error: "Entry not found." },
@@ -100,6 +103,16 @@ export async function POST(req: Request) {
           {
             error: "A subscription is required to add media.",
             needsSubscription: true,
+          },
+          { status: 402 },
+        );
+      }
+      if (entry.vault?.isLocked) {
+        return NextResponse.json(
+          {
+            error:
+              "This capsule is locked. Unlock it or free up a slot to add media.",
+            vaultLocked: true,
           },
           { status: 402 },
         );

@@ -74,7 +74,7 @@ export async function PATCH(
         isSealed: true,
         vaultId: true,
         type: true,
-        vault: { select: { revealDate: true } },
+        vault: { select: { revealDate: true, isLocked: true } },
         collection: { select: { revealDate: true } },
       },
     });
@@ -82,6 +82,16 @@ export async function PATCH(
       return NextResponse.json({ error: "Entry not found." }, { status: 404 });
     if (entry.authorId !== user.id)
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+    if (entry.vault?.isLocked) {
+      return NextResponse.json(
+        {
+          error:
+            "This capsule is locked. Unlock it or free up a slot to keep editing.",
+          vaultLocked: true,
+        },
+        { status: 402 },
+      );
+    }
 
     // Once an entry's effective reveal date has passed, the
     // recipient experience is frozen — no edits to body, title,

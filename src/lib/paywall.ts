@@ -96,6 +96,26 @@ export async function userHasCapsuleAccess(
 }
 
 /**
+ * Per-vault write gate. Returns true when the vault can be
+ * written to — meaning the owner has capsule access AND the
+ * vault itself isn't locked (over-quota after an addon was
+ * removed, or explicitly locked from the capsules page).
+ */
+export async function vaultIsWritable(
+  userId: string,
+  vaultId: string,
+): Promise<boolean> {
+  if (!(await userHasCapsuleAccess(userId))) return false;
+  const prisma = await getPrisma();
+  const vault = await prisma.vault.findUnique({
+    where: { id: vaultId },
+    select: { isLocked: true },
+  });
+  if (!vault) return false;
+  return !vault.isLocked;
+}
+
+/**
  * May this user create + activate a Gift Capsule? Separate from
  * vault access because the $9.99 one-time is a per-capsule
  * charge — even subscribed users pay per gift capsule they send,

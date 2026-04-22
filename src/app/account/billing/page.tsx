@@ -34,10 +34,14 @@ export default async function AccountBillingPage() {
         },
       },
       children: {
+        orderBy: { createdAt: "asc" },
         select: {
           id: true,
+          firstName: true,
           vault: {
             select: {
+              id: true,
+              isLocked: true,
               entries: {
                 where: { isSealed: true },
                 select: { type: true },
@@ -51,6 +55,14 @@ export default async function AccountBillingPage() {
   if (!user) redirect("/onboarding");
 
   const entries = user.children.flatMap((c) => c.vault?.entries ?? []);
+  const capsules = user.children
+    .map((c) => ({
+      childId: c.id,
+      vaultId: c.vault?.id ?? null,
+      firstName: c.firstName,
+      isLocked: c.vault?.isLocked ?? false,
+    }));
+
   const props: BillingClientProps = {
     capsuleCount: user.children.length,
     photoCount: entries.filter((e) => e.type === "PHOTO").length,
@@ -58,6 +70,7 @@ export default async function AccountBillingPage() {
     videoCount: entries.filter((e) => e.type === "VIDEO").length,
     hasCustomerOnFile: Boolean(user.squareCustomerId),
     freeVaultAccess: user.freeVaultAccess,
+    capsules,
     subscription: user.subscription
       ? {
           plan: user.subscription.plan,
