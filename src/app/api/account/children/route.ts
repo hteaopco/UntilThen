@@ -2,7 +2,6 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { capsuleAccessVerdict } from "@/lib/paywall";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -135,37 +134,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (!user)
     return NextResponse.json({ error: "User not found." }, { status: 404 });
 
-  // Paywall gate. Returns a structured 409 so the UI can render
-  // the right checkout (subscription vs add-on). Gate is the
-  // single source of truth even when the client-side gate in
-  // the dashboard missed it.
-  const verdict = await capsuleAccessVerdict(user.id);
-  if (!verdict.hasAccess) {
-    if (verdict.needsSubscription) {
-      return NextResponse.json(
-        {
-          error: "A subscription is required to create a time capsule.",
-          needsSubscription: true,
-          usedSlots: verdict.usedSlots,
-          allowedSlots: verdict.allowedSlots,
-        },
-        { status: 409 },
-      );
-    }
-    if (verdict.needsAddOn) {
-      return NextResponse.json(
-        {
-          error:
-            "You've used every slot on your plan. Add one before creating another capsule.",
-          needsAddOn: true,
-          plan: user.subscription?.plan ?? "MONTHLY",
-          usedSlots: verdict.usedSlots,
-          allowedSlots: verdict.allowedSlots,
-        },
-        { status: 409 },
-      );
-    }
-  }
+  // Free setup: anyone signed in can create a capsule, add a
+  // cover photo, and organise collections. The paywall only
+  // fires when they try to write content (entries) — see the
+  // gates on /api/dashboard/entries + /api/upload/*. This lets
+  // users invest in setup before being asked to subscribe, which
+  // converts better than an up-front gate.
 
   // Default reveal = child's 18th birthday if we have a DOB.
   const defaultReveal = dateOfBirth

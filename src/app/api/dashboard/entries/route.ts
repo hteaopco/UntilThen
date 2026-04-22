@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { EntryType } from "@prisma/client";
 
+import { userHasCapsuleAccess } from "@/lib/paywall";
 import { captureServerEvent } from "@/lib/posthog-server";
 
 export const runtime = "nodejs";
@@ -81,6 +82,21 @@ export async function POST(req: Request) {
     });
     if (!user)
       return NextResponse.json({ error: "User not found." }, { status: 404 });
+
+    // Content paywall. The capsule itself is free to create, but
+    // writing entries requires an active subscription. Mirrored
+    // client-side on the + buttons in CapsuleHero / CollectionCard
+    // / CollectionLandingView, which pop a SubscriptionPromptModal
+    // before navigating to the editor.
+    if (!(await userHasCapsuleAccess(user.id))) {
+      return NextResponse.json(
+        {
+          error: "A subscription is required to write new memories.",
+          needsSubscription: true,
+        },
+        { status: 402 },
+      );
+    }
     const ownedVaults = user.children
       .map((c) => c.vault)
       .filter((v): v is NonNullable<typeof v> => Boolean(v));

@@ -10,6 +10,7 @@ import {
   ageOnDate,
   loadCapsuleLandingData,
 } from "@/lib/capsule-landing-data";
+import { userHasCapsuleAccess } from "@/lib/paywall";
 
 export const metadata = {
   title: "Time Capsule — untilThen",
@@ -32,6 +33,19 @@ export default async function CapsuleLandingPage({
   if (!data) redirect("/dashboard");
 
   const { child, vault, collections } = data;
+
+  // Look up the paying-user id from the Clerk id so the paywall
+  // helper can check subscription status. loadCapsuleLandingData
+  // already validated ownership so this is a cheap second read.
+  const { prisma } = await import("@/lib/prisma");
+  const user = await prisma.user.findUnique({
+    where: { clerkId: userId },
+    select: { id: true },
+  });
+  const hasWriteAccess = user ? await userHasCapsuleAccess(user.id) : false;
+  const squareApplicationId =
+    process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID ?? "";
+  const squareLocationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID ?? "";
 
   return (
     <main className="min-h-screen bg-cream pb-16 overflow-x-clip">
@@ -72,6 +86,9 @@ export default async function CapsuleLandingPage({
                     childId={child.id}
                     collection={c}
                     age={ageOnDate(child.dateOfBirth, c.revealDate)}
+                    hasWriteAccess={hasWriteAccess}
+                    squareApplicationId={squareApplicationId}
+                    squareLocationId={squareLocationId}
                   />
                 </li>
               ))}

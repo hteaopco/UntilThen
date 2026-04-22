@@ -9,6 +9,7 @@ import { TopNav } from "@/components/ui/TopNav";
 import { formatLong } from "@/lib/dateFormatters";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 import { ageOnDate } from "@/lib/capsule-landing-data";
+import { userHasCapsuleAccess } from "@/lib/paywall";
 
 export const metadata = {
   title: "Collection — untilThen",
@@ -141,6 +142,9 @@ export default async function CollectionPage({
         vaultRevealDate={collection.vault.revealDate?.toISOString() ?? null}
         collectionRevealDate={collection.revealDate?.toISOString() ?? null}
         siblingCollections={siblings}
+        hasWriteAccess={await userHasCapsuleAccess(user.id)}
+        squareApplicationId={process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID ?? ""}
+        squareLocationId={process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID ?? ""}
       />
     </main>
   );

@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+import { userHasCapsuleAccess } from "@/lib/paywall";
 import {
   mediaKeyPrefix,
   r2IsConfigured,
@@ -91,6 +92,17 @@ export async function POST(req: Request) {
       });
       if (author?.clerkId !== userId) {
         return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+      }
+
+      // Content paywall — mirrors the gate in /api/upload/sign.
+      if (!(await userHasCapsuleAccess(author.id))) {
+        return NextResponse.json(
+          {
+            error: "A subscription is required to add media.",
+            needsSubscription: true,
+          },
+          { status: 402 },
+        );
       }
 
       await prisma.entry.update({

@@ -4,11 +4,11 @@ import {
   BookHeart,
   FileText,
   Image as ImageIcon,
-  Plus,
   Sparkles,
   Video,
 } from "lucide-react";
 
+import { AddMemoryButton } from "@/components/paywall/AddMemoryButton";
 import { formatLong } from "@/lib/dateFormatters";
 import type { CollectionRow } from "@/lib/capsule-landing-data";
 
@@ -16,6 +16,9 @@ type Props = {
   childId: string;
   collection: CollectionRow;
   age: number | null;
+  hasWriteAccess: boolean;
+  squareApplicationId: string;
+  squareLocationId: string;
 };
 
 /**
@@ -29,7 +32,14 @@ type Props = {
  * nothing to edit on a virtual row) and routes its title/body area
  * to the diary list view instead of the collection detail.
  */
-export function CollectionCard({ childId, collection, age }: Props) {
+export function CollectionCard({
+  childId,
+  collection,
+  age,
+  hasWriteAccess,
+  squareApplicationId,
+  squareLocationId,
+}: Props) {
   const { photos, videos, letters, voices } = collection.stats;
   const hasDate = !!collection.revealDate;
   const detailHref = collection.isMainDiary
@@ -99,14 +109,14 @@ export function CollectionCard({ childId, collection, age }: Props) {
       </Link>
 
       <div className="shrink-0">
-        <Link
+        <AddMemoryButton
           href={newHref}
-          prefetch={false}
-          aria-label={`Add a new memory to ${collection.title}`}
-          className="w-9 h-9 rounded-full bg-amber-tint border border-amber/40 text-amber hover:bg-amber hover:text-white transition-colors flex items-center justify-center"
-        >
-          <Plus size={15} strokeWidth={2} />
-        </Link>
+          hasWriteAccess={hasWriteAccess}
+          squareApplicationId={squareApplicationId}
+          squareLocationId={squareLocationId}
+          ariaLabel={`Add a new memory to ${collection.title}`}
+          size="sm"
+        />
       </div>
     </div>
   );

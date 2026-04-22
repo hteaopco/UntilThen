@@ -6,6 +6,7 @@ import {
   type CollectionLandingEntry,
 } from "@/components/capsule-landing/CollectionLandingView";
 import { TopNav } from "@/components/ui/TopNav";
+import { userHasCapsuleAccess } from "@/lib/paywall";
 
 export const metadata = {
   title: "Main Capsule Diary — untilThen",
@@ -85,6 +86,9 @@ export default async function MainDiaryPage({
         addMemoryHref={`/vault/${child.id}/new`}
         childFirstName={child.firstName}
         entries={entries}
+        hasWriteAccess={await userHasCapsuleAccess(user.id)}
+        squareApplicationId={process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID ?? ""}
+        squareLocationId={process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID ?? ""}
       />
     </main>
   );

@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { userHasCapsuleAccess } from "@/lib/paywall";
 import { captureServerEvent } from "@/lib/posthog-server";
 
 export const runtime = "nodejs";
@@ -50,6 +51,19 @@ export async function PATCH(
     const user = await requireUser(userId);
     if (!user)
       return NextResponse.json({ error: "User not found." }, { status: 404 });
+
+    // Content paywall — editing/saving entries requires an
+    // active subscription. Creation path gates the same way in
+    // /api/dashboard/entries POST.
+    if (!(await userHasCapsuleAccess(user.id))) {
+      return NextResponse.json(
+        {
+          error: "A subscription is required to edit memories.",
+          needsSubscription: true,
+        },
+        { status: 402 },
+      );
+    }
 
     const entry = await prisma.entry.findUnique({
       where: { id },

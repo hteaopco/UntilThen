@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
+import { userHasCapsuleAccess } from "@/lib/paywall";
 import {
   MEDIA_LIMITS,
   PHOTOS_PER_YEAR_LIMIT,
@@ -122,6 +123,18 @@ export async function POST(req: Request) {
       });
       if (author?.clerkId !== userId) {
         return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+      }
+
+      // Content paywall — adding media to an entry is a write
+      // action. Mirrors the gate in /api/dashboard/entries.
+      if (!(await userHasCapsuleAccess(author.id))) {
+        return NextResponse.json(
+          {
+            error: "A subscription is required to add media.",
+            needsSubscription: true,
+          },
+          { status: 402 },
+        );
       }
 
       // Photo quota — counted per vault per calendar year.

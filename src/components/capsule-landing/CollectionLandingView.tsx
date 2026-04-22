@@ -9,13 +9,13 @@ import {
   Image as ImageIcon,
   ImagePlus,
   Pencil,
-  Plus,
   Video,
 } from "lucide-react";
 
 import { CoverUploader } from "@/components/dashboard2/CoverUploader";
 import { DeleteCollectionModal } from "@/components/capsule-landing/DeleteCollectionModal";
 import { EditCollectionDetailsModal } from "@/components/capsule-landing/EditCollectionDetailsModal";
+import { AddMemoryButton } from "@/components/paywall/AddMemoryButton";
 import { formatLong } from "@/lib/dateFormatters";
 
 export type CollectionLandingEntry = {
@@ -55,6 +55,11 @@ export type CollectionLandingProps = {
   /** Other collections on the same vault. DeleteCollectionModal
    * offers these as targets in the "move entries to…" dropdown. */
   siblingCollections?: { id: string; title: string }[];
+  /** Paywall plumbing — when false, the + FAB opens a
+   * SubscriptionPromptModal instead of routing to the editor. */
+  hasWriteAccess: boolean;
+  squareApplicationId: string;
+  squareLocationId: string;
 };
 
 /**
@@ -82,6 +87,9 @@ export function CollectionLandingView({
   vaultRevealDate = null,
   collectionRevealDate = null,
   siblingCollections = [],
+  hasWriteAccess,
+  squareApplicationId,
+  squareLocationId,
 }: CollectionLandingProps) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [coverOpen, setCoverOpen] = useState(false);
@@ -200,14 +208,14 @@ export function CollectionLandingView({
       </section>
 
       {/* Floating add-memory FAB, bottom-right. */}
-      <Link
+      <AddMemoryButton
         href={addMemoryHref}
-        prefetch={false}
-        aria-label="Add a new memory"
-        className="fixed bottom-6 right-6 z-30 w-[105px] h-[105px] rounded-full bg-white border border-amber/40 text-amber flex items-center justify-center shadow-[0_10px_32px_-8px_rgba(196,122,58,0.3)] hover:bg-amber-tint/60 hover:border-amber/60 transition-colors"
-      >
-        <Plus size={45} strokeWidth={1.75} />
-      </Link>
+        hasWriteAccess={hasWriteAccess}
+        squareApplicationId={squareApplicationId}
+        squareLocationId={squareLocationId}
+        ariaLabel="Add a new memory"
+        size="fab"
+      />
 
       {canEdit && detailsOpen && collectionId && (
         <EditCollectionDetailsModal
