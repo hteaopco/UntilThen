@@ -1,7 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { SQUARE_PLAN_IDS } from "@/lib/square";
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -29,6 +27,25 @@ export const dynamic = "force-dynamic";
  *
  * Admin-cookie gated. SQUARE_ACCESS_TOKEN required on the server.
  */
+
+/**
+ * Parent plan catalog IDs. These are the *plans* themselves
+ * (created once in the Square Dashboard). Subscriptions.create
+ * doesn't use them — it needs the plan *variation* IDs that live
+ * under each plan — but the Catalog retrieve endpoint uses the
+ * plan id as the lookup key to list its variations. Hardcoded
+ * because they're environment-independent and never change.
+ *
+ * If Square ever rotates these, update here and push — they're
+ * not in env vars because the SQUARE_PLAN_* env vars hold the
+ * variation IDs that subscriptions.create consumes.
+ */
+const PARENT_PLAN_IDS = {
+  MONTHLY_BASE: "6D7TZDMBKPQSX7FUD46O5D2W",
+  ANNUAL_BASE: "7SECOFJCZ6CUVPJIWG6UR4F3",
+  MONTHLY_ADDON: "532XDRT3DCHHH2HSFBY2S6KM",
+  ANNUAL_ADDON: "UOWOEMVRR7UZPYIDNKCHQ4BE",
+} as const;
 
 type CatalogObject = {
   type?: string;
@@ -59,10 +76,10 @@ type Row = {
 };
 
 const PLANS = [
-  { label: "MONTHLY_BASE" as const, planId: SQUARE_PLAN_IDS.MONTHLY_BASE },
-  { label: "ANNUAL_BASE" as const, planId: SQUARE_PLAN_IDS.ANNUAL_BASE },
-  { label: "MONTHLY_ADDON" as const, planId: SQUARE_PLAN_IDS.MONTHLY_ADDON },
-  { label: "ANNUAL_ADDON" as const, planId: SQUARE_PLAN_IDS.ANNUAL_ADDON },
+  { label: "MONTHLY_BASE" as const, planId: PARENT_PLAN_IDS.MONTHLY_BASE },
+  { label: "ANNUAL_BASE" as const, planId: PARENT_PLAN_IDS.ANNUAL_BASE },
+  { label: "MONTHLY_ADDON" as const, planId: PARENT_PLAN_IDS.MONTHLY_ADDON },
+  { label: "ANNUAL_ADDON" as const, planId: PARENT_PLAN_IDS.ANNUAL_ADDON },
 ];
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
