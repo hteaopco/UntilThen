@@ -246,15 +246,40 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         ? nextFirstOfMonth(now).toISOString().slice(0, 10)
         : now.toISOString().slice(0, 10);
 
-    const subResp = await square.subscriptions.create({
-      idempotencyKey: `sub-${user.id}`,
+    // Stable key gives clean idempotency for normal retries. But
+    // if a prior attempt cached this key against DIFFERENT params
+    // (classic case: first attempt sent the wrong plan variation
+    // id, we fixed it, user retries), Square 400s with
+    // IDEMPOTENCY_KEY_REUSED. Catch that single case and retry
+    // once with a fresh key — we know the cached request errored,
+    // so Square never actually created a subscription under it.
+    const subPayload = {
       locationId: SQUARE_LOCATION_ID,
       planVariationId,
       customerId: squareCustomerId,
       cardId,
       startDate,
       timezone: "America/Chicago",
-    });
+    };
+    let subResp;
+    try {
+      subResp = await square.subscriptions.create({
+        idempotencyKey: `sub-${user.id}`,
+        ...subPayload,
+      });
+    } catch (err) {
+      const code = (err as { errors?: { code?: string }[] })
+        .errors?.[0]?.code;
+      if (code !== "IDEMPOTENCY_KEY_REUSED") throw err;
+      console.log(
+        `[payments/subscribe] sub idempotency key reused for ${user.id} — retrying with fresh key`,
+      );
+      // "sub-" (4) + cuid (25) + "-" (1) + base36 timestamp (~8) = ~38.
+      subResp = await square.subscriptions.create({
+        idempotencyKey: `sub-${user.id}-${Date.now().toString(36)}`,
+        ...subPayload,
+      });
+    }
     const squareSub = subResp.subscription;
     if (!squareSub?.id) {
       throw new Error("Square subscription create returned no id.");
