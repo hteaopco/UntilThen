@@ -36,6 +36,10 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-dm-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
         brush: ["var(--font-alex-brush)", "ui-serif", "cursive"],
+        // Editorial serif used for the recipient reveal headlines
+        // ("Olivia, this was made for you." / "Dear Olivia,").
+        // Loaded as --font-playfair in src/app/layout.tsx.
+        serif: ["var(--font-playfair)", "ui-serif", "Georgia", "serif"],
       },
       keyframes: {
         // Slow, warm fade used for the capsule preview / reveal

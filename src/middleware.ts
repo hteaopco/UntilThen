@@ -22,9 +22,11 @@ const isPublicRoute = createRouteMatcher([
   "/capsules/new",
   "/contribute/capsule/(.*)",
   "/capsule/(.*)/open",
+  "/reveal/(.*)",
   "/api/contribute/capsule/(.*)",
   "/api/capsules/open/(.*)",
   "/api/capsules/(.*)/refresh-token",
+  "/api/reveal/(.*)",
   "/api/health(.*)",
   "/api/invites/(.*)",
 ]);
@@ -69,6 +71,7 @@ function rateLimitKindFor(
   // Public anonymous surfaces
   if (path.startsWith("/api/contribute/capsule/")) return "public";
   if (path.startsWith("/api/capsules/open/")) return "public";
+  if (path.startsWith("/api/reveal/")) return "public";
   // Token-gated invite lookup — no Clerk auth, so cap abuse.
   // The /accept subpath is Clerk-gated and falls through to
   // the authenticated bucket intentionally.
