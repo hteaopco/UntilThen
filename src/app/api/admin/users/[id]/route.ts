@@ -181,6 +181,14 @@ export async function DELETE(
     }
 
     await prisma.$transaction(async (tx) => {
+      // Order matters: every table with a FK pointing at this
+      // user (or at this user's children / vaults) has to be
+      // cleared before the User row itself can be deleted,
+      // otherwise Postgres aborts the transaction on the first
+      // violation. Mirrors the self-delete path at /api/account.
+
+      await tx.notificationPreferences.deleteMany({ where: { userId: id } });
+
       // Entries authored by this user (across any vault).
       await tx.entry.deleteMany({ where: { authorId: id } });
 
@@ -200,10 +208,21 @@ export async function DELETE(
           await tx.entry.deleteMany({
             where: { vaultId: { in: vaultIds } },
           });
+          await tx.collection.deleteMany({
+            where: { vaultId: { in: vaultIds } },
+          });
+          await tx.contributor.deleteMany({
+            where: { vaultId: { in: vaultIds } },
+          });
           await tx.vault.deleteMany({ where: { id: { in: vaultIds } } });
         }
         await tx.child.deleteMany({ where: { id: { in: childIds } } });
       }
+
+      // Gift capsules organised by this user — cascade via the
+      // MemoryCapsule FKs wired into the schema (contributions +
+      // invites cascade on delete).
+      await tx.memoryCapsule.deleteMany({ where: { organiserId: id } });
 
       await tx.user.delete({ where: { id } });
     });
@@ -220,7 +239,25 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (err) {
-    console.error("[admin/users DELETE] error:", err);
+    // Surface the Prisma error code + meta in the server log so
+    // the next FK violation points at the blocking table. The
+    // admin UI still gets a generic 'Failed to delete user.'
+    // message.
+    const e = err as {
+      code?: string;
+      message?: string;
+      meta?: unknown;
+      stack?: string;
+    };
+    console.error(
+      "[admin/users DELETE] error:",
+      JSON.stringify(
+        { id, code: e.code, message: e.message, meta: e.meta },
+        null,
+        2,
+      ),
+    );
+    if (e.stack) console.error("[admin/users DELETE] stack:", e.stack);
     return NextResponse.json(
       { error: "Failed to delete user." },
       { status: 500 },
