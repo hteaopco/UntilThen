@@ -268,7 +268,7 @@ export function BillingClient({
                 ) : (
                   <>
                     <TrendingUp size={16} strokeWidth={1.5} aria-hidden="true" />
-                    Upgrade to Annual — save 27%
+                    Upgrade to Annual — save 40%
                   </>
                 )}
               </button>
@@ -277,54 +277,62 @@ export function BillingClient({
 
           {/* Itemized plan line items. */}
           <div className="border-t border-navy/[0.06] pt-4">
-            <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-2">
+            <div className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-3">
               Plan items
             </div>
-            <ul className="space-y-2">
-              <li className="flex items-center justify-between gap-3 text-[14px]">
-                <div>
-                  <div className="font-semibold text-navy">
-                    Base plan · {sub.baseCapsuleCount} capsules included
-                  </div>
-                  <div className="text-xs text-ink-light mt-0.5">
-                    Cancels everything below with it.
-                  </div>
-                </div>
-                <div className="font-bold text-navy tabular-nums">
-                  {basePriceCopy}
-                </div>
-              </li>
-              {Array.from({ length: sub.addonCapsuleCount }).map((_, i) => (
-                <li
-                  key={i}
-                  className="flex items-center justify-between gap-3 text-[14px]"
-                >
-                  <div>
+            <ul className="divide-y divide-navy/[0.06]">
+              <li className="py-3 first:pt-0">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
                     <div className="font-semibold text-navy">
-                      Add-on capsule #{i + 1}
+                      Base plan · {sub.baseCapsuleCount} capsules
                     </div>
                     <div className="text-xs text-ink-light mt-0.5">
-                      Extra slot on top of the base plan.
+                      Cancels everything below with it.
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-bold text-navy tabular-nums">
-                      +{addonPriceCopy}
-                    </span>
-                    {sub.status === "ACTIVE" && i === sub.addonCapsuleCount - 1 && (
-                      <button
-                        type="button"
-                        onClick={removeAddon}
-                        disabled={working}
-                        className="inline-flex items-center gap-1 text-[12px] font-semibold text-red-600 hover:text-red-700 disabled:opacity-60"
-                      >
-                        <MinusCircle size={14} strokeWidth={1.75} aria-hidden="true" />
-                        Remove
-                      </button>
-                    )}
+                  <div className="font-bold text-navy tabular-nums text-right whitespace-nowrap">
+                    {basePriceCopy}
                   </div>
-                </li>
-              ))}
+                </div>
+              </li>
+              {Array.from({ length: sub.addonCapsuleCount }).map((_, i) => {
+                const isLast = i === sub.addonCapsuleCount - 1;
+                return (
+                  <li key={i} className="py-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-navy">
+                          Add-on capsule #{i + 1}
+                        </div>
+                        <div className="text-xs text-ink-light mt-0.5">
+                          Extra slot on top of the base plan.
+                        </div>
+                      </div>
+                      <div className="font-bold text-navy tabular-nums text-right whitespace-nowrap">
+                        +{addonPriceCopy}
+                      </div>
+                    </div>
+                    {sub.status === "ACTIVE" && isLast && (
+                      <div className="mt-2">
+                        <button
+                          type="button"
+                          onClick={removeAddon}
+                          disabled={working}
+                          className="inline-flex items-center gap-1 text-[12px] font-semibold text-red-600 hover:text-red-700 disabled:opacity-60"
+                        >
+                          <MinusCircle
+                            size={14}
+                            strokeWidth={1.75}
+                            aria-hidden="true"
+                          />
+                          Remove
+                        </button>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
             <div className="mt-3 pt-3 border-t border-navy/[0.06] flex items-center justify-between text-[14px]">
               <span className="text-ink-mid">
