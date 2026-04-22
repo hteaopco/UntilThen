@@ -5,6 +5,7 @@ import { captureServerEvent } from "@/lib/posthog-server";
 import { calculateProration, nextFirstOfMonth, oneYearLater } from "@/lib/proration";
 import {
   SQUARE_LOCATION_ID,
+  SQUARE_ORDER_TEMPLATE_IDS,
   SQUARE_PLAN_IDS,
   getSquareClient,
   squareIsConfigured,
@@ -156,6 +157,22 @@ export async function POST(): Promise<NextResponse> {
       plan === "MONTHLY"
         ? SQUARE_PLAN_IDS.MONTHLY_ADDON
         : SQUARE_PLAN_IDS.ANNUAL_ADDON;
+    const orderTemplateId =
+      plan === "MONTHLY"
+        ? SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_ADDON
+        : SQUARE_ORDER_TEMPLATE_IDS.ANNUAL_ADDON;
+    if (!orderTemplateId) {
+      console.error(
+        `[payments/addon-capsule] SQUARE_ORDER_TEMPLATE_${plan}_ADDON not set`,
+      );
+      return NextResponse.json(
+        {
+          error:
+            "Payments aren't set up correctly yet. Please reach out — our team has been notified.",
+        },
+        { status: 503 },
+      );
+    }
     const startDate =
       plan === "MONTHLY"
         ? nextFirstOfMonth(now).toISOString().slice(0, 10)
@@ -169,6 +186,9 @@ export async function POST(): Promise<NextResponse> {
       cardId,
       startDate,
       timezone: "America/Chicago",
+      // Match the base subscribe flow — RELATIVE-priced plans
+      // need explicit phases supplying the dollar amount.
+      phases: [{ ordinal: 0n, orderTemplateId }],
     });
 
     // 3. Bump the count in our DB.

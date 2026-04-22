@@ -5,6 +5,7 @@ import { captureServerEvent } from "@/lib/posthog-server";
 import { calculateProration, nextFirstOfMonth, oneYearLater } from "@/lib/proration";
 import {
   SQUARE_LOCATION_ID,
+  SQUARE_ORDER_TEMPLATE_IDS,
   SQUARE_PLAN_IDS,
   getSquareClient,
   squareIsConfigured,
@@ -241,6 +242,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       plan === "MONTHLY"
         ? SQUARE_PLAN_IDS.MONTHLY_BASE
         : SQUARE_PLAN_IDS.ANNUAL_BASE;
+    const orderTemplateId =
+      plan === "MONTHLY"
+        ? SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_BASE
+        : SQUARE_ORDER_TEMPLATE_IDS.ANNUAL_BASE;
+    if (!orderTemplateId) {
+      console.error(
+        `[payments/subscribe] SQUARE_ORDER_TEMPLATE_${plan}_BASE not set — run /admin/settings → Create order templates first`,
+      );
+      return NextResponse.json(
+        {
+          error:
+            "Payments aren't set up correctly yet. Please reach out — our team has been notified.",
+        },
+        { status: 503 },
+      );
+    }
     const startDate =
       plan === "MONTHLY"
         ? nextFirstOfMonth(now).toISOString().slice(0, 10)
@@ -260,6 +277,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       cardId,
       startDate,
       timezone: "America/Chicago",
+      // RELATIVE-priced plan variations need the subscription to
+      // supply the real dollar amount via an order template.
+      // Passing by ordinal only — Square matches it against the
+      // plan variation's single phase.
+      phases: [{ ordinal: 0n, orderTemplateId }],
     };
     let subResp;
     try {

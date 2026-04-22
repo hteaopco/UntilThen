@@ -65,5 +65,24 @@ export const SQUARE_PLAN_IDS = {
     process.env.SQUARE_PLAN_ANNUAL_ADDON ?? "UOWOEMVRR7UZPYIDNKCHQ4BE",
 };
 
+/**
+ * Order template IDs for each subscription tier. Our four plan
+ * variations are configured with RELATIVE pricing but no linked
+ * price source, so subscriptions.create requires passing a phases
+ * array with order_template_id per phase — the template carries
+ * the actual dollar amount.
+ *
+ * Created via the one-click admin setup at /admin/settings →
+ * "Subscription order templates", which hits
+ * POST /api/admin/square-setup-order-templates. Populate the
+ * SQUARE_ORDER_TEMPLATE_* env vars with the returned IDs.
+ */
+export const SQUARE_ORDER_TEMPLATE_IDS = {
+  MONTHLY_BASE: process.env.SQUARE_ORDER_TEMPLATE_MONTHLY_BASE ?? "",
+  ANNUAL_BASE: process.env.SQUARE_ORDER_TEMPLATE_ANNUAL_BASE ?? "",
+  MONTHLY_ADDON: process.env.SQUARE_ORDER_TEMPLATE_MONTHLY_ADDON ?? "",
+  ANNUAL_ADDON: process.env.SQUARE_ORDER_TEMPLATE_ANNUAL_ADDON ?? "",
+};
+
 /** One-time Gift Capsule charge — does not use a subscription plan. */
 export const GIFT_CAPSULE_PRICE_CENTS = 999;
