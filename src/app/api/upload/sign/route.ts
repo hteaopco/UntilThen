@@ -107,10 +107,9 @@ export async function POST(req: Request) {
     const { prisma } = await import("@/lib/prisma");
 
     if (target === "entry") {
-      // Original auth model — parent (authorId) or contributor.
       const entry = await prisma.entry.findUnique({
         where: { id: targetId },
-        include: { vault: true, contributor: true },
+        include: { vault: true },
       });
       if (!entry)
         return NextResponse.json(
@@ -121,9 +120,7 @@ export async function POST(req: Request) {
       const author = await prisma.user.findUnique({
         where: { id: entry.authorId },
       });
-      const isOwner = author?.clerkId === userId;
-      const isContributor = entry.contributor?.clerkUserId === userId;
-      if (!isOwner && !isContributor) {
+      if (author?.clerkId !== userId) {
         return NextResponse.json({ error: "Forbidden." }, { status: 403 });
       }
 

@@ -40,7 +40,6 @@ export default async function ChildViewPage({
           entries: {
             where: { isSealed: true, approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] } },
             include: {
-              contributor: { select: { name: true, email: true } },
               author: { select: { firstName: true, displayName: true } },
             },
             orderBy: { createdAt: "asc" },
@@ -61,12 +60,7 @@ export default async function ChildViewPage({
   const entries = child.vault.entries.map((e) => ({
     id: e.id,
     type: e.type,
-    author:
-      e.contributor?.name ||
-      e.contributor?.email ||
-      e.author.displayName ||
-      e.author.firstName ||
-      "someone",
+    author: e.author.displayName || e.author.firstName || "someone",
   }));
   const collections = child.vault.collections.map((c) => ({
     id: c.id,

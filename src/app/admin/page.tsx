@@ -32,8 +32,6 @@ export default async function AdminDashboard() {
     totalCapsules,
     capsulesByStatus,
     totalContributions,
-    totalContributors,
-    pendingReviewEntries,
     pendingReviewContributions,
     recentUsers,
     recentCapsules,
@@ -58,13 +56,6 @@ export default async function AdminDashboard() {
       prisma.memoryCapsule.count({ where: { status: "REVEALED" } }),
     ]),
     prisma.capsuleContribution.count(),
-    prisma.contributor.count(),
-    prisma.entry.findMany({
-      where: { approvalStatus: "PENDING_REVIEW" },
-      include: { contributor: true, vault: { include: { child: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 20,
-    }),
     prisma.capsuleContribution.findMany({
       where: { approvalStatus: "PENDING_REVIEW" },
       include: { capsule: true },
@@ -102,7 +93,7 @@ export default async function AdminDashboard() {
     }
   } catch { /* ignore */ }
 
-  const pendingTotal = pendingReviewEntries.length + pendingReviewContributions.length;
+  const pendingTotal = pendingReviewContributions.length;
 
   return (
     <main className="min-h-screen bg-white">
@@ -126,7 +117,7 @@ export default async function AdminDashboard() {
                 {pendingTotal} item{pendingTotal !== 1 ? "s" : ""} pending review
               </p>
               <p className="text-xs text-ink-mid mt-0.5">
-                {pendingReviewEntries.length} vault {pendingReviewEntries.length === 1 ? "entry" : "entries"} · {pendingReviewContributions.length} gift capsule {pendingReviewContributions.length === 1 ? "contribution" : "contributions"}
+                {pendingReviewContributions.length} gift capsule {pendingReviewContributions.length === 1 ? "contribution" : "contributions"}
               </p>
             </div>
           </div>
@@ -148,7 +139,6 @@ export default async function AdminDashboard() {
             <div className="space-y-2">
               <Row label="Sealed entries" value={sealedEntries.toLocaleString()} />
               <Row label="Draft entries" value={draftEntries.toLocaleString()} />
-              <Row label="Total contributors (vault)" value={totalContributors.toLocaleString()} />
               <Row label="Gift capsule contributions" value={totalContributions.toLocaleString()} />
               <Row label="Pending review" value={pendingTotal.toLocaleString()} highlight={pendingTotal > 0} />
             </div>
@@ -159,18 +149,6 @@ export default async function AdminDashboard() {
         {pendingTotal > 0 && (
           <Card title={`Pending Review · ${pendingTotal}`} className="mb-8">
             <div className="space-y-2">
-              {pendingReviewEntries.map((e) => (
-                <div key={e.id} className="flex items-center justify-between gap-3 py-2 border-b border-navy/[0.04] last:border-0">
-                  <div className="min-w-0">
-                    <span className="text-xs font-bold text-amber uppercase tracking-[0.08em]">Vault Entry</span>
-                    <p className="text-sm font-semibold text-navy truncate">{e.title || "Untitled"}</p>
-                    <p className="text-xs text-ink-light">
-                      by {(e.contributor as Record<string, unknown>)?.name as string ?? "Unknown"} · for {(e.vault as Record<string, unknown> & { child: Record<string, unknown> })?.child?.firstName as string ?? "Unknown"}
-                    </p>
-                  </div>
-                  <span className="text-[9px] uppercase tracking-[0.1em] font-bold text-gold bg-gold-tint px-2 py-0.5 rounded shrink-0">Pending</span>
-                </div>
-              ))}
               {pendingReviewContributions.map((c) => (
                 <div key={c.id} className="flex items-center justify-between gap-3 py-2 border-b border-navy/[0.04] last:border-0">
                   <div className="min-w-0">

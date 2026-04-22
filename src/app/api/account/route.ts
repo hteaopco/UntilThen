@@ -134,7 +134,6 @@ export async function DELETE(): Promise<NextResponse> {
         if (vaultIds.length > 0) {
           await tx.entry.deleteMany({ where: { vaultId: { in: vaultIds } } });
           await tx.collection.deleteMany({ where: { vaultId: { in: vaultIds } } });
-          await tx.contributor.deleteMany({ where: { vaultId: { in: vaultIds } } });
           await tx.vault.deleteMany({ where: { id: { in: vaultIds } } });
         }
         await tx.child.deleteMany({ where: { id: { in: childIds } } });

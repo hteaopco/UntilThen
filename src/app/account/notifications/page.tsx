@@ -34,7 +34,6 @@ export default async function AccountNotificationsPage() {
         writingReminders: prefs.writingReminders,
         milestoneReminders: prefs.milestoneReminders,
         vaultAnniversary: prefs.vaultAnniversary,
-        contributorActivity: prefs.contributorActivity,
         revealCountdown: prefs.revealCountdown,
         pausedUntil: prefs.pausedUntil?.toISOString() ?? null,
       }}

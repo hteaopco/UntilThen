@@ -211,9 +211,6 @@ export async function DELETE(
           await tx.collection.deleteMany({
             where: { vaultId: { in: vaultIds } },
           });
-          await tx.contributor.deleteMany({
-            where: { vaultId: { in: vaultIds } },
-          });
           await tx.vault.deleteMany({ where: { id: { in: vaultIds } } });
         }
         await tx.child.deleteMany({ where: { id: { in: childIds } } });

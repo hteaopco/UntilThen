@@ -10,7 +10,6 @@ type Prefs = {
   writingReminders: boolean;
   milestoneReminders: boolean;
   vaultAnniversary: boolean;
-  contributorActivity: boolean;
   revealCountdown: boolean;
   pausedUntil: string | null;
 };
@@ -37,11 +36,6 @@ const TOGGLES: Toggle[] = [
     key: "vaultAnniversary",
     label: "Time capsule anniversary",
     description: "Annual reminder of how long you've been writing.",
-  },
-  {
-    key: "contributorActivity",
-    label: "Contributor activity",
-    description: "When a contributor adds or updates an entry.",
   },
   {
     key: "revealCountdown",

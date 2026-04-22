@@ -199,13 +199,10 @@ export async function DELETE(
   const { prisma } = await import("@/lib/prisma");
 
   // Manual cascade in the right order so we don't trip foreign-key
-  // constraints: entries → collections → contributors → vault → child.
+  // constraints: entries → collections → vault → child.
   if (result.child.vault) {
     await prisma.entry.deleteMany({ where: { vaultId: result.child.vault.id } });
     await prisma.collection.deleteMany({
-      where: { vaultId: result.child.vault.id },
-    });
-    await prisma.contributor.deleteMany({
       where: { vaultId: result.child.vault.id },
     });
     await prisma.vault.delete({ where: { id: result.child.vault.id } });

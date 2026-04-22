@@ -57,7 +57,6 @@ export async function PATCH(
         id: true,
         authorId: true,
         collectionId: true,
-        contributorId: true,
         isSealed: true,
         vaultId: true,
         type: true,

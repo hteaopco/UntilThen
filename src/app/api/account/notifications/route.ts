@@ -9,7 +9,6 @@ type PatchBody = {
   writingReminders?: boolean;
   milestoneReminders?: boolean;
   vaultAnniversary?: boolean;
-  contributorActivity?: boolean;
   revealCountdown?: boolean;
   pausedUntil?: string | null;
 };
@@ -72,7 +71,6 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
     "writingReminders",
     "milestoneReminders",
     "vaultAnniversary",
-    "contributorActivity",
     "revealCountdown",
   ] as const) {
     if (typeof body[key] === "boolean") data[key] = body[key];

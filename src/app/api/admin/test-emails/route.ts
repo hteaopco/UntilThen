@@ -42,10 +42,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   } = await import("@/lib/capsule-emails");
 
   const {
-    sendInviteAccepted,
-    sendEntryNeedsReview,
-    sendEntryApproved,
-    sendEntryRejected,
     sendAccountDeleted,
     sendWritingReminder,
     sendRevealCountdown,
@@ -180,49 +176,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   );
 
-  // #13 — Invite Accepted
-  await fire("invite-accepted", "#13 Invite Accepted", () =>
-    sendInviteAccepted({
-      parentEmail: to,
-      parentFirstName: "Jett",
-      contributorName: "Grandma Rose",
-      childFirstName: "Olivia",
-      dashboardUrl: `${origin}/dashboard`,
-    }),
-  );
-
-  // #14 — Entry Needs Review
-  await fire("entry-needs-review", "#14 Entry Needs Review", () =>
-    sendEntryNeedsReview({
-      parentEmail: to,
-      contributorName: "Grandma Rose",
-      childFirstName: "Olivia",
-      entryTitle: "The day you were born",
-      dashboardUrl: `${origin}/dashboard`,
-    }),
-  );
-
-  // #15 — Entry Approved
-  await fire("entry-approved", "#15 Entry Approved", () =>
-    sendEntryApproved({
-      contributorEmail: to,
-      contributorName: "Grandma Rose",
-      childFirstName: "Olivia",
-      entryTitle: "The day you were born",
-      contributorDashboardUrl: `${origin}/dashboard`,
-    }),
-  );
-
-  // #16 — Entry Rejected
-  await fire("entry-rejected", "#16 Entry Rejected", () =>
-    sendEntryRejected({
-      contributorEmail: to,
-      contributorName: "Grandma Rose",
-      childFirstName: "Olivia",
-      entryTitle: "The day you were born",
-      contributorDashboardUrl: `${origin}/dashboard`,
-    }),
-  );
 
   // #17 — Account Deleted
   await fire("account-deleted", "#17 Account Deleted", () =>
@@ -280,47 +233,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   );
 
-  // #20 — Vault Contributor Invite (inline email)
-  await fire("vault-invite", "#20 Vault Contributor Invite", async () => {
-    if (!process.env.RESEND_API_KEY) return;
-    const { Resend } = await import("resend");
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({
-      from: "untilThen <hello@untilthenapp.io>",
-      replyTo: "hello@untilthenapp.io",
-      to,
-      subject: "Add your message for Olivia.",
-      html: `<div style="font-family:'DM Sans',-apple-system,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;color:#0f1f3d;">
-        <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">You&rsquo;ve been invited to contribute to a time capsule for Olivia.</h1>
-        <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">Jett invited you to be part of this.</p>
-        <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;"><strong>A message. A memory.</strong> Something they&rsquo;ll open and experience in the future.</p>
-        <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">You can write a note, record a voice message, or share a photo or video.</p>
-        <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 20px;">It only takes a minute &mdash; and it&rsquo;s something they&rsquo;ll keep forever.</p>
-        <p style="margin:24px 0;"><a href="${origin}/invite/test-token" style="display:inline-block;background:#c47a3a;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Leave your message</a></p>
-      </div>`,
-    });
-  });
-
-  // #21 — Resend Vault Invite (inline email)
-  await fire("vault-resend", "#21 Resend Vault Invite", async () => {
-    if (!process.env.RESEND_API_KEY) return;
-    const { Resend } = await import("resend");
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({
-      from: "untilThen <hello@untilthenapp.io>",
-      replyTo: "hello@untilthenapp.io",
-      to,
-      subject: "Add your message for Olivia.",
-      html: `<div style="font-family:'DM Sans',-apple-system,sans-serif;max-width:480px;margin:0 auto;padding:40px 24px;color:#0f1f3d;">
-        <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">You&rsquo;ve been invited to contribute to a time capsule for Olivia.</h1>
-        <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">Jett invited you to be part of this.</p>
-        <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;"><strong>A message. A memory.</strong> Something they&rsquo;ll open and experience in the future.</p>
-        <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">You can write a note, record a voice message, or share a photo or video.</p>
-        <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 20px;">It only takes a minute &mdash; and it&rsquo;s something they&rsquo;ll keep forever.</p>
-        <p style="margin:24px 0;"><a href="${origin}/invite/test-token" style="display:inline-block;background:#c47a3a;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;">Leave your message</a></p>
-      </div>`,
-    });
-  });
 
   const sent = results.filter((r) => r.ok).length;
   const failed = results.filter((r) => !r.ok).length;

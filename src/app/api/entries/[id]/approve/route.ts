@@ -4,40 +4,12 @@ import { NextResponse, type NextRequest } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function notify(
-  entryId: string,
-  outcome: "APPROVED" | "REJECTED",
-): Promise<void> {
-  try {
-    const { prisma } = await import("@/lib/prisma");
-    const entry = await prisma.entry.findUnique({
-      where: { id: entryId },
-      include: {
-        contributor: true,
-        vault: { include: { child: true } },
-      },
-    });
-    if (!entry || !entry.contributor) return;
-    const base = process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
-    const dashboardUrl = `${base}/contribute/${entry.vaultId}`;
-    const common = {
-      contributorEmail: entry.contributor.email,
-      contributorName: entry.contributor.name ?? entry.contributor.email,
-      childFirstName: entry.vault.child.firstName,
-      entryTitle: entry.title ?? "Your entry",
-      contributorDashboardUrl: dashboardUrl,
-    };
-    const emails = await import("@/lib/emails");
-    if (outcome === "APPROVED") {
-      await emails.sendEntryApproved(common);
-    } else {
-      await emails.sendEntryRejected(common);
-    }
-  } catch (err) {
-    console.error("[entries decision] notify error:", err);
-  }
-}
-
+/**
+ * Approve a pending vault entry. Time capsules are solo-authored
+ * by the vault owner (no contributors) so approval is primarily a
+ * bookkeeping affordance — the owner reviewing an entry they
+ * themselves drafted. There's no contributor to notify by email.
+ */
 async function decision(
   userId: string,
   entryId: string,
@@ -61,9 +33,6 @@ async function decision(
     where: { id: entryId },
     data: { approvalStatus: next },
   });
-
-  // Best-effort email to the contributor.
-  await notify(entryId, next);
 
   return NextResponse.json({ success: true });
 }

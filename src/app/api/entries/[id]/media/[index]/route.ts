@@ -30,17 +30,12 @@ export async function DELETE(
 
   try {
     const { prisma } = await import("@/lib/prisma");
-    const entry = await prisma.entry.findUnique({
-      where: { id },
-      include: { contributor: true },
-    });
+    const entry = await prisma.entry.findUnique({ where: { id } });
     if (!entry)
       return NextResponse.json({ error: "Entry not found." }, { status: 404 });
 
     const author = await prisma.user.findUnique({ where: { id: entry.authorId } });
-    const isOwner = author?.clerkId === userId;
-    const isContributor = entry.contributor?.clerkUserId === userId;
-    if (!isOwner && !isContributor) {
+    if (author?.clerkId !== userId) {
       return NextResponse.json({ error: "Forbidden." }, { status: 403 });
     }
 

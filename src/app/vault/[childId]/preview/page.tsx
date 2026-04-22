@@ -60,7 +60,6 @@ export default async function VaultPreviewPage({
             orderBy: { createdAt: "asc" },
             include: {
               author: { select: { firstName: true, displayName: true } },
-              contributor: { select: { name: true, email: true } },
               collection: { select: { title: true } },
             },
           },
@@ -93,12 +92,7 @@ export default async function VaultPreviewPage({
         }
       }
 
-      // Prefer the contributor's invited name (e.g. "Grandma
-      // Rose") over the parent's display name when a contributor
-      // authored the entry. Falls through to the parent user's
-      // displayName / firstName otherwise.
       const authorName =
-        entry.contributor?.name?.trim() ||
         entry.author.displayName?.trim() ||
         entry.author.firstName ||
         "Someone who loves you";

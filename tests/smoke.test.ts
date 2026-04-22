@@ -262,60 +262,6 @@ describe("POST /api/capsules", () => {
   });
 });
 
-// ────────────────────────────────────────────────────────
-// 4. Contributor token validation (GET /api/invites/[token])
-// ────────────────────────────────────────────────────────
-describe("GET /api/invites/[token]", () => {
-  beforeEach(() => {
-    vi.resetModules();
-  });
-
-  it("returns 404 for unknown token", async () => {
-    const { GET } = await import("@/app/api/invites/[token]/route");
-    const { prisma } = await import("@/lib/prisma");
-    vi.mocked(prisma.contributor.findUnique).mockResolvedValue(null);
-
-    const req = new NextRequest(
-      new URL("/api/invites/bad-token", "http://localhost:3000"),
-    );
-    const res = await GET(req, {
-      params: Promise.resolve({ token: "bad-token" }),
-    });
-    expect(res.status).toBe(404);
-  });
-
-  it("returns contributor data for valid token", async () => {
-    const { GET } = await import("@/app/api/invites/[token]/route");
-    const { prisma } = await import("@/lib/prisma");
-    vi.mocked(prisma.contributor.findUnique).mockResolvedValue({
-      id: "cont1",
-      email: "friend@example.com",
-      name: "Best Friend",
-      role: "FAMILY",
-      status: "PENDING",
-      inviteToken: "valid-token",
-      vault: {
-        id: "v1",
-        revealDate: new Date("2030-01-01"),
-        child: {
-          firstName: "Luna",
-          parent: { firstName: "Jett", displayName: null },
-        },
-      },
-    } as never);
-
-    const req = new NextRequest(
-      new URL("/api/invites/valid-token", "http://localhost:3000"),
-    );
-    const res = await GET(req, {
-      params: Promise.resolve({ token: "valid-token" }),
-    });
-    expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.name).toBe("Best Friend");
-    expect(body.childFirstName).toBe("Luna");
-  });
-});
 
 // ────────────────────────────────────────────────────────
 // 5. Cron endpoint auth (POST /api/cron/reveal)

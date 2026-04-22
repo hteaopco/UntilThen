@@ -13,7 +13,6 @@ const isPublicRoute = createRouteMatcher([
   "/terms",
   "/sign-in(.*)",
   "/sign-up(.*)",
-  "/invite/(.*)",
   // Gift Capsule public surfaces — contributor invite links
   // and the recipient reveal flow are both accountless by design.
   // /capsules/new is public too so visitors landing from the
@@ -27,7 +26,6 @@ const isPublicRoute = createRouteMatcher([
   "/api/reveal/(.*)",
   "/api/webhooks/(.*)",
   "/api/health(.*)",
-  "/api/invites/(.*)",
 ]);
 
 // Path-based rate limit classification. Order matters — first
@@ -50,7 +48,6 @@ function rateLimitKindFor(
   if (path.startsWith("/monitoring")) return null;
 
   // Email-sending endpoints
-  if (method === "POST" && path === "/api/invites") return "email";
   if (method === "POST" && /^\/api\/capsules\/[^/]+\/invites$/.test(path))
     return "email";
   if (
@@ -58,12 +55,6 @@ function rateLimitKindFor(
     /^\/api\/capsules\/[^/]+\/refresh-token$/.test(path)
   )
     return "email";
-  if (
-    method === "POST" &&
-    /^\/api\/account\/contributors\/[^/]+\/resend$/.test(path)
-  )
-    return "email";
-
   // Auth-strict — account creation
   if (method === "POST" && path === "/api/onboarding") return "auth";
 
@@ -74,10 +65,6 @@ function rateLimitKindFor(
   // throttle here since Square retries aggressively on any
   // non-2xx and can spike momentarily on renewal waves.
   if (path.startsWith("/api/webhooks/")) return null;
-  // Token-gated invite lookup — no Clerk auth, so cap abuse.
-  // The /accept subpath is Clerk-gated and falls through to
-  // the authenticated bucket intentionally.
-  if (method === "GET" && /^\/api\/invites\/[^/]+$/.test(path)) return "public";
 
   // Default for any other API hit
   return "authenticated";

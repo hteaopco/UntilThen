@@ -33,13 +33,6 @@ enum ApprovalStatus {
   REJECTED
 }
 
-enum ContributorRole {
-  FAMILY
-  FRIEND
-  TEACHER
-  OTHER
-}
-
 enum ContributorStatus {
   /// Added to the list but the invite email hasn't been sent
   /// yet. Used for DRAFT capsule invites that pay-to-activate.
@@ -119,10 +112,9 @@ model Vault {
   unlockedAt   DateTime?
   createdAt    DateTime  @default(now())
 
-  child        Child         @relation(fields: [childId], references: [id])
-  entries      Entry[]
-  collections  Collection[]
-  contributors Contributor[]
+  child       Child        @relation(fields: [childId], references: [id])
+  entries     Entry[]
+  collections Collection[]
 
   @@index([revealDate])
 }
@@ -148,37 +140,10 @@ model Collection {
   @@index([vaultId])
 }
 
-model Contributor {
-  id               String            @id @default(cuid())
-  vaultId          String
-  invitedBy        String // parent's Clerk user id
-  email            String
-  name             String?
-  role             ContributorRole   @default(FAMILY)
-  status           ContributorStatus @default(PENDING)
-  requiresApproval Boolean           @default(false)
-  inviteToken      String            @unique @default(cuid())
-  clerkUserId      String?
-  createdAt        DateTime          @default(now())
-  acceptedAt       DateTime?
-
-  vault   Vault   @relation(fields: [vaultId], references: [id])
-  entries Entry[]
-
-  // A given email can only be invited once per vault. The in-product
-  // flow checks this upfront so the UI can show a friendly "already
-  // a contributor" message, but the constraint is the hard guard.
-  @@unique([vaultId, email])
-  @@index([vaultId])
-  @@index([inviteToken])
-  @@index([clerkUserId])
-}
-
 model Entry {
   id             String         @id @default(cuid())
   vaultId        String
   authorId       String
-  contributorId  String?
   collectionId   String?
   orderIndex     Int?
   type           EntryType      @default(TEXT)
@@ -196,13 +161,11 @@ model Entry {
   updatedAt      DateTime       @updatedAt @default(now())
   unlockedAt     DateTime?
 
-  vault       Vault        @relation(fields: [vaultId], references: [id])
-  author      User         @relation(fields: [authorId], references: [id])
-  contributor Contributor? @relation(fields: [contributorId], references: [id])
-  collection  Collection?  @relation(fields: [collectionId], references: [id])
+  vault      Vault       @relation(fields: [vaultId], references: [id])
+  author     User        @relation(fields: [authorId], references: [id])
+  collection Collection? @relation(fields: [collectionId], references: [id])
 
   @@index([collectionId])
-  @@index([contributorId])
   @@index([approvalStatus])
   @@index([vaultId, isSealed])
   @@index([authorId, createdAt])
@@ -345,7 +308,6 @@ model NotificationPreferences {
   writingReminders    Boolean   @default(true)
   milestoneReminders  Boolean   @default(true)
   vaultAnniversary    Boolean   @default(true)
-  contributorActivity Boolean   @default(true)
   revealCountdown     Boolean   @default(true)
   pausedUntil         DateTime?
   createdAt           DateTime  @default(now())

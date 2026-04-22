@@ -70,7 +70,6 @@ vi.mock("@/lib/posthog-server", () => ({
 // Mock emails — no-op
 vi.mock("@/lib/emails", () => ({
   sendCapsuleDraftSaved: vi.fn(),
-  sendInviteAccepted: vi.fn(),
 }));
 vi.mock("@/lib/capsule-emails", () => ({
   sendCapsuleDraftSaved: vi.fn(),
