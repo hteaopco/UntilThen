@@ -100,6 +100,7 @@ export function VaultPreviewClient({
         key={mode}
         capsule={capsule}
         contributions={contributions}
+        variant="vault"
       />
     </div>
   );

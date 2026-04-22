@@ -40,6 +40,7 @@ export function GalleryScreen({
   recipientName,
   contributions,
   onReplay,
+  variant = "capsule",
 }: {
   recipientName: string;
   contributions: RevealContribution[];
@@ -47,6 +48,10 @@ export function GalleryScreen({
    *  "Relive the opening" link near the gallery header that
    *  re-runs Phase 1 → Phase 2 → Phase 3. Session-only. */
   onReplay?: () => void;
+  /** capsule: gift capsule — shows 'From' filter row + 'people
+   *  who love you' subhead. vault: time capsule — no contributor
+   *  filter, compact subhead. */
+  variant?: "capsule" | "vault";
 }) {
   const { capture } = useRevealAnalytics();
   const [searchQuery, setSearchQuery] = useState("");
@@ -99,20 +104,6 @@ export function GalleryScreen({
       list.push(title);
     }
     return list;
-  }, [sorted]);
-
-  const counts = useMemo(() => {
-    let letters = 0;
-    let photos = 0;
-    let audios = 0;
-    let videos = 0;
-    for (const c of sorted) {
-      if (c.type === "TEXT") letters++;
-      else if (c.type === "PHOTO") photos++;
-      else if (c.type === "VOICE") audios++;
-      else if (c.type === "VIDEO") videos++;
-    }
-    return { letters, photos, audios, videos };
   }, [sorted]);
 
   const filtered = useMemo(() => {
@@ -216,9 +207,9 @@ export function GalleryScreen({
           {recipientName ? `${recipientName}'s Capsule` : "Your Capsule"}
         </h1>
         <p className="mt-1 text-[13px] text-ink-mid">
-          {sorted.length} {sorted.length === 1 ? "memory" : "memories"} from{" "}
-          {contributors.length}{" "}
-          {contributors.length === 1 ? "person" : "people"} who love you
+          {variant === "vault"
+            ? `${sorted.length} ${sorted.length === 1 ? "memory" : "memories"} from ${contributors.length}`
+            : `${sorted.length} ${sorted.length === 1 ? "memory" : "memories"} from ${contributors.length} ${contributors.length === 1 ? "person" : "people"} who love you`}
         </p>
       </header>
 
@@ -283,12 +274,18 @@ export function GalleryScreen({
         </div>
       </div>
 
-      {/* Primary type pills */}
+      {/* Primary type pills. All four type chips always render so
+          the filter surface stays consistent even when a capsule
+          currently has zero of a given type. Pills with count=0
+          stay enabled but tapping them lands on the empty state.
+          Horizontal padding lives on the INNER flex (not the
+          outer scroll container) so the leading 'All' pill
+          doesn't jam against the viewport edge mid-scroll. */}
       <div
-        className="mt-4 -mx-5 px-5 overflow-x-auto no-scrollbar"
+        className="mt-4 overflow-x-auto no-scrollbar"
         style={{ WebkitOverflowScrolling: "touch" }}
       >
-        <div className="flex items-center gap-2 whitespace-nowrap">
+        <div className="flex items-center gap-2 whitespace-nowrap px-5">
           <Chip
             active={typeFilter === "all"}
             onClick={() => {
@@ -303,71 +300,68 @@ export function GalleryScreen({
           >
             All
           </Chip>
-          {counts.letters > 0 && (
-            <Chip
-              active={typeFilter === "TEXT"}
-              onClick={() => {
-                capture("reveal_gallery_filtered", {
-                  axis: "type",
-                  value: "TEXT",
-                });
-                setTypeFilter("TEXT");
-              }}
-              icon={<Mail size={11} strokeWidth={2} aria-hidden="true" />}
-            >
-              Letters
-            </Chip>
-          )}
-          {counts.audios > 0 && (
-            <Chip
-              active={typeFilter === "VOICE"}
-              onClick={() => {
-                capture("reveal_gallery_filtered", {
-                  axis: "type",
-                  value: "VOICE",
-                });
-                setTypeFilter("VOICE");
-              }}
-              icon={<Mic size={11} strokeWidth={2} aria-hidden="true" />}
-            >
-              Audio
-            </Chip>
-          )}
-          {counts.photos > 0 && (
-            <Chip
-              active={typeFilter === "PHOTO"}
-              onClick={() => {
-                capture("reveal_gallery_filtered", {
-                  axis: "type",
-                  value: "PHOTO",
-                });
-                setTypeFilter("PHOTO");
-              }}
-              icon={<ImageIcon size={11} strokeWidth={2} aria-hidden="true" />}
-            >
-              Photos
-            </Chip>
-          )}
-          {counts.videos > 0 && (
-            <Chip
-              active={typeFilter === "VIDEO"}
-              onClick={() => {
-                capture("reveal_gallery_filtered", {
-                  axis: "type",
-                  value: "VIDEO",
-                });
-                setTypeFilter("VIDEO");
-              }}
-              icon={<Video size={11} strokeWidth={2} aria-hidden="true" />}
-            >
-              Videos
-            </Chip>
-          )}
+          <Chip
+            active={typeFilter === "TEXT"}
+            onClick={() => {
+              capture("reveal_gallery_filtered", {
+                axis: "type",
+                value: "TEXT",
+              });
+              setTypeFilter("TEXT");
+            }}
+            icon={<Mail size={11} strokeWidth={2} aria-hidden="true" />}
+          >
+            Letters
+          </Chip>
+          <Chip
+            active={typeFilter === "VOICE"}
+            onClick={() => {
+              capture("reveal_gallery_filtered", {
+                axis: "type",
+                value: "VOICE",
+              });
+              setTypeFilter("VOICE");
+            }}
+            icon={<Mic size={11} strokeWidth={2} aria-hidden="true" />}
+          >
+            Audio
+          </Chip>
+          <Chip
+            active={typeFilter === "PHOTO"}
+            onClick={() => {
+              capture("reveal_gallery_filtered", {
+                axis: "type",
+                value: "PHOTO",
+              });
+              setTypeFilter("PHOTO");
+            }}
+            icon={<ImageIcon size={11} strokeWidth={2} aria-hidden="true" />}
+          >
+            Photos
+          </Chip>
+          <Chip
+            active={typeFilter === "VIDEO"}
+            onClick={() => {
+              capture("reveal_gallery_filtered", {
+                axis: "type",
+                value: "VIDEO",
+              });
+              setTypeFilter("VIDEO");
+            }}
+            icon={<Video size={11} strokeWidth={2} aria-hidden="true" />}
+          >
+            Videos
+          </Chip>
         </div>
       </div>
 
-      {/* Filter section — people + collections when present */}
-      {(contributors.length > 0 || collections.length > 0) && (
+      {/* Filter section — people (gift capsule only) + collections
+          (vault only in practice). 'From' filter hidden on vaults
+          since the parent is the default author; hidden on gift
+          capsules when there's only one contributor since a single
+          chip is noise. */}
+      {((variant === "capsule" && contributors.length > 1) ||
+        collections.length > 0) && (
         <section className="mt-4 px-5">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-ink-light">
@@ -384,7 +378,7 @@ export function GalleryScreen({
             )}
           </div>
 
-          {contributors.length > 0 && (
+          {variant === "capsule" && contributors.length > 1 && (
             <FilterRow label="From">
               {contributors.map((name) => (
                 <SmallChip

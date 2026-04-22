@@ -63,6 +63,7 @@ export function RevealExperience({
   capsule,
   contributions,
   onCompleted,
+  variant = "capsule",
 }: {
   capsule: RevealCapsule;
   contributions: RevealContribution[];
@@ -71,6 +72,12 @@ export function RevealExperience({
    *  side stamping (POST /api/reveal/{token}/complete). Optional
    *  so the admin mock preview can omit it. */
   onCompleted?: () => void;
+  /** Which product surface is driving the experience. Gift
+   *  capsules have contributors (and the gallery shows a 'From'
+   *  filter row + 'people who love you' subhead). Vaults are
+   *  parent-authored by default (contributor filter hidden,
+   *  subhead trimmed to just the counts). Defaults to capsule. */
+  variant?: "capsule" | "vault";
 }) {
   const [phase, setPhase] = useState<Phase>(() =>
     capsule.hasCompleted ? "gallery" : "entry",
@@ -138,6 +145,7 @@ export function RevealExperience({
       <GalleryScreen
         recipientName={capsule.recipientName}
         contributions={contributions}
+        variant={variant}
         onReplay={() => {
           // Replay is session-only — recipientCompletedAt is not
           // reset on the server. The recipient gets the cinematic

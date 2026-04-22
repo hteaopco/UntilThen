@@ -145,7 +145,10 @@ function ExpandedLetter({
 }) {
   return (
     <div
-      className="fixed inset-0 z-50 bg-cream flex flex-col"
+      // z must sit above the preview top bar (z-[250]) so the ✕
+      // close button isn't hidden when we're running inside the
+      // organiser / vault preview surfaces.
+      className="fixed inset-0 z-[260] bg-cream flex flex-col"
       role="dialog"
       aria-modal="true"
       style={{

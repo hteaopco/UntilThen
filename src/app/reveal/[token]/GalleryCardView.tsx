@@ -33,7 +33,10 @@ export function GalleryCardView({
 
   return (
     <main
-      className="fixed inset-0 z-50 bg-cream flex items-stretch justify-center select-none"
+      // z must sit above the preview top bar (z-[250]) so the ✕
+      // close button isn't hidden when we're running inside the
+      // organiser / vault preview surfaces.
+      className="fixed inset-0 z-[260] bg-cream flex items-stretch justify-center select-none"
       role="dialog"
       aria-modal="true"
       style={{
