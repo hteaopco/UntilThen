@@ -3,7 +3,10 @@
 import { AlertCircle, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
+
+import { AddOnCheckout } from "@/components/checkout/AddOnCheckout";
+import { SubscriptionCheckout } from "@/components/checkout/SubscriptionCheckout";
 
 type RevealCategory =
   | "quick"
@@ -96,6 +99,21 @@ export function AddChildModal({
   const [showWriteIn, setShowWriteIn] = useState(false);
   const [dateAlert, setDateAlert] = useState(false);
 
+  // Paywall handoff state. When the server returns 409 with
+  // needsSubscription / needsAddOn, we swap the modal body for
+  // the matching checkout component. On checkout success we
+  // auto-retry the create POST with the form data still in
+  // memory so the user doesn't have to re-enter anything.
+  type PaywallMode =
+    | null
+    | { kind: "subscription" }
+    | { kind: "addon"; plan: "MONTHLY" | "ANNUAL"; usedSlots: number };
+  const [paywall, setPaywall] = useState<PaywallMode>(null);
+  const retryCountRef = useRef(0);
+
+  const squareAppId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID ?? "";
+  const squareLocationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID ?? "";
+
   // Reveal is "set" if a date is picked, or user explicitly chose
   // "leave blank" / "remind me later" / "fill in later".
   const revealResolved =
@@ -119,8 +137,8 @@ export function AddChildModal({
     setRevealDate(iso);
   }
 
-  async function submit(e: FormEvent) {
-    e.preventDefault();
+  async function submit(e?: FormEvent) {
+    if (e) e.preventDefault();
     if (!canSubmit) return;
     setSaving(true);
     setError(null);
@@ -141,6 +159,34 @@ export function AddChildModal({
             : "America/Chicago",
         }),
       });
+      if (res.status === 409) {
+        // Paywall gate tripped. Branch on the structured body to
+        // decide which checkout to mount; the submit state is
+        // preserved in local state so we can auto-retry after a
+        // successful checkout.
+        const data = (await res.json().catch(() => ({}))) as {
+          needsSubscription?: boolean;
+          needsAddOn?: boolean;
+          plan?: "MONTHLY" | "ANNUAL";
+          usedSlots?: number;
+          error?: string;
+        };
+        if (data.needsSubscription) {
+          setPaywall({ kind: "subscription" });
+          setSaving(false);
+          return;
+        }
+        if (data.needsAddOn) {
+          setPaywall({
+            kind: "addon",
+            plan: data.plan ?? "MONTHLY",
+            usedSlots: data.usedSlots ?? 3,
+          });
+          setSaving(false);
+          return;
+        }
+        throw new Error(data.error ?? "Couldn't create capsule.");
+      }
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Couldn't create capsule.");
@@ -151,6 +197,25 @@ export function AddChildModal({
       setError((err as Error).message);
       setSaving(false);
     }
+  }
+
+  // Called by either checkout on success. Close the paywall
+  // overlay, then retry the original create POST once. The
+  // retryCountRef guards against a server-side state-sync lag
+  // where the subscription row exists but capsuleAccessVerdict
+  // hasn't seen it yet — a single retry is enough; further
+  // failures surface the error so the user can redo it.
+  async function onPaywallCleared() {
+    if (retryCountRef.current >= 2) {
+      setPaywall(null);
+      setError(
+        "Subscription active. Tap Create Capsule again to finish.",
+      );
+      return;
+    }
+    retryCountRef.current += 1;
+    setPaywall(null);
+    await submit();
   }
 
   function selectCategory(cat: RevealCategory) {
@@ -189,6 +254,42 @@ export function AddChildModal({
   ];
 
   const gradOptions = ["Middle School", "High School", "College", "Med School"];
+
+  // Paywall overlay — replaces the form body while active so
+  // the user doesn't lose what they've typed. On success we
+  // auto-retry the create POST via onPaywallCleared.
+  if (paywall) {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        role="dialog"
+        aria-modal="true"
+        onClick={onClose}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-2xl shadow-[0_24px_48px_-8px_rgba(15,31,61,0.4)] w-full max-h-[92vh] overflow-y-auto p-6"
+          style={{ maxWidth: 480 }}
+        >
+          {paywall.kind === "subscription" ? (
+            <SubscriptionCheckout
+              applicationId={squareAppId}
+              locationId={squareLocationId}
+              onDone={onPaywallCleared}
+              onCancel={() => setPaywall(null)}
+            />
+          ) : (
+            <AddOnCheckout
+              plan={paywall.plan}
+              usedSlots={paywall.usedSlots}
+              onDone={onPaywallCleared}
+              onCancel={() => setPaywall(null)}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" onClick={onClose}>
