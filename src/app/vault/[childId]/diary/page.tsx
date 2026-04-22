@@ -85,6 +85,7 @@ export default async function MainDiaryPage({
         isDiary={true}
         addMemoryHref={`/vault/${child.id}/new`}
         childFirstName={child.firstName}
+        childId={child.id}
         entries={entries}
         hasWriteAccess={await userHasCapsuleAccess(user.id)}
         squareApplicationId={process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID ?? ""}
