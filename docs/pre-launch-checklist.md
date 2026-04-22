@@ -374,10 +374,10 @@ is hands-on device QA.
 
 ## 🟠 UI Gaps (open items from April 20 audit)
 
-### Tabled (product still deciding)
-- [ ] **Entry detail view** — entries are now tappable for edit (see below), but a dedicated read-only detail page (`/vault/[id]/entry/[entryId]`) doesn't exist. The reveal Gallery surface arguably covers post-reveal reading; pre-reveal "view without editing" is still tabled
-- [x] **Entry editing pre-reveal** — **decision shipped April 22: allow edits any time before the entry's effective reveal date** (collection.revealDate when in a collection, otherwise vault.revealDate). Tap any entry row in the Main Diary or a collection → opens the same MemoryEditorForm in edit mode (title, body, media, collection-move all in scope). Server-side PATCH guard refuses content edits after the reveal date. Entry rows render as static cards (no tap affordance) once past reveal
-- [ ] **Entry reading experience pre-reveal** — what does the parent see when they tap a sealed entry row before reveal day? Today they get the editor. If we want a separate "read-only quick look" surface, that's still open
+### Resolved April 22
+- [x] **Entry detail view** — `/vault/[childId]/entry/[entryId]` shipped. Tap any entry row in the Main Diary or a collection → lands on a read-only detail page with title, body (serif), media inline, created date, and a "Sealed until …" or "Revealed …" line. The page is always reachable (pre- and post-reveal); reveal-date only gates the Edit button.
+- [x] **Entry editing pre-reveal** — allow edits any time before the entry's effective reveal date (`collection.revealDate` when in a collection, otherwise `vault.revealDate`). From the detail view, tap "Edit memory" → opens the same MemoryEditorForm with title, body, media, and collection all pre-loaded. Server-side PATCH refuses content edits after reveal.
+- [x] **Entry reading experience** — solved by the detail view above. Pre-reveal readers see a "Sealed until {date}" chip; post-reveal readers see "Revealed {date}" and no Edit button.
 
 ### Still Open
 - [ ] **Mobile test pass** — Create Collection modal + Updates inbox still need on-device verification. *(Cover cropper + reveal experience both verified on iPhone during this session)*

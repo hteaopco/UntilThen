@@ -91,13 +91,15 @@ export function CollectionLandingView({
   // Effective reveal date for entries on this surface. Collection
   // entries inherit the collection's reveal date when set; Main
   // Diary entries (or collection entries without an override) use
-  // the vault's reveal date. Entries become read-only after that
-  // date passes — the recipient's experience is frozen.
+  // the vault's reveal date. The detail view uses this to decide
+  // whether to show the Edit button — past-reveal entries become
+  // read-only there, but rows on this surface are still tappable
+  // so the parent can re-read anything they've written.
   const effectiveRevealDate = collectionRevealDate ?? vaultRevealDate ?? null;
   const pastReveal = Boolean(
     effectiveRevealDate && new Date(effectiveRevealDate).getTime() <= Date.now(),
   );
-  const canEditEntries = Boolean(childId) && !pastReveal;
+  const canTapEntries = Boolean(childId);
 
   return (
     <>
@@ -169,11 +171,12 @@ export function CollectionLandingView({
                 <li key={e.id}>
                   <EntryRow
                     {...e}
-                    editHref={
-                      canEditEntries && childId
-                        ? `/vault/${childId}/new?entry=${encodeURIComponent(e.id)}`
+                    detailHref={
+                      canTapEntries && childId
+                        ? `/vault/${childId}/entry/${encodeURIComponent(e.id)}`
                         : null
                     }
+                    pastReveal={pastReveal}
                   />
                 </li>
               ))}
@@ -268,8 +271,12 @@ function EntryRow({
   type,
   mediaTypes,
   createdAt,
-  editHref,
-}: CollectionLandingEntry & { editHref: string | null }) {
+  detailHref,
+  pastReveal,
+}: CollectionLandingEntry & {
+  detailHref: string | null;
+  pastReveal: boolean;
+}) {
   const snippet = (body ?? "").replace(/<[^>]*>/g, "").trim();
   const headline = title?.trim() || snippet.slice(0, 80) || "Untitled memory";
   const preview =
@@ -282,9 +289,14 @@ function EntryRow({
 
   const cardClass =
     "block rounded-2xl border border-amber/20 bg-white shadow-[0_2px_10px_rgba(196,122,58,0.05)] p-4 sm:p-5";
-  const hoverClass = editHref
+  const hoverClass = detailHref
     ? " hover:border-amber/40 hover:shadow-[0_4px_14px_rgba(196,122,58,0.08)] transition-all group"
     : "";
+
+  // On-hover affordance: pre-reveal rows hint at "Read or edit";
+  // post-reveal rows hint at "Read" only. Desktop only — mobile
+  // users just tap the row.
+  const hoverLabel = pastReveal ? "Read" : "Read or edit";
 
   const innerContent = (
     <>
@@ -293,13 +305,13 @@ function EntryRow({
           {headline}
         </h2>
         <div className="shrink-0 flex items-center gap-2">
-          {editHref && (
+          {detailHref && (
             <span
               aria-hidden="true"
               className="hidden sm:inline-flex items-center gap-1 text-[11px] font-semibold text-amber/0 group-hover:text-amber transition-colors"
             >
-              <Pencil size={11} strokeWidth={2} />
-              Edit
+              {pastReveal ? null : <Pencil size={11} strokeWidth={2} />}
+              {hoverLabel}
             </span>
           )}
           <span className="text-[11px] uppercase tracking-[0.08em] font-semibold text-ink-light">
@@ -321,9 +333,9 @@ function EntryRow({
     </>
   );
 
-  if (editHref) {
+  if (detailHref) {
     return (
-      <Link href={editHref} prefetch={false} className={cardClass + hoverClass}>
+      <Link href={detailHref} prefetch={false} className={cardClass + hoverClass}>
         {innerContent}
       </Link>
     );
