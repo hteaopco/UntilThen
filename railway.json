@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "sh -c 'set -e; echo \"[start] running prisma migrate deploy\"; npx prisma migrate deploy; echo \"[start] launching next server\"; npm run start'",
+    "startCommand": "sh -c 'set -e; export NODE_OPTIONS=\"--max-http-header-size=65536\"; echo \"[start] running prisma migrate deploy\"; npx prisma migrate deploy; echo \"[start] launching next server (NODE_OPTIONS=$NODE_OPTIONS)\"; npm run start'",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",

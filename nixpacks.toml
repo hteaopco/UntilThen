@@ -17,4 +17,9 @@ cmds = [
 ]
 
 [start]
-cmd = "sh -c 'set -e; echo \"[start] running prisma migrate deploy\"; npx prisma migrate deploy; echo \"[start] launching next server\"; npm run start'"
+# NODE_OPTIONS bumps the HTTP parser's max header size to 64KB so the
+# Clerk frontend-API proxy rewrites (/clerk_*) don't crash Node when
+# Clerk's response carries large Set-Cookie headers. Default is 16KB;
+# Clerk's combined session + JWT cookies can exceed that in
+# production. Railway was crash-looping on HPE_HEADER_OVERFLOW before.
+cmd = "sh -c 'set -e; export NODE_OPTIONS=\"--max-http-header-size=65536\"; echo \"[start] running prisma migrate deploy\"; npx prisma migrate deploy; echo \"[start] launching next server (NODE_OPTIONS=$NODE_OPTIONS)\"; npm run start'"
