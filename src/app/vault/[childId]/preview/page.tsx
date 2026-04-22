@@ -1,0 +1,141 @@
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+
+import type {
+  RevealCapsule,
+  RevealContribution,
+  RevealMedia,
+} from "@/app/reveal/[token]/RevealExperience";
+import { r2IsConfigured, signGetUrl } from "@/lib/r2";
+
+import { VaultPreviewClient } from "./PreviewClient";
+
+export const metadata = {
+  title: "Reveal preview — untilThen",
+};
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+/**
+ * Organiser-only preview of a child vault's full reveal — what
+ * the child will see when the vault opens on the reveal date.
+ *
+ * Loads every sealed + approved Entry across both the Main Diary
+ * (collectionId: null) and all the child's Collections, resolves
+ * author names + signed media URLs, and hands everything to a
+ * client wrapper that renders through the same RevealExperience
+ * component the gift-capsule recipient sees at /reveal/[token].
+ *
+ * Auth: Clerk-gated + ownership enforced (parent-of-child only).
+ */
+export default async function VaultPreviewPage({
+  params,
+}: {
+  params: Promise<{ childId: string }>;
+}) {
+  const { userId } = auth();
+  if (!userId) redirect("/sign-in");
+  if (!process.env.DATABASE_URL) redirect("/dashboard");
+
+  const { childId } = await params;
+
+  const { prisma } = await import("@/lib/prisma");
+  const user = await prisma.user.findUnique({
+    where: { clerkId: userId },
+    select: { id: true, firstName: true, displayName: true },
+  });
+  if (!user) redirect("/onboarding");
+
+  const child = await prisma.child.findFirst({
+    where: { id: childId, parentId: user.id },
+    include: {
+      vault: {
+        include: {
+          entries: {
+            where: {
+              isSealed: true,
+              approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+            },
+            orderBy: { createdAt: "asc" },
+            include: {
+              author: { select: { firstName: true, displayName: true } },
+              contributor: { select: { name: true, email: true } },
+            },
+          },
+        },
+      },
+    },
+  });
+  if (!child || !child.vault) redirect("/dashboard");
+
+  const r2 = r2IsConfigured();
+
+  const contributions: RevealContribution[] = await Promise.all(
+    child.vault.entries.map(async (entry) => {
+      const media: RevealMedia[] = [];
+      if (r2 && entry.mediaUrls.length > 0) {
+        for (let i = 0; i < entry.mediaUrls.length; i++) {
+          const key = entry.mediaUrls[i];
+          const rawKind = entry.mediaTypes[i];
+          if (
+            rawKind !== "photo" &&
+            rawKind !== "voice" &&
+            rawKind !== "video"
+          )
+            continue;
+          try {
+            media.push({ kind: rawKind, url: await signGetUrl(key) });
+          } catch {
+            /* skip */
+          }
+        }
+      }
+
+      // Prefer the contributor's invited name (e.g. "Grandma
+      // Rose") over the parent's display name when a contributor
+      // authored the entry. Falls through to the parent user's
+      // displayName / firstName otherwise.
+      const authorName =
+        entry.contributor?.name?.trim() ||
+        entry.author.displayName?.trim() ||
+        entry.author.firstName ||
+        "Someone who loves you";
+
+      return {
+        id: entry.id,
+        authorName,
+        authorAvatarUrl: null,
+        type: entry.type,
+        title: entry.title,
+        body: entry.body,
+        media,
+        createdAt: entry.createdAt.toISOString(),
+      };
+    }),
+  );
+
+  const capsule: RevealCapsule = {
+    id: child.vault.id,
+    title: `${child.firstName}'s Capsule`,
+    recipientName: child.firstName,
+    occasionType: "OTHER",
+    tone: "LOVE",
+    revealDate:
+      child.vault.revealDate?.toISOString() ??
+      new Date(Date.now() + 365 * 86400000).toISOString(),
+    isFirstOpen: true,
+    // Preview always starts at Phase 1. We don't want hasCompleted
+    // short-circuiting to the gallery even if the parent has
+    // previewed before.
+    hasCompleted: false,
+  };
+
+  return (
+    <VaultPreviewClient
+      realCapsule={capsule}
+      realContributions={contributions}
+      childId={child.id}
+    />
+  );
+}

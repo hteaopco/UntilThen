@@ -51,7 +51,7 @@ export default async function CapsuleLandingPage({
               {child.firstName}&rsquo;s Collections
             </h2>
             <Link
-              href="/dashboard/preview"
+              href={`/vault/${childId}/preview`}
               prefetch={false}
               className="inline-flex items-center gap-2 text-[13px] font-semibold text-ink-mid hover:text-amber transition-colors whitespace-nowrap"
             >
