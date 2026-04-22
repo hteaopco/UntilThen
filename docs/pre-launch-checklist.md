@@ -1,6 +1,6 @@
 # untilThen — Pre-Launch Checklist
-*Updated April 21, 2026*
-**Reference commit: `b93eb40`**
+*Updated April 22, 2026*
+**Reference commit: `5097178`**
 
 ---
 
@@ -8,9 +8,10 @@
 
 - [ ] **Square payment integration** — $9.99 Gift Capsule activation currently uses placeholder receipt, anyone can activate for free
 - [ ] **PIN vault lock** — re-enable or remove. Schema ready (`pinHash` live), just needs lock screen wired back into `dashboard/layout.tsx` (one-line re-add)
-- [~] **Backup + restore verification** — code shipped (`/api/cron/db-backup`, `scripts/restore-db.ts`, `docs/backup-restore.md`). Railway native PG backups enabled, Railway cron service scheduled, R2 `backup-expiry` lifecycle rule live. **Only remaining step**: run the end-to-end restore drill into staging after tomorrow's 07:00 UTC cron produces the first backup
-- [~] **Rate limiting audit** — audit complete. Patched `/api/account/contributors/[id]/resend` (was 100/min → now email bucket 10/10min) and `/api/invites/[token]` GET (was 100/min → now public bucket 20/min). No other real gaps found; password reset is handled by Clerk's hosted UI, not custom API
-- [x] **Email deliverability** — Resend + `hello@untilthenapp.io` verified. DKIM / SPF / DMARC live in Cloudflare. Test emails land in Gmail/Outlook inboxes with SPF + DKIM PASS aligned to `untilthenapp.io`. DMARC ramp to `p=quarantine` scheduled for **~May 5, 2026** (2 weeks out); wire up Postmark DMARC ingestor at the same time. See `docs/email-dns-setup.md`.
+- [~] **Backup + restore verification** — code shipped (`/api/cron/db-backup`, `scripts/restore-db.ts`, `docs/backup-restore.md`). Railway native PG backups enabled, Railway cron service scheduled, R2 `backup-expiry` lifecycle rule live. **Only remaining step**: run the end-to-end restore drill into staging after the first cron produces a backup
+- [x] **Rate limiting audit** — complete. Patched `/api/account/contributors/[id]/resend` (was 100/min → now email bucket 10/10min) and `/api/invites/[token]` GET (was 100/min → now public bucket 20/min). No other real gaps; password reset is handled by Clerk's hosted UI, not a custom API
+- [x] **Email deliverability** — Resend + `hello@untilthenapp.io` verified. DKIM / SPF / DMARC live in Cloudflare. Test emails land in Gmail/Outlook inboxes with SPF + DKIM PASS aligned to `untilthenapp.io`. DMARC ramp to `p=quarantine` scheduled for **~May 5, 2026**; wire up Postmark DMARC ingestor at the same time. See `docs/email-dns-setup.md`
+- [x] **Container manual-restart bug** — root cause was `HPE_HEADER_OVERFLOW` on Node's HTTP parser when Clerk's frontend-API proxy response headers exceeded the default 16KB ceiling. Fixed via `NODE_OPTIONS=--max-http-header-size=65536` in both `railway.json` start command and `nixpacks.toml`. No more crash loop on deploy.
 
 ---
 
@@ -104,6 +105,90 @@
 
 ---
 
+## ✅ Resolved This Session (April 22) — Reveal Rebuild, Music, Avatars, Stability
+
+### Recipient reveal — full rebuild at `/reveal/[token]`
+- [x] Route + API shipped: public `/reveal/[token]`, token-only lookup against `MemoryCapsule.accessToken`, pre-signed media URLs
+- [x] Phase machine: **Gate → Entry → Stories → Transition → Gallery**; all phases migrate cleanly between each other
+- [x] **Gate phase** — universal "Tap to begin" pulsing-dot screen before entry. Unlocks iOS autoplay + starts music in a single gesture
+- [x] **Entry screen** — staggered 2000ms fade-in (heart → headline → rule → date), Begin button slides up at 1400ms and lands at 2000ms
+- [x] **Story Cards** — always-first-5 chronological contributions, progress bar, tap-left back / tap-right forward, ✕ close to gallery, mute toggle
+- [x] **PhotoCard** — full-bleed media, bottom gradient + caption + amber sender attribution, amber-initial fallback on load failure
+- [x] **LetterCard** — preview state with 5-line clamp + "Tap to read more" + brush signature; expanded state with ✕ / Aa / ⋯ chrome, 15→17→20px font cycle
+- [x] **VoiceCard** — amber avatar, decorative waveform, play/pause control, timestamps, no autoplay (iOS-safe)
+- [x] **TransitionScreen** — "That's the highlight reel" bridge; skipped entirely when contributions ≤ 5
+- [x] **GalleryScreen** — Alex Brush header, search across people/words/dates/collections, primary type pills (Letters / Audio / Photos / Videos — all four always visible), filter section (From + Collection) hidden when irrelevant, grid/list view toggle, uniform 240px card heights
+- [x] **GalleryListView** — new table-style alternative to the grid. Type badge + title + from + date; same card modal on tap
+- [x] **GalleryCardView** — full-screen modal opened by tapping any gallery card; reuses the three card components minus the StoryCards chrome
+- [x] **Replay** — "Relive the opening ↺" link in the gallery; session-only (doesn't reset `recipientCompletedAt`); restarts music on tap
+- [x] **`recipientCompletedAt`** server-stamped the first time the recipient reaches the gallery; returning visits drop directly into the gallery
+- [x] **Error states** — invalid token (graceful screen + logo), sealed before reveal date (soft "opens on …" screen), empty capsule (gallery empty-state)
+- [x] **Variant awareness** — gallery adapts to `capsule` vs `vault` surface (vault drops "people who love you" subhead + hides From row since vaults are usually single-author)
+- [x] **Vault subhead uses names** — "1 memory from Dad" instead of "1 memory from 1"; scales to "Dad, Mom, and Grandma Rose" or "Dad, Mom, and 2 others"
+
+### Preview migration — every surface now renders through `RevealExperience`
+- [x] `/capsules/[id]/preview` — rebuilt with `PreviewClient` wrapper + This-capsule / Full-demo toggle. Auto-defaults to demo when capsule has zero contributions so organisers don't land on empty gallery
+- [x] `/vault/[childId]/preview` — new scoped route replacing legacy `/dashboard/preview`. Loads entries + collections + signed media, passes through same RevealExperience with `variant="vault"`
+- [x] `/contribute/capsule/[token]` — contributor's "Preview what they'll see" button now runs the full Entry → Story flow with their single contribution
+- [x] `/admin/previews` — "Recipient Reveal — Mock Capsule" card fires seeded 9-contribution demo via `MockRevealPreview`; also lists recent real capsules with "Open reveal" links to `/reveal/{accessToken}`
+- [x] Email URLs migrated from `/capsule/[id]/open?t={token}` → `/reveal/{accessToken}` in `sendCapsuleRevealDay` and `sendCapsuleNewLink`
+- [x] Legacy `/capsule/[id]/open/` directory + `/dashboard/preview/` + `/api/capsules/open/[id]` all deleted (net -800 lines)
+- [x] `FirstScreen`, `SequentialRevealScreen`, `ListScreen`, `ExpiredLinkScreen`, `CapsuleRevealClient`, `PreviewExperience` all deleted
+
+### Reveal music + choreography
+- [x] Background music via `NEXT_PUBLIC_REVEAL_MUSIC_URL` env var — loops at volume 0.25 through the guided flow. User-supplied MP3 at `/public/reveal-music.mp3`
+- [x] **Ducking** — voice cards + unmuted videos step music to 0.15 during playback; refcount'd so overlaps don't un-duck early
+- [x] **Stepped fade-out** entering gallery — 0.20 / 0.15 / 0.10 / 0.05 / 0.00 on a 400ms cadence, total 2000ms, then pause + tear down
+- [x] **Replay re-spins-up** music from the Replay tap (user gesture, autoplay-safe)
+- [x] Shared mute toggle — single switch kills both music + voice. Lives in StoryCards chrome + Gallery header
+
+### Reveal analytics (PostHog)
+- [x] Event taxonomy shipped via `RevealAnalyticsProvider`:
+  - `reveal_opened` / `reveal_sealed_viewed` / `reveal_completed`
+  - `reveal_entry_viewed` / `reveal_begin_clicked`
+  - `reveal_story_viewed` (per-card index + type + author)
+  - `reveal_letter_expanded` / `reveal_voice_played`
+  - `reveal_stories_closed` (with index) / `reveal_stories_completed`
+  - `reveal_transition_viewed` / `reveal_transition_continued`
+  - `reveal_gallery_viewed` / `reveal_gallery_card_opened` (grid|list)
+  - `reveal_gallery_searched` (debounced) / `reveal_gallery_filtered` / `reveal_gallery_view_toggled`
+  - `reveal_gallery_filters_cleared` / `reveal_replay_clicked`
+- [x] capsuleId auto-injected on every event via context; silent no-op when PostHog isn't loaded (admin mock doesn't pollute the funnel)
+
+### User avatars
+- [x] `User.avatarUrl` column added (migration `20260422_add_user_avatar_url`)
+- [x] `"userAvatar"` added to `MediaTarget` with `users/{id}/` prefix
+- [x] `/api/account/avatar` PATCH + DELETE endpoints — locks writes to caller's own prefix
+- [x] `AvatarUploader` modal — 1:1 circular crop with `react-easy-crop`, 512×512 JPEG output
+- [x] Account profile page (`/account`) — avatar + pencil edit badge in the header
+- [x] Top-nav `Avatar` component — photo replaces JD initials across every authenticated surface
+- [x] `ContributorAvatar` shared component — used in Updates inbox row + capsule pending/live contributions. Photo for signed-in contributors, amber initials fallback otherwise
+- [x] Batched signed-URL resolution on both surfaces to avoid N+1
+
+### Auth + onboarding
+- [x] Sign-in redirect fixed — was forcing `/onboarding`, now goes straight to `/dashboard`. Eliminates the "form flashes then refresh fixes it" bug
+
+### Container stability
+- [x] `NODE_OPTIONS=--max-http-header-size=65536` added to both `railway.json` + `nixpacks.toml` start commands. Fixes the `HPE_HEADER_OVERFLOW` crash loop on Clerk frontend-API proxy responses
+
+### Backup infra
+- [x] `pg_dump` cron at `/api/cron/db-backup` — streams gzipped dump to R2 under `backups/db/YYYY-MM-DD-HHmm.sql.gz`
+- [x] `scripts/restore-db.ts` — restore CLI with same-host guardrail; `--list` flag to browse backups
+- [x] `docs/backup-restore.md` — full runbook + drill checklist
+- [x] `postgresql_17` added to `nixpacks.toml` so `pg_dump` is available on Railway
+
+### Admin surfaces
+- [x] `DELETE /api/admin/users/[id]` — cascade extended to `NotificationPreferences`, `Collection`, `Contributor`, `MemoryCapsule` (was failing FK violations on stale user rows). Error log now surfaces Prisma code + meta
+- [x] `/admin/qa` — reveal links point at `/reveal/{accessToken}` (was old format + duplicate Preview Reveal button removed)
+- [x] `/admin/previews` — legacy `reveal-first/sequence/list` preview cards removed; replaced with real-capsule list + mock reveal
+
+### Gift-capsule polish
+- [x] Gift Capsule chip + on dashboard greeting
+- [x] Organiser preview "View combined preview" on vault rewired to `/vault/[childId]/preview` (was pointing at deleted `/dashboard/preview`)
+- [x] Container no longer needs manual restart between deploys — HPE_HEADER_OVERFLOW fix above
+
+---
+
 ## 🟡 Before Soft Launch
 
 - [ ] Wire PostHog API into admin dashboard for traffic analytics
@@ -149,55 +234,91 @@
 
 ## 🟠 Reveal Visual QA
 
-The recipient reveal was rebuilt April 22 — Entry → Story Cards →
-Transition → Gallery, all under `/reveal/[token]`. Old FirstScreen
-+ SequentialRevealScreen + ListScreen still ship for the organiser
-preview + contributor "preview their moment" peek (separate
-cleanup pending).
+The full recipient reveal is on the new flow — `/reveal/[token]`,
+organiser preview, vault preview, contributor preview, and admin
+mock all run through `RevealExperience`. Legacy FirstScreen /
+SequentialRevealScreen / PreviewExperience deleted. Remaining work
+is hands-on device QA.
 
-- [ ] **New reveal — Entry:** name + reveal date render, Begin
-  button advances; bokeh background looks right on iOS Safari
-- [ ] **New reveal — Story Cards:** progress bar fills as cards
-  advance; ✕ jumps to gallery; mute toggle silences voice card;
-  tap-right advances, tap-left goes back; > arrow works
-- [ ] **PhotoCard:** full-bleed media, gradient overlay, caption
-  readable, sender attribution amber
-- [ ] **LetterCard preview:** 5-line clamp + fade, "Tap to read
-  more" expands with rise animation
-- [ ] **LetterCard expanded:** ✕ collapses (does NOT exit reveal),
-  Aa cycles 15→17→20px, body scrolls, brush sig at bottom
-- [ ] **VoiceCard:** play button works, timestamp updates,
-  pause/resume, mute lock when StoryCards mute is active
-- [ ] **TransitionScreen:** "{N} more memories · {X} contributors"
+### Gate + Entry
+- [ ] **Gate screen** — "Tap to begin" pulses amber dot, cream
+  bokeh background, tap unlocks music + advances to Entry
+- [ ] **Entry fade choreography** — heart → headline → rule →
+  date stagger in over ~1500ms, Begin button slides up at 1400ms
+  and lands at 2000ms. No hard flashes.
+- [ ] **Music** — starts at volume 0.25 on gate tap, plays
+  through Entry / Stories / Transition without restarting at
+  phase boundaries
+
+### Stories
+- [ ] **Progress bar** fills as cards advance; tap-right advances,
+  tap-left goes back, middle dead zone
+- [ ] **✕ close** exits to gallery; **mute toggle** silences
+  music + voice together (shared state)
+- [ ] **PhotoCard** — full-bleed media, bottom gradient + caption
+  readable, sender attribution amber, amber-initial fallback
+  renders on load failure
+- [ ] **LetterCard preview** — 5-line clamp + fade, brush sig,
+  "Tap to read more" reveals expanded view
+- [ ] **LetterCard expanded** — ✕ collapses back to preview
+  (doesn't exit reveal), Aa cycles 15→17→20px, body scrolls, ✕
+  accessible above preview top bar during organiser/vault preview
+- [ ] **VoiceCard** — play button works, timestamps update,
+  pause/resume cleanly, **music ducks to 0.15** while voice
+  plays, restores to 0.25 on pause/end
+
+### Transition + Gallery
+- [ ] **TransitionScreen** — "{N} more memories · {X} contributors"
   copy correct, ghost CTA advances to gallery; entire screen
   skipped when contributions ≤ 5
-- [ ] **GalleryScreen:** Alex Brush header, filter chips
-  horizontally scroll, type chips only when type exists,
-  per-contributor chips correct, masonry grid packs cleanly
-- [ ] **GalleryCard tap:** opens GalleryCardView modal, ✕ + Esc
-  both close, no progress bar / counter shown
-- [ ] **Replay link:** "Relive the opening" link visible on
-  gallery, taps reset to entry; second visit (after server stamps
-  recipientCompletedAt) lands directly in gallery
-- [ ] **Phase transitions:** 300ms opacity fade between Entry →
-  Stories → Transition → Gallery (no hard cuts)
-- [ ] **Sealed-not-yet-open:** hitting `/reveal/{token}` before
-  reveal date shows "{Recipient}, this capsule opens on …"
-- [ ] **Invalid token:** "/reveal/garbage" shows graceful error
-  screen + logo
-- [ ] **Mock preview:** `/admin/previews` → "Recipient Reveal —
-  Mock Capsule" runs the whole flow with seed data + stock media
-- [ ] **Real-capsule preview:** `/admin/previews` → bottom list →
-  "Open reveal" on a paid past-reveal-date capsule lands in the
-  full new flow
-- [ ] **Tone:** the new flow doesn't yet branch on tone (no
-  confetti/fireworks variants). Re-decide whether to port that or
-  leave it intentionally minimalist
-- [ ] **Legacy preview surfaces still using FirstScreen +
-  SequentialRevealScreen:** `/capsules/[id]/preview` and the
-  contributor-form "preview their moment" peek. Either migrate
-  them to RevealExperience or leave the old components in for
-  those two surfaces only
+- [ ] **Music fade-out** into gallery — 0.20 / 0.15 / 0.10 / 0.05
+  / 0.00 stepped over 2000ms, element tears down after
+- [ ] **GalleryScreen** — Alex Brush header, subhead variant-aware
+  (vault: "N memories from Dad"; capsule: "N memories from Y
+  people who love you")
+- [ ] **Search bar** — filters across author, title, body, date,
+  collection; clears cleanly
+- [ ] **Primary type pills** — all four (Letters, Audio, Photos,
+  Videos) always visible; "All" chip doesn't jam against left
+  edge during horizontal scroll
+- [ ] **Filter section** — "From" row only on gift capsules with
+  > 1 contributor; "Collection" row only on vaults with collections
+- [ ] **Clear all** link appears when any filter is active
+- [ ] **Grid ⇄ List toggle** — grid shows uniform 240px tiles;
+  list shows type badge + title + from + date rows
+- [ ] **GalleryCard tap** → full-screen card view, ✕ + Esc close,
+  ✕ accessible above preview top bar
+
+### Edge cases
+- [ ] **Sealed before reveal date** — soft "opens on …" screen
+- [ ] **Invalid token** — `/reveal/garbage` shows graceful error
+  + logo
+- [ ] **Empty capsule** — gallery empty-state
+- [ ] **Replay** — "Relive the opening" restarts music + runs
+  through full flow, fades out again into gallery
+- [ ] **Returning visitor** — `recipientCompletedAt` set; lands
+  directly in gallery, no music auto-start
+
+### Preview surfaces
+- [ ] **Organiser preview** (`/capsules/[id]/preview`) — This-
+  capsule / Full-demo toggle works, Back link returns to capsule
+- [ ] **Vault preview** (`/vault/[childId]/preview`) — variant
+  clearly different (no People filter, named subhead)
+- [ ] **Contributor preview** (inside contribute flow) — shows
+  their single message through full Entry → Story sequence
+- [ ] **Admin mock** (`/admin/previews` → Mock Capsule card) —
+  9-contribution seeded demo with stock Unsplash photos + W3C
+  audio sample
+
+### Platform
+- [ ] **iOS Safari** — gate satisfies autoplay, music actually
+  plays, no overflow, safe-area insets respected
+- [ ] **Android Chrome** — same
+- [ ] **Desktop 1440+** — centered layout reads right; music still
+  autoplays after gate tap
+- [ ] **Tone** — the new flow doesn't branch on tone (no
+  confetti/fireworks variants). Re-decide whether to port or
+  leave minimalist
 
 ---
 
@@ -256,12 +377,10 @@ cleanup pending).
 ### Tabled (product still deciding)
 - [ ] **Entry detail view** — can see entry rows but can't open a single memory. No `/vault/[id]/entry/[entryId]` page yet *(tabled pending product decision)*
 - [ ] **Entry editing** — once sealed, no way to edit. Needs decision: allow edits pre-reveal or lock permanently? *(tabled with entry detail)*
-- [ ] **Entry reading experience** — what does reading a sealed letter look like before reveal day? List view enough or does each entry need its own page? *(tabled with entry detail)*
+- [ ] **Entry reading experience** — what does reading a sealed letter look like before reveal day? Gallery list/grid view may have solved this via the reveal Gallery surface, but pre-reveal viewing is still open *(tabled with entry detail)*
 
 ### Still Open
-- [ ] **"View combined preview"** — still links to old generic `/dashboard/preview`. Wire vault-scoped or remove
-- [ ] **Mobile test pass** — Create Collection modal, cover cropper, Updates inbox. *Cover cropper confirmed working; the other two still pending verification on device*
-- [ ] `/dashboard/preview` "Back to" links — dark preview surface doesn't use TopNav. Leave or unify
+- [ ] **Mobile test pass** — Create Collection modal + Updates inbox still need on-device verification. *(Cover cropper + reveal experience both verified on iPhone during this session)*
 
 ### Resolved
 - [x] Collection deletion UI (subtle text → move-entries / delete-all modal)
@@ -270,10 +389,12 @@ cleanup pending).
 - [x] Redundant "Add a new memory" dashed CTA removed from vault landing
 - [x] Route rename `/dashboard/collection/[id]` → `/vault/[childId]/collection/[collectionId]` with legacy redirect
 - [x] Redundant Edit pencil removed from collection cards on vault landing
-- [x] Railway deploy warmup fix shipped
-- [x] Cron services created for draft-expiry + contributor-reminder
+- [x] Railway deploy warmup fix shipped (then superseded by the NODE_OPTIONS HPE fix — the actual root cause)
+- [x] Cron services created for draft-expiry + contributor-reminder + db-backup
 - [x] Cover image rendering fixed on collection cards (signed `coverUrl` at render)
 - [x] Volleyball-style collection thumbnails now show uploaded photos
+- [x] **"View combined preview"** — now routes to `/vault/[childId]/preview`, scoped to the child, rendered through new `RevealExperience`. Legacy `/dashboard/preview` deleted
+- [x] Admin user-delete cascade — FK violations fixed; error logging improved
 
 ### Infrastructure (Carry-forward)
 - [ ] Extend test coverage to the vault/collection surfaces (started with `ageOnDate`; 6 unit tests shipping)
