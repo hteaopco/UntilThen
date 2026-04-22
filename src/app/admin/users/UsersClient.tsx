@@ -133,7 +133,7 @@ export function UsersClient({
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name, email, phone, or child…"
+            placeholder="Search by name, email, phone, or capsule…"
             className="w-full px-4 py-2.5 pl-10 text-sm border border-navy/15 rounded-lg text-navy bg-white placeholder-ink-light focus:outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
           />
           <svg
@@ -183,8 +183,7 @@ export function UsersClient({
                   onClick={() => toggleSort("name")}
                 />
                 <th className="py-3 px-4 font-bold">Email</th>
-                <th className="py-3 px-4 font-bold">Child(ren)</th>
-                <th className="py-3 px-4 font-bold">Reveal</th>
+                <th className="py-3 px-4 font-bold">Capsules</th>
                 <SortTh
                   label="Joined"
                   active={sortKey === "joined"}
@@ -198,7 +197,7 @@ export function UsersClient({
               {rows.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={5}
                     className="py-10 text-center text-sm text-ink-light"
                   >
                     {users.length === 0
@@ -212,28 +211,46 @@ export function UsersClient({
                     key={u.id}
                     className="border-b border-navy/[0.06] last:border-b-0"
                   >
-                    <td className="py-3 px-4 text-navy whitespace-nowrap font-medium">
+                    <td className="py-3 px-4 text-navy whitespace-nowrap font-medium align-top">
                       {u.firstName} {u.lastName}
                     </td>
-                    <td className="py-3 px-4 text-ink-mid">
+                    <td className="py-3 px-4 text-ink-mid align-top">
                       {u.email ?? "—"}
                     </td>
-                    <td className="py-3 px-4 text-ink-mid">
-                      {u.children.length === 0
-                        ? "—"
-                        : u.children
-                            .map((c) => `${c.firstName} ${c.lastName}`)
-                            .join(", ")}
+                    <td className="py-3 px-4 text-ink-mid align-top">
+                      {u.children.length === 0 ? (
+                        "—"
+                      ) : (
+                        <ul className="space-y-2 min-w-[280px]">
+                          {u.children.map((c) => (
+                            <li key={c.id} className="leading-tight">
+                              <p className="text-navy font-semibold text-[13px]">
+                                {c.firstName} {c.lastName}
+                              </p>
+                              <p className="text-[11px] text-ink-light mt-0.5 tabular-nums">
+                                Birthday:{" "}
+                                <span className="text-ink-mid">
+                                  {c.dateOfBirth
+                                    ? formatDateCST(c.dateOfBirth)
+                                    : "Not set"}
+                                </span>
+                                {"  ·  "}
+                                Reveals:{" "}
+                                <span className="text-ink-mid">
+                                  {c.vault?.revealDate
+                                    ? formatDateCST(c.vault.revealDate)
+                                    : "Not set"}
+                                </span>
+                              </p>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </td>
-                    <td className="py-3 px-4 text-ink-mid whitespace-nowrap">
-                      {u.children[0]?.vault?.revealDate
-                        ? formatDateCST(u.children[0].vault.revealDate)
-                        : "Not set"}
-                    </td>
-                    <td className="py-3 px-4 text-ink-mid whitespace-nowrap">
+                    <td className="py-3 px-4 text-ink-mid whitespace-nowrap align-top">
                       {formatDateCST(u.createdAt)}
                     </td>
-                    <td className="py-3 px-4 text-right whitespace-nowrap">
+                    <td className="py-3 px-4 text-right whitespace-nowrap align-top">
                       <div className="inline-flex items-center gap-2">
                         <FreeAccessPills user={u} />
                         <button
