@@ -67,7 +67,7 @@ export function QAClient({ capsules }: { capsules: CapsuleRow[] }) {
 
               {c.status !== "DRAFT" && (
                 <Link
-                  href={`/capsule/${c.id}/open?t=${c.accessToken}`}
+                  href={`/reveal/${encodeURIComponent(c.accessToken)}`}
                   target="_blank"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-navy/15 text-[12px] font-semibold text-navy hover:border-amber/40 hover:text-amber transition-colors"
                 >
@@ -75,15 +75,6 @@ export function QAClient({ capsules }: { capsules: CapsuleRow[] }) {
                   <ExternalLink size={10} strokeWidth={1.5} />
                 </Link>
               )}
-
-              <Link
-                href={`/capsule/${c.id}/open?t=${c.accessToken}`}
-                target="_blank"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-navy/15 text-[12px] font-semibold text-navy hover:border-amber/40 hover:text-amber transition-colors"
-              >
-                <Eye size={13} strokeWidth={1.5} /> Preview Reveal
-                <ExternalLink size={10} strokeWidth={1.5} />
-              </Link>
 
               <Link
                 href={`/capsules/${c.id}/preview`}

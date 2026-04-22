@@ -162,11 +162,11 @@ export async function GET(
       tone: capsule.tone,
       revealDate: capsule.revealDate.toISOString(),
       isFirstOpen,
-      // recipientCompletedAt is set by SequentialRevealScreen in
-      // the legacy flow when the recipient finishes the guided
-      // sequence. The new RevealClient will set it on its own
-      // completion path; for now we just expose whether it's
-      // already set so a returning visit can skip Phase 1.
+      // recipientCompletedAt is stamped by POST /api/reveal/
+      // [token]/complete the first time the recipient reaches the
+      // gallery. When already set, RevealExperience skips Phase 1
+      // on subsequent loads and lands the returning viewer in the
+      // gallery directly.
       hasCompleted: Boolean(capsule.recipientCompletedAt),
     },
     contributions,

@@ -8,8 +8,11 @@ import { TiptapEditor } from "@/components/editor/TiptapEditor";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import { Typewriter } from "@/components/ui/Typewriter";
 import { IntroSplash } from "@/components/landing/IntroSplash";
-import { FirstScreen } from "@/app/capsule/[id]/open/FirstScreen";
-import { SequentialRevealScreen } from "@/app/capsule/[id]/open/SequentialRevealScreen";
+import {
+  RevealExperience,
+  type RevealCapsule,
+  type RevealContribution,
+} from "@/app/reveal/[token]/RevealExperience";
 import { PublicMediaAttachments } from "@/app/contribute/capsule/[token]/PublicMediaAttachments";
 import { formatLong } from "@/lib/dateFormatters";
 import { OCCASION_LABELS } from "@/lib/capsules";
@@ -295,7 +298,6 @@ export function CapsuleContributeForm({
             body: body || null,
           }}
           tone={capsuleTone}
-          onDone={() => { setPhase("thankyou"); setShowCta(true); }}
         />
       </div>
     );
@@ -449,7 +451,6 @@ function PreviewReveal({
   capsule,
   contribution,
   tone,
-  onDone,
 }: {
   capsule: {
     title: string;
@@ -465,34 +466,36 @@ function PreviewReveal({
     body: string | null;
   };
   tone: CapsuleTone;
-  onDone: () => void;
 }) {
-  const [view, setView] = useState<"first" | "sequence">("first");
-
-  const mockCapsule = {
+  // Full Entry → Story flow for a single contribution. The
+  // contributor sees exactly what the recipient will see on
+  // reveal day — just with only their own note in the deck.
+  const previewCapsule: RevealCapsule = {
     id: "preview",
     title: capsule.title,
     recipientName: capsule.recipientName,
     occasionType: capsule.occasionType,
+    tone,
     revealDate: capsule.revealDate,
-    hasAccount: false,
+    isFirstOpen: true,
+    hasCompleted: false,
   };
 
-  if (view === "first") {
-    return (
-      <FirstScreen
-        capsule={mockCapsule}
-        contributionCount={1}
-        onOpen={() => setView("sequence")}
-      />
-    );
-  }
+  const previewContribution: RevealContribution = {
+    id: contribution.id,
+    authorName: contribution.authorName,
+    authorAvatarUrl: null,
+    type: contribution.type,
+    title: contribution.title,
+    body: contribution.body,
+    media: [],
+    createdAt: new Date().toISOString(),
+  };
 
   return (
-    <SequentialRevealScreen
-      contributions={[contribution]}
-      tone={tone}
-      onComplete={onDone}
+    <RevealExperience
+      capsule={previewCapsule}
+      contributions={[previewContribution]}
     />
   );
 }

@@ -217,7 +217,10 @@ export async function sendCapsuleRevealDay(params: {
   capsuleId: string;
   accessToken: string;
 }): Promise<void> {
-  const url = `${baseUrl()}/capsule/${params.capsuleId}/open?t=${params.accessToken}`;
+  // New token-only URL. Legacy /capsule/[id]/open?t={token} still
+  // redirects here so magic-link emails already in inboxes keep
+  // working.
+  const url = `${baseUrl()}/reveal/${params.accessToken}`;
   await send({
     to: params.to,
     subject: "It\u2019s time.",
@@ -237,7 +240,7 @@ export async function sendCapsuleNewLink(params: {
   capsuleId: string;
   accessToken: string;
 }): Promise<void> {
-  const url = `${baseUrl()}/capsule/${params.capsuleId}/open?t=${params.accessToken}`;
+  const url = `${baseUrl()}/reveal/${params.accessToken}`;
   await send({
     to: params.to,
     subject: "Here\u2019s your new link",
