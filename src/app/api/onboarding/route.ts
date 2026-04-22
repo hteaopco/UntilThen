@@ -10,29 +10,39 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Onboarding now has two entry paths:
+ * Onboarding — creates the User row only.
  *
- * 1. Child vault — the full POST body includes
- *    `childFirstName / childLastName / childDateOfBirth`.
- *    We create User → Child → Vault in one transaction (the
- *    historical behaviour).
+ * Previously this endpoint also created the first Child + Vault
+ * for users who picked the child-vault path. That coupling bit
+ * the paywall model: a new signup could pick "Write to my child"
+ * and get a free time capsule before ever seeing the dashboard.
  *
- * 2. Gift Capsule — name-only body. We create just the User
- *    record so the organiser can proceed to `/capsules/new`
- *    without a child on file. `userType` is stamped based on
- *    which path arrived.
+ * Under the post-April-22 paywall model every signup lands in
+ * their free owner vault. Time capsules (child vaults) are
+ * created exclusively through AddChildModal → POST
+ * /api/account/children, which is where the $4.99/mo paywall
+ * lives. Gift Capsules stay free-to-create, paywalled at $9.99
+ * activation.
  *
- * Either path is idempotent: if the user already exists we
- * return { alreadyOnboarded: true } so client-side rehydrates
- * don't duplicate records.
+ * Body shape:
+ *   {
+ *     firstName: string    (required)
+ *     lastName?: string
+ *     path: "child_vault" | "memory_capsule"   // stored as
+ *                                              // userType for
+ *                                              // dashboard
+ *                                              // personalisation
+ *   }
+ *
+ * Idempotent: if the User already exists, returns
+ * { alreadyOnboarded: true } without touching the row.
  */
 interface Body {
   firstName?: string;
   lastName?: string;
-  childFirstName?: string;
-  childLastName?: string;
-  childDateOfBirth?: string;
-  /** Which path the user came through. */
+  /** Which path the user came through — drives the post-signup
+   *  redirect + userType stamping. Child-vault creation itself
+   *  happens later, gated by AddChildModal + paywall. */
   path?: "child_vault" | "memory_capsule";
 }
 
@@ -68,159 +78,55 @@ export async function POST(req: Request) {
     );
   }
 
-  // Detect which flow we're running. Presence of any child field
-  // = vault path. Explicit path="memory_capsule" = name-only.
-  const hasChildPayload =
-    typeof body.childFirstName === "string" &&
-    body.childFirstName.trim().length > 0;
   const flow: "child_vault" | "memory_capsule" =
-    body.path === "memory_capsule"
-      ? "memory_capsule"
-      : hasChildPayload
-        ? "child_vault"
-        : "memory_capsule";
-
-  let childDob: Date | null = null;
-  if (flow === "child_vault") {
-    const childFirstName =
-      typeof body.childFirstName === "string" ? body.childFirstName.trim() : "";
-    const childLastName =
-      typeof body.childLastName === "string" ? body.childLastName.trim() : "";
-    const childDobRaw =
-      typeof body.childDateOfBirth === "string"
-        ? body.childDateOfBirth.trim()
-        : "";
-
-    if (!childFirstName || !childLastName) {
-      return NextResponse.json(
-        { error: "Please enter your child's first and last name." },
-        { status: 400 },
-      );
-    }
-    if (!childDobRaw) {
-      return NextResponse.json(
-        { error: "Please enter your child's birthdate." },
-        { status: 400 },
-      );
-    }
-    childDob = new Date(childDobRaw);
-    if (Number.isNaN(childDob.getTime())) {
-      return NextResponse.json(
-        { error: "Child's birthdate is invalid." },
-        { status: 400 },
-      );
-    }
-    if (childDob.getTime() > Date.now()) {
-      return NextResponse.json(
-        { error: "Child's birthdate can't be in the future." },
-        { status: 400 },
-      );
-    }
-  }
+    body.path === "child_vault" ? "child_vault" : "memory_capsule";
 
   try {
     const { prisma } = await import("@/lib/prisma");
 
     const existing = await prisma.user.findUnique({
       where: { clerkId: userId },
-      include: { children: { include: { vault: true } } },
+      select: { id: true, userType: true },
     });
 
     if (existing) {
-      // User already exists. If they were an ORGANISER originally
-      // and now are completing the vault path (or vice-versa),
-      // bump userType to BOTH and backfill the vault. Otherwise
-      // no-op.
-      if (flow === "child_vault" && childDob) {
-        const hasVault = existing.children.some((c) => c.vault !== null);
-        if (!hasVault) {
-          const childFirstName = (body.childFirstName as string).trim();
-          const childLastName = (body.childLastName as string).trim();
-          const defaultRevealDate = new Date(childDob);
-          defaultRevealDate.setFullYear(
-            defaultRevealDate.getFullYear() + 18,
-          );
-          await prisma.$transaction(async (tx) => {
-            const child = await tx.child.create({
-              data: {
-                firstName: childFirstName,
-                lastName: childLastName,
-                dateOfBirth: childDob,
-                parentId: existing.id,
-              },
-            });
-            await tx.vault.create({
-              data: {
-                childId: child.id,
-                revealDate: defaultRevealDate,
-              },
-            });
-            await tx.user.update({
-              where: { id: existing.id },
-              data: {
-                userType:
-                  existing.userType === "ORGANISER" ? "BOTH" : "PARENT",
-              },
-            });
-          });
-        }
+      // Already onboarded. Bump userType to BOTH when the user
+      // is now completing the other path so the dashboard
+      // personalisation stays accurate.
+      const targetType =
+        flow === "child_vault"
+          ? existing.userType === "ORGANISER"
+            ? "BOTH"
+            : "PARENT"
+          : existing.userType === "PARENT"
+            ? "BOTH"
+            : "ORGANISER";
+      if (targetType !== existing.userType) {
+        await prisma.user.update({
+          where: { id: existing.id },
+          data: { userType: targetType },
+        });
       }
       return NextResponse.json({ success: true, alreadyOnboarded: true });
     }
 
-    let createdUserId: string;
-    if (flow === "memory_capsule") {
-      const user = await prisma.user.create({
-        data: {
-          clerkId: userId,
-          firstName,
-          lastName: lastName || "",
-          role: "PARENT",
-          userType: "ORGANISER",
-        },
-      });
-      createdUserId = user.id;
-    } else {
-      const childFirstName = (body.childFirstName as string).trim();
-      const childLastName = (body.childLastName as string).trim();
-      const defaultRevealDate = new Date(childDob!);
-      defaultRevealDate.setFullYear(defaultRevealDate.getFullYear() + 18);
-      createdUserId = await prisma.$transaction(async (tx) => {
-        const user = await tx.user.create({
-          data: {
-            clerkId: userId,
-            firstName,
-            lastName: lastName || "",
-            role: "PARENT",
-            userType: "PARENT",
-          },
-        });
-        const child = await tx.child.create({
-          data: {
-            firstName: childFirstName,
-            lastName: childLastName,
-            dateOfBirth: childDob!,
-            parentId: user.id,
-          },
-        });
-        await tx.vault.create({
-          data: {
-            childId: child.id,
-            revealDate: defaultRevealDate,
-          },
-        });
-        return user.id;
-      });
-    }
+    const userType = flow === "child_vault" ? "PARENT" : "ORGANISER";
+    const user = await prisma.user.create({
+      data: {
+        clerkId: userId,
+        firstName,
+        lastName: lastName || "",
+        role: "PARENT",
+        userType,
+      },
+    });
 
     // Notification preferences live in their own row with a unique
-    // userId. Create it after the user row exists so a failure here
-    // doesn't roll back onboarding — the user can always open
-    // settings and the row will be created on first save. Best-
-    // effort, same as PostHog below.
+    // userId. Best-effort — the user can always open settings and
+    // the row will be created on first save.
     try {
       await prisma.notificationPreferences.create({
-        data: { userId: createdUserId },
+        data: { userId: user.id },
       });
     } catch (err) {
       console.error("[onboarding] notification-prefs create failed:", err);
@@ -238,7 +144,7 @@ export async function POST(req: Request) {
       await identifyServerUser(userId, {
         email,
         firstName,
-        userType: flow === "memory_capsule" ? "ORGANISER" : "PARENT",
+        userType,
         createdAt: new Date().toISOString(),
       });
       await captureServerEvent(userId, "user_signed_up", {
@@ -254,10 +160,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ success: true, flow });
   } catch (err) {
-    // Render the Prisma error fields explicitly so they survive
-    // whatever console.error → log aggregator formatting Railway
-    // applies. Without this the `err` object sometimes prints as
-    // `[object Object]` and the cause is invisible.
     const e = err as {
       code?: string;
       message?: string;
