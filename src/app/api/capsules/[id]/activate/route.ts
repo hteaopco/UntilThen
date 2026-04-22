@@ -157,7 +157,12 @@ export async function POST(
         const client = getSquareClient();
         const response = await client.payments.create({
           sourceId,
-          idempotencyKey: `gift-capsule-${id}-${dbUser.id}`,
+          // Square caps idempotency_key at 45 chars. Capsule id
+          // is a cuid (25), so "gc-{id}" = 28 chars, well under
+          // the ceiling and still unique per capsule (which is
+          // the invariant we actually need — a capsule's $9.99
+          // is paid at most once).
+          idempotencyKey: `gc-${id}`,
           amountMoney: {
             amount: BigInt(GIFT_CAPSULE_PRICE_CENTS),
             currency: "USD",

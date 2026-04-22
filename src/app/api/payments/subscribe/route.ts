@@ -152,7 +152,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // 2. Save card on file.
     const cardResp = await square.cards.create({
-      idempotencyKey: `card-${user.id}-${Date.now()}`,
+      // Square caps idempotency_key at 45 chars. "crd-" + cuid
+      // (25) + "-" + base36 timestamp (~8) = ~38 chars. The
+      // timestamp ensures a new card entry generates a new key
+      // (so repeat subscribe attempts after an explicit cancel
+      // don't get Square's cached response for the old card).
+      idempotencyKey: `crd-${user.id}-${Date.now().toString(36)}`,
       sourceId,
       card: {
         customerId: squareCustomerId,
@@ -175,10 +180,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         now,
       );
       if (amountTodayCents > 0) {
+        // Stable per user per day — dash-stripped date (YYYYMMDD)
+        // keeps the key under Square's 45-char idempotency limit:
+        // "sp-" (3) + cuid (25) + "-" (1) + "YYYYMMDD" (8) = 37.
+        const yyyymmdd = now.toISOString().slice(0, 10).replace(/-/g, "");
         const payResp = await square.payments.create({
-          idempotencyKey: `sub-proration-${user.id}-${now
-            .toISOString()
-            .slice(0, 10)}`,
+          idempotencyKey: `sp-${user.id}-${yyyymmdd}`,
           sourceId: cardId,
           customerId: squareCustomerId,
           amountMoney: {
