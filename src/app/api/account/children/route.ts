@@ -2,6 +2,8 @@ import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { capsuleAccessVerdict } from "@/lib/paywall";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -45,8 +47,21 @@ export async function GET(): Promise<NextResponse> {
  * onboarding flow (transactional insert, reveal date defaults to
  * the child's 18th birthday when a DOB is supplied).
  *
- * TODO: gate this behind the Square billing integration — the +$0.99/mo
- * charge per additional vault applies from the second child onwards.
+ * Paywall gating is applied here, not at the UI layer only, so a
+ * client-side bypass can't create unauthorised vaults. Three
+ * reject paths:
+ *
+ *   409 { needsSubscription: true }
+ *     Paywall is on and the user has no active subscription or
+ *     freeVaultAccess. Client renders SubscriptionCheckout.
+ *
+ *   409 { needsAddOn: true, plan: "MONTHLY"|"ANNUAL" }
+ *     User has an active subscription but has used all base +
+ *     add-on capsule slots. Client renders AddOnCheckout for
+ *     their plan's cadence.
+ *
+ *   When paywall is off or user is comped (freeVaultAccess),
+ *   the endpoint proceeds as before.
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const { userId } = auth();
@@ -112,10 +127,45 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const { prisma } = await import("@/lib/prisma");
   const user = await prisma.user.findUnique({
     where: { clerkId: userId },
-    select: { id: true },
+    select: {
+      id: true,
+      subscription: { select: { plan: true } },
+    },
   });
   if (!user)
     return NextResponse.json({ error: "User not found." }, { status: 404 });
+
+  // Paywall gate. Returns a structured 409 so the UI can render
+  // the right checkout (subscription vs add-on). Gate is the
+  // single source of truth even when the client-side gate in
+  // the dashboard missed it.
+  const verdict = await capsuleAccessVerdict(user.id);
+  if (!verdict.hasAccess) {
+    if (verdict.needsSubscription) {
+      return NextResponse.json(
+        {
+          error: "A subscription is required to create a time capsule.",
+          needsSubscription: true,
+          usedSlots: verdict.usedSlots,
+          allowedSlots: verdict.allowedSlots,
+        },
+        { status: 409 },
+      );
+    }
+    if (verdict.needsAddOn) {
+      return NextResponse.json(
+        {
+          error:
+            "You've used every slot on your plan. Add one before creating another capsule.",
+          needsAddOn: true,
+          plan: user.subscription?.plan ?? "MONTHLY",
+          usedSlots: verdict.usedSlots,
+          allowedSlots: verdict.allowedSlots,
+        },
+        { status: 409 },
+      );
+    }
+  }
 
   // Default reveal = child's 18th birthday if we have a DOB.
   const defaultReveal = dateOfBirth
