@@ -33,6 +33,10 @@ export const dynamic = "force-dynamic";
 type CatalogObject = {
   type?: string;
   id?: string;
+  subscription_plan_data?: {
+    name?: string;
+    subscription_plan_variations?: CatalogObject[];
+  };
   subscription_plan_variation_data?: {
     name?: string;
     phases?: { cadence?: string }[];
@@ -106,8 +110,21 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         row.error =
           body.errors?.[0]?.detail ?? `Square returned ${res.status}.`;
       } else {
-        const variations = (body.related_objects ?? [])
-          .filter((o) => o.type === "SUBSCRIPTION_PLAN_VARIATION")
+        // Square nests variations in two possible places depending
+        // on account / API version:
+        //   1. object.subscription_plan_data.subscription_plan_variations
+        //      (newer accounts — variations are a child array)
+        //   2. related_objects (legacy — variations sibling to plan)
+        // Union both, de-dupe by id.
+        const nested =
+          body.object?.subscription_plan_data?.subscription_plan_variations ??
+          [];
+        const related = (body.related_objects ?? []).filter(
+          (o) => o.type === "SUBSCRIPTION_PLAN_VARIATION",
+        );
+        const seen = new Set<string>();
+        const variations = [...nested, ...related]
+          .filter((v) => v.id && !seen.has(v.id) && seen.add(v.id))
           .map((v) => ({
             id: v.id ?? "",
             name: v.subscription_plan_variation_data?.name ?? "(unnamed)",
