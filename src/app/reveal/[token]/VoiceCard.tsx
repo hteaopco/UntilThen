@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import { ContributorAvatar } from "@/components/ui/ContributorAvatar";
 
+import { useRevealAnalytics } from "./analytics";
 import type { RevealContribution } from "./RevealClient";
 
 /**
@@ -26,6 +27,7 @@ export function VoiceCard({
   contribution: RevealContribution;
   muted: boolean;
 }) {
+  const { capture } = useRevealAnalytics();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const [duration, setDuration] = useState<number>(0);
@@ -63,7 +65,13 @@ export function VoiceCard({
       setPlaying(false);
     } else {
       el.play().then(
-        () => setPlaying(true),
+        () => {
+          setPlaying(true);
+          capture("reveal_voice_played", {
+            contributionId: contribution.id,
+            authorName: contribution.authorName,
+          });
+        },
         () => setPlaying(false),
       );
     }

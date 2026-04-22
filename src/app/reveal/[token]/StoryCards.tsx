@@ -1,8 +1,9 @@
 "use client";
 
 import { ChevronRight, Volume2, VolumeX, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { useRevealAnalytics } from "./analytics";
 import { LetterCard } from "./LetterCard";
 import { PhotoCard } from "./PhotoCard";
 import { VoiceCard } from "./VoiceCard";
@@ -42,12 +43,27 @@ export function StoryCards({
   /** Advancing past the last card — moves to Phase 3 (transition). */
   onComplete: () => void;
 }) {
+  const { capture } = useRevealAnalytics();
   const cards = useMemo(
     () => contributions.slice(0, STORY_LIMIT),
     [contributions],
   );
   const [index, setIndex] = useState(0);
   const [muted, setMuted] = useState(false);
+
+  // Fire one view event per card — covers both the initial mount
+  // and every subsequent advance. Index change = new card = new
+  // impression.
+  useEffect(() => {
+    const card = cards[index];
+    if (!card) return;
+    capture("reveal_story_viewed", {
+      index,
+      total: cards.length,
+      type: card.type,
+      authorName: card.authorName,
+    });
+  }, [capture, cards, index]);
 
   // Edge case: capsule has zero approved contributions. The page
   // shouldn't have advanced into stories at all, but guard
@@ -64,11 +80,17 @@ export function StoryCards({
     if (index < total - 1) {
       setIndex(index + 1);
     } else {
+      capture("reveal_stories_completed", { total });
       onComplete();
     }
   }
   function back() {
     if (index > 0) setIndex(index - 1);
+  }
+
+  function close() {
+    capture("reveal_stories_closed", { atIndex: index, total });
+    onClose();
   }
 
   return (
@@ -137,7 +159,7 @@ export function StoryCards({
           icons stay readable. */}
       <button
         type="button"
-        onClick={onClose}
+        onClick={close}
         aria-label="Close story view"
         className="absolute top-3 left-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 backdrop-blur text-navy hover:bg-white transition-colors shadow-[0_2px_8px_rgba(15,31,61,0.08)]"
         style={{ marginTop: "max(env(safe-area-inset-top), 4px)" }}

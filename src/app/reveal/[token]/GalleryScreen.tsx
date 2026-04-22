@@ -11,8 +11,9 @@ import {
   Video,
   X,
 } from "lucide-react";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
+import { useRevealAnalytics } from "./analytics";
 import { GalleryCard } from "./GalleryCard";
 import { GalleryCardView } from "./GalleryCardView";
 import { GalleryListView } from "./GalleryListView";
@@ -47,12 +48,25 @@ export function GalleryScreen({
    *  re-runs Phase 1 → Phase 2 → Phase 3. Session-only. */
   onReplay?: () => void;
 }) {
+  const { capture } = useRevealAnalytics();
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [authorFilter, setAuthorFilter] = useState<string | null>(null);
   const [collectionFilter, setCollectionFilter] = useState<string | null>(null);
   const [view, setView] = useState<View>("grid");
   const [openId, setOpenId] = useState<string | null>(null);
+
+  // One view event per gallery mount. The phase-level analytics
+  // elsewhere guarantee this doesn't double-fire within a session
+  // since React remounts on phase change.
+  useEffect(() => {
+    capture("reveal_gallery_viewed", {
+      contributionCount: contributions.length,
+    });
+    // We explicitly only want to fire once per mount, not every
+    // time `contributions` identity changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const sorted = useMemo(
     () =>
@@ -139,10 +153,40 @@ export function GalleryScreen({
     collectionFilter !== null;
 
   function clearFilters() {
+    capture("reveal_gallery_filters_cleared");
     setSearchQuery("");
     setTypeFilter("all");
     setAuthorFilter(null);
     setCollectionFilter(null);
+  }
+
+  // Debounced search event — fires 1s after the user stops typing
+  // so we don't spam PostHog with per-keystroke events.
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const query = searchQuery.trim();
+    if (!query) return;
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      capture("reveal_gallery_searched", {
+        queryLength: query.length,
+        resultCount: filtered.length,
+      });
+    }, 1000);
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [searchQuery, capture, filtered.length]);
+
+  function openCard(id: string) {
+    const c = sorted.find((x) => x.id === id);
+    if (!c) return;
+    capture("reveal_gallery_card_opened", {
+      contributionId: id,
+      type: c.type,
+      source: view,
+    });
+    setOpenId(id);
   }
 
   const opened = openId ? sorted.find((c) => c.id === openId) ?? null : null;
@@ -158,7 +202,10 @@ export function GalleryScreen({
         {onReplay && (
           <button
             type="button"
-            onClick={onReplay}
+            onClick={() => {
+              capture("reveal_replay_clicked");
+              onReplay();
+            }}
             className="mb-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-amber/85 hover:text-amber-dark transition-colors"
           >
             <RotateCcw size={12} strokeWidth={2} aria-hidden="true" />
@@ -211,14 +258,24 @@ export function GalleryScreen({
         >
           <ViewToggle
             active={view === "grid"}
-            onClick={() => setView("grid")}
+            onClick={() => {
+              if (view !== "grid") {
+                capture("reveal_gallery_view_toggled", { view: "grid" });
+              }
+              setView("grid");
+            }}
             label="Grid view"
           >
             <LayoutGrid size={14} strokeWidth={2} />
           </ViewToggle>
           <ViewToggle
             active={view === "list"}
-            onClick={() => setView("list")}
+            onClick={() => {
+              if (view !== "list") {
+                capture("reveal_gallery_view_toggled", { view: "list" });
+              }
+              setView("list");
+            }}
             label="List view"
           >
             <List size={14} strokeWidth={2} />
@@ -234,14 +291,28 @@ export function GalleryScreen({
         <div className="flex items-center gap-2 whitespace-nowrap">
           <Chip
             active={typeFilter === "all"}
-            onClick={() => setTypeFilter("all")}
+            onClick={() => {
+              if (typeFilter !== "all") {
+                capture("reveal_gallery_filtered", {
+                  axis: "type",
+                  value: "all",
+                });
+              }
+              setTypeFilter("all");
+            }}
           >
             All
           </Chip>
           {counts.letters > 0 && (
             <Chip
               active={typeFilter === "TEXT"}
-              onClick={() => setTypeFilter("TEXT")}
+              onClick={() => {
+                capture("reveal_gallery_filtered", {
+                  axis: "type",
+                  value: "TEXT",
+                });
+                setTypeFilter("TEXT");
+              }}
               icon={<Mail size={11} strokeWidth={2} aria-hidden="true" />}
             >
               Letters
@@ -250,7 +321,13 @@ export function GalleryScreen({
           {counts.audios > 0 && (
             <Chip
               active={typeFilter === "VOICE"}
-              onClick={() => setTypeFilter("VOICE")}
+              onClick={() => {
+                capture("reveal_gallery_filtered", {
+                  axis: "type",
+                  value: "VOICE",
+                });
+                setTypeFilter("VOICE");
+              }}
               icon={<Mic size={11} strokeWidth={2} aria-hidden="true" />}
             >
               Audio
@@ -259,7 +336,13 @@ export function GalleryScreen({
           {counts.photos > 0 && (
             <Chip
               active={typeFilter === "PHOTO"}
-              onClick={() => setTypeFilter("PHOTO")}
+              onClick={() => {
+                capture("reveal_gallery_filtered", {
+                  axis: "type",
+                  value: "PHOTO",
+                });
+                setTypeFilter("PHOTO");
+              }}
               icon={<ImageIcon size={11} strokeWidth={2} aria-hidden="true" />}
             >
               Photos
@@ -268,7 +351,13 @@ export function GalleryScreen({
           {counts.videos > 0 && (
             <Chip
               active={typeFilter === "VIDEO"}
-              onClick={() => setTypeFilter("VIDEO")}
+              onClick={() => {
+                capture("reveal_gallery_filtered", {
+                  axis: "type",
+                  value: "VIDEO",
+                });
+                setTypeFilter("VIDEO");
+              }}
               icon={<Video size={11} strokeWidth={2} aria-hidden="true" />}
             >
               Videos
@@ -301,9 +390,14 @@ export function GalleryScreen({
                 <SmallChip
                   key={name}
                   active={authorFilter === name}
-                  onClick={() =>
-                    setAuthorFilter(authorFilter === name ? null : name)
-                  }
+                  onClick={() => {
+                    const next = authorFilter === name ? null : name;
+                    capture("reveal_gallery_filtered", {
+                      axis: "author",
+                      value: next ?? "cleared",
+                    });
+                    setAuthorFilter(next);
+                  }}
                 >
                   {name}
                 </SmallChip>
@@ -317,11 +411,14 @@ export function GalleryScreen({
                 <SmallChip
                   key={title}
                   active={collectionFilter === title}
-                  onClick={() =>
-                    setCollectionFilter(
-                      collectionFilter === title ? null : title,
-                    )
-                  }
+                  onClick={() => {
+                    const next = collectionFilter === title ? null : title;
+                    capture("reveal_gallery_filtered", {
+                      axis: "collection",
+                      value: next ?? "cleared",
+                    });
+                    setCollectionFilter(next);
+                  }}
                 >
                   {title}
                 </SmallChip>
@@ -342,16 +439,13 @@ export function GalleryScreen({
             <GalleryCard
               key={c.id}
               contribution={c}
-              onClick={() => setOpenId(c.id)}
+              onClick={() => openCard(c.id)}
             />
           ))}
         </section>
       ) : (
         <section className="mt-5 px-3">
-          <GalleryListView
-            contributions={filtered}
-            onOpen={(id) => setOpenId(id)}
-          />
+          <GalleryListView contributions={filtered} onOpen={openCard} />
         </section>
       )}
 

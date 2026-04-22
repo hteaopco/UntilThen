@@ -1,6 +1,9 @@
 "use client";
 
 import { Heart } from "lucide-react";
+import { useEffect } from "react";
+
+import { useRevealAnalytics } from "./analytics";
 
 /**
  * Phase 1 — Entry Screen.
@@ -26,6 +29,11 @@ export function EntryScreen({
   revealDate: string;
   onBegin: () => void;
 }) {
+  const { capture } = useRevealAnalytics();
+  useEffect(() => {
+    capture("reveal_entry_viewed");
+  }, [capture]);
+
   const dateLabel = formatRevealDate(revealDate);
 
   return (
@@ -70,7 +78,10 @@ export function EntryScreen({
 
       <button
         type="button"
-        onClick={onBegin}
+        onClick={() => {
+          capture("reveal_begin_clicked");
+          onBegin();
+        }}
         className="mt-10 inline-flex items-center justify-center w-full max-w-[280px] rounded-full bg-amber px-8 py-4 text-white text-[15px] font-semibold tracking-[0.02em] hover:bg-amber-dark active:opacity-90 transition-colors"
         style={{ boxShadow: "0 8px 24px rgba(196,122,58,0.25)" }}
       >

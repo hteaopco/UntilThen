@@ -1,6 +1,9 @@
 "use client";
 
 import { ArrowRight, Sparkles } from "lucide-react";
+import { useEffect } from "react";
+
+import { useRevealAnalytics } from "./analytics";
 
 /**
  * Phase 3 — Transition Screen.
@@ -22,6 +25,14 @@ export function TransitionScreen({
   contributorCount: number;
   onContinue: () => void;
 }) {
+  const { capture } = useRevealAnalytics();
+  useEffect(() => {
+    capture("reveal_transition_viewed", {
+      remainingCount,
+      contributorCount,
+    });
+  }, [capture, remainingCount, contributorCount]);
+
   return (
     <main
       className="fixed inset-0 z-40 flex flex-col items-center justify-center px-6 text-center"
@@ -59,7 +70,10 @@ export function TransitionScreen({
 
       <button
         type="button"
-        onClick={onContinue}
+        onClick={() => {
+          capture("reveal_transition_continued");
+          onContinue();
+        }}
         className="mt-10 inline-flex items-center gap-2 rounded-full border border-amber px-7 text-amber text-[15px] font-semibold tracking-[0.01em] hover:bg-amber hover:text-white active:opacity-90 transition-colors"
         style={{ height: "48px" }}
       >

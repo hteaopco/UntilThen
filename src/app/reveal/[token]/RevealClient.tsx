@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 
+import { captureEvent } from "@/components/PosthogProvider";
+
+import { RevealAnalyticsProvider } from "./analytics";
 import {
   ErrorScreen,
   LoadingScreen,
@@ -72,10 +75,19 @@ export function RevealClient({ token }: { token: string }) {
         if (body.sealed) {
           setSealed(body.capsule);
           setStatus("sealed");
+          captureEvent("reveal_sealed_viewed", {
+            capsuleId: body.capsule.id,
+          });
           return;
         }
         setData(body);
         setStatus("live");
+        captureEvent("reveal_opened", {
+          capsuleId: body.capsule.id,
+          isFirstOpen: body.capsule.isFirstOpen,
+          hasCompleted: body.capsule.hasCompleted,
+          contributionCount: body.contributions.length,
+        });
       } catch (err) {
         if (cancelled) return;
         setErrorMessage(
@@ -108,19 +120,26 @@ export function RevealClient({ token }: { token: string }) {
   }
   if (status === "live" && data) {
     return (
-      <RevealExperience
-        capsule={data.capsule}
-        contributions={data.contributions}
-        onCompleted={() => {
-          // Fire-and-forget — failure here is non-fatal (the
-          // recipient can still browse the gallery just fine; the
-          // hasCompleted flag will be re-attempted on next visit).
-          void fetch(`/api/reveal/${encodeURIComponent(token)}/complete`, {
-            method: "POST",
-            keepalive: true,
-          }).catch(() => {});
-        }}
-      />
+      <RevealAnalyticsProvider capsuleId={data.capsule.id}>
+        <RevealExperience
+          capsule={data.capsule}
+          contributions={data.contributions}
+          onCompleted={() => {
+            captureEvent("reveal_completed", {
+              capsuleId: data.capsule.id,
+              contributionCount: data.contributions.length,
+            });
+            // Fire-and-forget — failure here is non-fatal (the
+            // recipient can still browse the gallery just fine;
+            // the hasCompleted flag will be re-attempted on next
+            // visit).
+            void fetch(`/api/reveal/${encodeURIComponent(token)}/complete`, {
+              method: "POST",
+              keepalive: true,
+            }).catch(() => {});
+          }}
+        />
+      </RevealAnalyticsProvider>
     );
   }
   return <LoadingScreen />;

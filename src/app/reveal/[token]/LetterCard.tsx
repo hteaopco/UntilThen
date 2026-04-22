@@ -3,6 +3,7 @@
 import { ChevronDown, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { useRevealAnalytics } from "./analytics";
 import type { RevealContribution } from "./RevealClient";
 
 const FONT_SIZES = [15, 17, 20] as const;
@@ -30,6 +31,7 @@ export function LetterCard({
 }: {
   contribution: RevealContribution;
 }) {
+  const { capture } = useRevealAnalytics();
   const [expanded, setExpanded] = useState(false);
   const [fontSize, setFontSize] = useState<FontSize>(17);
 
@@ -101,7 +103,13 @@ export function LetterCard({
         <div className="mt-6 flex flex-col items-center gap-4">
           <button
             type="button"
-            onClick={() => setExpanded(true)}
+            onClick={() => {
+              capture("reveal_letter_expanded", {
+                contributionId: contribution.id,
+                authorName: contribution.authorName,
+              });
+              setExpanded(true);
+            }}
             className="relative z-20 inline-flex items-center gap-1.5 text-amber font-semibold text-[14px] hover:text-amber-dark transition-colors"
           >
             <ChevronDown size={16} strokeWidth={2} aria-hidden="true" />
