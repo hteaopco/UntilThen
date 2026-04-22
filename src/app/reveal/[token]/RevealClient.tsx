@@ -8,7 +8,11 @@ import {
   NotYetOpenScreen,
 } from "./ErrorScreens";
 import { EntryScreen } from "./EntryScreen";
+import { GalleryScreen } from "./GalleryScreen";
 import { StoryCards } from "./StoryCards";
+import { TransitionScreen } from "./TransitionScreen";
+
+const STORY_LIMIT = 5;
 
 export type RevealMedia = {
   kind: "photo" | "voice" | "video";
@@ -158,27 +162,46 @@ export function RevealClient({ token }: { token: string }) {
     return (
       <StoryCards
         contributions={data.contributions}
-        // Chunk 3 will swap both onClose + onComplete for the
-        // gallery + transition screens. Until then, exit/finish
-        // both drop back to the entry screen so the recipient
-        // isn't stranded.
-        onClose={() => setPhase("entry")}
-        onComplete={() => setPhase("entry")}
+        // ✕ from stories jumps straight to gallery (skips the
+        // transition screen — the brief explicitly says "exits to
+        // gallery immediately"). Reaching the end of the deck
+        // routes through the transition screen first.
+        onClose={() => setPhase("gallery")}
+        onComplete={() => {
+          // No transition screen if everything was already shown
+          // in the highlight reel — saves the recipient a tap.
+          const remaining = Math.max(
+            0,
+            data.contributions.length - STORY_LIMIT,
+          );
+          setPhase(remaining > 0 ? "transition" : "gallery");
+        }}
       />
     );
   }
 
-  // Chunk 3 phases (transition / gallery) land here as no-ops
-  // until those are built. Render the entry screen as a safe
-  // fallback.
-  if (data) {
+  if (phase === "transition" && data) {
+    const remaining = Math.max(0, data.contributions.length - STORY_LIMIT);
+    const contributorCount = new Set(
+      data.contributions.map((c) => c.authorName.trim()).filter(Boolean),
+    ).size;
     return (
-      <EntryScreen
-        recipientName={recipientName}
-        revealDate={data.capsule.revealDate}
-        onBegin={() => setPhase("entry")}
+      <TransitionScreen
+        remainingCount={remaining}
+        contributorCount={contributorCount}
+        onContinue={() => setPhase("gallery")}
       />
     );
   }
+
+  if (phase === "gallery" && data) {
+    return (
+      <GalleryScreen
+        recipientName={recipientName}
+        contributions={data.contributions}
+      />
+    );
+  }
+
   return <LoadingScreen />;
 }
