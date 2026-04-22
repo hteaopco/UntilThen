@@ -149,17 +149,55 @@
 
 ## 🟠 Reveal Visual QA
 
-- [ ] Verify all 4 reveal surfaces use the same components
-- [ ] Confirm tone prop wired through to SequentialRevealScreen on all surfaces
-- [ ] Test FirstScreen — sealed vault icon, occasion icon, hero line, CTA button
-- [ ] Test SequentialRevealScreen — unlock phase, typewriter, card navigation, closing line
-- [ ] Confirm confetti fires for CELEBRATION and LOVE tones only
-- [ ] Confirm fireworks fire for CELEBRATION tone only
-- [ ] Verify organiser preview shows full flow + ALL contributions
-- [ ] Verify "Replay preview" button on close screen
-- [ ] Test reveal on mobile — dark backgrounds, readable text, tappable cards
-- [ ] Verify all 6 tone copy variants render correctly
-- [ ] Check /admin/tones page shows all tone copy
+The recipient reveal was rebuilt April 22 — Entry → Story Cards →
+Transition → Gallery, all under `/reveal/[token]`. Old FirstScreen
++ SequentialRevealScreen + ListScreen still ship for the organiser
+preview + contributor "preview their moment" peek (separate
+cleanup pending).
+
+- [ ] **New reveal — Entry:** name + reveal date render, Begin
+  button advances; bokeh background looks right on iOS Safari
+- [ ] **New reveal — Story Cards:** progress bar fills as cards
+  advance; ✕ jumps to gallery; mute toggle silences voice card;
+  tap-right advances, tap-left goes back; > arrow works
+- [ ] **PhotoCard:** full-bleed media, gradient overlay, caption
+  readable, sender attribution amber
+- [ ] **LetterCard preview:** 5-line clamp + fade, "Tap to read
+  more" expands with rise animation
+- [ ] **LetterCard expanded:** ✕ collapses (does NOT exit reveal),
+  Aa cycles 15→17→20px, body scrolls, brush sig at bottom
+- [ ] **VoiceCard:** play button works, timestamp updates,
+  pause/resume, mute lock when StoryCards mute is active
+- [ ] **TransitionScreen:** "{N} more memories · {X} contributors"
+  copy correct, ghost CTA advances to gallery; entire screen
+  skipped when contributions ≤ 5
+- [ ] **GalleryScreen:** Alex Brush header, filter chips
+  horizontally scroll, type chips only when type exists,
+  per-contributor chips correct, masonry grid packs cleanly
+- [ ] **GalleryCard tap:** opens GalleryCardView modal, ✕ + Esc
+  both close, no progress bar / counter shown
+- [ ] **Replay link:** "Relive the opening" link visible on
+  gallery, taps reset to entry; second visit (after server stamps
+  recipientCompletedAt) lands directly in gallery
+- [ ] **Phase transitions:** 300ms opacity fade between Entry →
+  Stories → Transition → Gallery (no hard cuts)
+- [ ] **Sealed-not-yet-open:** hitting `/reveal/{token}` before
+  reveal date shows "{Recipient}, this capsule opens on …"
+- [ ] **Invalid token:** "/reveal/garbage" shows graceful error
+  screen + logo
+- [ ] **Mock preview:** `/admin/previews` → "Recipient Reveal —
+  Mock Capsule" runs the whole flow with seed data + stock media
+- [ ] **Real-capsule preview:** `/admin/previews` → bottom list →
+  "Open reveal" on a paid past-reveal-date capsule lands in the
+  full new flow
+- [ ] **Tone:** the new flow doesn't yet branch on tone (no
+  confetti/fireworks variants). Re-decide whether to port that or
+  leave it intentionally minimalist
+- [ ] **Legacy preview surfaces still using FirstScreen +
+  SequentialRevealScreen:** `/capsules/[id]/preview` and the
+  contributor-form "preview their moment" peek. Either migrate
+  them to RevealExperience or leave the old components in for
+  those two surfaces only
 
 ---
 

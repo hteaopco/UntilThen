@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { EntryScreen } from "./EntryScreen";
 import { GalleryScreen } from "./GalleryScreen";
@@ -57,9 +57,15 @@ type Phase = "entry" | "stories" | "transition" | "gallery";
 export function RevealExperience({
   capsule,
   contributions,
+  onCompleted,
 }: {
   capsule: RevealCapsule;
   contributions: RevealContribution[];
+  /** Fires once, the first time the recipient reaches the gallery
+   *  in this session. The wrapper is responsible for any server-
+   *  side stamping (POST /api/reveal/{token}/complete). Optional
+   *  so the admin mock preview can omit it. */
+  onCompleted?: () => void;
 }) {
   const [phase, setPhase] = useState<Phase>(() =>
     capsule.hasCompleted ? "gallery" : "entry",
@@ -73,45 +79,86 @@ export function RevealExperience({
     [contributions],
   );
 
-  if (phase === "entry") {
+  // Fire the one-time completion callback the very first time
+  // gallery becomes the active phase in this session — including
+  // returning visits where the gallery is the entry phase.
+  const completedFired = useRef(false);
+  useEffect(() => {
+    if (phase === "gallery" && !completedFired.current) {
+      completedFired.current = true;
+      onCompleted?.();
+    }
+  }, [phase, onCompleted]);
+
+  // Wrap each phase in a keyed div so React remounts on phase
+  // change and the CSS fade-in animation re-runs. 300ms matches
+  // the brief's "phase transitions: opacity fade, 300ms ease".
+  const phaseContent = (() => {
+    if (phase === "entry") {
+      return (
+        <EntryScreen
+          recipientName={capsule.recipientName}
+          revealDate={capsule.revealDate}
+          onBegin={() =>
+            setPhase(contributions.length === 0 ? "gallery" : "stories")
+          }
+        />
+      );
+    }
+    if (phase === "stories") {
+      return (
+        <StoryCards
+          contributions={contributions}
+          // ✕ from stories jumps straight to gallery (brief
+          // explicitly says "exits to gallery immediately").
+          // Reaching the end of the deck routes through the
+          // transition screen first.
+          onClose={() => setPhase("gallery")}
+          onComplete={() =>
+            setPhase(remaining > 0 ? "transition" : "gallery")
+          }
+        />
+      );
+    }
+    if (phase === "transition") {
+      return (
+        <TransitionScreen
+          remainingCount={remaining}
+          contributorCount={contributorCount}
+          onContinue={() => setPhase("gallery")}
+        />
+      );
+    }
     return (
-      <EntryScreen
+      <GalleryScreen
         recipientName={capsule.recipientName}
-        revealDate={capsule.revealDate}
-        onBegin={() =>
-          setPhase(contributions.length === 0 ? "gallery" : "stories")
-        }
-      />
-    );
-  }
-
-  if (phase === "stories") {
-    return (
-      <StoryCards
         contributions={contributions}
-        // ✕ from stories jumps straight to gallery (brief explicitly
-        // says "exits to gallery immediately"). Reaching the end of
-        // the deck routes through the transition screen first.
-        onClose={() => setPhase("gallery")}
-        onComplete={() => setPhase(remaining > 0 ? "transition" : "gallery")}
+        onReplay={() => {
+          // Replay is session-only — recipientCompletedAt is not
+          // reset on the server. The recipient gets the cinematic
+          // intro again, then lands back here.
+          setPhase("entry");
+        }}
       />
     );
-  }
-
-  if (phase === "transition") {
-    return (
-      <TransitionScreen
-        remainingCount={remaining}
-        contributorCount={contributorCount}
-        onContinue={() => setPhase("gallery")}
-      />
-    );
-  }
+  })();
 
   return (
-    <GalleryScreen
-      recipientName={capsule.recipientName}
-      contributions={contributions}
-    />
+    <div key={phase} className="reveal-phase">
+      {phaseContent}
+      <style jsx global>{`
+        .reveal-phase {
+          animation: revealPhaseFade 300ms ease-out both;
+        }
+        @keyframes revealPhaseFade {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+      `}</style>
+    </div>
   );
 }

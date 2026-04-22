@@ -1,6 +1,6 @@
 "use client";
 
-import { Image as ImageIcon, Mail, Mic } from "lucide-react";
+import { Image as ImageIcon, Mail, Mic, RotateCcw } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { GalleryCard } from "./GalleryCard";
@@ -25,9 +25,15 @@ type Filter =
 export function GalleryScreen({
   recipientName,
   contributions,
+  onReplay,
 }: {
   recipientName: string;
   contributions: RevealContribution[];
+  /** Optional replay handler. When provided, renders a subtle
+   *  "Relive the opening" link near the gallery header that
+   *  re-runs Phase 1 → Phase 2 → Phase 3. Session-only — does
+   *  not reset recipientCompletedAt on the server. */
+  onReplay?: () => void;
 }) {
   const [filter, setFilter] = useState<Filter>({ kind: "all" });
   const [openId, setOpenId] = useState<string | null>(null);
@@ -89,6 +95,16 @@ export function GalleryScreen({
           paddingTop: "max(env(safe-area-inset-top), 56px)",
         }}
       >
+        {onReplay && (
+          <button
+            type="button"
+            onClick={onReplay}
+            className="mb-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-amber/85 hover:text-amber-dark transition-colors"
+          >
+            <RotateCcw size={12} strokeWidth={2} aria-hidden="true" />
+            Relive the opening
+          </button>
+        )}
         <h1 className="font-brush text-warm-slate text-[34px] leading-[1.1]">
           {recipientName ? `${recipientName}'s Capsule` : "Your Capsule"}
         </h1>

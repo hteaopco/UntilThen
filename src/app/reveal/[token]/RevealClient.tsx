@@ -111,6 +111,15 @@ export function RevealClient({ token }: { token: string }) {
       <RevealExperience
         capsule={data.capsule}
         contributions={data.contributions}
+        onCompleted={() => {
+          // Fire-and-forget — failure here is non-fatal (the
+          // recipient can still browse the gallery just fine; the
+          // hasCompleted flag will be re-attempted on next visit).
+          void fetch(`/api/reveal/${encodeURIComponent(token)}/complete`, {
+            method: "POST",
+            keepalive: true,
+          }).catch(() => {});
+        }}
       />
     );
   }
