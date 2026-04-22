@@ -112,11 +112,18 @@ type Phase = "gate" | "entry" | "stories" | "transition" | "gallery";
  * Returning visits (capsule.hasCompleted) start in the gallery
  * directly — the cinematic intro is a one-shot.
  */
+export type RevealCuratedSlide = {
+  entryId: string;
+  view: "letter" | "VOICE" | "PHOTO" | "VIDEO";
+};
+
 export function RevealExperience({
   capsule,
   contributions,
   onCompleted,
   variant = "capsule",
+  curatedSlides,
+  musicUrl,
 }: {
   capsule: RevealCapsule;
   contributions: RevealContribution[];
@@ -131,7 +138,17 @@ export function RevealExperience({
    *  parent-authored by default (contributor filter hidden,
    *  subhead trimmed to just the counts). Defaults to capsule. */
   variant?: "capsule" | "vault";
+  /** When provided (BUILD mode), the highlight reel uses these
+   *  exact slides in order instead of auto-expanding the
+   *  contributions array. Each slide picks one modality from one
+   *  contribution. */
+  curatedSlides?: RevealCuratedSlide[];
+  /** Override for the background music URL. Falls back to the
+   *  global NEXT_PUBLIC_REVEAL_MUSIC_URL when not set. Used by
+   *  vault reveals where the owner picks a per-vault song. */
+  musicUrl?: string | null;
 }) {
+  const effectiveMusicUrl = musicUrl ?? MUSIC_URL;
   // Returning visitors skip both gate + entry — they already
   // saw the cinematic flow and we drop them in the gallery.
   // First-timers start at the gate so the single tap (a) grants
@@ -160,7 +177,7 @@ export function RevealExperience({
   const fadeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startMusic = useCallback(() => {
-    if (!MUSIC_URL) return;
+    if (!effectiveMusicUrl) return;
     if (musicRef.current) return;
     // A previous fade may have torn the element down — fadingRef
     // stays true until we're ready for a fresh start.
@@ -169,7 +186,7 @@ export function RevealExperience({
       clearInterval(fadeTimerRef.current);
       fadeTimerRef.current = null;
     }
-    const el = new Audio(MUSIC_URL);
+    const el = new Audio(effectiveMusicUrl);
     el.loop = true;
     el.volume = duckCountRef.current > 0 ? MUSIC_DUCKED_VOLUME : MUSIC_VOLUME;
     el.muted = muted;
@@ -178,7 +195,7 @@ export function RevealExperience({
       // without music rather than prompting or erroring.
     });
     musicRef.current = el;
-  }, [muted]);
+  }, [muted, effectiveMusicUrl]);
 
   /**
    * Stepped fade-out when the recipient leaves the highlight
@@ -340,6 +357,7 @@ export function RevealExperience({
       return (
         <StoryCards
           contributions={contributions}
+          curatedSlides={curatedSlides}
           muted={muted}
           onToggleMuted={() => setMuted((m) => !m)}
           // ✕ from stories jumps straight to gallery (brief
@@ -369,7 +387,7 @@ export function RevealExperience({
         variant={variant}
         muted={muted}
         onToggleMuted={() => setMuted((m) => !m)}
-        musicEnabled={Boolean(MUSIC_URL)}
+        musicEnabled={Boolean(effectiveMusicUrl)}
         onReplay={() => {
           // Replay is session-only — recipientCompletedAt is not
           // reset on the server. The recipient gets the cinematic

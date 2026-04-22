@@ -33,6 +33,7 @@ const STORY_LIMIT = 5;
  */
 export function StoryCards({
   contributions,
+  curatedSlides,
   onClose,
   onComplete,
   muted,
@@ -40,6 +41,10 @@ export function StoryCards({
 }: {
   /** Full ordered list. We slice to first 5 here. */
   contributions: RevealContribution[];
+  /** When provided (BUILD mode), use these exact slides in order
+   *  instead of auto-expanding contributions. Slides reference
+   *  contributions by id + which modality view to render. */
+  curatedSlides?: { entryId: string; view: "letter" | "VOICE" | "PHOTO" | "VIDEO" }[];
   /** ✕ button — exits to gallery. */
   onClose: () => void;
   /** Advancing past the last card — moves to Phase 3 (transition). */
@@ -50,17 +55,25 @@ export function StoryCards({
   onToggleMuted: () => void;
 }) {
   const { capture } = useRevealAnalytics();
-  // Expand each contribution into one or more slides based on
-  // what it carries — text body → letter slide, voice media →
-  // voice slide, photo media → photo slide, video media → video
-  // slide. A single entry with letter+voice produces two slides
-  // so the recipient experiences both modalities separately, and
-  // we don't auto-play audio that's attached to a letter (the
-  // audio gets its own slide where the user must tap Play).
-  const cards = useMemo(
-    () => expandContributionsToSlides(contributions).slice(0, STORY_LIMIT),
-    [contributions],
-  );
+  // BUILD mode: use the curator's saved slide list verbatim.
+  // RANDOM mode: auto-expand each contribution into per-modality
+  // slides and take the first 5 chronologically. Either way we
+  // end up with a flat Slide[] the rest of the component drives
+  // off of.
+  const cards = useMemo(() => {
+    if (curatedSlides && curatedSlides.length > 0) {
+      const byId = new Map(contributions.map((c) => [c.id, c]));
+      const out: Slide[] = [];
+      for (const ref of curatedSlides) {
+        const c = byId.get(ref.entryId);
+        if (!c) continue;
+        out.push({ contribution: c, view: ref.view });
+        if (out.length >= STORY_LIMIT) break;
+      }
+      return out;
+    }
+    return expandContributionsToSlides(contributions).slice(0, STORY_LIMIT);
+  }, [contributions, curatedSlides]);
   const [index, setIndex] = useState(0);
 
   // Fire one view event per slide — covers both the initial mount

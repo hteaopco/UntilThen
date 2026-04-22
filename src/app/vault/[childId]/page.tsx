@@ -1,10 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Eye } from "lucide-react";
 
 import { CapsuleHero } from "@/components/capsule-landing/CapsuleHero";
 import { CollectionCard } from "@/components/capsule-landing/CollectionCard";
+import { RevealReelCard } from "@/components/capsule-landing/RevealReelCard";
 import { TopNav } from "@/components/ui/TopNav";
 import {
   ageOnDate,
@@ -60,20 +59,17 @@ export default async function CapsuleLandingPage({
         />
 
         <section>
-          <div className="flex items-center justify-between gap-4 mb-5">
+          <div className="flex items-start justify-between gap-4 mb-5 flex-wrap">
             <h2 className="text-[22px] sm:text-[26px] font-extrabold text-navy tracking-[-0.4px]">
               {child.firstName}&rsquo;s Collections
             </h2>
-            <Link
-              href={`/vault/${childId}/preview`}
-              prefetch={false}
-              className="inline-flex items-center gap-2 text-[13px] font-semibold text-ink-mid hover:text-amber transition-colors whitespace-nowrap"
-            >
-              View combined preview
-              <span className="w-7 h-7 rounded-full bg-amber-tint text-amber flex items-center justify-center">
-                <Eye size={14} strokeWidth={1.75} />
-              </span>
-            </Link>
+            <RevealReelCard
+              vaultId={vault.id}
+              childId={child.id}
+              initialMode={vault.revealMode}
+              curatedSlideCount={vault.curatedSlides.length}
+              songName={vault.revealSongName}
+            />
           </div>
 
           {collections.length === 0 ? (

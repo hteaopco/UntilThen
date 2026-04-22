@@ -63,6 +63,7 @@ export default async function VaultPreviewPage({
               collection: { select: { title: true } },
             },
           },
+          revealSong: { select: { id: true, r2Key: true } },
         },
       },
     },
@@ -131,11 +132,52 @@ export default async function VaultPreviewPage({
     hasCompleted: false,
   };
 
+  // BUILD-mode curator output. Falls back to Random in
+  // VaultPreviewClient → RevealExperience when this is empty.
+  const curatedSlides =
+    child.vault.revealMode === "BUILD"
+      ? parseCuratedSlides(child.vault.curatedSlides)
+      : [];
+
+  // Per-vault background music — sign the R2 key so the audio
+  // element can stream it without exposing the bucket.
+  let musicUrl: string | null = null;
+  if (r2 && child.vault.revealSong?.r2Key) {
+    try {
+      musicUrl = await signGetUrl(child.vault.revealSong.r2Key);
+    } catch {
+      musicUrl = null;
+    }
+  }
+
   return (
     <VaultPreviewClient
       realCapsule={capsule}
       realContributions={contributions}
       childId={child.id}
+      curatedSlides={curatedSlides}
+      musicUrl={musicUrl}
     />
   );
+}
+
+function parseCuratedSlides(
+  raw: unknown,
+): { entryId: string; view: "letter" | "VOICE" | "PHOTO" | "VIDEO" }[] {
+  if (!Array.isArray(raw)) return [];
+  const out: { entryId: string; view: "letter" | "VOICE" | "PHOTO" | "VIDEO" }[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const obj = item as Record<string, unknown>;
+    if (typeof obj.entryId !== "string") continue;
+    if (
+      obj.view !== "letter" &&
+      obj.view !== "VOICE" &&
+      obj.view !== "PHOTO" &&
+      obj.view !== "VIDEO"
+    )
+      continue;
+    out.push({ entryId: obj.entryId, view: obj.view });
+  }
+  return out;
 }

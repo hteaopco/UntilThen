@@ -1,6 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
+export type CuratedSlide = {
+  entryId: string;
+  view: "letter" | "VOICE" | "PHOTO" | "VIDEO";
+};
+
 export type CapsuleLandingData = {
   child: {
     id: string;
@@ -11,6 +16,10 @@ export type CapsuleLandingData = {
     id: string;
     coverUrl: string | null;
     revealDate: Date | null;
+    revealMode: "RANDOM" | "BUILD";
+    curatedSlides: CuratedSlide[];
+    revealSongId: string | null;
+    revealSongName: string | null;
   };
   collections: CollectionRow[];
 };
@@ -51,7 +60,13 @@ export async function loadCapsuleLandingData({
 
   const child = await prisma.child.findUnique({
     where: { id: childId },
-    include: { vault: true },
+    include: {
+      vault: {
+        include: {
+          revealSong: { select: { id: true, name: true } },
+        },
+      },
+    },
   });
   if (!child || child.parentId !== user.id || !child.vault) return null;
 
@@ -140,9 +155,32 @@ export async function loadCapsuleLandingData({
       id: child.vault.id,
       coverUrl: signedCoverUrl,
       revealDate: child.vault.revealDate,
+      revealMode: child.vault.revealMode,
+      curatedSlides: parseCuratedSlides(child.vault.curatedSlides),
+      revealSongId: child.vault.revealSongId,
+      revealSongName: child.vault.revealSong?.name ?? null,
     },
     collections: collectionRows,
   };
+}
+
+function parseCuratedSlides(raw: unknown): CuratedSlide[] {
+  if (!Array.isArray(raw)) return [];
+  const out: CuratedSlide[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const obj = item as Record<string, unknown>;
+    if (typeof obj.entryId !== "string") continue;
+    if (
+      obj.view !== "letter" &&
+      obj.view !== "VOICE" &&
+      obj.view !== "PHOTO" &&
+      obj.view !== "VIDEO"
+    )
+      continue;
+    out.push({ entryId: obj.entryId, view: obj.view });
+  }
+  return out;
 }
 
 function aggregateEntryStats(

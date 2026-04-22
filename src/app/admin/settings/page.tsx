@@ -2,6 +2,7 @@ import { AdminHeader } from "@/app/admin/AdminHeader";
 
 import { LockThrottleToggle } from "./LockThrottleToggle";
 import { PaywallToggle } from "./PaywallToggle";
+import { RevealSongsManager } from "./RevealSongsManager";
 import { SquareOrderTemplateSetup } from "./SquareOrderTemplateSetup";
 import { SquarePlanVariations } from "./SquarePlanVariations";
 
@@ -87,6 +88,20 @@ export default async function AdminSettingsPage() {
             env vars. Idempotent &mdash; safe to re-run.
           </p>
           <SquareOrderTemplateSetup />
+        </section>
+
+        <section className="mt-12 pt-10 border-t border-navy/[0.06]">
+          <p className="text-[11px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-3">
+            Reveal background music
+          </p>
+          <p className="text-sm text-ink-mid mb-5 max-w-[560px]">
+            Songs uploaded here appear as picker options on every
+            capsule&rsquo;s reveal curator. Keep them short ambient loops
+            (2&ndash;4 minutes) and royalty-free &mdash; capsule owners
+            can&rsquo;t upload their own to keep us out of licensing
+            trouble.
+          </p>
+          <RevealSongsManager />
         </section>
       </div>
     </main>

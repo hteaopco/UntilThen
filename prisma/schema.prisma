@@ -129,6 +129,15 @@ model Vault {
   // only manually flip lock state once every 90 days to prevent
   // rotating capsules against a single paid slot.
   lastLockToggleAt DateTime?
+  // Reveal-reel curation. RANDOM lets RevealExperience pick the
+  // first 5 modality slides; BUILD plays curatedSlides exactly.
+  // curatedSlides is an array of {entryId, view} objects, where
+  // view ∈ "letter" | "VOICE" | "PHOTO" | "VIDEO" — written by
+  // the curator UI on the capsule landing page.
+  revealMode       RevealMode  @default(RANDOM)
+  curatedSlides    Json?
+  revealSongId     String?
+  revealSong       RevealSong? @relation(fields: [revealSongId], references: [id], onDelete: SetNull)
   createdAt    DateTime  @default(now())
 
   child       Child        @relation(fields: [childId], references: [id])
@@ -136,6 +145,30 @@ model Vault {
   collections Collection[]
 
   @@index([revealDate])
+  @@index([revealSongId])
+}
+
+enum RevealMode {
+  /// Auto-pick first 5 chronological modality slides (legacy default).
+  RANDOM
+  /// Use curatedSlides exactly.
+  BUILD
+}
+
+/// Reveal background music — admin-uploaded MP3s that capsule
+/// owners pick from on their capsule landing. Stored in R2
+/// under a "reveal-music/" prefix; signed on demand for the
+/// reveal player.
+model RevealSong {
+  id           String   @id @default(cuid())
+  name         String
+  r2Key        String   @unique
+  /// Optional duration in seconds for UI badges; null when we
+  /// don't have it yet.
+  durationSec  Int?
+  uploadedAt   DateTime @default(now())
+
+  vaults Vault[]
 }
 
 model Collection {

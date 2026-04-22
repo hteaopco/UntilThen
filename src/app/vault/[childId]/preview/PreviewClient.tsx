@@ -12,6 +12,7 @@ import {
   RevealExperience,
   type RevealCapsule,
   type RevealContribution,
+  type RevealCuratedSlide,
 } from "@/app/reveal/[token]/RevealExperience";
 
 type Mode = "real" | "demo";
@@ -34,10 +35,18 @@ export function VaultPreviewClient({
   realCapsule,
   realContributions,
   childId,
+  curatedSlides,
+  musicUrl,
 }: {
   realCapsule: RevealCapsule;
   realContributions: RevealContribution[];
   childId: string;
+  /** When set, the highlight reel uses these slides verbatim
+   *  (BUILD mode). Empty array → Random behaviour. */
+  curatedSlides?: RevealCuratedSlide[];
+  /** Per-vault background music URL. When unset RevealExperience
+   *  falls back to the global env music or runs silent. */
+  musicUrl?: string | null;
 }) {
   const hasRealContent = realContributions.length > 0;
   const [mode, setMode] = useState<Mode>(hasRealContent ? "real" : "demo");
@@ -101,6 +110,11 @@ export function VaultPreviewClient({
         capsule={capsule}
         contributions={contributions}
         variant="vault"
+        // Curator + music only apply to "this vault" — the
+        // demo mode is always a fresh randomised reel against
+        // mock contributions.
+        curatedSlides={mode === "real" ? curatedSlides : undefined}
+        musicUrl={mode === "real" ? musicUrl ?? null : null}
       />
     </div>
   );
