@@ -41,6 +41,13 @@ export default function SignInPage() {
         forceRedirectUrl="/dashboard"
         fallbackRedirectUrl="/dashboard"
       />
+
+      <Link
+        href="/help/recovery"
+        className="mt-6 text-[13px] text-ink-mid hover:text-navy"
+      >
+        Lost access to your email? →
+      </Link>
     </main>
   );
 }

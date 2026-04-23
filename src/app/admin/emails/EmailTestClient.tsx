@@ -187,6 +187,24 @@ const TEMPLATES: EmailTemplate[] = [
     frequency: "On event",
     funnel: "Acquisition",
   },
+  {
+    id: "recovery-support",
+    name: "#20a Recovery → Support",
+    subject: "Recovery request: Jett Smith (jett@example.com)",
+    bodyPreview: "Internal notification sent to hello@untilthenapp.io when a user submits /help/recovery. Contains identity details + IP/UA for verification.",
+    trigger: "User submits /help/recovery form",
+    frequency: "On event",
+    funnel: "Retention",
+  },
+  {
+    id: "recovery-confirmation",
+    name: "#20b Recovery → Requester",
+    subject: "We got your recovery request",
+    bodyPreview: "Your account recovery request has been received. Someone on our team will review the details you sent and get back to you within 1–2 business days.",
+    trigger: "User submits /help/recovery form",
+    frequency: "On event",
+    funnel: "Retention",
+  },
 ];
 
 const FUNNEL_COLORS: Record<string, string> = {

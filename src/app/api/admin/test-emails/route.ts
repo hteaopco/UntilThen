@@ -52,6 +52,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     sendAccountDeleted,
     sendWritingReminder,
     sendRevealCountdown,
+    sendAccountRecoveryRequest,
+    sendAccountRecoveryConfirmation,
   } = await import("@/lib/emails");
 
   // #1 — Invite Contributor
@@ -240,6 +242,31 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   );
 
+  // #20a — Recovery request (fires to the support inbox, NOT `to`).
+  // Included so admins can preview what the internal email looks
+  // like without waiting for a real user to submit the form.
+  await fire("recovery-support", "#20a Recovery → Support", () =>
+    sendAccountRecoveryRequest({
+      originalEmail: "jett@example.com",
+      newEmail: to,
+      fullName: "Jett Smith",
+      childFirstName: "Olivia",
+      approximateSignupDate: "Spring 2026",
+      details:
+        "Billing card ends in 4242. My co-parent Sarah is on the Sibling vault. Reveal date is Olivia's 18th birthday, June 2044.",
+      ipAddress: "203.0.113.42",
+      userAgent:
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_2 like Mac OS X) AppleWebKit/605.1.15",
+    }),
+  );
+
+  // #20b — Recovery confirmation (to the new email the requester gave us).
+  await fire("recovery-confirmation", "#20b Recovery → Requester", () =>
+    sendAccountRecoveryConfirmation({
+      to,
+      fullName: "Jett Smith",
+    }),
+  );
 
   const sent = results.filter((r) => r.ok).length;
   const failed = results.filter((r) => !r.ok).length;

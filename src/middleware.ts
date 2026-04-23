@@ -26,6 +26,9 @@ const isPublicRoute = createRouteMatcher([
   "/api/reveal/(.*)",
   "/api/webhooks/(.*)",
   "/api/health(.*)",
+  // Account-recovery help page + its submit endpoint.
+  "/help/(.*)",
+  "/api/help/(.*)",
 ]);
 
 // Path-based rate limit classification. Order matters — first
