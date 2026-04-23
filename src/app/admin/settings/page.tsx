@@ -2,6 +2,7 @@ import { AdminHeader } from "@/app/admin/AdminHeader";
 
 import { LockThrottleToggle } from "./LockThrottleToggle";
 import { PaywallToggle } from "./PaywallToggle";
+import { ResetSubscriptionForm } from "./ResetSubscriptionForm";
 import { RevealSongsManager } from "./RevealSongsManager";
 import { SquareOrderTemplateSetup } from "./SquareOrderTemplateSetup";
 import { SquarePlanVariations } from "./SquarePlanVariations";
@@ -102,6 +103,30 @@ export default async function AdminSettingsPage() {
             trouble.
           </p>
           <RevealSongsManager />
+        </section>
+
+        <section className="mt-12 pt-10 border-t border-navy/[0.06]">
+          <p className="text-[11px] uppercase tracking-[0.12em] font-bold text-red-600 mb-3">
+            Testing tools
+          </p>
+          <p className="text-sm text-ink-mid mb-5 max-w-[560px]">
+            Danger zone. Only intended for pre-launch QA &mdash; these
+            actions bypass the normal billing flow.
+          </p>
+          <div className="space-y-2">
+            <p className="text-[13px] font-semibold text-navy">
+              Reset a user&rsquo;s subscription
+            </p>
+            <p className="text-[12px] text-ink-mid max-w-[560px]">
+              Cancels every linked Square sub and deletes the local
+              Subscription row so the user can subscribe fresh on a
+              different cadence. Saved card stays so the next checkout
+              doesn&rsquo;t need a new card entry.
+            </p>
+            <div className="mt-3">
+              <ResetSubscriptionForm />
+            </div>
+          </div>
         </section>
       </div>
     </main>
