@@ -22,4 +22,10 @@ cmds = [
 # Clerk's response carries large Set-Cookie headers. Default is 16KB;
 # Clerk's combined session + JWT cookies can exceed that in
 # production. Railway was crash-looping on HPE_HEADER_OVERFLOW before.
-cmd = "sh -c 'set -e; export NODE_OPTIONS=\"--max-http-header-size=65536\"; echo \"[start] running prisma migrate deploy\"; npx prisma migrate deploy; echo \"[start] launching next server (NODE_OPTIONS=$NODE_OPTIONS)\"; npm run start'"
+#
+# `timeout 45 prisma migrate deploy || echo` — if the advisory lock
+# is held by a shutting-down old container, we wait up to 45s and
+# then fall through. Next still starts so healthcheck can pass;
+# pending migrations get applied on the next deploy. Without this,
+# a lock race killed the whole container via `set -e`.
+cmd = "sh -c 'export NODE_OPTIONS=\"--max-http-header-size=65536\"; echo \"[start $(date -u +%FT%TZ)] container up, running prisma migrate deploy\"; timeout 45 npx prisma migrate deploy || echo \"[start $(date -u +%FT%TZ)] migrate deploy timed out or failed (exit $?) — continuing so Next can still serve\"; echo \"[start $(date -u +%FT%TZ)] launching next server (NODE_OPTIONS=$NODE_OPTIONS)\"; exec npm run start'"

@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "sh -c 'set -e; export NODE_OPTIONS=\"--max-http-header-size=65536\"; echo \"[start] running prisma migrate deploy\"; npx prisma migrate deploy; echo \"[start] launching next server (NODE_OPTIONS=$NODE_OPTIONS)\"; npm run start'",
+    "startCommand": "sh -c 'export NODE_OPTIONS=\"--max-http-header-size=65536\"; echo \"[start $(date -u +%FT%TZ)] container up, running prisma migrate deploy\"; timeout 45 npx prisma migrate deploy || echo \"[start $(date -u +%FT%TZ)] migrate deploy timed out or failed (exit $?) — continuing so Next can still serve\"; echo \"[start $(date -u +%FT%TZ)] launching next server (NODE_OPTIONS=$NODE_OPTIONS)\"; exec npm run start'",
     "healthcheckPath": "/api/health",
     "healthcheckTimeout": 180,
     "restartPolicyType": "ON_FAILURE",

@@ -137,6 +137,12 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   // Standard Clerk matcher: all app routes except static assets and _next
-  // internals, plus all API / tRPC routes.
-  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
+  // internals, plus all API / tRPC routes. /api/health is explicitly
+  // excluded so Railway's healthcheck doesn't pay Clerk JWKS + Upstash
+  // cold-start on every deploy — the probe needs to be sub-second.
+  matcher: [
+    "/((?!.*\\..*|_next|api/health).*)",
+    "/",
+    "/(api|trpc)(?!/health)(.*)",
+  ],
 };
