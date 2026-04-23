@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  AlertCircle,
   HelpCircle,
   Lock,
   MinusCircle,
@@ -473,9 +474,7 @@ export function BillingClient({
       )}
 
       {error && (
-        <p className="text-sm text-red-600" role="alert">
-          {error}
-        </p>
+        <BillingErrorModal message={error} onClose={() => setError(null)} />
       )}
 
       {capsules.length > 0 && (
@@ -660,6 +659,63 @@ export function BillingClient({
 
 /** Normalise Square's uppercase card brand strings ("VISA",
  *  "MASTERCARD", "AMERICAN_EXPRESS") into display form. */
+/** Floating error modal for billing-page failures. Replaces an
+ *  inline red <p> that scrolled out of view on long pages —
+ *  errors now sit center-screen until the user dismisses. */
+function BillingErrorModal({
+  message,
+  onClose,
+}: {
+  message: string;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Something went wrong"
+      className="fixed inset-0 z-50 bg-navy/50 backdrop-blur-sm flex items-center justify-center px-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="w-full max-w-[420px] bg-cream rounded-2xl shadow-xl px-6 py-6 sm:px-7 sm:py-7">
+        <div className="flex items-start gap-3 mb-3">
+          <div
+            aria-hidden="true"
+            className="shrink-0 w-9 h-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center"
+          >
+            <AlertCircle size={18} strokeWidth={1.75} />
+          </div>
+          <h2 className="text-[18px] font-extrabold text-navy tracking-[-0.2px] leading-tight pt-1.5">
+            Something didn&rsquo;t go through.
+          </h2>
+        </div>
+        <p className="text-[14px] text-ink-mid leading-[1.55]">
+          {message}
+        </p>
+        <div className="mt-5 flex items-center justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-navy text-white text-[14px] font-bold hover:bg-navy/90 transition-colors"
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function formatBrand(brand: string): string {
   const map: Record<string, string> = {
     VISA: "Visa",
