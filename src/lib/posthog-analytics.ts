@@ -133,39 +133,33 @@ export interface TrendPoint {
 /**
  * Daily new users (first event seen) over the last N days.
  *
- * Uses HAVING on the subquery so the date filter runs against the
- * already-aggregated first-event timestamp per distinct_id. The
- * earlier WHERE-against-alias form triggered HogQL parsing errors
- * on some projects.
+ * Uses toStartOfDay() on the aggregate — PostHog's HogQL rewrites
+ * `toDate()` to `toDateOrNull()` for safety, which fails on
+ * DateTime64 inputs (it requires a String). toStartOfDay() returns
+ * a DateTime truncated to midnight and skips that rewrite.
  */
 export async function trendNewUsers(days = 30): Promise<TrendPoint[] | null> {
-  const result = await hogQuery(`
-    SELECT day, count() as new_users
-    FROM (
-      SELECT distinct_id, toDate(min(timestamp)) as day
-      FROM events
-      GROUP BY distinct_id
-      HAVING day > today() - INTERVAL ${days} DAY
-    ) _
-    GROUP BY day
-    ORDER BY day
-  `);
+  const result = await hogQuery(buildTrendNewUsersQuery(days));
   return rowsToTrend(result);
 }
 
 /** Raw error text for the trendNewUsers query (for admin UI). */
 export function trendNewUsersError(days = 30): string | null {
-  return lastQueryError(`
-    SELECT day, count() as new_users
+  return lastQueryError(buildTrendNewUsersQuery(days));
+}
+
+function buildTrendNewUsersQuery(days: number): string {
+  return `
+    SELECT toStartOfDay(min_ts) as day, count() as new_users
     FROM (
-      SELECT distinct_id, toDate(min(timestamp)) as day
+      SELECT distinct_id, min(timestamp) as min_ts
       FROM events
       GROUP BY distinct_id
-      HAVING day > today() - INTERVAL ${days} DAY
     ) _
+    WHERE min_ts > now() - INTERVAL ${days} DAY
     GROUP BY day
     ORDER BY day
-  `);
+  `;
 }
 
 /** Daily active users over the last N days. */
