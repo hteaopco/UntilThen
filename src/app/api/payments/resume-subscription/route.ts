@@ -133,12 +133,6 @@ export async function POST(): Promise<NextResponse> {
   }
 
   try {
-    // Idempotency: tie to userId + current period_end so a
-    // page-refresh retry doesn't spawn duplicate subs. Square
-    // caps keys at 45 chars; "rs-" (3) + cuid (25) + "-" (1) +
-    // YYYYMMDD (8) = 37.
-    const ymd = startDate.replace(/-/g, "");
-
     // ANNUAL resume merges every addon into the base sub via
     // priceOverrideMoney so there's one sub + one renewal
     // invoice. Monthly keeps separate addon subs.
@@ -152,8 +146,10 @@ export async function POST(): Promise<NextResponse> {
           }
         : {};
 
+    // "rs-<userId>" leaves 16 chars of slack for the helper's
+    // retry suffix — no clamping, no truncation.
     const baseResp = await retryOnIdempotencyReuse(
-      `rs-${user.id}-${ymd}`,
+      `rs-${user.id}`,
       (idempotencyKey) =>
         square.subscriptions.create({
           idempotencyKey,
@@ -178,8 +174,9 @@ export async function POST(): Promise<NextResponse> {
       for (let i = 0; i < sub.addonCapsuleCount; i++) {
         const addonResp = await retryOnIdempotencyReuse(
           // Scoped per addon index so resume creates the right
-          // number of addon subs without colliding.
-          `rsa-${user.id}-${ymd}-${i}`,
+          // number of addon subs without colliding. "rsa-<uid>-<i>"
+          // = 32 chars max, comfortable retry room.
+          `rsa-${user.id}-${i}`,
           (idempotencyKey) =>
             square.subscriptions.create({
               idempotencyKey,

@@ -220,14 +220,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           }
         : {};
 
-    // Idempotency: "swp-<userId>-<targetPlan>" keeps retries of
-    // the same switch safe. Under 45 chars: "swp-" (4) + cuid (25)
-    // + "-" (1) + "ANNUAL" (6) = 36. Wrapped in the reuse-retry
-    // helper so a stale cached failure from a prior attempt
-    // (different card, different customer post-reset, etc.)
-    // recovers with a fresh key instead of surfacing a 500.
+    // Idempotency: "swp-<userId>". targetPlan omitted since only
+    // MONTHLY → ANNUAL is supported; leaving room for the helper
+    // to append a retry suffix without truncating. 4 + 25 = 29,
+    // retry ~39.
     const subResp = await retryOnIdempotencyReuse(
-      `swp-${user.id}-${targetPlan}`,
+      `swp-${user.id}`,
       (idempotencyKey) =>
         square.subscriptions.create({
           idempotencyKey,
