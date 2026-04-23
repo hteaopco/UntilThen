@@ -40,11 +40,11 @@ gzips the output, and uploads to R2 under
 
 1. Railway dashboard → **+ New** → **Cron Job**
 2. Schedule: `0 7 * * *` (03:00 ET / 07:00 UTC — quiet traffic hour)
-3. Command (URL hardcoded so the cron only needs one env var):
+3. Command (must be wrapped in `sh -c` so `$CRON_SECRET` expands —
+   Railway's cron context passes the command string to the runtime
+   directly, so bare `$VAR` lookups fail with "Bad hostname" etc):
    ```sh
-   curl -fsS -X POST \
-     -H "Authorization: Bearer $CRON_SECRET" \
-     https://untilthenapp.io/api/cron/db-backup
+   sh -c 'curl -fsS -X POST -H "Authorization: Bearer $CRON_SECRET" https://untilthenapp.io/api/cron/db-backup'
    ```
 4. Env vars on the cron service: `CRON_SECRET` only — copy the
    value from the main web service's variables panel. Railway
@@ -53,6 +53,11 @@ gzips the output, and uploads to R2 under
 
 If you ever migrate domains, update the URL in the cron command
 in step 3.
+
+**Same pattern for every other cron service** (reminders, capsule
+draft expiry, contributor reminder, countdowns, reveal, audit log
+prune, moderation cleanup). Swap the endpoint path and the
+schedule — the `sh -c '…'` wrapper stays identical.
 
 ### Retention
 
