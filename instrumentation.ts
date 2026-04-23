@@ -6,7 +6,9 @@
 // request handlers, even when Sentry.init() had run.
 import * as Sentry from "@sentry/nextjs";
 
-function commonBeforeSend(event: Sentry.Event): Sentry.Event {
+// Sentry v10 narrowed beforeSend to ErrorEvent specifically, so
+// importing the exact type keeps the signature happy.
+function commonBeforeSend(event: Sentry.ErrorEvent): Sentry.ErrorEvent {
   // Strip PII. Stay conservative — Sentry should get the shape
   // of an error, not the contents of a memory.
   if (event.user) {
