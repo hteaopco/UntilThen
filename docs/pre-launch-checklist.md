@@ -1,12 +1,12 @@
 # untilThen — Pre-Launch Checklist
-*Updated April 22, 2026*
-**Reference commit: `5097178`**
+*Updated April 23, 2026*
+**Reference commit: `980faff`**
 
 ---
 
 ## 🔴 Blockers
 
-- [ ] **Square payment integration** — $9.99 Gift Capsule activation currently uses placeholder receipt, anyone can activate for free
+- [x] **Square payment integration** — Gift Capsule activation charges $9.99 via Square, subscription system fully wired (subscribe / addon / remove-addon / cancel / resume / switch-plan / update-card / cancel-plan-switch), annual addons merged into base via per-sub order template, idempotency audit complete, card update is atomic across base + addon + pending subs with rollback
 - [ ] **PIN vault lock** — re-enable or remove. Schema ready (`pinHash` live), just needs lock screen wired back into `dashboard/layout.tsx` (one-line re-add)
 - [~] **Backup + restore verification** — code shipped (`/api/cron/db-backup`, `scripts/restore-db.ts`, `docs/backup-restore.md`). Railway native PG backups enabled, Railway cron service scheduled, R2 `backup-expiry` lifecycle rule live. **Only remaining step**: run the end-to-end restore drill into staging after the first cron produces a backup
 - [x] **Rate limiting audit** — complete. Patched `/api/account/contributors/[id]/resend` (was 100/min → now email bucket 10/10min) and `/api/invites/[token]` GET (was 100/min → now public bucket 20/min). No other real gaps; password reset is handled by Clerk's hosted UI, not a custom API
@@ -189,6 +189,52 @@
 
 ---
 
+## ✅ Resolved This Session (April 23) — Billing & Reveal Polish
+
+### Subscription billing — full production flow
+- [x] **Subscribe** — monthly + annual base plans via Square Subscriptions API with card-on-file saved for downstream flows
+- [x] **Add-on capsules** — monthly path: prorated upfront charge + separate addon sub. Annual path: merged into base via per-subscription order template, no charge today, "free until renewal" growth angle
+- [x] **Remove add-on** — drops `addonCapsuleCount`, cancels or downgrades the Square sub, reconciles vault locks so over-quota vaults auto-lock
+- [x] **Cancel subscription** — cancels base + all addon subs + any pending switch sub, flips row → CANCELLED, access held through `currentPeriodEnd`
+- [x] **One-click Resume** — for CANCELLED rows. Creates fresh Square subs starting at the old period-end (or today if lapsed) using saved card, re-locks/unlocks vaults
+- [x] **Switch plan (monthly → annual)** — cancels monthly + addon subs at period-end, creates new annual with merged per-subscription order template (stock templates can't express the $35.99 + $6×count total); pending fields promoted by `subscription.updated` webhook
+- [x] **Cancel pending switch** — new endpoint undoes a scheduled monthly→annual before effective date via `subscriptions.deleteAction` on the CANCEL action + cancel on the not-yet-started annual sub
+- [x] **Update payment method** — atomic cross-sub card swap: new card → update base + every addon + pending switch → rollback every flipped sub on any failure → disable new card on failure / old card on success. Displays brand + last-4 after save
+- [x] **Admin reset subscription tool** — email lookup → cancels all Square subs + deletes Subscription row + reconciles vault locks. Used for clean-slate testing
+
+### Square SDK hardening
+- [x] Shared `retryOnIdempotencyReuse` helper — catches `IDEMPOTENCY_KEY_REUSED`, retries with short timestamped suffix, clamps under Square's 45-char limit
+- [x] Idempotency key audit — every stable-key call site (subscribe, addon, remove, resume, switch, update-card, cancel-plan-switch, gift activation) shortened and routed through the helper
+- [x] **Order template per sub** — fixed `"The Order template must only be used in one subscription."` by minting a fresh DRAFT order template per addon sub (and per annual-with-addons base sub) via `createAddonOrderTemplate` / `createSubscriptionOrderTemplate` helpers
+- [x] **priceOverride / template conflict** — `"Price override not permitted when order template ID present."` fixed by baking the merged annual+addons total into the custom template and dropping `priceOverrideMoney` entirely
+- [x] **Scheduled-cancel retry** — switch-plan treats `"already has a pending cancel date"` as success so a partially-completed upgrade can be retried cleanly
+- [x] `backfillAddonSquareSubIds` helper — lazy backfill of `Subscription.addonSquareSubIds[]` from Square API for legacy rows predating id tracking
+- [x] `reconcileVaultLocks` helper — called from subscribe / resume / reset so vaults always match the paid-slot count (over-quota auto-lock)
+
+### Billing UX
+- [x] **BillingClient redesign** — itemized plan items (Base + each Add-on row), per-addon Remove button, per-capsule Lock/Unlock with 90-day throttle, Update payment method button with brand + last-4, Resume button on cancelled rows, Upgrade to Annual only on monthly
+- [x] **BillingErrorModal** — replaced inline red `<p>` with a centered modal (ESC + backdrop dismiss) so billing errors stay visible on long pages
+- [x] **Upgrade confirmation modal** — itemized preview of annual total + monthly-annualized savings before the POST fires; previously one click kicked off the switch silently
+- [x] **Cancel switch** link + confirm modal inside the pending-switch banner so a user who changes their mind before the effective date can revert cleanly
+- [x] **Usage stats** — photo / voice / video counts now sum every entry's `mediaTypes[]` (was only counting entries whose primary `EntryType` matched; letters with attached photos registered as 0 photos)
+- [x] **Copy tweaks** — "Cancels everything below with it." → "Cancels everything"; "Extra slot on top of the base plan." → "Extra slot on top of base"
+- [x] **Annual → Monthly downgrade** — intentionally removed (annual subscribers have already paid for the year; switch at renewal instead). Clear 409 message instead of a generic 500
+
+### Nav / feedback
+- [x] **Global navigation progress bar** — fixed amber top-bar lights up on every internal link click and clears when the new pathname mounts. Listens to pointerdown + click for iOS reliability, 0→15% rAF animation so motion is visible, 350ms minimum visible window so fast RSC nav still flashes
+- [x] **iOS Edit memory button fix** — replaced `<Link>` with client-side `router.push` (EntryDetailActions component) to work around a Next.js hydration issue where the button did nothing on iPhone
+
+### Reveal experience polish
+- [x] **Entry card action buttons** — Play / Edit / Preview / Delete with "I changed my mind" confirm modal on Delete
+- [x] **Per-modality highlight slides** — letter + voice entries split into two cards so audio doesn't auto-play inside a letter preview
+- [x] **Audio filter opens VoiceCard** — `forceView` prop on `GalleryCardView` so Audio filter in gallery goes to voice view for letter+voice entries
+- [x] **Voice autoplay on highlight reel** — `preload="auto"` + immediate `play()` + `canplaythrough` retry listener so first voice card starts without a tap
+- [x] **Per-capsule display name** — `Child.parentDisplayName` column lets each capsule customize "what they call you" ("Daddy", "Dad", "Pop") independent of sign-up first name
+- [x] **Build vs Random reveal mode** — new `Vault.revealMode` enum, curator flow at `/vault/[childId]/reveal/curator` for Build, admin-uploaded music via `RevealSong` model + `Vault.revealSongId` FK
+- [x] **Web Audio API for iOS** — music now routes through AudioContext + GainNode (iOS ignores `audioEl.volume` writes); ducking drops to 0.05 (was 0.15, harder duck per product ask), fade-out is 25 × 120ms ticks (was 5 × 400ms, stair-stepped)
+
+---
+
 ## 🟡 Before Soft Launch
 
 - [ ] Wire PostHog API into admin dashboard for traffic analytics
@@ -202,6 +248,10 @@
 - [ ] Admin access audit log
 - [ ] Decedent / next-of-kin answer in ToS
 - [ ] Sentry end-to-end check — trigger test error in prod, confirm readable stack trace
+- [ ] **Reveal theme picker** — currently a "Coming soon" placeholder. Decide whether to ship at launch or defer
+- [ ] **Annual add-on on existing annual sub** — `addon-capsule` for annual plans calls `subscriptions.update` with `priceOverrideMoney`; if Square enforces the same "no override when template present" rule on update, a user adding an addon to an existing annual sub will hit the same error we just fixed on create. Test before launch; if it errors, migrate to template replacement
+- [ ] **Build-mode reveal QA** — curator flow + admin-uploaded music end-to-end on iPhone
+- [ ] **Billing regression sweep** — exercise subscribe → addon → remove-addon → update-card → switch → cancel-switch → cancel → resume on prod, verify vault-lock reconciliation and webhook promotion at each step
 
 ---
 
