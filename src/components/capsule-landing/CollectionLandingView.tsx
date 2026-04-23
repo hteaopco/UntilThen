@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
   AudioLines,
@@ -11,6 +12,7 @@ import {
   ImagePlus,
   Pencil,
   Play,
+  Trash2,
   Video,
 } from "lucide-react";
 
@@ -281,6 +283,7 @@ function EmptyState({
 }
 
 function EntryRow({
+  id,
   title,
   body,
   type,
@@ -294,6 +297,11 @@ function EntryRow({
   editHref: string | null;
   pastReveal: boolean;
 }) {
+  const router = useRouter();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   const snippet = (body ?? "").replace(/<[^>]*>/g, "").trim();
   const headline = title?.trim() || snippet.slice(0, 80) || "Untitled memory";
   const preview =
@@ -304,6 +312,30 @@ function EntryRow({
   const hasVoice = type === "VOICE" || mediaTypes.includes("voice");
   const isLetter = type === "TEXT" && !hasPhoto && !hasVoice && !hasVideo;
   const hasMedia = hasPhoto || hasVideo || hasVoice;
+  // Delete stays hidden post-reveal for the same reason Edit
+  // does — once the recipient experience is frozen, erasing a
+  // memory out from under them risks changing what they saw.
+  const canDelete = Boolean(detailHref) && !pastReveal;
+
+  async function handleDelete() {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch(`/api/dashboard/entries/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? "Couldn't delete.");
+      }
+      setConfirmOpen(false);
+      router.refresh();
+    } catch (err) {
+      setDeleteError((err as Error).message);
+    } finally {
+      setDeleting(false);
+    }
+  }
 
   return (
     <article className="rounded-2xl border border-amber/20 bg-white shadow-[0_2px_10px_rgba(196,122,58,0.05)] p-4 sm:p-5 hover:border-amber/40 hover:shadow-[0_4px_14px_rgba(196,122,58,0.08)] transition-all">
@@ -333,11 +365,11 @@ function EntryRow({
         {hasVoice && <TypeBadge icon={<AudioLines size={14} strokeWidth={1.75} />} label="Voice" />}
       </div>
 
-      {/* Action row — explicit Play / Edit / Preview buttons.
-          Play + Preview both go to the read-only detail page (it
+      {/* Action row — explicit Play / Edit / Preview / Delete. Play
+          + Preview both go to the read-only detail page (it
           renders the entry + plays media), but the labels make
-          intent clear. Edit only renders pre-reveal so post-reveal
-          entries stay frozen. */}
+          intent clear. Edit + Delete only render pre-reveal so
+          post-reveal entries stay frozen for the recipient. */}
       {detailHref && (
         <div className="mt-4 pt-3 border-t border-navy/[0.05] flex items-center gap-2 flex-wrap">
           {hasMedia && (
@@ -356,9 +388,94 @@ function EntryRow({
             <Eye size={12} strokeWidth={2} aria-hidden="true" />
             Preview
           </ActionLink>
+          {canDelete && (
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteError(null);
+                setConfirmOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-red-200 bg-white text-[12px] font-semibold text-red-600 hover:bg-red-50 hover:border-red-400 transition-colors"
+            >
+              <Trash2 size={12} strokeWidth={2} aria-hidden="true" />
+              Delete
+            </button>
+          )}
         </div>
       )}
+
+      {confirmOpen && (
+        <DeleteEntryConfirm
+          headline={headline}
+          onCancel={() => setConfirmOpen(false)}
+          onConfirm={handleDelete}
+          working={deleting}
+          error={deleteError}
+        />
+      )}
     </article>
+  );
+}
+
+function DeleteEntryConfirm({
+  headline,
+  onCancel,
+  onConfirm,
+  working,
+  error,
+}: {
+  headline: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+  working: boolean;
+  error: string | null;
+}) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Delete this memory?"
+      className="fixed inset-0 z-50 bg-navy/50 backdrop-blur-sm flex items-center justify-center px-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !working) onCancel();
+      }}
+    >
+      <div className="w-full max-w-[420px] bg-cream rounded-2xl shadow-xl px-6 py-6 sm:px-7 sm:py-7">
+        <h2 className="text-[20px] font-extrabold text-navy tracking-[-0.2px]">
+          Are you sure?
+        </h2>
+        <p className="mt-2 text-[14px] text-ink-mid leading-[1.55]">
+          This will permanently delete <span className="font-semibold text-navy">{headline}</span>.
+          You can&rsquo;t undo this.
+        </p>
+
+        {error && (
+          <p className="mt-3 text-[13px] text-red-600" role="alert">
+            {error}
+          </p>
+        )}
+
+        <div className="mt-5 flex items-center gap-3 flex-wrap">
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={working}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-600 text-white text-[14px] font-bold hover:bg-red-700 transition-colors disabled:opacity-60"
+          >
+            <Trash2 size={14} strokeWidth={1.75} aria-hidden="true" />
+            {working ? "Deleting…" : "Yes, delete"}
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={working}
+            className="text-[14px] font-semibold text-ink-mid hover:text-navy px-3 py-2.5 disabled:opacity-50"
+          >
+            I changed my mind
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
