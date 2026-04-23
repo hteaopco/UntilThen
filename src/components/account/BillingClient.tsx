@@ -118,6 +118,34 @@ export function BillingClient({
     }
   }
 
+  async function resumeSubscription() {
+    setWorking(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/payments/resume-subscription", {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          lapsed?: boolean;
+        };
+        if (data.lapsed) {
+          // Access already ended — drop straight into the normal
+          // subscribe flow with card on file.
+          setMode("subscribe");
+          return;
+        }
+        throw new Error(data.error ?? "Couldn't resume subscription.");
+      }
+      router.refresh();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setWorking(false);
+    }
+  }
+
   async function cancelSubscription() {
     setWorking(true);
     setError(null);
@@ -411,16 +439,35 @@ export function BillingClient({
           )}
 
           {sub.status === "CANCELLED" && (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3">
-              <p className="text-sm font-semibold text-red-800">
-                Subscription cancelled.
-              </p>
-              <p className="text-xs text-red-700/90 mt-1">
-                You&rsquo;ll keep access until{" "}
-                {formatLong(sub.currentPeriodEndIso)}. After that, every
-                capsule locks (data is kept). Start a new subscription any
-                time to resume.
-              </p>
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 flex items-start justify-between gap-3 flex-wrap">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-red-800">
+                  Subscription cancelled.
+                </p>
+                <p className="text-xs text-red-700/90 mt-1">
+                  You&rsquo;ll keep access until{" "}
+                  {formatLong(sub.currentPeriodEndIso)}. After that, every
+                  capsule locks (data is kept).
+                </p>
+              </div>
+              {new Date(sub.currentPeriodEndIso).getTime() > Date.now() ? (
+                <button
+                  type="button"
+                  onClick={resumeSubscription}
+                  disabled={working}
+                  className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber text-white text-[13px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
+                >
+                  {working ? "Resuming…" : "Resume subscription"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setMode("subscribe")}
+                  className="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-amber text-white text-[13px] font-bold hover:bg-amber-dark transition-colors"
+                >
+                  Start a subscription
+                </button>
+              )}
             </div>
           )}
 
