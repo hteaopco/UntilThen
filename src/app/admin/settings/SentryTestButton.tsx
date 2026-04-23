@@ -107,9 +107,10 @@ export function SentryTestButton() {
           </div>
           {!status.clientActive ? (
             <p className="text-[11px] text-red-600 mt-1">
-              Sentry didn&rsquo;t initialize. Check Railway env for{" "}
-              <code>NEXT_PUBLIC_SENTRY_DSN</code>, then redeploy so the
-              server picks it up.
+              Sentry client is not bound in this request context. If
+              the DSN above is correct, trigger a fresh deploy so
+              instrumentation.ts re-runs. Watch Railway runtime logs
+              for <code className="font-mono">[sentry] node init complete</code>.
             </p>
           ) : null}
         </div>
