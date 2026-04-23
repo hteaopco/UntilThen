@@ -73,6 +73,13 @@ function rateLimitKindFor(
 export default clerkMiddleware(async (auth, req) => {
   const { pathname } = req.nextUrl;
 
+  // Healthcheck short-circuit: Railway's probe must be fast and
+  // independent of Clerk JWKS / Upstash cold-start. Pass through
+  // before any auth or rate-limit work runs.
+  if (pathname === "/api/health" || pathname.startsWith("/api/health/")) {
+    return NextResponse.next();
+  }
+
   // Rate limiting runs before any auth work so abusive traffic
   // can't burn Clerk quota. Skip when the limiter isn't
   // configured (the helper returns success=true in that case).
@@ -137,12 +144,8 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   // Standard Clerk matcher: all app routes except static assets and _next
-  // internals, plus all API / tRPC routes. /api/health is explicitly
-  // excluded so Railway's healthcheck doesn't pay Clerk JWKS + Upstash
-  // cold-start on every deploy — the probe needs to be sub-second.
-  matcher: [
-    "/((?!.*\\..*|_next|api/health).*)",
-    "/",
-    "/(api|trpc)(?!/health)(.*)",
-  ],
+  // internals, plus all API / tRPC routes. /api/health is short-circuited
+  // inside the middleware function below so Railway's healthcheck doesn't
+  // pay Clerk + Upstash cold-start on every deploy.
+  matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
 };
