@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 
 /**
@@ -12,27 +12,58 @@ import { usePathname } from "next/navigation";
  * stays visually idle until the next page paints. A tiny visible
  * bar is enough to signal "we got you."
  *
- * Coverage: document-level click listener on internal <a> tags.
- * Form submissions and router.push calls are already covered by
- * per-button useTransition spinners in the components that own
- * them. An 8s safety timeout hides the bar if the signal for
- * "done" never arrives (e.g. navigation cancelled).
+ * Mobile details:
+ *   - pointerdown fires sooner + more reliably than click on iOS
+ *     (click can be suppressed by scroll heuristics), so both are
+ *     listened to and dedup via the activatedAt ref.
+ *   - A 350 ms minimum visible window prevents the bar from
+ *     flickering off before the user sees it on fast RSC nav.
+ *   - Bar animates from 0 → 15% via rAF so the motion is visible
+ *     on first paint instead of snapping in fully sized.
  */
 export function NavigationProgress() {
   const pathname = usePathname();
   const [active, setActive] = useState(false);
   const [progress, setProgress] = useState(0);
+  const activatedAtRef = useRef<number>(0);
+  const pendingHideRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // New pathname = navigation completed. Clear the bar.
-  useEffect(() => {
+  function hideNow() {
+    if (pendingHideRef.current) {
+      clearTimeout(pendingHideRef.current);
+      pendingHideRef.current = null;
+    }
     setActive(false);
     setProgress(0);
+  }
+
+  function scheduleHide() {
+    const MIN_VISIBLE_MS = 350;
+    const elapsed = Date.now() - activatedAtRef.current;
+    const wait = Math.max(0, MIN_VISIBLE_MS - elapsed);
+    if (pendingHideRef.current) clearTimeout(pendingHideRef.current);
+    // Finish-out animation then clear.
+    setProgress(100);
+    pendingHideRef.current = setTimeout(() => {
+      setActive(false);
+      setProgress(0);
+      pendingHideRef.current = null;
+    }, wait + 200);
+  }
+
+  // New pathname = navigation completed.
+  useEffect(() => {
+    if (active) scheduleHide();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   useEffect(() => {
-    function onClick(e: MouseEvent) {
+    let lastActivatedAt = 0;
+
+    function tryActivate(e: MouseEvent | PointerEvent) {
       if (e.defaultPrevented) return;
-      if (e.button !== 0) return;
+      // Ignore non-primary buttons + modifier keys (new tab etc).
+      if ("button" in e && e.button !== 0) return;
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
 
       const anchor = (e.target as HTMLElement | null)?.closest?.("a");
@@ -52,7 +83,6 @@ export function NavigationProgress() {
       if (anchor.getAttribute("target") === "_blank") return;
       if (anchor.hasAttribute("download")) return;
 
-      // Same URL = no navigation, skip.
       try {
         const url = new URL((anchor as HTMLAnchorElement).href, window.location.href);
         if (
@@ -65,23 +95,35 @@ export function NavigationProgress() {
         /* malformed href — let browser handle */
       }
 
+      // Dedup pointerdown + click on the same tap.
+      const now = Date.now();
+      if (now - lastActivatedAt < 400) return;
+      lastActivatedAt = now;
+      activatedAtRef.current = now;
+
       setActive(true);
-      setProgress(15);
+      setProgress(0);
+      // rAF kick so the 0 → 15 transition actually animates.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setProgress(15));
+      });
     }
-    document.addEventListener("click", onClick);
-    return () => document.removeEventListener("click", onClick);
+
+    document.addEventListener("pointerdown", tryActivate, { passive: true });
+    document.addEventListener("click", tryActivate);
+    return () => {
+      document.removeEventListener("pointerdown", tryActivate);
+      document.removeEventListener("click", tryActivate);
+    };
   }, []);
 
-  // Creep the bar up so it looks alive while the route resolves.
+  // Creep the bar up while active.
   useEffect(() => {
     if (!active) return;
     const tick = setInterval(() => {
       setProgress((p) => (p >= 90 ? p : p + (90 - p) * 0.12));
     }, 200);
-    const safety = setTimeout(() => {
-      setActive(false);
-      setProgress(0);
-    }, 8000);
+    const safety = setTimeout(() => hideNow(), 8000);
     return () => {
       clearInterval(tick);
       clearTimeout(safety);
@@ -93,8 +135,14 @@ export function NavigationProgress() {
   return (
     <div
       aria-hidden
-      className="fixed top-0 left-0 z-[999] h-[3px] bg-amber shadow-[0_0_10px_rgba(251,191,36,0.6)] transition-[width] duration-200 ease-out pointer-events-none"
-      style={{ width: `${progress}%` }}
-    />
+      className="fixed inset-x-0 top-0 z-[9999] h-[3px] pointer-events-none"
+      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}
+    >
+      <div
+        className="h-full bg-amber shadow-[0_0_10px_rgba(196,122,58,0.6)] transition-[width] duration-200 ease-out"
+        style={{ width: `${progress}%`, willChange: "width" }}
+      />
+    </div>
   );
 }
+

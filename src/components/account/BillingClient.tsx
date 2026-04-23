@@ -345,7 +345,7 @@ export function BillingClient({
                       Base plan · {sub.baseCapsuleCount} capsules
                     </div>
                     <div className="text-xs text-ink-light mt-0.5">
-                      Cancels everything below with it.
+                      Cancels everything
                     </div>
                   </div>
                   <div className="font-bold text-navy tabular-nums text-right whitespace-nowrap">
@@ -363,7 +363,7 @@ export function BillingClient({
                           Add-on capsule #{i + 1}
                         </div>
                         <div className="text-xs text-ink-light mt-0.5">
-                          Extra slot on top of the base plan.
+                          Extra slot on top of base
                         </div>
                       </div>
                       <div className="font-bold text-navy tabular-nums text-right whitespace-nowrap">

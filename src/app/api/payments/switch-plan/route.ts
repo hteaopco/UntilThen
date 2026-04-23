@@ -12,11 +12,45 @@ import {
   squareIsConfigured,
 } from "@/lib/square";
 import { retryOnIdempotencyReuse } from "@/lib/square-idempotency";
+import type { SquareClient } from "square";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type Body = { targetPlan?: unknown };
+
+/**
+ * Cancel a Square sub and treat "already has a pending cancel
+ * date" as success. This lets the switch flow be safely retried
+ * after an earlier attempt that cancelled subs but failed later
+ * (e.g. the create step errored). Other errors are still thrown
+ * for the caller's catch.
+ */
+async function cancelSubIdempotent(
+  square: SquareClient,
+  subscriptionId: string,
+  label: string,
+): Promise<void> {
+  try {
+    await square.subscriptions.cancel({ subscriptionId });
+  } catch (err) {
+    const e = err as {
+      errors?: { code?: string; detail?: string }[];
+    };
+    const detail = e?.errors?.[0]?.detail ?? "";
+    if (detail.includes("already has a pending cancel date")) {
+      console.log(
+        `[payments/switch-plan] ${label} already cancelled — continuing`,
+      );
+      return;
+    }
+    console.error(`[payments/switch-plan] ${label} cancel failed:`, err);
+    // Addon cancels are non-fatal; base cancel errors should
+    // surface. Let the caller's catch distinguish via the label.
+    if (label !== "base") return;
+    throw err;
+  }
+}
 
 /**
  * POST /api/payments/switch-plan
@@ -156,8 +190,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
     // 1. Cancel the current Square base subscription (scheduled
     //    — keeps it active through its charged-through date and
-    //    stops it from renewing).
-    await square.subscriptions.cancel({ subscriptionId: sub.squareSubId });
+    //    stops it from renewing). A retry after a partial earlier
+    //    attempt will hit "already has a pending cancel date",
+    //    which means Square is already doing exactly what we want
+    //    — treat it as a success.
+    await cancelSubIdempotent(square, sub.squareSubId, "base");
 
     // 2. Cancel every monthly addon sub at period end too. They
     //    won't roll over into the new annual sub because annual
@@ -166,14 +203,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     //    upgrade should proceed even if a stale addon id can't
     //    be cancelled cleanly.
     for (const addonSubId of sub.addonSquareSubIds) {
-      try {
-        await square.subscriptions.cancel({ subscriptionId: addonSubId });
-      } catch (err) {
-        console.error(
-          `[payments/switch-plan] addon ${addonSubId} cancel failed:`,
-          err,
-        );
-      }
+      await cancelSubIdempotent(square, addonSubId, `addon ${addonSubId}`);
     }
 
     // 3. Create the replacement subscription starting on the old
