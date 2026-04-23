@@ -5,7 +5,6 @@ import {
   Lock,
   MinusCircle,
   PlusCircle,
-  TrendingDown,
   TrendingUp,
   X,
 } from "lucide-react";
@@ -319,26 +318,15 @@ export function BillingClient({
               </div>
             </div>
 
-            {sub.status === "ACTIVE" && !sub.pendingPlan && (
+            {sub.status === "ACTIVE" && !sub.pendingPlan && sub.plan === "MONTHLY" && (
               <button
                 type="button"
-                onClick={() =>
-                  switchPlan(sub.plan === "ANNUAL" ? "MONTHLY" : "ANNUAL")
-                }
+                onClick={() => switchPlan("ANNUAL")}
                 disabled={working}
                 className="inline-flex items-center gap-2 bg-amber text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
               >
-                {sub.plan === "ANNUAL" ? (
-                  <>
-                    <TrendingDown size={16} strokeWidth={1.5} aria-hidden="true" />
-                    Switch to Monthly
-                  </>
-                ) : (
-                  <>
-                    <TrendingUp size={16} strokeWidth={1.5} aria-hidden="true" />
-                    Upgrade to Annual — save 40%
-                  </>
-                )}
+                <TrendingUp size={16} strokeWidth={1.5} aria-hidden="true" />
+                Upgrade to Annual — save 40%
               </button>
             )}
           </div>

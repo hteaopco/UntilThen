@@ -107,6 +107,20 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       { error: `You're already on the ${targetPlan.toLowerCase()} plan.` },
       { status: 409 },
     );
+  // Annual → Monthly is intentionally not supported: annual
+  // subscribers have already paid for the year, so switching
+  // mid-stream would either refund partially (complex) or
+  // double-bill (bad UX). They can switch when the annual
+  // renews. Only MONTHLY → ANNUAL goes through this route.
+  if (sub.plan === "ANNUAL") {
+    return NextResponse.json(
+      {
+        error:
+          "Your annual plan runs through its full term. You can switch to monthly when it renews.",
+      },
+      { status: 409 },
+    );
+  }
   if (sub.addonCapsuleCount > 0)
     return NextResponse.json(
       {
