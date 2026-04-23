@@ -8,6 +8,7 @@ import {
   SQUARE_LOCATION_ID,
   SQUARE_ORDER_TEMPLATE_IDS,
   SQUARE_PLAN_IDS,
+  createSubscriptionOrderTemplate,
   getSquareClient,
   squareIsConfigured,
 } from "@/lib/square";
@@ -214,41 +215,42 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       targetPlan === "MONTHLY"
         ? SQUARE_PLAN_IDS.MONTHLY_BASE
         : SQUARE_PLAN_IDS.ANNUAL_BASE;
-    const newOrderTemplate =
-      targetPlan === "MONTHLY"
-        ? SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_BASE
-        : SQUARE_ORDER_TEMPLATE_IDS.ANNUAL_BASE;
-    if (!newOrderTemplate) {
-      console.error(
-        `[payments/switch-plan] SQUARE_ORDER_TEMPLATE_${targetPlan}_BASE not set`,
-      );
-      return NextResponse.json(
-        {
-          error:
-            "Payments aren't set up correctly yet. Please reach out — our team has been notified.",
-        },
-        { status: 503 },
-      );
-    }
-
     const effective = sub.currentPeriodEnd;
     const startDate = effective.toISOString().slice(0, 10);
 
-    // Annual baked-in addon override. Monthly target keeps no
-    // override — separate addon subs would be re-created at
-    // future per-addon purchase time (currently we don't carry
-    // them over on monthly→annual; the reverse is gone too).
-    const annualOverride =
-      targetPlan === "ANNUAL" && sub.addonCapsuleCount > 0
-        ? {
-            priceOverrideMoney: {
-              amount: BigInt(
-                ANNUAL_BASE_CENTS + ANNUAL_ADDON_CENTS * sub.addonCapsuleCount,
-              ),
-              currency: "USD" as const,
-            },
-          }
-        : {};
+    // Annual with addons = custom amount ($35.99 + $6 × count),
+    // monthly switch (not supported today) or annual-no-addon =
+    // stock env template. Square rejects priceOverrideMoney when
+    // an orderTemplateId is also set, so addon-merged annual has
+    // to bake the total into a freshly-minted template instead.
+    let newOrderTemplate: string;
+    if (targetPlan === "ANNUAL" && sub.addonCapsuleCount > 0) {
+      const amountCents =
+        ANNUAL_BASE_CENTS + ANNUAL_ADDON_CENTS * sub.addonCapsuleCount;
+      newOrderTemplate = await createSubscriptionOrderTemplate(
+        `untilThen Time Capsule — Annual + ${sub.addonCapsuleCount} capsule${sub.addonCapsuleCount === 1 ? "" : "s"}`,
+        amountCents,
+        `swo-${user.id}-${sub.addonCapsuleCount}`,
+      );
+    } else {
+      const stockTemplate =
+        targetPlan === "MONTHLY"
+          ? SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_BASE
+          : SQUARE_ORDER_TEMPLATE_IDS.ANNUAL_BASE;
+      if (!stockTemplate) {
+        console.error(
+          `[payments/switch-plan] SQUARE_ORDER_TEMPLATE_${targetPlan}_BASE not set`,
+        );
+        return NextResponse.json(
+          {
+            error:
+              "Payments aren't set up correctly yet. Please reach out — our team has been notified.",
+          },
+          { status: 503 },
+        );
+      }
+      newOrderTemplate = stockTemplate;
+    }
 
     // Idempotency: "swp-<userId>". targetPlan omitted since only
     // MONTHLY → ANNUAL is supported; leaving room for the helper
@@ -266,7 +268,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           startDate,
           timezone: "America/Chicago",
           phases: [{ ordinal: 0n, orderTemplateId: newOrderTemplate }],
-          ...annualOverride,
         }),
     );
     const newSub = subResp.subscription;

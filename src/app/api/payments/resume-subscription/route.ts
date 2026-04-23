@@ -3,13 +3,19 @@ import { NextResponse } from "next/server";
 
 import { backfillAddonSquareSubIds } from "@/lib/addon-backfill";
 import { captureServerEvent } from "@/lib/posthog-server";
-import { nextFirstOfMonth, oneYearLater } from "@/lib/proration";
+import {
+  ANNUAL_ADDON_CENTS,
+  ANNUAL_BASE_CENTS,
+  nextFirstOfMonth,
+  oneYearLater,
+} from "@/lib/proration";
 import { retryOnIdempotencyReuse } from "@/lib/square-idempotency";
 import {
   SQUARE_LOCATION_ID,
   SQUARE_ORDER_TEMPLATE_IDS,
   SQUARE_PLAN_IDS,
   createAddonOrderTemplate,
+  createSubscriptionOrderTemplate,
   getSquareClient,
   squareIsConfigured,
 } from "@/lib/square";
@@ -109,39 +115,44 @@ export async function POST(): Promise<NextResponse> {
     .toISOString()
     .slice(0, 10);
 
-  // Plan variations + order templates are picked per cadence.
+  // Plan variations picked per cadence.
   const basePlanVariation =
     sub.plan === "MONTHLY"
       ? SQUARE_PLAN_IDS.MONTHLY_BASE
       : SQUARE_PLAN_IDS.ANNUAL_BASE;
-  const baseOrderTemplate =
-    sub.plan === "MONTHLY"
-      ? SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_BASE
-      : SQUARE_ORDER_TEMPLATE_IDS.ANNUAL_BASE;
   const addonPlanVariation = SQUARE_PLAN_IDS.MONTHLY_ADDON;
-  if (!baseOrderTemplate) {
-    return NextResponse.json(
-      {
-        error:
-          "Payments aren't set up correctly yet. Please reach out — our team has been notified.",
-      },
-      { status: 503 },
-    );
-  }
 
   try {
-    // ANNUAL resume merges every addon into the base sub via
-    // priceOverrideMoney so there's one sub + one renewal
-    // invoice. Monthly keeps separate addon subs.
-    const annualOverride =
-      sub.plan === "ANNUAL" && sub.addonCapsuleCount > 0
-        ? {
-            priceOverrideMoney: {
-              amount: BigInt(3599 + 600 * sub.addonCapsuleCount),
-              currency: "USD" as const,
-            },
-          }
-        : {};
+    // ANNUAL resume merges every addon into the base sub. Since
+    // Square rejects priceOverrideMoney alongside orderTemplateId,
+    // annual+addons resume by baking the merged total into a
+    // freshly-minted custom order template. Plain annual + monthly
+    // resumes keep using the stock env-var templates.
+    let baseOrderTemplate: string;
+    if (sub.plan === "ANNUAL" && sub.addonCapsuleCount > 0) {
+      const amountCents =
+        ANNUAL_BASE_CENTS + ANNUAL_ADDON_CENTS * sub.addonCapsuleCount;
+      baseOrderTemplate = await createSubscriptionOrderTemplate(
+        `untilThen Time Capsule — Annual + ${sub.addonCapsuleCount} capsule${sub.addonCapsuleCount === 1 ? "" : "s"}`,
+        amountCents,
+        `rso-${user.id}-${sub.addonCapsuleCount}`,
+      );
+    } else {
+      const stock =
+        sub.plan === "MONTHLY"
+          ? SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_BASE
+          : SQUARE_ORDER_TEMPLATE_IDS.ANNUAL_BASE;
+      if (!stock) {
+        return NextResponse.json(
+          {
+            error:
+              "Payments aren't set up correctly yet. Please reach out — our team has been notified.",
+          },
+          { status: 503 },
+        );
+      }
+      baseOrderTemplate = stock;
+    }
 
     // "rs-<userId>" leaves 16 chars of slack for the helper's
     // retry suffix — no clamping, no truncation.
@@ -157,7 +168,6 @@ export async function POST(): Promise<NextResponse> {
           startDate,
           timezone: "America/Chicago",
           phases: [{ ordinal: 0n, orderTemplateId: baseOrderTemplate }],
-          ...annualOverride,
         }),
     );
     const newBaseSubId = baseResp.subscription?.id;

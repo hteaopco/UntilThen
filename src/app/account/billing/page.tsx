@@ -46,8 +46,8 @@ export default async function AccountBillingPage() {
               isLocked: true,
               lastLockToggleAt: true,
               entries: {
-                where: { isSealed: true },
-                select: { type: true },
+                where: { isDraft: false },
+                select: { type: true, mediaTypes: true },
               },
             },
           },
@@ -57,7 +57,32 @@ export default async function AccountBillingPage() {
   });
   if (!user) redirect("/onboarding");
 
+  // A media stat = the total number of photos / voice clips /
+  // video clips the user has saved. Entries can be primary type
+  // PHOTO / VOICE / VIDEO _and_ carry additional attachments in
+  // `mediaTypes[]` (e.g. a TEXT entry with a photo attached). We
+  // sum the attachments array so every file shows up — otherwise
+  // a letter with a photo counted as 0 photos, which is what the
+  // old `e.type === "PHOTO"` check was doing.
   const entries = user.children.flatMap((c) => c.vault?.entries ?? []);
+  let photoCount = 0;
+  let voiceCount = 0;
+  let videoCount = 0;
+  for (const entry of entries) {
+    for (const mt of entry.mediaTypes) {
+      const m = mt.toLowerCase();
+      if (m === "photo") photoCount += 1;
+      else if (m === "voice") voiceCount += 1;
+      else if (m === "video") videoCount += 1;
+    }
+    // Primary-type entries that don't populate mediaTypes still
+    // need to be counted exactly once.
+    if (entry.mediaTypes.length === 0) {
+      if (entry.type === "PHOTO") photoCount += 1;
+      else if (entry.type === "VOICE") voiceCount += 1;
+      else if (entry.type === "VIDEO") videoCount += 1;
+    }
+  }
   const capsules = user.children
     .map((c) => ({
       childId: c.id,
@@ -70,9 +95,9 @@ export default async function AccountBillingPage() {
 
   const props: BillingClientProps = {
     capsuleCount: user.children.length,
-    photoCount: entries.filter((e) => e.type === "PHOTO").length,
-    voiceCount: entries.filter((e) => e.type === "VOICE").length,
-    videoCount: entries.filter((e) => e.type === "VIDEO").length,
+    photoCount,
+    voiceCount,
+    videoCount,
     hasCustomerOnFile: Boolean(user.squareCustomerId),
     cardBrand: user.squareCardBrand,
     cardLast4: user.squareCardLast4,

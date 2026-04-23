@@ -31,7 +31,12 @@ export async function GET(): Promise<NextResponse> {
       children: {
         include: {
           vault: {
-            include: { entries: { where: { isSealed: true } } },
+            include: {
+              entries: {
+                where: { isDraft: false },
+                select: { type: true, mediaTypes: true },
+              },
+            },
           },
         },
       },
@@ -41,11 +46,27 @@ export async function GET(): Promise<NextResponse> {
     return NextResponse.json({ error: "User not found." }, { status: 404 });
 
   const entries = user.children.flatMap((c) => c.vault?.entries ?? []);
+  let photos = 0;
+  let voiceNotes = 0;
+  let videos = 0;
+  for (const entry of entries) {
+    for (const mt of entry.mediaTypes) {
+      const m = mt.toLowerCase();
+      if (m === "photo") photos += 1;
+      else if (m === "voice") voiceNotes += 1;
+      else if (m === "video") videos += 1;
+    }
+    if (entry.mediaTypes.length === 0) {
+      if (entry.type === "PHOTO") photos += 1;
+      else if (entry.type === "VOICE") voiceNotes += 1;
+      else if (entry.type === "VIDEO") videos += 1;
+    }
+  }
   const usage = {
     childVaults: user.children.length,
-    photos: entries.filter((e) => e.type === "PHOTO").length,
-    voiceNotes: entries.filter((e) => e.type === "VOICE").length,
-    videos: entries.filter((e) => e.type === "VIDEO").length,
+    photos,
+    voiceNotes,
+    videos,
   };
 
   return NextResponse.json({

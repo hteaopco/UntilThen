@@ -122,6 +122,24 @@ export async function createAddonOrderTemplate(
           name: "untilThen additional capsule — Annual",
           cents: 600,
         };
+  return createSubscriptionOrderTemplate(spec.name, spec.cents, idempotencyBaseKey);
+}
+
+/**
+ * Generic one-shot DRAFT Order template for a subscription's
+ * phases[].orderTemplateId. Used whenever we need a custom
+ * price — e.g. annual base merged with addons — that the stock
+ * env-var templates can't express.
+ *
+ * Square rejects priceOverrideMoney when an orderTemplateId is
+ * present, so a custom-priced sub has to bake the dollar amount
+ * into the template itself.
+ */
+export async function createSubscriptionOrderTemplate(
+  lineName: string,
+  amountCents: number,
+  idempotencyBaseKey: string,
+): Promise<string> {
   const square = getSquareClient();
   const resp = await retryOnIdempotencyReuse(
     idempotencyBaseKey,
@@ -133,10 +151,10 @@ export async function createAddonOrderTemplate(
           state: "DRAFT",
           lineItems: [
             {
-              name: spec.name,
+              name: lineName,
               quantity: "1",
               basePriceMoney: {
-                amount: BigInt(spec.cents),
+                amount: BigInt(amountCents),
                 currency: "USD",
               },
             },
@@ -145,6 +163,6 @@ export async function createAddonOrderTemplate(
       }),
   );
   const id = resp.order?.id;
-  if (!id) throw new Error("Square addon order template create returned no id.");
+  if (!id) throw new Error("Square order template create returned no id.");
   return id;
 }
