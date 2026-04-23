@@ -163,7 +163,11 @@ export function StoryCards({
             muted={muted}
           />
         ) : current.view === "VOICE" ? (
-          <VoiceCard contribution={current.contribution} muted={muted} />
+          <VoiceCard
+            contribution={current.contribution}
+            muted={muted}
+            autoPlay
+          />
         ) : (
           <LetterCard contribution={current.contribution} />
         )}

@@ -15,18 +15,27 @@ import type { RevealContribution } from "./RevealClient";
  * Dark navy backdrop, large amber avatar, sender name +
  * subtext, decorative waveform, and a play/pause control.
  *
- * Audio NEVER auto-plays — the recipient has to tap to start
- * (matches the brief and avoids autoplay-policy issues on iOS
- * Safari). When playback ends, the wrapper's > arrow can pulse
- * to prompt the next card; we just emit no-op for now and let
- * StoryCards' chrome do its thing.
+ * On the highlight reel, playback now auto-starts when the card
+ * becomes the current slide — the recipient has already tapped
+ * the gate to enter, which unlocks audio playback on iOS, so
+ * the voice note fades in naturally as part of the cinematic
+ * flow. If the browser blocks autoplay for any reason the user
+ * still has the manual Play button as a fallback. The same
+ * component gets used in GalleryCardView (post-reveal open)
+ * where we do NOT want auto-play — the `autoPlay` prop lets the
+ * caller opt out.
  */
 export function VoiceCard({
   contribution,
   muted,
+  autoPlay = false,
 }: {
   contribution: RevealContribution;
   muted: boolean;
+  /** When true and the card mounts un-muted, try to play right
+   *  away. StoryCards passes true; GalleryCardView leaves it
+   *  default (false). */
+  autoPlay?: boolean;
 }) {
   const { capture } = useRevealAnalytics();
   const { duck, unduck } = useMusicDuck();
@@ -88,6 +97,40 @@ export function VoiceCard({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-start playback on mount when the caller opts in. Waits
+  // for the audio element to have enough data so .play() doesn't
+  // reject with NotAllowedError before metadata loads.
+  useEffect(() => {
+    if (!autoPlay || muted) return;
+    const el = audioRef.current;
+    if (!el) return;
+    const tryPlay = () => {
+      el.play().then(
+        () => {
+          setPlaying(true);
+          applyDuck();
+          capture("reveal_voice_played", {
+            contributionId: contribution.id,
+            authorName: contribution.authorName,
+            source: "autoplay",
+          });
+        },
+        () => {
+          // Autoplay blocked (no prior user gesture, etc.) —
+          // manual Play button is the fallback.
+        },
+      );
+    };
+    if (el.readyState >= 2) {
+      tryPlay();
+      return;
+    }
+    const onCanPlay = () => tryPlay();
+    el.addEventListener("canplay", onCanPlay, { once: true });
+    return () => el.removeEventListener("canplay", onCanPlay);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contribution.id, autoPlay, muted]);
 
   function toggle() {
     const el = audioRef.current;
