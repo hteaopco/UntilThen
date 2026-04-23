@@ -1,4 +1,4 @@
-import { EntryType } from "@prisma/client";
+import { EntryType, Prisma } from "@prisma/client";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { effectiveStatus } from "@/lib/capsules";
@@ -326,10 +326,13 @@ export async function PATCH(
             ? "PENDING_REVIEW"
             : contribution.approvalStatus,
         moderationState: scan.state,
+        // Prisma's nullable Json fields use Prisma.JsonNull to
+        // explicitly clear, not a bare null. Using bare null
+        // trips the InputJsonValue type check at build time.
         moderationFlags:
           Object.keys(scan.flags).length > 0
             ? { flags: scan.flags, top: scan.rawTopClasses ?? [] }
-            : null,
+            : Prisma.JsonNull,
         moderationRunAt: new Date(),
       },
     });
