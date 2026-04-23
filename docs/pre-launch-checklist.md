@@ -238,10 +238,8 @@
 ## 🟡 Before Soft Launch
 
 - [ ] Wire PostHog API into admin dashboard for traffic analytics
-- [ ] Polaroid photo stack component for vault dashboard cards (awaiting visual approval)
 - [ ] Terms of Service + Privacy Policy legal review (minors' data, long-term storage, data export on request)
-- [ ] Cookie/consent banner if EU traffic is expected
-- [ ] Refund policy for $9.99 Gift Capsules (documented and linked from checkout)
+- [x] **Refund policy for $9.99 Gift Capsules** — all sales final. Documented at checkout + ToS
 - [ ] Account recovery flows — forgot password, locked out, lost email access
 - [ ] Media moderation strategy — what blocks a contributor uploading abusive content into a child's capsule?
 - [ ] Cron health monitoring — alert if cron fails to fire
@@ -418,7 +416,6 @@ is hands-on device QA.
 - [ ] Test suite expansion — add E2E with Playwright (started with `ageOnDate` unit tests)
 - [ ] Route-group error boundaries
 - [ ] Transfer request flow (trustee) — lost in revert, needs rebuild
-- [ ] Polaroid photo stack on vault cards (if visual approved)
 
 ---
 
@@ -430,7 +427,7 @@ is hands-on device QA.
 - [x] **Entry reading experience** — solved by the detail view above. Pre-reveal readers see a "Sealed until {date}" chip; post-reveal readers see "Revealed {date}" and no Edit button.
 
 ### Still Open
-- [ ] **Mobile test pass** — Create Collection modal + Updates inbox still need on-device verification. *(Cover cropper + reveal experience both verified on iPhone during this session)*
+- [x] **Mobile test pass** — Create Collection modal + Updates inbox verified on-device (Cover cropper + reveal experience also verified on iPhone)
 
 ### Resolved
 - [x] Collection deletion UI (subtle text → move-entries / delete-all modal)
