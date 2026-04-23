@@ -24,9 +24,17 @@
   account. Transfer flow (trustee) lost in a revert; queued under
   _Nice to have_ below
 - [ ] **Sentry end-to-end live verification** — `/admin/settings →
-  Sentry live test` + diagnostic panel shipped. Pending: fire the button
-  on prod, confirm the event lands in Sentry (DSN fallback + client-active
-  indicator make the failure mode visible)
+  Sentry live test` + diagnostic panel shipped. **Picking up next
+  session.** Last state: DSN resolved (SENTRY_DSN set), host parsed
+  (o4511224418795520.ingest.us.sentry.io), but `clientActive: NO`
+  before the inline-init fix. Commit `8f550c6` moved `Sentry.init()`
+  directly into `instrumentation.ts` (was failing across a dynamic-
+  import module boundary). On the next deploy, watch Railway runtime
+  logs for `[sentry] node init complete, client bound = true`, then
+  re-fire the button. If the diagnostic panel still shows
+  `clientActive: NO`, the next step is to audit the Sentry webpack
+  plugin in `next.config.ts` (it might be auto-wrapping the init
+  and we're double-initializing).
 - [ ] **Reveal theme picker** — currently a "Coming soon" placeholder.
   Decide whether to ship at launch or defer. If shipping, pick 2–3
   background/color variants
@@ -231,7 +239,23 @@ preview, admin mock). Remaining work is hands-on device QA.
 
 - [ ] **`db-backup` cron returning 502** — authed past 401 after we set
   `CRON_SECRET` on every cron service, now hits 502 from the web service.
-  Likely pg_dump + Buffer.concat OOM or a pg_dump startup error. Paused;
-  Railway's native Postgres backups remain the primary layer so we're
-  not exposed. Resume when ready — inspect web service runtime logs
-  during a cron invocation window to see the actual error
+  **Picking up next session.** Most likely: `pg_dump` spawn failure OR
+  `Buffer.concat` OOM under Railway's web-service memory cap. Paused
+  for now; Railway's native Postgres backups remain the primary layer
+  so we're not exposed.
+
+  **Debug order when resuming:**
+  1. Railway → Web service → Observability → filter for `[cron/db-backup]`
+     during a cron invocation window. The try/catch in
+     `/api/cron/db-backup/route.ts` should log `[cron/db-backup] failed:`
+     with the underlying error — that's the fastest diagnosis.
+  2. If no log lines at all: container died before the handler logged
+     → likely OOM. Switch from `Buffer.concat` to streaming via
+     `@aws-sdk/lib-storage` multipart upload (commented hook already
+     exists in the 500MB-ceiling safety check).
+  3. If log shows `pg_dump` error: confirm `DATABASE_URL` is set on
+     the web service (not just on the Postgres service) and that
+     `postgresql_17` is still in `nixpacks.toml`.
+  4. Alternative path: ditch the R2 pg_dump cron entirely and rely on
+     Railway's native PG backups as the single layer. Still acceptable
+     per the backup-restore runbook, just less belt-and-suspenders.
