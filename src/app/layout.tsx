@@ -3,6 +3,7 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { DM_Sans, Playfair_Display, Caveat, Alex_Brush } from "next/font/google";
 import "./globals.css";
 import { PosthogProvider } from "@/components/PosthogProvider";
+import { NavigationProgress } from "@/components/ui/NavigationProgress";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -99,7 +100,10 @@ export default function RootLayout({
     >
       <html lang="en" className={`${dmSans.variable} ${playfair.variable} ${caveat.variable} ${alexBrush.variable}`}>
         <body className="font-sans bg-white text-navy antialiased">
-          <PosthogProvider>{children}</PosthogProvider>
+          <PosthogProvider>
+            <NavigationProgress />
+            {children}
+          </PosthogProvider>
         </body>
       </html>
     </ClerkProvider>
