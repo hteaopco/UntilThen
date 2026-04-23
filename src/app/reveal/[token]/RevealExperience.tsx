@@ -164,9 +164,15 @@ export function RevealExperience({
   // switch kills everything.
   const [muted, setMuted] = useState(false);
 
-  // Background music. Ref-held so it survives phase changes
-  // without remounting; ignored entirely when no URL is set.
+  // Background music plumbing. We use Web Audio API (not the
+  // audio element's native .volume) because iOS Safari ignores
+  // programmatic .volume writes on HTMLMediaElement — so duck
+  // and fade were silently failing on iPhone. Routing the audio
+  // through a GainNode bypasses that restriction and gives us
+  // real volume control on every platform.
   const musicRef = useRef<HTMLAudioElement | null>(null);
+  const musicCtxRef = useRef<AudioContext | null>(null);
+  const musicGainRef = useRef<GainNode | null>(null);
   // Count of currently-playing voice / video sources. Music
   // stays ducked while > 0. Using a ref + setter so duck/unduck
   // stays referentially stable across re-renders.
@@ -177,6 +183,17 @@ export function RevealExperience({
   // bails when the element is torn down.
   const fadingRef = useRef(false);
   const fadeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  /** Set the music volume via the Web Audio GainNode when we
+   *  have one, falling back to element.volume as a courtesy
+   *  (won't actually take effect on iOS). */
+  const setMusicVolume = useCallback((v: number) => {
+    if (musicGainRef.current) {
+      musicGainRef.current.gain.value = v;
+    } else if (musicRef.current) {
+      musicRef.current.volume = v;
+    }
+  }, []);
 
   const startMusic = useCallback(() => {
     if (!effectiveMusicUrl) return;
@@ -190,13 +207,44 @@ export function RevealExperience({
     }
     const el = new Audio(effectiveMusicUrl);
     el.loop = true;
-    el.volume = duckCountRef.current > 0 ? MUSIC_DUCKED_VOLUME : MUSIC_VOLUME;
+    el.crossOrigin = "anonymous"; // required for MediaElementSource on R2
     el.muted = muted;
+    musicRef.current = el;
+
+    // Wire through Web Audio for iOS-compatible volume control.
+    // Graceful fallback: if the browser doesn't expose AudioContext
+    // (ancient Safari), we keep the plain audio element and the
+    // volume knob will just no-op on iOS as before.
+    try {
+      const AudioCtx =
+        typeof window !== "undefined"
+          ? window.AudioContext ??
+            (window as unknown as { webkitAudioContext?: typeof AudioContext })
+              .webkitAudioContext ??
+            null
+          : null;
+      if (AudioCtx) {
+        const ctx = new AudioCtx();
+        const source = ctx.createMediaElementSource(el);
+        const gain = ctx.createGain();
+        gain.gain.value = duckCountRef.current > 0 ? MUSIC_DUCKED_VOLUME : MUSIC_VOLUME;
+        source.connect(gain).connect(ctx.destination);
+        musicCtxRef.current = ctx;
+        musicGainRef.current = gain;
+      } else {
+        el.volume = duckCountRef.current > 0 ? MUSIC_DUCKED_VOLUME : MUSIC_VOLUME;
+      }
+    } catch (err) {
+      // Some WebViews throw when creating MediaElementSource on a
+      // cross-origin element. Fall back to plain element.volume.
+      console.warn("[reveal-music] Web Audio setup failed, falling back:", err);
+      el.volume = duckCountRef.current > 0 ? MUSIC_DUCKED_VOLUME : MUSIC_VOLUME;
+    }
+
     el.play().catch(() => {
       // Autoplay blocked, file failed, etc. — silently run
       // without music rather than prompting or erroring.
     });
-    musicRef.current = el;
   }, [muted, effectiveMusicUrl]);
 
   /**
@@ -210,6 +258,28 @@ export function RevealExperience({
    * "abrupt" rather than fade. Ducked state is honored: we ramp
    * down from whatever volume the bed was at when fade started.
    */
+  const teardownMusic = useCallback(() => {
+    if (musicRef.current) {
+      musicRef.current.pause();
+      musicRef.current.src = "";
+      musicRef.current = null;
+    }
+    if (musicGainRef.current) {
+      try {
+        musicGainRef.current.disconnect();
+      } catch {
+        /* fine */
+      }
+      musicGainRef.current = null;
+    }
+    if (musicCtxRef.current) {
+      void musicCtxRef.current.close().catch(() => {
+        /* fine */
+      });
+      musicCtxRef.current = null;
+    }
+  }, []);
+
   const fadeOutMusic = useCallback(() => {
     if (!musicRef.current) return;
     if (fadingRef.current) return;
@@ -217,7 +287,9 @@ export function RevealExperience({
 
     const TICKS = 25;
     const STEP_MS = 120;
-    const startVol = musicRef.current.volume;
+    const startVol = musicGainRef.current
+      ? musicGainRef.current.gain.value
+      : musicRef.current.volume;
     let tick = 0;
 
     fadeTimerRef.current = setInterval(() => {
@@ -231,20 +303,18 @@ export function RevealExperience({
       if (tick < TICKS) {
         // Linear ramp — Math.max clamps floating-point drift.
         const nextVol = Math.max(0, startVol * (1 - tick / TICKS));
-        musicRef.current.volume = nextVol;
+        setMusicVolume(nextVol);
         return;
       }
       // Final tick — silence + tear down so startMusic() can
       // spin up a fresh element later (e.g. on replay).
-      musicRef.current.volume = 0;
+      setMusicVolume(0);
       if (fadeTimerRef.current) clearInterval(fadeTimerRef.current);
       fadeTimerRef.current = null;
-      musicRef.current.pause();
-      musicRef.current.src = "";
-      musicRef.current = null;
+      teardownMusic();
       fadingRef.current = false;
     }, STEP_MS);
-  }, []);
+  }, [setMusicVolume, teardownMusic]);
 
   // Mirror mute state to the music element any time it flips.
   useEffect(() => {
@@ -260,13 +330,9 @@ export function RevealExperience({
         clearInterval(fadeTimerRef.current);
         fadeTimerRef.current = null;
       }
-      if (musicRef.current) {
-        musicRef.current.pause();
-        musicRef.current.src = "";
-        musicRef.current = null;
-      }
+      teardownMusic();
     };
-  }, []);
+  }, [teardownMusic]);
 
   // When the recipient lands in the gallery — whether via the
   // transition screen's 'Explore everything' CTA, by ending the
@@ -283,19 +349,17 @@ export function RevealExperience({
   const duck = useCallback(() => {
     if (fadingRef.current) return;
     duckCountRef.current += 1;
-    if (musicRef.current) {
-      musicRef.current.volume = MUSIC_DUCKED_VOLUME;
-    }
+    setMusicVolume(MUSIC_DUCKED_VOLUME);
     setDuckTick((n) => n + 1);
-  }, []);
+  }, [setMusicVolume]);
   const unduck = useCallback(() => {
     if (fadingRef.current) return;
     duckCountRef.current = Math.max(0, duckCountRef.current - 1);
-    if (musicRef.current && duckCountRef.current === 0) {
-      musicRef.current.volume = MUSIC_VOLUME;
+    if (duckCountRef.current === 0) {
+      setMusicVolume(MUSIC_VOLUME);
     }
     setDuckTick((n) => n + 1);
-  }, []);
+  }, [setMusicVolume]);
   const musicDuckApi = useMemo<MusicDuckApi>(
     () => ({ duck, unduck }),
     [duck, unduck],
