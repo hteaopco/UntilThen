@@ -172,18 +172,41 @@ export async function POST(): Promise<NextResponse> {
     );
 
     if (amountTodayCents > 0) {
-      const payResp = await square.payments.create({
-        idempotencyKey: `addon-charge-${user.id}-${addonIndex}`,
+      // Catch IDEMPOTENCY_KEY_REUSED and retry with a fresh key
+      // — the stable "addon-charge-<userId>-<index>" key can
+      // collide with a prior failed attempt whose params
+      // (card id, prorated amount after reset + new subscribe,
+      // customer id) no longer match. The cached failure means
+      // no charge actually went through, so retrying is safe.
+      const chargePayload = {
         sourceId: cardId,
         customerId: user.squareCustomerId,
         amountMoney: {
           amount: BigInt(amountTodayCents),
-          currency: "USD",
+          currency: "USD" as const,
         },
         locationId: SQUARE_LOCATION_ID,
         note: "untilThen add-on capsule · prorated",
         referenceId: user.id,
-      });
+      };
+      let payResp;
+      try {
+        payResp = await square.payments.create({
+          idempotencyKey: `addon-charge-${user.id}-${addonIndex}`,
+          ...chargePayload,
+        });
+      } catch (err) {
+        const code = (err as { errors?: { code?: string }[] })
+          .errors?.[0]?.code;
+        if (code !== "IDEMPOTENCY_KEY_REUSED") throw err;
+        console.log(
+          `[payments/addon-capsule] charge idempotency key reused for ${user.id} — retrying with fresh key`,
+        );
+        payResp = await square.payments.create({
+          idempotencyKey: `addon-charge-${user.id}-${addonIndex}-${Date.now().toString(36)}`,
+          ...chargePayload,
+        });
+      }
       if (payResp.payment?.status !== "COMPLETED") {
         return NextResponse.json(
           {
@@ -212,8 +235,8 @@ export async function POST(): Promise<NextResponse> {
     }
     const startDate = nextFirstOfMonth(now).toISOString().slice(0, 10);
 
-    const addonSubResp = await square.subscriptions.create({
-      idempotencyKey: `addon-sub-${user.id}-${addonIndex}`,
+    // Same idempotency-retry pattern as the charge above.
+    const subPayload = {
       locationId: SQUARE_LOCATION_ID,
       planVariationId,
       customerId: user.squareCustomerId,
@@ -221,7 +244,25 @@ export async function POST(): Promise<NextResponse> {
       startDate,
       timezone: "America/Chicago",
       phases: [{ ordinal: 0n, orderTemplateId }],
-    });
+    };
+    let addonSubResp;
+    try {
+      addonSubResp = await square.subscriptions.create({
+        idempotencyKey: `addon-sub-${user.id}-${addonIndex}`,
+        ...subPayload,
+      });
+    } catch (err) {
+      const code = (err as { errors?: { code?: string }[] })
+        .errors?.[0]?.code;
+      if (code !== "IDEMPOTENCY_KEY_REUSED") throw err;
+      console.log(
+        `[payments/addon-capsule] sub idempotency key reused for ${user.id} — retrying with fresh key`,
+      );
+      addonSubResp = await square.subscriptions.create({
+        idempotencyKey: `addon-sub-${user.id}-${addonIndex}-${Date.now().toString(36)}`,
+        ...subPayload,
+      });
+    }
     const addonSquareSubId = addonSubResp.subscription?.id;
     if (!addonSquareSubId) {
       throw new Error("Square addon subscription create returned no id.");
