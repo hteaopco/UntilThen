@@ -255,6 +255,7 @@
 - [ ] Decedent / next-of-kin answer in ToS
 - [ ] Sentry end-to-end check — trigger test error in prod, confirm readable stack trace
 - [ ] **Reveal theme picker** — currently a "Coming soon" placeholder. Decide whether to ship at launch or defer
+- [ ] **Extend Hive moderation to Time Capsule entries** — Hive scanning is live for Gift Capsule contributor submissions (photo + video + text) but Time Capsule entries (parent writing in own vault) are not scanned today. To extend: add `moderationState`/`moderationFlags`/`moderationRunAt` to the `Entry` model, hook `scanContribution` into the entry POST/PATCH endpoints, filter `FLAGGED` out of vault landing + reveal queries, and surface flagged entries in `/admin/moderation` (client already has a `kind: "vault"` branch). Optional backfill script for pre-existing entries
 - [ ] **Annual add-on on existing annual sub** — `addon-capsule` for annual plans calls `subscriptions.update` with `priceOverrideMoney`; if Square enforces the same "no override when template present" rule on update, a user adding an addon to an existing annual sub will hit the same error we just fixed on create. Test before launch; if it errors, migrate to template replacement
 - [ ] **Build-mode reveal QA** — curator flow + admin-uploaded music end-to-end on iPhone
 - [ ] **Billing regression sweep** — exercise subscribe → addon → remove-addon → update-card → switch → cancel-switch → cancel → resume on prod, verify vault-lock reconciliation and webhook promotion at each step
