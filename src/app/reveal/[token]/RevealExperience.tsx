@@ -33,8 +33,10 @@ const MUSIC_URL = process.env.NEXT_PUBLIC_REVEAL_MUSIC_URL ?? "";
  *  enough that narration reads cleanly. */
 const MUSIC_VOLUME = 0.25;
 /** Ducked volume while a voice card or non-muted video is
- *  actively playing. Music stays audible but steps back. */
-const MUSIC_DUCKED_VOLUME = 0.15;
+ *  actively playing. Pushed low so narration cuts cleanly
+ *  through the bed (it was 0.15 but audio tests showed the
+ *  bed still competed with voice recordings). */
+const MUSIC_DUCKED_VOLUME = 0.05;
 
 /**
  * Any reveal card that produces audio calls duck() on play and
@@ -198,31 +200,25 @@ export function RevealExperience({
   }, [muted, effectiveMusicUrl]);
 
   /**
-   * Stepped fade-out when the recipient leaves the highlight
-   * reel for the gallery.
+   * Smooth linear fade-out when the recipient leaves the
+   * highlight reel for the gallery. 25 ticks × 120ms = 3s from
+   * current volume down to 0, then pause + tear down.
    *
-   *   t=0     → volume 0.20   (immediate drop from 0.25)
-   *   t=400   → volume 0.15
-   *   t=800   → volume 0.10
-   *   t=1200  → volume 0.05
-   *   t=1600  → volume 0.00
-   *   t=2000  → pause + tear down
-   *
-   * Total 2000ms, each step 400ms. A discrete stepped fade
-   * (not a smooth ramp) feels more intentional on a narrative
-   * transition than a monotonic ramp — the music is consciously
-   * stepping away, not drifting.
+   * Small step + short interval makes the ramp feel continuous
+   * rather than stair-stepped, which is what the earlier 5-step
+   * version sounded like — the drops were audible and read as
+   * "abrupt" rather than fade. Ducked state is honored: we ramp
+   * down from whatever volume the bed was at when fade started.
    */
   const fadeOutMusic = useCallback(() => {
     if (!musicRef.current) return;
     if (fadingRef.current) return;
     fadingRef.current = true;
 
-    const steps = [0.2, 0.15, 0.1, 0.05, 0.0];
-    // Immediate first drop so the transition into silence
-    // starts as soon as the user taps 'Explore everything'.
-    musicRef.current.volume = steps[0];
-    let nextIndex = 1;
+    const TICKS = 25;
+    const STEP_MS = 120;
+    const startVol = musicRef.current.volume;
+    let tick = 0;
 
     fadeTimerRef.current = setInterval(() => {
       if (!musicRef.current) {
@@ -231,21 +227,23 @@ export function RevealExperience({
         fadingRef.current = false;
         return;
       }
-      if (nextIndex < steps.length) {
-        musicRef.current.volume = steps[nextIndex];
-        nextIndex++;
+      tick += 1;
+      if (tick < TICKS) {
+        // Linear ramp — Math.max clamps floating-point drift.
+        const nextVol = Math.max(0, startVol * (1 - tick / TICKS));
+        musicRef.current.volume = nextVol;
         return;
       }
-      // Final tick after the 0.00 step — pause + release the
-      // element so startMusic() can spin up a fresh one later
-      // (e.g. on replay).
+      // Final tick — silence + tear down so startMusic() can
+      // spin up a fresh element later (e.g. on replay).
+      musicRef.current.volume = 0;
       if (fadeTimerRef.current) clearInterval(fadeTimerRef.current);
       fadeTimerRef.current = null;
       musicRef.current.pause();
       musicRef.current.src = "";
       musicRef.current = null;
       fadingRef.current = false;
-    }, 400);
+    }, STEP_MS);
   }, []);
 
   // Mirror mute state to the music element any time it flips.

@@ -63,11 +63,11 @@ export function RevealReelCard({
   }
 
   return (
-    <div className="flex flex-col items-stretch gap-2 sm:items-end sm:flex-shrink-0 w-full sm:w-auto">
+    <div className="flex flex-col items-stretch gap-2 w-full sm:w-auto sm:items-end sm:flex-shrink-0 sm:max-w-[280px]">
       <div
         role="group"
         aria-label="Reveal mode"
-        className="inline-flex items-center gap-0.5 rounded-full bg-white border border-navy/10 p-0.5 self-stretch sm:self-end"
+        className="inline-flex items-center gap-0.5 rounded-full bg-white border border-navy/10 p-0.5 self-start sm:self-end"
       >
         <PillOption
           active={mode === "RANDOM"}
@@ -89,7 +89,7 @@ export function RevealReelCard({
         <Link
           href={`/vault/${childId}/reveal/curator`}
           prefetch={false}
-          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold text-amber hover:text-amber-dark transition-colors self-stretch sm:self-end"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold text-amber hover:text-amber-dark transition-colors self-start sm:self-end"
         >
           <Settings2 size={12} strokeWidth={2} aria-hidden="true" />
           {curatedSlideCount > 0
@@ -101,20 +101,20 @@ export function RevealReelCard({
       <Link
         href={`/vault/${childId}/preview`}
         prefetch={false}
-        className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-white border border-amber/30 text-amber font-semibold text-[13px] hover:border-amber hover:bg-amber-tint/40 transition-colors self-stretch sm:self-end"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-amber/30 text-amber font-semibold text-[13px] hover:border-amber hover:bg-amber-tint/40 transition-colors self-start sm:self-end whitespace-nowrap"
       >
         <Eye size={14} strokeWidth={1.75} aria-hidden="true" />
         Preview the Reveal
       </Link>
 
       {songName && (
-        <p className="text-[11px] text-ink-light italic text-center sm:text-right">
+        <p className="text-[11px] text-ink-light italic self-start sm:self-end">
           Music: {songName}
         </p>
       )}
 
       {error && (
-        <p className="text-[12px] text-red-600" role="alert">
+        <p className="text-[12px] text-red-600 self-start sm:self-end" role="alert">
           {error}
         </p>
       )}

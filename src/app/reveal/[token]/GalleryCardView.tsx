@@ -14,12 +14,23 @@ import type { RevealContribution } from "./RevealClient";
  * visual treatment per type — minus the StoryCards chrome
  * (progress bar, mute, counter, > arrow). Just the content + a
  * close button in the top-left.
+ *
+ * When a type filter is active on the gallery (Audio / Photos /
+ * Videos) and the recipient opens a multi-modal entry, the
+ * caller passes `forceView` so we render the matching modality
+ * card instead of defaulting to the entry's primary type — i.e.
+ * tapping a letter-with-voice under the Audio chip opens as
+ * VoiceCard.
  */
 export function GalleryCardView({
   contribution,
+  forceView,
   onClose,
 }: {
   contribution: RevealContribution;
+  /** Filter context — when set, overrides the card type chosen
+   *  by RevealContribution.type. */
+  forceView?: "TEXT" | "VOICE" | "PHOTO" | "VIDEO";
   onClose: () => void;
 }) {
   // Esc closes too — keyboard parity with the visible ✕ button.
@@ -31,11 +42,17 @@ export function GalleryCardView({
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  const view = forceView ?? contribution.type;
+  // Photo/Video cards key off contribution.type internally —
+  // pass a variant with type overridden so the right modality
+  // renders for multi-modal entries opened under a filter.
+  const forPhotoOrVideo =
+    (view === "PHOTO" || view === "VIDEO") && contribution.type !== view
+      ? { ...contribution, type: view }
+      : contribution;
+
   return (
     <main
-      // z must sit above the preview top bar (z-[250]) so the ✕
-      // close button isn't hidden when we're running inside the
-      // organiser / vault preview surfaces.
       className="fixed inset-0 z-[260] bg-cream flex items-stretch justify-center select-none"
       role="dialog"
       aria-modal="true"
@@ -45,9 +62,9 @@ export function GalleryCardView({
       }}
     >
       <div className="relative w-full h-full">
-        {contribution.type === "PHOTO" || contribution.type === "VIDEO" ? (
-          <PhotoCard contribution={contribution} muted={false} />
-        ) : contribution.type === "VOICE" ? (
+        {view === "PHOTO" || view === "VIDEO" ? (
+          <PhotoCard contribution={forPhotoOrVideo} muted={false} />
+        ) : view === "VOICE" ? (
           <VoiceCard contribution={contribution} muted={false} />
         ) : (
           <LetterCard contribution={contribution} />

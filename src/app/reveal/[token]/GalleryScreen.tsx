@@ -495,6 +495,7 @@ export function GalleryScreen({
       {opened && (
         <GalleryCardView
           contribution={opened}
+          forceView={typeFilter === "all" ? undefined : typeFilter}
           onClose={() => setOpenId(null)}
         />
       )}
