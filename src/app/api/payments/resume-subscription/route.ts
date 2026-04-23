@@ -213,6 +213,11 @@ export async function POST(): Promise<NextResponse> {
       },
     });
 
+    // Vaults that were locked during the lapse come back per the
+    // new sub's slot total. Any over-quota unlocked ones auto-lock.
+    const { reconcileVaultLocks } = await import("@/lib/vault-locks");
+    await reconcileVaultLocks(user.id);
+
     await captureServerEvent(userId, "subscription_resumed", {
       plan: sub.plan,
       addonCount: sub.addonCapsuleCount,

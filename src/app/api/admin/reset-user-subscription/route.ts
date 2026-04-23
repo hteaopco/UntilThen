@@ -119,6 +119,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   await prisma.subscription.delete({ where: { id: sub.id } });
 
+  // Post-reset state: no subscription means no paid slots, so
+  // every unlocked vault is now over quota. Lock them all so
+  // the user sees a clean "subscribe to unlock" state until
+  // they resubscribe.
+  const { reconcileVaultLocks } = await import("@/lib/vault-locks");
+  await reconcileVaultLocks(user.id);
+
   return NextResponse.json({
     success: true,
     email,

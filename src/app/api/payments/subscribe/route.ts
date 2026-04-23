@@ -348,6 +348,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       },
     });
 
+    // Bring vault lock state in sync with the new slot total.
+    // Covers the reset-and-resubscribe flow: user previously
+    // had 4 capsules on a base-plus-one-addon sub, we wiped the
+    // sub, they re-subscribed without addons, so their 4th
+    // vault is now over quota and should auto-lock.
+    const { reconcileVaultLocks } = await import("@/lib/vault-locks");
+    await reconcileVaultLocks(user.id);
+
     await captureServerEvent(userId, "subscription_started", {
       plan,
       userId: user.id,

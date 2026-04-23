@@ -637,8 +637,8 @@ export function BillingClient({
                 Cancel your subscription?
               </p>
               <p className="text-sm text-red-700/90 mb-4 leading-[1.6]">
-                This cancels the base plan and every add-on. You&rsquo;ll
-                keep access until{" "}
+                This cancels the base plan and every add-on. Your
+                subscription will remain active until{" "}
                 {formatLong(sub.currentPeriodEndIso)}. After that, every
                 capsule locks (data is kept). You can resubscribe any time
                 to unlock them again.
