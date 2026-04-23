@@ -59,7 +59,7 @@ export default async function CapsuleLandingPage({
         />
 
         <section>
-          <div className="flex items-start justify-between gap-3 mb-5">
+          <div className="flex items-end justify-between gap-3 mb-5">
             <h2 className="text-[28px] sm:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-[1.05] min-w-0 flex-1">
               {child.firstName}&rsquo;s Collections
             </h2>

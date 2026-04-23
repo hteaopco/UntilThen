@@ -98,16 +98,25 @@ export function VoiceCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Auto-start playback on mount when the caller opts in. Waits
-  // for the audio element to have enough data so .play() doesn't
-  // reject with NotAllowedError before metadata loads.
+  // Auto-start playback on mount when the caller opts in. Tries
+  // play() immediately; on iOS Safari freshly-created audio
+  // elements often need their own user gesture, so a rejection
+  // is fine — the manual Play button still works. We also retry
+  // once on canplaythrough in case the first call lost the race
+  // with element readiness.
   useEffect(() => {
     if (!autoPlay || muted) return;
     const el = audioRef.current;
     if (!el) return;
+    let cancelled = false;
+    el.preload = "auto";
+    let played = false;
     const tryPlay = () => {
+      if (cancelled || played) return;
+      played = true;
       el.play().then(
         () => {
+          if (cancelled) return;
           setPlaying(true);
           applyDuck();
           capture("reveal_voice_played", {
@@ -117,18 +126,18 @@ export function VoiceCard({
           });
         },
         () => {
-          // Autoplay blocked (no prior user gesture, etc.) —
-          // manual Play button is the fallback.
+          // First attempt blocked. Reset so a later canplaythrough
+          // can try once more — sometimes iOS lets the second go.
+          played = false;
         },
       );
     };
-    if (el.readyState >= 2) {
-      tryPlay();
-      return;
-    }
-    const onCanPlay = () => tryPlay();
-    el.addEventListener("canplay", onCanPlay, { once: true });
-    return () => el.removeEventListener("canplay", onCanPlay);
+    tryPlay();
+    el.addEventListener("canplaythrough", tryPlay, { once: true });
+    return () => {
+      cancelled = true;
+      el.removeEventListener("canplaythrough", tryPlay);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contribution.id, autoPlay, muted]);
 
