@@ -256,3 +256,57 @@ export async function sendPinReset(params: {
     `),
   });
 }
+
+// #22 — Cron Health Alert
+//
+// Fired by /api/cron/cron-health-check when a cron has missed
+// 2x its expected interval. Goes to the support inbox so
+// engineering can investigate. Dedup'd to once per 24h per cron
+// by the health checker itself — this helper just formats + sends.
+export async function sendCronHealthAlert(params: {
+  to: string;
+  cronName: string;
+  intervalSec: number;
+  staleThresholdSec: number;
+  lastRunAt: Date | null;
+  ageSec: number | null;
+}): Promise<void> {
+  const fmtInterval = formatDuration(params.intervalSec);
+  const fmtThreshold = formatDuration(params.staleThresholdSec);
+  const fmtAge =
+    params.ageSec === null ? "never" : formatDuration(params.ageSec);
+  const lastRunLine =
+    params.lastRunAt === null
+      ? "This cron has no recorded runs."
+      : `Last successful run: ${params.lastRunAt.toISOString()}`;
+
+  await send({
+    to: params.to,
+    subject: `[untilThen] Cron alert: ${params.cronName} is stale (${fmtAge})`,
+    html: wrapper(`
+      <h1 style="font-size:20px;font-weight:800;margin:0 0 12px;letter-spacing:-0.5px;color:#b91c1c;">
+        Cron hasn&rsquo;t run in a while.
+      </h1>
+      <p style="font-size:15px;color:#4a5568;line-height:1.6;margin:0 0 16px;">
+        <strong>${escapeHtml(params.cronName)}</strong> normally runs every
+        ${escapeHtml(fmtInterval)}. It&rsquo;s been
+        <strong>${escapeHtml(fmtAge)}</strong> since the last run, past the
+        ${escapeHtml(fmtThreshold)} alert threshold.
+      </p>
+      <p style="font-size:14px;color:#4a5568;line-height:1.6;margin:0 0 12px;">
+        ${escapeHtml(lastRunLine)}
+      </p>
+      <p style="font-size:13px;color:#8896a5;line-height:1.55;margin:16px 0 0;">
+        Check the Railway cron service for this job. Re-alerts are
+        suppressed for 24 hours per cron to avoid flooding this inbox.
+      </p>
+    `),
+  });
+}
+
+function formatDuration(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+  if (seconds < 86400) return `${Math.round(seconds / 3600)}h`;
+  return `${Math.round(seconds / 86400)}d`;
+}

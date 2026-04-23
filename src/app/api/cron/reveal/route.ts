@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { cronRoute } from "@/lib/cron-run";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -24,12 +26,7 @@ function isDeliveryTimePassed(
   return nowInTz >= revealInTz;
 }
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
-  const secret = req.headers.get("authorization")?.replace("Bearer ", "");
-  if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+export const POST = cronRoute("reveal", async (): Promise<NextResponse> => {
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({ error: "Database not configured." }, { status: 500 });
   }
@@ -92,4 +89,4 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   );
 
   return NextResponse.json({ processed: capsules.length, sent, skipped, failed });
-}
+});

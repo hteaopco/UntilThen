@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { cronRoute } from "@/lib/cron-run";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -10,10 +12,7 @@ const BATCH_SIZE = 50;
 const REMIND_LEAD_MS = 48 * 3600000;
 const WINDOW_HALF_MS = 12 * 3600000;
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
-  const secret = req.headers.get("authorization")?.replace("Bearer ", "");
-  if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const POST = cronRoute("capsule-contributor-reminder", async (): Promise<NextResponse> => {
   if (!process.env.DATABASE_URL)
     return NextResponse.json({ error: "Database not configured." }, { status: 500 });
 
@@ -95,4 +94,4 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     `[cron/capsule-contributor-reminder] ${checkedCapsules} capsules in window: ${sent} sent, ${skipped} failed`,
   );
   return NextResponse.json({ checkedCapsules, sent, skipped });
-}
+});

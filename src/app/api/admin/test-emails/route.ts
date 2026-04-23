@@ -55,6 +55,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     sendAccountRecoveryRequest,
     sendAccountRecoveryConfirmation,
     sendPinReset,
+    sendCronHealthAlert,
   } = await import("@/lib/emails");
 
   // #1 — Invite Contributor
@@ -276,6 +277,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       to,
       firstName: "Jett",
       resetUrl: `${origin}/account/pin/reset?token=test-token-preview-abc123`,
+    }),
+  );
+
+  // #22 — Cron health alert preview.
+  await fire("cron-health-alert", "#22 Cron Health Alert", () =>
+    sendCronHealthAlert({
+      to,
+      cronName: "reveal",
+      intervalSec: 15 * 60,
+      staleThresholdSec: 30 * 60,
+      lastRunAt: new Date(Date.now() - 45 * 60 * 1000),
+      ageSec: 45 * 60,
     }),
   );
 

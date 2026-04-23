@@ -7,6 +7,7 @@ import {
   topPages,
   trendDailyActiveUsers,
   trendNewUsers,
+  trendNewUsersError,
 } from "@/lib/posthog-analytics";
 
 export const metadata = {
@@ -87,14 +88,13 @@ export default async function AdminAnalyticsPage() {
           <TrendBar
             points={newUsers30}
             emptyMessage="No new users yet."
-            width={48}
+            errorMessage={trendNewUsersError(30)}
           />
         </Card>
         <Card title="Daily active users — last 7 days">
           <TrendBar
             points={dau7}
             emptyMessage="No activity yet."
-            width={48}
           />
         </Card>
       </div>
@@ -214,32 +214,63 @@ function KpiCard({
 function TrendBar({
   points,
   emptyMessage,
-  width,
+  errorMessage,
 }: {
   points: { day: string; count: number }[] | null;
   emptyMessage: string;
-  width: number;
+  errorMessage?: string | null;
 }) {
-  if (!points) return <Unavailable />;
+  if (!points) return <Unavailable errorMessage={errorMessage ?? null} />;
   if (points.length === 0)
     return <p className="text-[13px] text-ink-light">{emptyMessage}</p>;
   const max = Math.max(1, ...points.map((p) => p.count));
+  // Nice round axis tick values at 0 / ½ max / max so the reader
+  // can eyeball the y-value of any bar without hovering.
+  const ticks = [max, Math.round(max / 2), 0];
+  const CHART_HEIGHT = 96;
   return (
     <div>
-      <div className="flex items-end gap-1 h-24 mb-3" aria-hidden="true">
-        {points.map((p) => {
-          const h = Math.round((p.count / max) * 96) + 2;
-          return (
+      <div className="flex items-stretch gap-2">
+        {/* Y-axis labels, aligned to the chart's 96px height. */}
+        <div
+          className="flex flex-col justify-between text-[10px] text-ink-light font-mono text-right shrink-0"
+          style={{ height: CHART_HEIGHT }}
+          aria-hidden="true"
+        >
+          {ticks.map((t) => (
+            <span key={t} className="leading-none">
+              {t.toLocaleString()}
+            </span>
+          ))}
+        </div>
+        {/* Bars. Uses relative positioning so gridlines align with ticks. */}
+        <div className="flex-1 relative" style={{ height: CHART_HEIGHT }}>
+          {ticks.map((t, i) => (
             <div
-              key={p.day}
-              className="flex-1 bg-amber/60 rounded-sm"
-              style={{ height: `${h}px`, minWidth: "3px" }}
-              title={`${p.day}: ${p.count}`}
+              key={i}
+              className="absolute left-0 right-0 border-t border-navy/[0.05]"
+              style={{
+                top: `${(i / (ticks.length - 1)) * 100}%`,
+              }}
+              aria-hidden="true"
             />
-          );
-        })}
+          ))}
+          <div className="absolute inset-0 flex items-end gap-1">
+            {points.map((p) => {
+              const h = max > 0 ? (p.count / max) * CHART_HEIGHT : 0;
+              return (
+                <div
+                  key={p.day}
+                  className="flex-1 bg-amber/70 rounded-sm"
+                  style={{ height: `${Math.max(h, 2)}px`, minWidth: "3px" }}
+                  title={`${p.day}: ${p.count.toLocaleString()}`}
+                />
+              );
+            })}
+          </div>
+        </div>
       </div>
-      <div className="flex justify-between text-[10px] text-ink-light font-mono">
+      <div className="flex justify-between text-[10px] text-ink-light font-mono mt-2 pl-8">
         <span>{points[0]?.day.slice(5)}</span>
         <span className="text-ink-mid font-semibold">
           total{" "}
@@ -301,12 +332,19 @@ function FunnelView({
   );
 }
 
-function Unavailable() {
+function Unavailable({ errorMessage }: { errorMessage?: string | null }) {
   return (
-    <p className="text-[13px] text-ink-light">
-      Data unavailable. Check PostHog configuration or Sentry for{" "}
-      <code className="font-mono">posthog.query</code> errors.
-    </p>
+    <div>
+      <p className="text-[13px] text-ink-light">
+        Data unavailable. Check PostHog configuration or Sentry for{" "}
+        <code className="font-mono">posthog.query</code> errors.
+      </p>
+      {errorMessage ? (
+        <pre className="mt-2 text-[11px] font-mono text-red-700 bg-red-50 border border-red-100 rounded p-2 whitespace-pre-wrap break-all">
+          {errorMessage}
+        </pre>
+      ) : null}
+    </div>
   );
 }
 

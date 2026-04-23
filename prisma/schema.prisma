@@ -490,6 +490,39 @@ model AppConfig {
   updatedAt      DateTime @updatedAt
 }
 
+// ── Cron health monitoring ────────────────────────────────
+
+enum CronStatus {
+  RUNNING
+  OK
+  ERROR
+}
+
+// One row per cron execution. Written via withCronRun() in
+// src/lib/cron-run.ts. Powers the "Cron health" card on /admin
+// and the alert-when-stale flow in /api/cron/cron-health-check.
+model CronRun {
+  id           String     @id @default(cuid())
+  cronName     String
+  startedAt    DateTime   @default(now())
+  finishedAt   DateTime?
+  status       CronStatus @default(RUNNING)
+  durationMs   Int?
+  errorMessage String?
+  metadata     Json?
+
+  @@index([cronName, startedAt])
+  @@index([startedAt])
+}
+
+// Tracks the last time we emailed an alert for a given cron so
+// a single prolonged outage doesn't spam the support inbox.
+// Keyed by cron name — one row per cron at most.
+model CronAlertState {
+  cronName    String   @id
+  lastAlertAt DateTime
+}
+
 // ── Admin audit log ────────────────────────────────────────
 
 // Records every mutating admin action. Read-only admin views

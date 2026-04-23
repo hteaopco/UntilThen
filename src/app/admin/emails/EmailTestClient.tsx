@@ -214,6 +214,15 @@ const TEMPLATES: EmailTemplate[] = [
     frequency: "On event",
     funnel: "Retention",
   },
+  {
+    id: "cron-health-alert",
+    name: "#22 Cron Health Alert",
+    subject: "[untilThen] Cron alert: reveal is stale (45m)",
+    bodyPreview: "Internal ops alert to hello@untilthenapp.io when a cron misses 2x its expected interval. Dedup'd to once per 24h per cron by the health checker.",
+    trigger: "Cron health check detects stale cron",
+    frequency: "On event",
+    funnel: "Retention",
+  },
 ];
 
 const FUNNEL_COLORS: Record<string, string> = {

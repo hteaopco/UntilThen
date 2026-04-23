@@ -26,6 +26,15 @@ interface CacheEntry {
 }
 const queryCache = new Map<string, CacheEntry>();
 
+// Last error per query string — exposed so the admin UI can
+// show what went wrong on a failed card instead of a generic
+// "unavailable". Only the message (not stack / key) is retained.
+const lastErrors = new Map<string, string>();
+
+export function lastQueryError(query: string): string | null {
+  return lastErrors.get(query) ?? null;
+}
+
 export function posthogConfigured(): boolean {
   return Boolean(
     process.env.POSTHOG_PERSONAL_API_KEY &&
@@ -77,7 +86,11 @@ export async function hogQuery(query: string): Promise<HogQLResult | null> {
       cache: "no-store",
     });
     if (!res.ok) {
-      throw new Error(`PostHog query ${res.status} ${res.statusText}`);
+      // PostHog returns JSON with { detail } or { error } on 4xx.
+      const bodyText = await res.text().catch(() => "");
+      throw new Error(
+        `PostHog ${res.status}: ${bodyText.slice(0, 400) || res.statusText}`,
+      );
     }
     const payload = (await res.json()) as {
       columns?: string[];
@@ -94,8 +107,12 @@ export async function hogQuery(query: string): Promise<HogQLResult | null> {
       data: parsed,
       expires: Date.now() + CACHE_TTL_MS,
     });
+    lastErrors.delete(query);
     return parsed;
   } catch (err) {
+    const msg =
+      (err as Error)?.message?.slice(0, 400) ?? String(err).slice(0, 400);
+    lastErrors.set(query, msg);
     Sentry.captureException(err, {
       tags: { area: "posthog.query" },
       extra: { query: query.slice(0, 240) },
@@ -113,20 +130,42 @@ export interface TrendPoint {
   count: number;
 }
 
-/** Daily new users (first event seen) over the last N days. */
+/**
+ * Daily new users (first event seen) over the last N days.
+ *
+ * Uses HAVING on the subquery so the date filter runs against the
+ * already-aggregated first-event timestamp per distinct_id. The
+ * earlier WHERE-against-alias form triggered HogQL parsing errors
+ * on some projects.
+ */
 export async function trendNewUsers(days = 30): Promise<TrendPoint[] | null> {
   const result = await hogQuery(`
-    SELECT toDate(first_seen) as day, count() as new_users
+    SELECT day, count() as new_users
     FROM (
-      SELECT distinct_id, min(timestamp) as first_seen
+      SELECT distinct_id, toDate(min(timestamp)) as day
       FROM events
       GROUP BY distinct_id
-    )
-    WHERE first_seen > now() - interval ${days} day
+      HAVING day > today() - INTERVAL ${days} DAY
+    ) _
     GROUP BY day
     ORDER BY day
   `);
   return rowsToTrend(result);
+}
+
+/** Raw error text for the trendNewUsers query (for admin UI). */
+export function trendNewUsersError(days = 30): string | null {
+  return lastQueryError(`
+    SELECT day, count() as new_users
+    FROM (
+      SELECT distinct_id, toDate(min(timestamp)) as day
+      FROM events
+      GROUP BY distinct_id
+      HAVING day > today() - INTERVAL ${days} DAY
+    ) _
+    GROUP BY day
+    ORDER BY day
+  `);
 }
 
 /** Daily active users over the last N days. */

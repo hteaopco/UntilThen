@@ -2,6 +2,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { AlertCircle, CheckCircle, Gift, Inbox, Lock, Users } from "lucide-react";
 
 import { AdminHeader } from "@/app/admin/AdminHeader";
+import { CRON_INTERVALS_SEC, type CronName } from "@/lib/cron-run";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -86,6 +87,28 @@ export default async function AdminDashboard() {
     }),
   ]);
 
+  // Cron health — for each known cron, grab the latest run.
+  // Unknown/missing = "never run"; age beyond 2× expected
+  // interval = "stale"; ERROR status from last run also flagged.
+  const cronNames = Object.keys(CRON_INTERVALS_SEC) as CronName[];
+  const cronLastRuns = await Promise.all(
+    cronNames.map((name) =>
+      prisma.cronRun
+        .findFirst({
+          where: { cronName: name },
+          orderBy: { startedAt: "desc" },
+          select: {
+            startedAt: true,
+            finishedAt: true,
+            status: true,
+            durationMs: true,
+            errorMessage: true,
+          },
+        })
+        .then((run) => ({ name, run })),
+    ),
+  );
+
   const [draftCapsules, activeCapsules, sealedCapsules, revealedCapsules] = capsulesByStatus;
 
   const modCounts: Record<string, number> = {
@@ -162,6 +185,83 @@ export default async function AdminDashboard() {
               <Row label="Gift capsule contributions" value={totalContributions.toLocaleString()} />
               <Row label="Pending review" value={pendingTotal.toLocaleString()} highlight={pendingTotal > 0} />
             </div>
+          </Card>
+        </div>
+
+        {/* Cron health */}
+        <div className="mb-8">
+          <Card title="Cron health">
+            <div className="overflow-x-auto">
+              <table className="w-full text-[13px]">
+                <thead>
+                  <tr className="text-left text-[10px] uppercase tracking-[0.1em] font-bold text-ink-mid">
+                    <th className="py-1.5 pr-3">Cron</th>
+                    <th className="py-1.5 pr-3">Interval</th>
+                    <th className="py-1.5 pr-3">Last run</th>
+                    <th className="py-1.5 pr-3">Age</th>
+                    <th className="py-1.5 pr-3">Duration</th>
+                    <th className="py-1.5">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cronLastRuns.map(({ name, run }) => {
+                    const intervalSec = CRON_INTERVALS_SEC[name];
+                    const staleThreshold = intervalSec * 2;
+                    const ageSec = run
+                      ? Math.floor(
+                          (Date.now() - run.startedAt.getTime()) / 1000,
+                        )
+                      : null;
+                    const isStale =
+                      ageSec === null ? true : ageSec > staleThreshold;
+                    const isError = run?.status === "ERROR";
+                    const tone = isError
+                      ? "text-red-600"
+                      : isStale
+                        ? "text-amber-dark"
+                        : "text-sage";
+                    return (
+                      <tr
+                        key={name}
+                        className="border-t border-navy/[0.05]"
+                      >
+                        <td className="py-1.5 pr-3 font-mono text-[12.5px] text-navy">
+                          {name}
+                        </td>
+                        <td className="py-1.5 pr-3 text-ink-mid tabular-nums">
+                          {fmtDuration(intervalSec)}
+                        </td>
+                        <td className="py-1.5 pr-3 text-ink-mid tabular-nums">
+                          {run
+                            ? run.startedAt.toISOString().slice(0, 16).replace("T", " ")
+                            : "—"}
+                        </td>
+                        <td className="py-1.5 pr-3 text-ink-mid tabular-nums">
+                          {ageSec === null ? "—" : fmtDuration(ageSec)}
+                        </td>
+                        <td className="py-1.5 pr-3 text-ink-mid tabular-nums">
+                          {run?.durationMs
+                            ? `${run.durationMs}ms`
+                            : "—"}
+                        </td>
+                        <td className={`py-1.5 text-[11px] uppercase tracking-[0.08em] font-bold ${tone}`}>
+                          {isError
+                            ? "Error"
+                            : isStale
+                              ? "Stale"
+                              : "Healthy"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-[11px] text-ink-light mt-3">
+              Stale = older than 2× its expected interval. The
+              /api/cron/cron-health-check job emails
+              hello@untilthenapp.io once per 24h per stale cron.
+            </p>
           </Card>
         </div>
 
@@ -298,6 +398,13 @@ function Row({ label, value, highlight = false }: { label: string; value: string
       <span className={`text-sm font-bold tabular-nums ${highlight ? "text-amber" : "text-navy"}`}>{value}</span>
     </div>
   );
+}
+
+function fmtDuration(seconds: number): string {
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+  if (seconds < 86400) return `${Math.round(seconds / 3600)}h`;
+  return `${Math.round(seconds / 86400)}d`;
 }
 
 function ModStat({

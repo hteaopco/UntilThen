@@ -1,14 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { cronRoute } from "@/lib/cron-run";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const BATCH_SIZE = 50;
 
-export async function POST(req: NextRequest): Promise<NextResponse> {
-  const secret = req.headers.get("authorization")?.replace("Bearer ", "");
-  if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const POST = cronRoute("reminders", async (): Promise<NextResponse> => {
   if (!process.env.DATABASE_URL)
     return NextResponse.json({ error: "Database not configured." }, { status: 500 });
 
@@ -95,4 +94,4 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   console.log(`[cron/reminders] ${checked} users checked: ${sent} sent, ${skipped} skipped`);
   return NextResponse.json({ checked, sent, skipped });
-}
+});

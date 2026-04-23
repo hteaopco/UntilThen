@@ -3,6 +3,8 @@ import { createGzip } from "node:zlib";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { cronRoute } from "@/lib/cron-run";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -84,12 +86,7 @@ function dumpToBuffer(databaseUrl: string): Promise<Buffer> {
  *
  * Auth: Bearer CRON_SECRET. Railway cron service POSTs here nightly.
  */
-export async function POST(req: NextRequest): Promise<NextResponse> {
-  const secret = req.headers.get("authorization")?.replace("Bearer ", "");
-  if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+export const POST = cronRoute("db-backup", async (): Promise<NextResponse> => {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
     return NextResponse.json(
@@ -155,4 +152,4 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       { status: 500 },
     );
   }
-}
+});
