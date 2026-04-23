@@ -6,25 +6,9 @@ import * as Sentry from "@sentry/nextjs";
 export async function register() {
   if (process.env.NEXT_RUNTIME === "nodejs") {
     await import("./sentry.server.config");
-    void primePrisma();
   }
   if (process.env.NEXT_RUNTIME === "edge") {
     await import("./sentry.edge.config");
-  }
-}
-
-// Fire-and-forget Prisma pool prime so the first real DB-touching
-// request doesn't pay the handshake cost. Deliberately does not
-// block startup — the healthcheck returns 200 immediately and
-// Railway flips traffic; this just warms the pool in parallel.
-async function primePrisma() {
-  try {
-    const { prisma } = await import("@/lib/prisma");
-    const startedAt = Date.now();
-    await prisma.$queryRaw`SELECT 1`;
-    console.log(`[warmup] prisma pool primed in ${Date.now() - startedAt}ms`);
-  } catch (err) {
-    console.warn("[warmup] prisma ping failed:", err);
   }
 }
 
