@@ -116,15 +116,12 @@ export async function POST(): Promise<NextResponse> {
     sub.plan === "MONTHLY"
       ? SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_BASE
       : SQUARE_ORDER_TEMPLATE_IDS.ANNUAL_BASE;
-  const addonPlanVariation =
-    sub.plan === "MONTHLY"
-      ? SQUARE_PLAN_IDS.MONTHLY_ADDON
-      : SQUARE_PLAN_IDS.ANNUAL_ADDON;
-  const addonOrderTemplate =
-    sub.plan === "MONTHLY"
-      ? SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_ADDON
-      : SQUARE_ORDER_TEMPLATE_IDS.ANNUAL_ADDON;
-  if (!baseOrderTemplate || (sub.addonCapsuleCount > 0 && !addonOrderTemplate)) {
+  const addonPlanVariation = SQUARE_PLAN_IDS.MONTHLY_ADDON;
+  const addonOrderTemplate = SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_ADDON;
+  if (
+    !baseOrderTemplate ||
+    (sub.plan === "MONTHLY" && sub.addonCapsuleCount > 0 && !addonOrderTemplate)
+  ) {
     return NextResponse.json(
       {
         error:
@@ -141,6 +138,19 @@ export async function POST(): Promise<NextResponse> {
     // YYYYMMDD (8) = 37.
     const ymd = startDate.replace(/-/g, "");
 
+    // ANNUAL resume merges every addon into the base sub via
+    // priceOverrideMoney so there's one sub + one renewal
+    // invoice. Monthly keeps separate addon subs.
+    const annualOverride =
+      sub.plan === "ANNUAL" && sub.addonCapsuleCount > 0
+        ? {
+            priceOverrideMoney: {
+              amount: BigInt(3599 + 600 * sub.addonCapsuleCount),
+              currency: "USD" as const,
+            },
+          }
+        : {};
+
     const baseResp = await square.subscriptions.create({
       idempotencyKey: `rs-${user.id}-${ymd}`,
       locationId: SQUARE_LOCATION_ID,
@@ -150,28 +160,33 @@ export async function POST(): Promise<NextResponse> {
       startDate,
       timezone: "America/Chicago",
       phases: [{ ordinal: 0n, orderTemplateId: baseOrderTemplate }],
+      ...annualOverride,
     });
     const newBaseSubId = baseResp.subscription?.id;
     if (!newBaseSubId)
       throw new Error("Square base subscription create returned no id.");
 
+    // Only MONTHLY plans spin up separate addon subs; annual
+    // plans carry them via the base sub's price_override.
     const newAddonSubIds: string[] = [];
-    for (let i = 0; i < sub.addonCapsuleCount; i++) {
-      const addonResp = await square.subscriptions.create({
-        // Scoped per addon index so resume creates the right
-        // number of addon subs without colliding.
-        idempotencyKey: `rsa-${user.id}-${ymd}-${i}`,
-        locationId: SQUARE_LOCATION_ID,
-        planVariationId: addonPlanVariation,
-        customerId: user.squareCustomerId,
-        cardId: user.squareCardId,
-        startDate,
-        timezone: "America/Chicago",
-        phases: [{ ordinal: 0n, orderTemplateId: addonOrderTemplate! }],
-      });
-      const addonId = addonResp.subscription?.id;
-      if (!addonId) throw new Error("Square addon subscription create returned no id.");
-      newAddonSubIds.push(addonId);
+    if (sub.plan === "MONTHLY") {
+      for (let i = 0; i < sub.addonCapsuleCount; i++) {
+        const addonResp = await square.subscriptions.create({
+          // Scoped per addon index so resume creates the right
+          // number of addon subs without colliding.
+          idempotencyKey: `rsa-${user.id}-${ymd}-${i}`,
+          locationId: SQUARE_LOCATION_ID,
+          planVariationId: addonPlanVariation,
+          customerId: user.squareCustomerId,
+          cardId: user.squareCardId,
+          startDate,
+          timezone: "America/Chicago",
+          phases: [{ ordinal: 0n, orderTemplateId: addonOrderTemplate! }],
+        });
+        const addonId = addonResp.subscription?.id;
+        if (!addonId) throw new Error("Square addon subscription create returned no id.");
+        newAddonSubIds.push(addonId);
+      }
     }
 
     // New period end for our DB. For monthly, Square starts on

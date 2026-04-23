@@ -2,7 +2,12 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 import { captureServerEvent } from "@/lib/posthog-server";
-import { calculateProration, nextFirstOfMonth, oneYearLater } from "@/lib/proration";
+import {
+  ANNUAL_ADDON_CENTS,
+  ANNUAL_BASE_CENTS,
+  calculateProration,
+  nextFirstOfMonth,
+} from "@/lib/proration";
 import {
   SQUARE_LOCATION_ID,
   SQUARE_ORDER_TEMPLATE_IDS,
@@ -21,16 +26,21 @@ export const dynamic = "force-dynamic";
  * the card saved on file during the original subscribe flow —
  * no new card entry required.
  *
- * Flow:
- *   1. Require an ACTIVE Subscription row.
- *   2. Look up the customer's saved card via Square.
- *   3. Monthly: prorate this month's add-on ($0.99 scaled) and
- *      charge the card immediately.
- *      Annual: charge full $6.00 immediately (annual never
- *      prorates per Square constraints + brief).
- *   4. Create a new Square Subscription for the matching add-on
- *      plan variation (aligned on the same cadence as the base).
- *   5. Bump Subscription.addonCapsuleCount by 1 in our DB.
+ * Flow branches on base plan cadence:
+ *
+ *   MONTHLY — classic per-addon model. Prorate this month's
+ *   $0.99, charge the card now, create a separate Square
+ *   addon subscription on the monthly cadence. Stored in
+ *   addonSquareSubIds so remove-addon can cancel it later.
+ *
+ *   ANNUAL — merged-into-base model. Grant the slot
+ *   immediately but DON'T charge and DON'T create a separate
+ *   sub. Instead, bump the base sub's price_override_money to
+ *   $35.99 + ($6 × addonCount) so Square bills the combined
+ *   amount on the annual renewal. Trade-off: user gets the
+ *   addon free until their renewal (max $6 of lost revenue),
+ *   but the UX story is "add capsules free until your next
+ *   renewal" — a growth lever on top of the simpler data model.
  *
  * Idempotency: the proration charge + add-on Square subscription
  * each use a key keyed on userId + current addonCapsuleCount,
@@ -59,10 +69,13 @@ export async function POST(): Promise<NextResponse> {
     select: {
       id: true,
       squareCustomerId: true,
+      squareCardId: true,
       subscription: {
         select: {
+          id: true,
           plan: true,
           status: true,
+          squareSubId: true,
           addonCapsuleCount: true,
         },
       },
@@ -97,18 +110,51 @@ export async function POST(): Promise<NextResponse> {
   const now = new Date();
 
   try {
-    // Grab the first card on the customer. In practice the
-    // subscribe flow saves exactly one; pick the enabled one
-    // so a soft-deleted card from an earlier attempt doesn't
-    // trip us.
-    const cardsResp = await square.cards.list({
-      customerId: user.squareCustomerId,
-    });
-    const card = (cardsResp as unknown as { data?: { id?: string; enabled?: boolean }[] }).data?.find(
-      (c) => c.enabled !== false,
-    );
-    const cardId = card?.id;
-    if (!cardId) {
+    // ── ANNUAL path: merge into base sub via price_override ──
+    if (plan === "ANNUAL") {
+      const newCount = addonIndex + 1;
+      const newBasePriceCents = ANNUAL_BASE_CENTS + ANNUAL_ADDON_CENTS * newCount;
+
+      await square.subscriptions.update({
+        subscriptionId: user.subscription.squareSubId,
+        subscription: {
+          priceOverrideMoney: {
+            amount: BigInt(newBasePriceCents),
+            currency: "USD",
+          },
+        },
+      });
+
+      const updated = await prisma.subscription.update({
+        where: { userId: user.id },
+        data: {
+          addonCapsuleCount: { increment: 1 },
+        },
+        select: {
+          addonCapsuleCount: true,
+          baseCapsuleCount: true,
+        },
+      });
+
+      await captureServerEvent(userId, "subscription_addon_added", {
+        plan,
+        newAddonCount: updated.addonCapsuleCount,
+        billingModel: "annual-override",
+      });
+
+      return NextResponse.json({
+        success: true,
+        newSlotCount: updated.baseCapsuleCount + updated.addonCapsuleCount,
+        // Annual addons don't charge right now — they ride the
+        // next renewal. Client UI reads this flag to show the
+        // "free until renewal" confirmation copy.
+        freeUntilRenewal: true,
+        nextRenewalAmountCents: newBasePriceCents,
+      });
+    }
+
+    // ── MONTHLY path: separate addon sub, prorated upfront ──
+    if (!user.squareCardId) {
       return NextResponse.json(
         {
           error:
@@ -117,8 +163,9 @@ export async function POST(): Promise<NextResponse> {
         { status: 409 },
       );
     }
+    const cardId = user.squareCardId;
 
-    // 1. Prorated / full upfront charge for this month.
+    // 1. Prorated upfront charge for this month.
     const { amountTodayCents, nextRenewalAmountCents } = calculateProration(
       { plan, type: "addon" },
       now,
@@ -134,10 +181,7 @@ export async function POST(): Promise<NextResponse> {
           currency: "USD",
         },
         locationId: SQUARE_LOCATION_ID,
-        note:
-          plan === "MONTHLY"
-            ? "untilThen add-on capsule · prorated"
-            : "untilThen add-on capsule · annual",
+        note: "untilThen add-on capsule · prorated",
         referenceId: user.id,
       });
       if (payResp.payment?.status !== "COMPLETED") {
@@ -151,19 +195,12 @@ export async function POST(): Promise<NextResponse> {
       }
     }
 
-    // 2. Add a matching Square subscription so the add-on keeps
-    //    billing on the same cadence as the base going forward.
-    const planVariationId =
-      plan === "MONTHLY"
-        ? SQUARE_PLAN_IDS.MONTHLY_ADDON
-        : SQUARE_PLAN_IDS.ANNUAL_ADDON;
-    const orderTemplateId =
-      plan === "MONTHLY"
-        ? SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_ADDON
-        : SQUARE_ORDER_TEMPLATE_IDS.ANNUAL_ADDON;
+    // 2. Monthly addon sub so renewal continues each month.
+    const planVariationId = SQUARE_PLAN_IDS.MONTHLY_ADDON;
+    const orderTemplateId = SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_ADDON;
     if (!orderTemplateId) {
       console.error(
-        `[payments/addon-capsule] SQUARE_ORDER_TEMPLATE_${plan}_ADDON not set`,
+        "[payments/addon-capsule] SQUARE_ORDER_TEMPLATE_MONTHLY_ADDON not set",
       );
       return NextResponse.json(
         {
@@ -173,10 +210,7 @@ export async function POST(): Promise<NextResponse> {
         { status: 503 },
       );
     }
-    const startDate =
-      plan === "MONTHLY"
-        ? nextFirstOfMonth(now).toISOString().slice(0, 10)
-        : oneYearLater(now).toISOString().slice(0, 10);
+    const startDate = nextFirstOfMonth(now).toISOString().slice(0, 10);
 
     const addonSubResp = await square.subscriptions.create({
       idempotencyKey: `addon-sub-${user.id}-${addonIndex}`,
@@ -186,8 +220,6 @@ export async function POST(): Promise<NextResponse> {
       cardId,
       startDate,
       timezone: "America/Chicago",
-      // Match the base subscribe flow — RELATIVE-priced plans
-      // need explicit phases supplying the dollar amount.
       phases: [{ ordinal: 0n, orderTemplateId }],
     });
     const addonSquareSubId = addonSubResp.subscription?.id;
@@ -195,8 +227,6 @@ export async function POST(): Promise<NextResponse> {
       throw new Error("Square addon subscription create returned no id.");
     }
 
-    // 3. Bump the count + remember the Square sub id so the
-    //    billing page can offer a per-addon Remove button later.
     const updated = await prisma.subscription.update({
       where: { userId: user.id },
       data: {
@@ -212,11 +242,13 @@ export async function POST(): Promise<NextResponse> {
     await captureServerEvent(userId, "subscription_addon_added", {
       plan,
       newAddonCount: updated.addonCapsuleCount,
+      billingModel: "monthly-separate",
     });
 
     return NextResponse.json({
       success: true,
       newSlotCount: updated.baseCapsuleCount + updated.addonCapsuleCount,
+      freeUntilRenewal: false,
       nextRenewalAmountCents,
     });
   } catch (err) {

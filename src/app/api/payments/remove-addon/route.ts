@@ -57,7 +57,9 @@ export async function POST(): Promise<NextResponse> {
     where: { userId: user.id },
     select: {
       id: true,
+      plan: true,
       status: true,
+      squareSubId: true,
       baseCapsuleCount: true,
       addonCapsuleCount: true,
       addonSquareSubIds: true,
@@ -79,14 +81,53 @@ export async function POST(): Promise<NextResponse> {
       { status: 409 },
     );
 
+  const square = getSquareClient();
+  const newAddonCount = sub.addonCapsuleCount - 1;
+
+  // ── ANNUAL: decrement the base sub's price_override ──
+  if (sub.plan === "ANNUAL") {
+    const newBasePriceCents = 3599 + 600 * newAddonCount;
+    try {
+      await square.subscriptions.update({
+        subscriptionId: sub.squareSubId,
+        subscription: {
+          priceOverrideMoney: {
+            amount: BigInt(newBasePriceCents),
+            currency: "USD",
+          },
+        },
+      });
+    } catch (err) {
+      console.error(
+        "[payments/remove-addon] annual priceOverride update failed:",
+        err,
+      );
+    }
+    // No addonSquareSubIds to touch in the annual model.
+    await applyRemovalToDb({
+      subId: sub.id,
+      userId: user.id,
+      newAddonCount,
+      newAddonSubIds: sub.addonSquareSubIds,
+      baseCapsuleCount: sub.baseCapsuleCount,
+    });
+    await captureServerEvent(userId, "subscription_addon_removed", {
+      newAddonCount,
+      billingModel: "annual-override",
+    });
+    return NextResponse.json({
+      success: true,
+      newSlotCount: sub.baseCapsuleCount + newAddonCount,
+    });
+  }
+
+  // ── MONTHLY: pop + cancel one Square addon sub ──
   const addonIds = sub.addonSquareSubIds;
   // Pop the last one — if backfill populated them in creation
   // order, this removes the newest. No strong reason either way;
   // Square doesn't care.
   const toCancel = addonIds[addonIds.length - 1];
   const remaining = addonIds.slice(0, -1);
-
-  const square = getSquareClient();
 
   if (toCancel) {
     try {
@@ -109,23 +150,58 @@ export async function POST(): Promise<NextResponse> {
     );
   }
 
-  // Decrement our side. Auto-lock the newest active vault if the
-  // user's capsule count now exceeds their paid slots.
-  const newAddonCount = sub.addonCapsuleCount - 1;
-  const newSlots = sub.baseCapsuleCount + newAddonCount;
+  await applyRemovalToDb({
+    subId: sub.id,
+    userId: user.id,
+    newAddonCount,
+    newAddonSubIds: remaining,
+    baseCapsuleCount: sub.baseCapsuleCount,
+  });
+
+  await captureServerEvent(userId, "subscription_addon_removed", {
+    newAddonCount,
+    billingModel: "monthly-separate",
+  });
+
+  return NextResponse.json({
+    success: true,
+    newSlotCount: sub.baseCapsuleCount + newAddonCount,
+  });
+}
+
+/**
+ * Shared post-removal DB bookkeeping: persists the new addon
+ * count + sub-id array and auto-locks the newest active vault
+ * when the user's capsule count now exceeds their paid slots.
+ */
+async function applyRemovalToDb({
+  subId,
+  userId,
+  newAddonCount,
+  newAddonSubIds,
+  baseCapsuleCount,
+}: {
+  subId: string;
+  userId: string;
+  newAddonCount: number;
+  newAddonSubIds: string[];
+  baseCapsuleCount: number;
+}) {
+  const { prisma } = await import("@/lib/prisma");
+  const newSlots = baseCapsuleCount + newAddonCount;
 
   await prisma.$transaction(async (tx) => {
     await tx.subscription.update({
-      where: { id: sub.id },
+      where: { id: subId },
       data: {
         addonCapsuleCount: newAddonCount,
-        addonSquareSubIds: remaining,
+        addonSquareSubIds: newAddonSubIds,
       },
     });
 
     const activeVaults = await tx.vault.findMany({
       where: {
-        child: { parentId: user.id },
+        child: { parentId: userId },
         isLocked: false,
       },
       orderBy: { createdAt: "desc" },
@@ -139,14 +215,5 @@ export async function POST(): Promise<NextResponse> {
         data: { isLocked: true, lockedAt: new Date() },
       });
     }
-  });
-
-  await captureServerEvent(userId, "subscription_addon_removed", {
-    newAddonCount,
-  });
-
-  return NextResponse.json({
-    success: true,
-    newSlotCount: newSlots,
   });
 }

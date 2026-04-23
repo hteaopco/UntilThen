@@ -89,7 +89,8 @@ export function AddOnCheckout({
     }
   }
 
-  const perCycle = plan === "MONTHLY" ? "$0.99/mo" : "$6.00/yr";
+  const isAnnual = plan === "ANNUAL";
+  const perCycle = isAnnual ? "$6.00/yr" : "$0.99/mo";
   const todayCopy = proration?.amountTodayDollars ?? "…";
   const renewalDate = proration?.nextRenewalDate
     ? new Date(proration.nextRenewalDate).toLocaleDateString("en-US", {
@@ -111,28 +112,50 @@ export function AddOnCheckout({
         </h2>
         <p className="mt-1 text-[13px] text-ink-mid">
           One more slot · {perCycle}
-          {plan === "MONTHLY" ? " (prorated this month)" : ""}
+          {isAnnual ? " · free until your next renewal" : " (prorated this month)"}
         </p>
       </div>
 
-      <div className="rounded-xl border border-navy/[0.08] bg-warm-surface/60 px-4 py-3 space-y-1 text-[13px]">
-        <div className="flex items-center justify-between">
-          <span className="text-ink-mid">Charged today</span>
-          <span className="font-bold text-navy tabular-nums">
-            {prorationLoading ? "…" : `$${todayCopy}`}
-          </span>
+      {isAnnual ? (
+        <div className="rounded-xl border border-sage/30 bg-sage-tint/40 px-4 py-3 text-[13px] text-navy">
+          <p className="font-semibold">Added free, no charge today.</p>
+          <p className="mt-1 text-ink-mid text-[12px] leading-[1.55]">
+            This slot is yours right now. We&rsquo;ll roll it into your
+            annual renewal on{" "}
+            <span className="font-semibold text-navy">{renewalDate}</span>
+            {renewalAmount && (
+              <>
+                {" "}— your next bill will be{" "}
+                <span className="font-semibold text-navy">
+                  ${renewalAmount}
+                </span>
+              </>
+            )}
+            .
+          </p>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-ink-mid">Next renewal</span>
-          <span className="text-ink-light tabular-nums">
-            {renewalDate}
-            {renewalAmount ? ` · +$${renewalAmount}` : ""}
-          </span>
+      ) : (
+        <div className="rounded-xl border border-navy/[0.08] bg-warm-surface/60 px-4 py-3 space-y-1 text-[13px]">
+          <div className="flex items-center justify-between">
+            <span className="text-ink-mid">Charged today</span>
+            <span className="font-bold text-navy tabular-nums">
+              {prorationLoading ? "…" : `$${todayCopy}`}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-ink-mid">Next renewal</span>
+            <span className="text-ink-light tabular-nums">
+              {renewalDate}
+              {renewalAmount ? ` · +$${renewalAmount}` : ""}
+            </span>
+          </div>
         </div>
-      </div>
+      )}
 
       <p className="text-[12px] text-ink-light">
-        Uses the card you saved with your subscription.
+        {isAnnual
+          ? "Saved on the card you used for your subscription."
+          : "Uses the card you saved with your subscription."}
       </p>
 
       {error && (
