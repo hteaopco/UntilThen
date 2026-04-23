@@ -1252,12 +1252,13 @@ function ConfirmDelete({
 //
 // Two-step payment + recipient-contact flow.
 //
-//   Step 1 — Pay. $9.99 placeholder (Square SDK is a TODO);
-//            clicking "Confirm $9.99" just advances the step.
+//   Step 1 — Pay. $9.99 via Square Web SDK — card input is
+//            tokenised to a sourceId that the /activate endpoint
+//            turns into a real charge against the organiser.
 //   Step 2 — Recipient contact. At least one of email / phone is
 //            required. On save the component POSTs to /activate
-//            with the payment id and contact payload — server
-//            validates, saves both, flips status to ACTIVE, and
+//            with the sourceId + contact payload — server charges,
+//            validates contact, flips status to ACTIVE, and
 //            dispatches staged invite emails atomically.
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

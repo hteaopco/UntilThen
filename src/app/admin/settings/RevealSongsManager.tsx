@@ -60,9 +60,11 @@ export function RevealSongsManager() {
 
   useEffect(() => {
     void load();
+    // Snapshot the ref so cleanup revokes the URLs that existed
+    // at mount-time instead of chasing a moving target.
+    const preview = previewUrlsRef;
     return () => {
-      // Revoke any object URLs we created for previews.
-      for (const url of Object.values(previewUrlsRef.current)) {
+      for (const url of Object.values(preview.current)) {
         URL.revokeObjectURL(url);
       }
     };
