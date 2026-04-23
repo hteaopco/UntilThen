@@ -83,6 +83,8 @@ export function BillingClient({
   const [mode, setMode] = useState<Mode>("idle");
   const [working, setWorking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const [cancelSwitchOpen, setCancelSwitchOpen] = useState(false);
 
   const sub = subscription;
   const planLabel = sub?.plan === "ANNUAL" ? "Annual" : sub ? "Monthly" : "";
@@ -110,6 +112,27 @@ export function BillingClient({
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Couldn't switch plan.");
       }
+      setUpgradeOpen(false);
+      router.refresh();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  async function cancelPlanSwitch() {
+    setWorking(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/payments/cancel-plan-switch", {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? "Couldn't cancel the pending switch.");
+      }
+      setCancelSwitchOpen(false);
       router.refresh();
     } catch (e) {
       setError((e as Error).message);
@@ -322,7 +345,7 @@ export function BillingClient({
             {sub.status === "ACTIVE" && !sub.pendingPlan && sub.plan === "MONTHLY" && (
               <button
                 type="button"
-                onClick={() => switchPlan("ANNUAL")}
+                onClick={() => setUpgradeOpen(true)}
                 disabled={working}
                 className="inline-flex items-center gap-2 bg-amber text-white px-4 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
               >
@@ -415,15 +438,25 @@ export function BillingClient({
           )}
 
           {pendingLabel && sub.pendingEffectiveDateIso && (
-            <div className="rounded-xl border border-gold/40 bg-gold-tint/40 px-4 py-3">
-              <p className="text-sm font-semibold text-navy">
-                Switching to {pendingLabel} on{" "}
-                {formatLong(sub.pendingEffectiveDateIso)}.
-              </p>
-              <p className="text-xs text-ink-mid mt-1">
-                Your current plan runs until then. The new plan starts
-                billing that day.
-              </p>
+            <div className="rounded-xl border border-gold/40 bg-gold-tint/40 px-4 py-3 flex items-start justify-between gap-3 flex-wrap">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-navy">
+                  Switching to {pendingLabel} on{" "}
+                  {formatLong(sub.pendingEffectiveDateIso)}.
+                </p>
+                <p className="text-xs text-ink-mid mt-1">
+                  Your current plan runs until then. The new plan starts
+                  billing that day.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCancelSwitchOpen(true)}
+                disabled={working}
+                className="shrink-0 text-[12.5px] font-semibold text-navy underline underline-offset-2 hover:text-amber disabled:opacity-60"
+              >
+                Cancel switch
+              </button>
             </div>
           )}
 
@@ -475,6 +508,30 @@ export function BillingClient({
 
       {error && (
         <BillingErrorModal message={error} onClose={() => setError(null)} />
+      )}
+
+      {upgradeOpen && sub && (
+        <UpgradeAnnualModal
+          addonCount={sub.addonCapsuleCount}
+          effectiveIso={sub.currentPeriodEndIso}
+          working={working}
+          onConfirm={() => switchPlan("ANNUAL")}
+          onClose={() => {
+            if (!working) setUpgradeOpen(false);
+          }}
+        />
+      )}
+
+      {cancelSwitchOpen && sub?.pendingEffectiveDateIso && pendingLabel && (
+        <CancelSwitchModal
+          pendingLabel={pendingLabel}
+          effectiveIso={sub.pendingEffectiveDateIso}
+          working={working}
+          onConfirm={cancelPlanSwitch}
+          onClose={() => {
+            if (!working) setCancelSwitchOpen(false);
+          }}
+        />
       )}
 
       {capsules.length > 0 && (
@@ -709,6 +766,207 @@ function BillingErrorModal({
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-navy text-white text-[14px] font-bold hover:bg-navy/90 transition-colors"
           >
             Got it
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Confirmation modal for the monthly → annual upgrade. Shows
+ *  the exact dollar amount Square will charge on the effective
+ *  date so the user can see what they're committing to before
+ *  hitting confirm. Previously the button kicked off the switch
+ *  immediately, which left users unsure whether anything had
+ *  happened or what they'd be paying. */
+function UpgradeAnnualModal({
+  addonCount,
+  effectiveIso,
+  working,
+  onConfirm,
+  onClose,
+}: {
+  addonCount: number;
+  effectiveIso: string;
+  working: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !working) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose, working]);
+
+  const baseCents = 3599;
+  const addonCents = 600 * addonCount;
+  const totalCents = baseCents + addonCents;
+  const fmt = (c: number) =>
+    (c / 100).toLocaleString("en-US", {
+      style: "currency",
+      currency: "USD",
+    });
+
+  // Monthly annualized for savings comparison.
+  const monthlyAnnualizedCents = (499 + 99 * addonCount) * 12;
+  const savingsCents = monthlyAnnualizedCents - totalCents;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Confirm upgrade to Annual"
+      className="fixed inset-0 z-50 bg-navy/50 backdrop-blur-sm flex items-center justify-center px-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !working) onClose();
+      }}
+    >
+      <div className="w-full max-w-[440px] bg-cream rounded-2xl shadow-xl px-6 py-6 sm:px-7 sm:py-7">
+        <div className="flex items-start gap-3 mb-4">
+          <div
+            aria-hidden="true"
+            className="shrink-0 w-9 h-9 rounded-full bg-amber/15 text-amber flex items-center justify-center"
+          >
+            <TrendingUp size={18} strokeWidth={1.75} />
+          </div>
+          <h2 className="text-[18px] font-extrabold text-navy tracking-[-0.2px] leading-tight pt-1.5">
+            Switch to Annual?
+          </h2>
+        </div>
+
+        <p className="text-[14px] text-ink-mid leading-[1.55] mb-4">
+          Your monthly plan stays active through{" "}
+          <span className="font-semibold text-navy">
+            {formatLong(effectiveIso)}
+          </span>
+          . On that date, we&rsquo;ll charge your card on file and switch
+          you to Annual.
+        </p>
+
+        <div className="rounded-xl border border-navy/[0.08] bg-white/70 p-4 text-[13.5px]">
+          <div className="flex items-center justify-between">
+            <span className="text-ink-mid">Annual base</span>
+            <span className="font-semibold text-navy tabular-nums">
+              {fmt(baseCents)}
+            </span>
+          </div>
+          {addonCount > 0 && (
+            <div className="flex items-center justify-between mt-2">
+              <span className="text-ink-mid">
+                Add-on capsules ({addonCount} × $6)
+              </span>
+              <span className="font-semibold text-navy tabular-nums">
+                {fmt(addonCents)}
+              </span>
+            </div>
+          )}
+          <div className="border-t border-navy/[0.08] mt-3 pt-3 flex items-center justify-between">
+            <span className="font-bold text-navy">Charged on renewal</span>
+            <span className="font-extrabold text-navy tabular-nums text-[15px]">
+              {fmt(totalCents)}
+            </span>
+          </div>
+          {savingsCents > 0 && (
+            <div className="mt-2 text-[12.5px] text-amber-dark font-semibold">
+              Saves {fmt(savingsCents)} vs. monthly.
+            </div>
+          )}
+        </div>
+
+        <div className="mt-5 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={working}
+            className="inline-flex items-center px-4 py-2.5 rounded-lg bg-transparent text-navy text-[14px] font-semibold hover:bg-navy/[0.05] disabled:opacity-60 transition-colors"
+          >
+            Never mind
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={working}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-amber text-white text-[14px] font-bold hover:bg-amber-dark disabled:opacity-60 transition-colors"
+          >
+            {working ? "Switching…" : "Confirm switch"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Confirmation modal for backing out of a scheduled plan
+ *  switch before its effective date. Explains that the current
+ *  plan keeps renewing as normal once the switch is cancelled. */
+function CancelSwitchModal({
+  pendingLabel,
+  effectiveIso,
+  working,
+  onConfirm,
+  onClose,
+}: {
+  pendingLabel: string;
+  effectiveIso: string;
+  working: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !working) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose, working]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Cancel pending plan switch"
+      className="fixed inset-0 z-50 bg-navy/50 backdrop-blur-sm flex items-center justify-center px-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !working) onClose();
+      }}
+    >
+      <div className="w-full max-w-[420px] bg-cream rounded-2xl shadow-xl px-6 py-6 sm:px-7 sm:py-7">
+        <div className="flex items-start gap-3 mb-3">
+          <div
+            aria-hidden="true"
+            className="shrink-0 w-9 h-9 rounded-full bg-navy/10 text-navy flex items-center justify-center"
+          >
+            <X size={18} strokeWidth={1.75} />
+          </div>
+          <h2 className="text-[18px] font-extrabold text-navy tracking-[-0.2px] leading-tight pt-1.5">
+            Cancel the switch to {pendingLabel}?
+          </h2>
+        </div>
+        <p className="text-[14px] text-ink-mid leading-[1.55]">
+          You won&rsquo;t be charged on{" "}
+          <span className="font-semibold text-navy">
+            {formatLong(effectiveIso)}
+          </span>
+          . Your current plan keeps renewing as normal.
+        </p>
+        <div className="mt-5 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={working}
+            className="inline-flex items-center px-4 py-2.5 rounded-lg bg-transparent text-navy text-[14px] font-semibold hover:bg-navy/[0.05] disabled:opacity-60 transition-colors"
+          >
+            Keep switch
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={working}
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-navy text-white text-[14px] font-bold hover:bg-navy/90 disabled:opacity-60 transition-colors"
+          >
+            {working ? "Cancelling…" : "Cancel switch"}
           </button>
         </div>
       </div>
