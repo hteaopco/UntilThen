@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { backfillAddonSquareSubIds } from "@/lib/addon-backfill";
 import { captureServerEvent } from "@/lib/posthog-server";
 import { nextFirstOfMonth, oneYearLater } from "@/lib/proration";
+import { retryOnIdempotencyReuse } from "@/lib/square-idempotency";
 import {
   SQUARE_LOCATION_ID,
   SQUARE_ORDER_TEMPLATE_IDS,
@@ -151,17 +152,21 @@ export async function POST(): Promise<NextResponse> {
           }
         : {};
 
-    const baseResp = await square.subscriptions.create({
-      idempotencyKey: `rs-${user.id}-${ymd}`,
-      locationId: SQUARE_LOCATION_ID,
-      planVariationId: basePlanVariation,
-      customerId: user.squareCustomerId,
-      cardId: user.squareCardId,
-      startDate,
-      timezone: "America/Chicago",
-      phases: [{ ordinal: 0n, orderTemplateId: baseOrderTemplate }],
-      ...annualOverride,
-    });
+    const baseResp = await retryOnIdempotencyReuse(
+      `rs-${user.id}-${ymd}`,
+      (idempotencyKey) =>
+        square.subscriptions.create({
+          idempotencyKey,
+          locationId: SQUARE_LOCATION_ID,
+          planVariationId: basePlanVariation,
+          customerId: user.squareCustomerId!,
+          cardId: user.squareCardId!,
+          startDate,
+          timezone: "America/Chicago",
+          phases: [{ ordinal: 0n, orderTemplateId: baseOrderTemplate }],
+          ...annualOverride,
+        }),
+    );
     const newBaseSubId = baseResp.subscription?.id;
     if (!newBaseSubId)
       throw new Error("Square base subscription create returned no id.");
@@ -171,18 +176,22 @@ export async function POST(): Promise<NextResponse> {
     const newAddonSubIds: string[] = [];
     if (sub.plan === "MONTHLY") {
       for (let i = 0; i < sub.addonCapsuleCount; i++) {
-        const addonResp = await square.subscriptions.create({
+        const addonResp = await retryOnIdempotencyReuse(
           // Scoped per addon index so resume creates the right
           // number of addon subs without colliding.
-          idempotencyKey: `rsa-${user.id}-${ymd}-${i}`,
-          locationId: SQUARE_LOCATION_ID,
-          planVariationId: addonPlanVariation,
-          customerId: user.squareCustomerId,
-          cardId: user.squareCardId,
-          startDate,
-          timezone: "America/Chicago",
-          phases: [{ ordinal: 0n, orderTemplateId: addonOrderTemplate! }],
-        });
+          `rsa-${user.id}-${ymd}-${i}`,
+          (idempotencyKey) =>
+            square.subscriptions.create({
+              idempotencyKey,
+              locationId: SQUARE_LOCATION_ID,
+              planVariationId: addonPlanVariation,
+              customerId: user.squareCustomerId!,
+              cardId: user.squareCardId!,
+              startDate,
+              timezone: "America/Chicago",
+              phases: [{ ordinal: 0n, orderTemplateId: addonOrderTemplate! }],
+            }),
+        );
         const addonId = addonResp.subscription?.id;
         if (!addonId) throw new Error("Square addon subscription create returned no id.");
         newAddonSubIds.push(addonId);

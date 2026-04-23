@@ -11,6 +11,7 @@ import {
   getSquareClient,
   squareIsConfigured,
 } from "@/lib/square";
+import { retryOnIdempotencyReuse } from "@/lib/square-idempotency";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -221,18 +222,25 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
     // Idempotency: "swp-<userId>-<targetPlan>" keeps retries of
     // the same switch safe. Under 45 chars: "swp-" (4) + cuid (25)
-    // + "-" (1) + "ANNUAL" (6) = 36.
-    const subResp = await square.subscriptions.create({
-      idempotencyKey: `swp-${user.id}-${targetPlan}`,
-      locationId: SQUARE_LOCATION_ID,
-      planVariationId: newPlanVariationId,
-      customerId: user.squareCustomerId,
-      cardId: user.squareCardId,
-      startDate,
-      timezone: "America/Chicago",
-      phases: [{ ordinal: 0n, orderTemplateId: newOrderTemplate }],
-      ...annualOverride,
-    });
+    // + "-" (1) + "ANNUAL" (6) = 36. Wrapped in the reuse-retry
+    // helper so a stale cached failure from a prior attempt
+    // (different card, different customer post-reset, etc.)
+    // recovers with a fresh key instead of surfacing a 500.
+    const subResp = await retryOnIdempotencyReuse(
+      `swp-${user.id}-${targetPlan}`,
+      (idempotencyKey) =>
+        square.subscriptions.create({
+          idempotencyKey,
+          locationId: SQUARE_LOCATION_ID,
+          planVariationId: newPlanVariationId,
+          customerId: user.squareCustomerId!,
+          cardId: user.squareCardId!,
+          startDate,
+          timezone: "America/Chicago",
+          phases: [{ ordinal: 0n, orderTemplateId: newOrderTemplate }],
+          ...annualOverride,
+        }),
+    );
     const newSub = subResp.subscription;
     if (!newSub?.id) {
       throw new Error("Square subscription create returned no id.");

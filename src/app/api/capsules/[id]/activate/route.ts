@@ -14,6 +14,7 @@ import {
   getSquareClient,
   squareIsConfigured,
 } from "@/lib/square";
+import { retryOnIdempotencyReuse } from "@/lib/square-idempotency";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -155,22 +156,25 @@ export async function POST(
       }
       try {
         const client = getSquareClient();
-        const response = await client.payments.create({
-          sourceId,
-          // Square caps idempotency_key at 45 chars. Capsule id
-          // is a cuid (25), so "gc-{id}" = 28 chars, well under
-          // the ceiling and still unique per capsule (which is
-          // the invariant we actually need — a capsule's $9.99
-          // is paid at most once).
-          idempotencyKey: `gc-${id}`,
-          amountMoney: {
-            amount: BigInt(GIFT_CAPSULE_PRICE_CENTS),
-            currency: "USD",
-          },
-          locationId: SQUARE_LOCATION_ID || undefined,
-          note: `untilThen Gift Capsule · ${capsule.title}`.slice(0, 500),
-          referenceId: id,
-        });
+        // "gc-{capsuleId}" — stable per capsule so refreshes
+        // don't double-charge the $9.99. Reuse-retry covers
+        // the case where a prior failed attempt cached the key
+        // against a different sourceId / note.
+        const response = await retryOnIdempotencyReuse(
+          `gc-${id}`,
+          (idempotencyKey) =>
+            client.payments.create({
+              idempotencyKey,
+              sourceId,
+              amountMoney: {
+                amount: BigInt(GIFT_CAPSULE_PRICE_CENTS),
+                currency: "USD",
+              },
+              locationId: SQUARE_LOCATION_ID || undefined,
+              note: `untilThen Gift Capsule · ${capsule.title}`.slice(0, 500),
+              referenceId: id,
+            }),
+        );
         const payment = response.payment;
         if (!payment || payment.status !== "COMPLETED") {
           return NextResponse.json(

@@ -10,6 +10,7 @@ import {
   getSquareClient,
   squareIsConfigured,
 } from "@/lib/square";
+import { retryOnIdempotencyReuse } from "@/lib/square-idempotency";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -172,16 +173,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       cardBrand = existingCard.cardBrand ?? null;
       cardLast4 = existingCard.last4 ?? null;
     } else {
-      const cardResp = await square.cards.create({
-        // Stable key per user — retries return the same card
-        // instead of spawning duplicates. "crd-" (4) + cuid (25) = 29.
-        idempotencyKey: `crd-${user.id}`,
-        sourceId,
-        card: {
-          customerId: squareCustomerId,
-          referenceId: user.id,
-        },
-      });
+      // Stable key per user lets subscribe retries return the
+      // same card instead of spawning duplicates, and the
+      // reuse-retry fallback covers the case where a prior
+      // attempt cached the key against a different nonce.
+      const cardResp = await retryOnIdempotencyReuse(
+        `crd-${user.id}`,
+        (idempotencyKey) =>
+          square.cards.create({
+            idempotencyKey,
+            sourceId,
+            card: {
+              customerId: squareCustomerId!,
+              referenceId: user.id,
+            },
+          }),
+      );
       cardId = cardResp.card?.id;
       cardBrand = cardResp.card?.cardBrand ?? null;
       cardLast4 = cardResp.card?.last4 ?? null;
