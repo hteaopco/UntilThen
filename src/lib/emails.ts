@@ -223,3 +223,36 @@ export async function sendAccountRecoveryConfirmation(params: {
     `),
   });
 }
+
+// #21 — Vault PIN Reset
+//
+// Sent when a user hits "Forgot PIN?" on the lock screen. The
+// link carries a one-time token that, when visited, clears the
+// user's pinHash so they can set a fresh one from account
+// settings. Token lives 1 hour.
+export async function sendPinReset(params: {
+  to: string;
+  firstName: string;
+  resetUrl: string;
+}): Promise<void> {
+  await send({
+    to: params.to,
+    subject: "Reset your vault PIN",
+    html: wrapper(`
+      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
+        Let&rsquo;s get you back in, ${escapeHtml(params.firstName)}.
+      </h1>
+      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+        You asked to reset the PIN on your vault. Click the button below
+        to clear it &mdash; you&rsquo;ll be able to set a new one from your
+        account settings right after.
+      </p>
+      ${cta(params.resetUrl, "Reset my PIN")}
+      <p style="font-size:13px;color:#8896a5;line-height:1.6;margin:16px 0 0;">
+        This link works once and expires in one hour. If you didn&rsquo;t
+        request this, you can ignore the email &mdash; your PIN stays
+        untouched.
+      </p>
+    `),
+  });
+}

@@ -205,6 +205,15 @@ const TEMPLATES: EmailTemplate[] = [
     frequency: "On event",
     funnel: "Retention",
   },
+  {
+    id: "pin-reset",
+    name: "#21 Vault PIN Reset",
+    subject: "Reset your vault PIN",
+    bodyPreview: "You asked to reset the PIN on your vault. Click the button to clear it — you'll be able to set a new one from your account settings. Link works once, expires in one hour.",
+    trigger: "User clicks 'Forgot PIN?' on lock screen",
+    frequency: "On event",
+    funnel: "Retention",
+  },
 ];
 
 const FUNNEL_COLORS: Record<string, string> = {

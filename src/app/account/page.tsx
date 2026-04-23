@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 import { ProfileForm } from "@/components/account/ProfileForm";
+import { VaultPinSection } from "@/components/account/VaultPinSection";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
 export const metadata = {
@@ -41,12 +42,17 @@ export default async function AccountProfilePage() {
   }
 
   return (
-    <ProfileForm
-      userId={user.id}
-      firstName={user.firstName}
-      lastName={user.lastName}
-      displayName={user.displayName ?? ""}
-      avatarViewUrl={avatarViewUrl}
-    />
+    <>
+      <ProfileForm
+        userId={user.id}
+        firstName={user.firstName}
+        lastName={user.lastName}
+        displayName={user.displayName ?? ""}
+        avatarViewUrl={avatarViewUrl}
+      />
+      <div className="mt-10">
+        <VaultPinSection />
+      </div>
+    </>
   );
 }

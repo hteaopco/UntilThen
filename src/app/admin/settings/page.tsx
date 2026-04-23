@@ -4,6 +4,7 @@ import { LockThrottleToggle } from "./LockThrottleToggle";
 import { PaywallToggle } from "./PaywallToggle";
 import { ResetSubscriptionForm } from "./ResetSubscriptionForm";
 import { RevealSongsManager } from "./RevealSongsManager";
+import { SentryTestButton } from "./SentryTestButton";
 import { SquareOrderTemplateSetup } from "./SquareOrderTemplateSetup";
 import { SquarePlanVariations } from "./SquarePlanVariations";
 
@@ -125,6 +126,22 @@ export default async function AdminSettingsPage() {
             </p>
             <div className="mt-3">
               <ResetSubscriptionForm />
+            </div>
+          </div>
+
+          <div className="space-y-2 mt-8">
+            <p className="text-[13px] font-semibold text-navy">
+              Sentry live test
+            </p>
+            <p className="text-[12px] text-ink-mid max-w-[560px]">
+              Deliberately throws a tagged exception on the server.
+              Confirms that Sentry is capturing + uploading from the
+              current production build. The thrown event carries the
+              tag <code className="font-mono">test:live</code> so real
+              alerts can filter it out.
+            </p>
+            <div className="mt-3">
+              <SentryTestButton />
             </div>
           </div>
         </section>

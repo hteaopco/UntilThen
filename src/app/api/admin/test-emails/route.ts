@@ -54,6 +54,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     sendRevealCountdown,
     sendAccountRecoveryRequest,
     sendAccountRecoveryConfirmation,
+    sendPinReset,
   } = await import("@/lib/emails");
 
   // #1 — Invite Contributor
@@ -265,6 +266,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     sendAccountRecoveryConfirmation({
       to,
       fullName: "Jett Smith",
+    }),
+  );
+
+  // #21 — Vault PIN reset. Uses a fake token so the preview link
+  // won't actually validate — that's fine, this is admin QA.
+  await fire("pin-reset", "#21 Vault PIN Reset", () =>
+    sendPinReset({
+      to,
+      firstName: "Jett",
+      resetUrl: `${origin}/account/pin/reset?token=test-token-preview-abc123`,
     }),
   );
 
