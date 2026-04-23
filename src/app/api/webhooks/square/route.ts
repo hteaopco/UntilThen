@@ -165,6 +165,16 @@ async function handleSubscriptionUpsert(event: WebhookEvent) {
         pendingMatch.pendingPlan === "MONTHLY"
           ? nextFirstOfMonth(new Date())
           : oneYearLater(new Date());
+      // Promoting to ANNUAL: the addons that were separate
+      // monthly subs before the switch now live inside the new
+      // base sub via priceOverrideMoney, so the addonSquareSubIds
+      // array is stale. Wipe it. Promoting to MONTHLY: leave
+      // addonSquareSubIds untouched (we don't currently support
+      // monthly→annual→monthly carry-over of addons).
+      const clearAddonIds =
+        pendingMatch.pendingPlan === "ANNUAL"
+          ? { addonSquareSubIds: [] }
+          : {};
       await prisma.subscription.update({
         where: { id: pendingMatch.id },
         data: {
@@ -175,6 +185,7 @@ async function handleSubscriptionUpsert(event: WebhookEvent) {
           pendingPlan: null,
           pendingSquareSubId: null,
           pendingEffectiveDate: null,
+          ...clearAddonIds,
         },
       });
       await captureServerEvent(

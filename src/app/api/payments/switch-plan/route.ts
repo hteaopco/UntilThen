@@ -1,9 +1,12 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { backfillAddonSquareSubIds } from "@/lib/addon-backfill";
 import { captureServerEvent } from "@/lib/posthog-server";
+import { ANNUAL_ADDON_CENTS, ANNUAL_BASE_CENTS } from "@/lib/proration";
 import {
   SQUARE_LOCATION_ID,
+  SQUARE_ORDER_TEMPLATE_IDS,
   SQUARE_PLAN_IDS,
   getSquareClient,
   squareIsConfigured,
@@ -33,9 +36,13 @@ type Body = { targetPlan?: unknown };
  *      them into plan / squareSubId when it fires, so the UI
  *      shows the switch the moment Square activates it.
  *
- * v1 constraint: only allow switch when addonCapsuleCount === 0.
- * Addon subscriptions are separate Square resources — switching
- * them all atomically is a future enhancement.
+ * Addons handling: monthly addons live as separate Square subs.
+ * On the upgrade we cancel each one at period end and bake the
+ * count into the new annual base sub via priceOverrideMoney
+ * (= $35.99 + $6 × addonCount). When the new sub activates,
+ * the webhook clears addonSquareSubIds since the addons are now
+ * inside the base. User pitch: "your addons stay active free
+ * through your renewal."
  */
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const { userId } = auth();
@@ -69,11 +76,23 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   }
 
   const { prisma } = await import("@/lib/prisma");
-  const user = await prisma.user.findUnique({
+  const lookupUser = await prisma.user.findUnique({
     where: { clerkId: userId },
+    select: { id: true },
+  });
+  if (!lookupUser)
+    return NextResponse.json({ error: "User not found." }, { status: 404 });
+
+  // Backfill addon ids first so the cancel loop below catches
+  // every Square sub even if older addons predate id tracking.
+  await backfillAddonSquareSubIds(lookupUser.id);
+
+  const user = await prisma.user.findUnique({
+    where: { id: lookupUser.id },
     select: {
       id: true,
       squareCustomerId: true,
+      squareCardId: true,
       subscription: {
         select: {
           id: true,
@@ -81,6 +100,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           plan: true,
           status: true,
           addonCapsuleCount: true,
+          addonSquareSubIds: true,
           currentPeriodEnd: true,
           pendingPlan: true,
           pendingSquareSubId: true,
@@ -121,55 +141,83 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       { status: 409 },
     );
   }
-  if (sub.addonCapsuleCount > 0)
+  if (!user.squareCustomerId || !user.squareCardId)
     return NextResponse.json(
       {
         error:
-          "Remove your add-on capsules before switching plans, or contact support.",
+          "No payment method on file. Add a card before switching plans.",
       },
-      { status: 409 },
-    );
-  if (!user.squareCustomerId)
-    return NextResponse.json(
-      { error: "No Square customer on file." },
       { status: 409 },
     );
 
   const square = getSquareClient();
 
   try {
-    // 1. Cancel the current Square subscription. This is a
-    //    scheduled cancel — Square keeps the sub active through
-    //    its charged-through date and stops it from renewing.
+    // 1. Cancel the current Square base subscription (scheduled
+    //    — keeps it active through its charged-through date and
+    //    stops it from renewing).
     await square.subscriptions.cancel({ subscriptionId: sub.squareSubId });
 
-    // 2. Find the customer's card on file — the new sub needs a
-    //    cardId reference, same as the original subscribe flow.
-    const cardsResp = await square.cards.list({
-      customerId: user.squareCustomerId,
-    });
-    // The SDK returns a paginated iterator; grab the first page.
-    const cards = cardsResp.data ?? [];
-    const card = cards.find((c) => c.enabled !== false);
-    if (!card?.id) {
-      return NextResponse.json(
-        {
-          error:
-            "We couldn't find your card on file. Please re-enter payment details.",
-        },
-        { status: 409 },
-      );
+    // 2. Cancel every monthly addon sub at period end too. They
+    //    won't roll over into the new annual sub because annual
+    //    addons live inside the base via priceOverrideMoney.
+    //    Failures here are logged but non-fatal — the user
+    //    upgrade should proceed even if a stale addon id can't
+    //    be cancelled cleanly.
+    for (const addonSubId of sub.addonSquareSubIds) {
+      try {
+        await square.subscriptions.cancel({ subscriptionId: addonSubId });
+      } catch (err) {
+        console.error(
+          `[payments/switch-plan] addon ${addonSubId} cancel failed:`,
+          err,
+        );
+      }
     }
 
     // 3. Create the replacement subscription starting on the old
     //    one's currentPeriodEnd. Square bills it the day it
     //    activates, so there's no overlap or double-charge.
+    //    Annual addons fold into the base via priceOverrideMoney.
     const newPlanVariationId =
       targetPlan === "MONTHLY"
         ? SQUARE_PLAN_IDS.MONTHLY_BASE
         : SQUARE_PLAN_IDS.ANNUAL_BASE;
+    const newOrderTemplate =
+      targetPlan === "MONTHLY"
+        ? SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_BASE
+        : SQUARE_ORDER_TEMPLATE_IDS.ANNUAL_BASE;
+    if (!newOrderTemplate) {
+      console.error(
+        `[payments/switch-plan] SQUARE_ORDER_TEMPLATE_${targetPlan}_BASE not set`,
+      );
+      return NextResponse.json(
+        {
+          error:
+            "Payments aren't set up correctly yet. Please reach out — our team has been notified.",
+        },
+        { status: 503 },
+      );
+    }
+
     const effective = sub.currentPeriodEnd;
     const startDate = effective.toISOString().slice(0, 10);
+
+    // Annual baked-in addon override. Monthly target keeps no
+    // override — separate addon subs would be re-created at
+    // future per-addon purchase time (currently we don't carry
+    // them over on monthly→annual; the reverse is gone too).
+    const annualOverride =
+      targetPlan === "ANNUAL" && sub.addonCapsuleCount > 0
+        ? {
+            priceOverrideMoney: {
+              amount: BigInt(
+                ANNUAL_BASE_CENTS + ANNUAL_ADDON_CENTS * sub.addonCapsuleCount,
+              ),
+              currency: "USD" as const,
+            },
+          }
+        : {};
 
     // Idempotency: "swp-<userId>-<targetPlan>" keeps retries of
     // the same switch safe. Under 45 chars: "swp-" (4) + cuid (25)
@@ -179,9 +227,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       locationId: SQUARE_LOCATION_ID,
       planVariationId: newPlanVariationId,
       customerId: user.squareCustomerId,
-      cardId: card.id,
+      cardId: user.squareCardId,
       startDate,
       timezone: "America/Chicago",
+      phases: [{ ordinal: 0n, orderTemplateId: newOrderTemplate }],
+      ...annualOverride,
     });
     const newSub = subResp.subscription;
     if (!newSub?.id) {
@@ -202,6 +252,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       from: sub.plan,
       to: targetPlan,
       effectiveDate: effective.toISOString(),
+      addonCount: sub.addonCapsuleCount,
     });
 
     return NextResponse.json({
