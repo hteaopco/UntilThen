@@ -1,11 +1,27 @@
 # untilThen — Handover Notes
-*Drafted April 23, 2026 · Reference commit `51b2004` on `main`*
+*Updated April 23, 2026 · Reference commit `56460e1` on `main`*
 
 These notes catch a new session up fast. Pair with:
 - `CLAUDE.md` — repo-level instructions (commit-to-main workflow, email sync rule)
-- `docs/pre-launch-checklist.md` — what's done vs. open
+- `docs/pre-launch-checklist.md` — what's done vs. open. Also viewable at **`/admin/checklist`** in the running app
 - `docs/backup-restore.md` — DB backup/restore runbook
 - `docs/email-dns-setup.md` — deliverability / DMARC status
+
+## Where the last session left off
+
+Billing + reveal polish session. Shipped full Square subscription lifecycle (subscribe / addon / remove / cancel / resume / switch / cancel-switch / update-card) with all the gotchas resolved — see "Square billing architecture" below. Shipped confirmation modals so state-changing clicks preview the cost before firing. Global top-bar navigation spinner on every in-app link click. Fixed iOS Safari audio (Web Audio API routing for ducking/fades) and an iPhone hydration bug on the Edit memory button.
+
+End-of-session cleanup pass ran an audit subagent + image-usage grep:
+- Codebase verdict was clean (no orphaned files, no dead routes, no unused exports, no unused deps).
+- Deleted `/api/account/billing` placeholder route (hardcoded $3.99 values, uncalled).
+- Deleted 20 unused images from `public/` — dir dropped 30M → 16M.
+- Fixed one `react-hooks/exhaustive-deps` warning in `RevealSongsManager.tsx`.
+- Refreshed a stale "Square SDK is a TODO" comment in `CapsuleOverview.tsx`.
+- New `/admin/checklist` tab renders `docs/pre-launch-checklist.md` with proper GFM task-list checkboxes.
+
+Remaining large files (not split — would be a deliberate refactor, not drive-by cleanup):
+- `src/app/capsules/[id]/CapsuleOverview.tsx` — 1628 lines
+- `src/components/account/BillingClient.tsx` — 1052 lines
 
 ---
 
@@ -105,33 +121,38 @@ Route: `/reveal/[token]` → `RevealExperience` (the single client component tha
 - **Vault landing:** `/vault/[childId]` — Main Diary + collections. Entry detail at `/vault/[childId]/entry/[entryId]`
 - **Gift capsules:** `/capsules/[id]` (overview), `/capsules/new` (5-step creation), `/contribute/capsule/[token]` (contributor)
 - **Account:** `/account` (profile), `/account/billing` (subscription), `/account/capsules` (per-vault settings), `/account/notifications`
-- **Admin:** `/admin/*` — gated by `ADMIN_PASSWORD` cookie. Highlights: `/admin/users`, `/admin/settings` (reset-subscription tool, order-template setup), `/admin/previews`, `/admin/emails`, `/admin/tones`, `/admin/moderation`, `/admin/qa`, `/admin/reveal-music`
+- **Admin:** `/admin/*` — gated by `ADMIN_PASSWORD` cookie. Tabs: Dashboard, Users, Moderation, Emails, Previews, Tones, QA, **Checklist** (renders `docs/pre-launch-checklist.md`), Settings (reset-subscription tool, order-template setup, reveal-music upload)
 
 ## Open blockers + watch items
 
-Condensed from `docs/pre-launch-checklist.md`:
+Condensed from `docs/pre-launch-checklist.md` (also viewable at `/admin/checklist`).
 
 **Still blocking launch:**
 - PIN vault lock — re-enable or remove (one-line re-add in `dashboard/layout.tsx`)
 - Backup restore drill into staging (after first cron produces a backup)
 
 **Billing regression list (must exercise on prod):**
-- Annual addon on an already-existing annual sub — `addon-capsule` uses `subscriptions.update` with `priceOverrideMoney`. If Square enforces the same "override vs template" rule on update that it does on create, this will break; we'd need to swap for a template replacement flow. UNTESTED.
+- Annual addon on an already-existing annual sub — `addon-capsule` uses `subscriptions.update` with `priceOverrideMoney`. If Square enforces the same "override vs template" rule on update that it does on create, this will break; we'd need to swap for a template replacement flow. **UNTESTED.**
 - Full lifecycle: subscribe → addon → remove → update-card → switch → cancel-switch → cancel → resume
 
 **Before soft launch:**
 - ToS + Privacy Policy legal review (minors' data, long-term storage)
-- Refund policy for $9.99 Gift Capsules
 - Account recovery flows (forgot password, locked out, lost email)
 - Media moderation strategy for contributor uploads
 - Cron health monitoring (alert if fires fail)
 - Sentry live test — trigger a real error in prod, verify the trace
 - Reveal theme picker — currently a "Coming soon" placeholder
 
+**Explicitly cut (don't re-add):**
+- Polaroid photo stack on vault dashboard cards
+- Cookie/consent banner
+- Refund policy (all sales final, documented at checkout + ToS)
+- Annual → Monthly downgrade path (annual runs its full term; switch at renewal)
+
 **Hands-on QA:**
 - Build-mode reveal end-to-end on iPhone
-- Create Collection modal + Updates inbox on mobile
 - Full reveal flow on iOS Safari + Android Chrome + desktop 1440+
+- Mobile test pass on Create Collection modal + Updates inbox done this session
 
 ## Environment variables (high-signal set)
 

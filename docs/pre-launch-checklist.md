@@ -1,6 +1,6 @@
 # untilThen — Pre-Launch Checklist
 *Updated April 23, 2026*
-**Reference commit: `980faff`**
+**Reference commit: `56460e1`**
 
 ---
 
@@ -232,6 +232,14 @@
 - [x] **Per-capsule display name** — `Child.parentDisplayName` column lets each capsule customize "what they call you" ("Daddy", "Dad", "Pop") independent of sign-up first name
 - [x] **Build vs Random reveal mode** — new `Vault.revealMode` enum, curator flow at `/vault/[childId]/reveal/curator` for Build, admin-uploaded music via `RevealSong` model + `Vault.revealSongId` FK
 - [x] **Web Audio API for iOS** — music now routes through AudioContext + GainNode (iOS ignores `audioEl.volume` writes); ducking drops to 0.05 (was 0.15, harder duck per product ask), fade-out is 25 × 120ms ticks (was 5 × 400ms, stair-stepped)
+
+### Cleanup + admin tooling
+- [x] **Codebase audit** — Explore subagent verified 0 orphaned files, 0 dead routes, 0 unused exports, 0 unused deps, 0 commented-out code blocks
+- [x] **Deleted `/api/account/billing`** — stale placeholder route returning hardcoded $3.99 plan values, uncalled from anywhere
+- [x] **Deleted 20 unused images** from `public/` — dir size 30M → 16M
+- [x] **`/admin/checklist` tab** — renders this file inside the admin shell with proper GFM task-list checkboxes. Accessible from any device via the `admin_auth` cookie gate
+- [x] **`docs/handover-notes.md`** — new session handover doc covering stack, Square gotchas, reveal architecture, env vars, and where-to-find-things map
+- [x] Fixed `react-hooks/exhaustive-deps` warning in `RevealSongsManager.tsx`; refreshed stale "Square SDK is a TODO" comment in `CapsuleOverview.tsx`
 
 ---
 
