@@ -9,6 +9,7 @@ import {
   SQUARE_LOCATION_ID,
   SQUARE_ORDER_TEMPLATE_IDS,
   SQUARE_PLAN_IDS,
+  createAddonOrderTemplate,
   getSquareClient,
   squareIsConfigured,
 } from "@/lib/square";
@@ -118,11 +119,7 @@ export async function POST(): Promise<NextResponse> {
       ? SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_BASE
       : SQUARE_ORDER_TEMPLATE_IDS.ANNUAL_BASE;
   const addonPlanVariation = SQUARE_PLAN_IDS.MONTHLY_ADDON;
-  const addonOrderTemplate = SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_ADDON;
-  if (
-    !baseOrderTemplate ||
-    (sub.plan === "MONTHLY" && sub.addonCapsuleCount > 0 && !addonOrderTemplate)
-  ) {
+  if (!baseOrderTemplate) {
     return NextResponse.json(
       {
         error:
@@ -172,6 +169,12 @@ export async function POST(): Promise<NextResponse> {
     const newAddonSubIds: string[] = [];
     if (sub.plan === "MONTHLY") {
       for (let i = 0; i < sub.addonCapsuleCount; i++) {
+        // One-template-per-active-sub = one fresh template per
+        // addon on resume too.
+        const addonOrderTemplateId = await createAddonOrderTemplate(
+          "MONTHLY",
+          `rso-${user.id}-${i}`,
+        );
         const addonResp = await retryOnIdempotencyReuse(
           // Scoped per addon index so resume creates the right
           // number of addon subs without colliding. "rsa-<uid>-<i>"
@@ -186,7 +189,7 @@ export async function POST(): Promise<NextResponse> {
               cardId: user.squareCardId!,
               startDate,
               timezone: "America/Chicago",
-              phases: [{ ordinal: 0n, orderTemplateId: addonOrderTemplate! }],
+              phases: [{ ordinal: 0n, orderTemplateId: addonOrderTemplateId }],
             }),
         );
         const addonId = addonResp.subscription?.id;

@@ -10,8 +10,8 @@ import {
 } from "@/lib/proration";
 import {
   SQUARE_LOCATION_ID,
-  SQUARE_ORDER_TEMPLATE_IDS,
   SQUARE_PLAN_IDS,
+  createAddonOrderTemplate,
   getSquareClient,
   squareIsConfigured,
 } from "@/lib/square";
@@ -205,20 +205,14 @@ export async function POST(): Promise<NextResponse> {
     }
 
     // 2. Monthly addon sub so renewal continues each month.
+    // Each addon sub needs its OWN order template — Square
+    // enforces one-template-per-active-sub, so reusing a shared
+    // id blows up the moment a user adds a second addon.
     const planVariationId = SQUARE_PLAN_IDS.MONTHLY_ADDON;
-    const orderTemplateId = SQUARE_ORDER_TEMPLATE_IDS.MONTHLY_ADDON;
-    if (!orderTemplateId) {
-      console.error(
-        "[payments/addon-capsule] SQUARE_ORDER_TEMPLATE_MONTHLY_ADDON not set",
-      );
-      return NextResponse.json(
-        {
-          error:
-            "Payments aren't set up correctly yet. Please reach out — our team has been notified.",
-        },
-        { status: 503 },
-      );
-    }
+    const orderTemplateId = await createAddonOrderTemplate(
+      "MONTHLY",
+      `ot-${user.id}-${addonIndex}`,
+    );
     const startDate = nextFirstOfMonth(now).toISOString().slice(0, 10);
 
     // Short stem ("as-<userId>-<index>") leaves room for the

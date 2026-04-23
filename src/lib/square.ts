@@ -1,5 +1,7 @@
 import { SquareClient, SquareEnvironment } from "square";
 
+import { retryOnIdempotencyReuse } from "@/lib/square-idempotency";
+
 /**
  * Server-side Square client singleton.
  *
@@ -86,3 +88,63 @@ export const SQUARE_ORDER_TEMPLATE_IDS = {
 
 /** One-time Gift Capsule charge — does not use a subscription plan. */
 export const GIFT_CAPSULE_PRICE_CENTS = 999;
+
+/**
+ * Create a fresh addon order template in Square.
+ *
+ * Square enforces a hard "one order template per ACTIVE
+ * subscription" rule — the shared SQUARE_ORDER_TEMPLATE_MONTHLY_ADDON
+ * from env vars only works for the first addon sub a user has.
+ * Adding a second one fails with:
+ *   "The Order template must only be used in one subscription."
+ *
+ * So every new addon sub we spin up gets its own freshly-minted
+ * DRAFT Order template with the same line item + price as the
+ * canonical one from admin setup. The template id is one-shot:
+ * created here, handed straight to subscriptions.create, and
+ * never reused.
+ *
+ * The idempotency key is scoped by the caller (e.g. addon index)
+ * so a retried request re-resolves to the same order instead of
+ * creating duplicates.
+ */
+export async function createAddonOrderTemplate(
+  cadence: "MONTHLY" | "ANNUAL",
+  idempotencyBaseKey: string,
+): Promise<string> {
+  const spec =
+    cadence === "MONTHLY"
+      ? {
+          name: "untilThen additional capsule — Monthly",
+          cents: 99,
+        }
+      : {
+          name: "untilThen additional capsule — Annual",
+          cents: 600,
+        };
+  const square = getSquareClient();
+  const resp = await retryOnIdempotencyReuse(
+    idempotencyBaseKey,
+    (idempotencyKey) =>
+      square.orders.create({
+        idempotencyKey,
+        order: {
+          locationId: SQUARE_LOCATION_ID,
+          state: "DRAFT",
+          lineItems: [
+            {
+              name: spec.name,
+              quantity: "1",
+              basePriceMoney: {
+                amount: BigInt(spec.cents),
+                currency: "USD",
+              },
+            },
+          ],
+        },
+      }),
+  );
+  const id = resp.order?.id;
+  if (!id) throw new Error("Square addon order template create returned no id.");
+  return id;
+}
