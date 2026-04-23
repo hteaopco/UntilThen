@@ -35,6 +35,7 @@ export default async function AdminDashboard() {
     pendingReviewContributions,
     recentUsers,
     recentCapsules,
+    moderationByState,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({
@@ -75,9 +76,28 @@ export default async function AdminDashboard() {
         _count: { select: { contributions: true, invites: true } },
       },
     }),
+    // Hive moderation health — one row per state so we can spot
+    // anomalies (large SCANNING backlog = scans getting stuck;
+    // large FAILED_OPEN count = Hive is flaky; large FLAGGED =
+    // admin queue needs attention).
+    prisma.capsuleContribution.groupBy({
+      by: ["moderationState"],
+      _count: true,
+    }),
   ]);
 
   const [draftCapsules, activeCapsules, sealedCapsules, revealedCapsules] = capsulesByStatus;
+
+  const modCounts: Record<string, number> = {
+    NOT_SCANNED: 0,
+    SCANNING: 0,
+    PASS: 0,
+    FLAGGED: 0,
+    FAILED_OPEN: 0,
+  };
+  for (const row of moderationByState) {
+    modCounts[row.moderationState] = row._count;
+  }
 
   let clerkUsers: Record<string, { email: string | null }> = {};
   try {
@@ -142,6 +162,31 @@ export default async function AdminDashboard() {
               <Row label="Gift capsule contributions" value={totalContributions.toLocaleString()} />
               <Row label="Pending review" value={pendingTotal.toLocaleString()} highlight={pendingTotal > 0} />
             </div>
+          </Card>
+        </div>
+
+        {/* Hive moderation health */}
+        <div className="mb-8">
+          <Card title="Moderation (Hive)">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <ModStat label="Scanning" value={modCounts.SCANNING} tone={modCounts.SCANNING > 20 ? "warn" : "neutral"} />
+              <ModStat label="Flagged" value={modCounts.FLAGGED} tone={modCounts.FLAGGED > 0 ? "warn" : "neutral"} />
+              <ModStat label="Passed" value={modCounts.PASS} tone="ok" />
+              <ModStat label="Failed open" value={modCounts.FAILED_OPEN} tone={modCounts.FAILED_OPEN > 10 ? "warn" : "neutral"} />
+              <ModStat label="Not scanned" value={modCounts.NOT_SCANNED} tone="neutral" />
+            </div>
+            {modCounts.SCANNING > 20 ? (
+              <p className="text-[11px] text-amber-dark mt-3">
+                Large SCANNING backlog — scans may be getting stuck. Cron
+                auto-releases anything &gt;5 min to FAILED_OPEN.
+              </p>
+            ) : null}
+            {modCounts.FAILED_OPEN > 10 ? (
+              <p className="text-[11px] text-amber-dark mt-1">
+                High FAILED_OPEN count — Hive may be flaky. Check Sentry for
+                hive.* errors.
+              </p>
+            ) : null}
           </Card>
         </div>
 
@@ -251,6 +296,33 @@ function Row({ label, value, highlight = false }: { label: string; value: string
     <div className="flex items-center justify-between py-1.5 border-b border-navy/[0.04] last:border-0">
       <span className="text-sm text-ink-mid">{label}</span>
       <span className={`text-sm font-bold tabular-nums ${highlight ? "text-amber" : "text-navy"}`}>{value}</span>
+    </div>
+  );
+}
+
+function ModStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: "ok" | "warn" | "neutral";
+}) {
+  const toneClass =
+    tone === "ok"
+      ? "text-sage"
+      : tone === "warn"
+        ? "text-amber-dark"
+        : "text-navy";
+  return (
+    <div className="rounded-lg border border-navy/[0.06] bg-warm-surface/30 px-3 py-2.5">
+      <div className="text-[10px] uppercase tracking-[0.1em] font-bold text-ink-mid mb-1">
+        {label}
+      </div>
+      <div className={`text-xl font-extrabold tabular-nums ${toneClass}`}>
+        {value.toLocaleString()}
+      </div>
     </div>
   );
 }

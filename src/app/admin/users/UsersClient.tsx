@@ -28,10 +28,16 @@ export type UserRow = {
 type SortKey = "name" | "joined";
 type SortDir = "asc" | "desc";
 
+// Format the DB-stored date as a calendar date. DOBs and reveal
+// dates are persisted as midnight-UTC values that represent a
+// pure calendar date (no time-of-day meaning). Rendering them in
+// any local zone slips one day earlier for viewers west of UTC —
+// e.g. a "1986-05-19" DOB shows as "May 18, 1986" in CDT. Pinning
+// to UTC prints the intended calendar date regardless of viewer.
 function formatDateCST(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleDateString("en-US", {
-    timeZone: "America/Chicago",
+    timeZone: "UTC",
     month: "short",
     day: "numeric",
     year: "numeric",

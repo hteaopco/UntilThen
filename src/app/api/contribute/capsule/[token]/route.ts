@@ -86,6 +86,14 @@ interface SubmitBody {
  * first submission. Respects the capsule's requiresApproval —
  * PENDING_REVIEW vs AUTO_APPROVED is set here so the reveal flow
  * can filter cleanly.
+ *
+ * Moderation runs ASYNC: the contribution is saved with
+ * `moderationState: SCANNING` and we respond to the contributor
+ * immediately. The actual Hive call happens in the background
+ * and updates the row when it completes. Organiser + reveal views
+ * hide SCANNING items until they resolve. The
+ * /api/cron/moderation-cleanup cron safety-nets any rows stuck
+ * in SCANNING for >5 min.
  */
 export async function POST(
   req: NextRequest,
@@ -156,38 +164,11 @@ export async function POST(
         body: text,
         mediaUrls,
         mediaTypes,
-        // Per-contributor approval: the invite decides whether
-        // this contributor's message needs review. Falls back to
-        // the legacy capsule-wide flag for older invites that
-        // predate the per-invite column.
         approvalStatus: needsReview ? "PENDING_REVIEW" : "AUTO_APPROVED",
-      },
-    });
-
-    // Hive content moderation. Runs inline (up to ~10s per asset
-    // plus text) — the contributor sees the normal "thanks"
-    // response either way. If Hive flags the content we override
-    // approvalStatus to PENDING_REVIEW so auto-approved capsules
-    // don't publish the item, and the admin moderation queue
-    // picks it up via moderationState = FLAGGED.
-    const scan = await scanContribution({
-      body: text,
-      mediaKeys: mediaUrls,
-      mediaTypes,
-    });
-    const flagged = scan.state === "FLAGGED";
-    await prisma.capsuleContribution.update({
-      where: { id: contribution.id },
-      data: {
-        moderationState: scan.state,
-        moderationFlags:
-          Object.keys(scan.flags).length > 0
-            ? { flags: scan.flags, top: scan.rawTopClasses ?? [] }
-            : undefined,
-        moderationRunAt: new Date(),
-        // Flagged items must never publish directly — force a
-        // human review regardless of the capsule's requiresApproval.
-        ...(flagged ? { approvalStatus: "PENDING_REVIEW" as const } : {}),
+        // Start in SCANNING so organiser + reveal views hide it
+        // until the background Hive scan resolves to PASS /
+        // FLAGGED / FAILED_OPEN.
+        moderationState: "SCANNING",
       },
     });
 
@@ -204,54 +185,26 @@ export async function POST(
     await captureServerEvent(
       c.organiser.clerkId,
       "capsule_contribution_submitted",
-      { capsuleId: c.id, type, moderation: scan.state },
+      { capsuleId: c.id, type },
     );
 
-    // Fire-and-forget organiser notification. Uses the organiser
-    // email lookup via Clerk — skip if we can't find it. SKIP
-    // entirely for flagged items so the organiser isn't alerted
-    // to content a human moderator hasn't cleared yet.
-    if (!flagged) {
-      try {
-        const { clerkClient } = await import("@clerk/nextjs/server");
-        const clerk = await clerkClient();
-        const clerkUser = await clerk.users.getUser(c.organiser.clerkId);
-        const organiserEmail =
-          clerkUser.primaryEmailAddress?.emailAddress ??
-          clerkUser.emailAddresses[0]?.emailAddress;
-        if (organiserEmail) {
-          const origin =
-            process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
-          await sendCapsuleContributionSubmitted({
-            to: organiserEmail,
-            contributorName: authorName,
-            title: c.title,
-            dashboardUrl: `${origin}/capsules/${c.id}`,
-          });
-        }
-      } catch (err) {
-        console.error("[capsule contribute] organiser notify:", err);
-      }
-    }
-
-    // Confirmation email to the contributor
-    try {
-      if (invite.email) {
-        const { sendContributorConfirmation } = await import("@/lib/capsule-emails");
-        const origin = process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
-        const bodyPreview = text ? text.replace(/<[^>]+>/g, " ").trim() : null;
-        await sendContributorConfirmation({
-          to: invite.email,
-          contributorName: authorName,
-          recipientName: c.recipientName,
-          capsuleTitle: c.title,
-          messagePreview: bodyPreview,
-          editUrl: `${origin}/contribute/capsule/${token}`,
-        });
-      }
-    } catch (err) {
-      console.error("[capsule contribute] contributor confirm:", err);
-    }
+    // Fire-and-forget: scan + both notification emails. The Node
+    // server on Railway stays alive after the response returns so
+    // the background task runs to completion. If the process dies
+    // mid-scan the cleanup cron reclaims the SCANNING row.
+    void processContributionAsync({
+      contributionId: contribution.id,
+      capsuleId: c.id,
+      capsuleTitle: c.title,
+      recipientName: c.recipientName,
+      organiserClerkId: c.organiser.clerkId,
+      authorName,
+      inviteEmail: invite.email,
+      inviteToken: token,
+      text,
+      mediaUrls,
+      mediaTypes,
+    });
 
     return NextResponse.json({ success: true, id: contribution.id });
   } catch (err) {
@@ -302,17 +255,10 @@ export async function PATCH(
     const nextMediaTypes = Array.isArray(body.mediaTypes) ? body.mediaTypes : contribution.mediaTypes;
     const nextBody = body.body ?? contribution.body;
 
-    // Re-run Hive on the edited content — the contributor may
-    // have swapped in different media or rewritten the letter,
-    // so the moderation state from the original submission is
-    // no longer authoritative.
-    const scan = await scanContribution({
-      body: nextBody,
-      mediaKeys: nextMediaUrls,
-      mediaTypes: nextMediaTypes,
-    });
-    const flagged = scan.state === "FLAGGED";
-
+    // Write the new content and flip moderationState back to
+    // SCANNING so the re-scan happens async and we don't show
+    // stale moderation results to organiser/reveal while the
+    // rescan is in flight.
     await prisma.capsuleContribution.update({
       where: { id: contributionId },
       data: {
@@ -320,26 +266,173 @@ export async function PATCH(
         body: nextBody,
         mediaUrls: nextMediaUrls,
         mediaTypes: nextMediaTypes,
-        approvalStatus: flagged
+        approvalStatus: needsReApproval
           ? "PENDING_REVIEW"
-          : needsReApproval
-            ? "PENDING_REVIEW"
-            : contribution.approvalStatus,
-        moderationState: scan.state,
-        // Prisma's nullable Json fields use Prisma.JsonNull to
-        // explicitly clear, not a bare null. Using bare null
-        // trips the InputJsonValue type check at build time.
-        moderationFlags:
-          Object.keys(scan.flags).length > 0
-            ? { flags: scan.flags, top: scan.rawTopClasses ?? [] }
-            : Prisma.JsonNull,
-        moderationRunAt: new Date(),
+          : contribution.approvalStatus,
+        moderationState: "SCANNING",
+        moderationFlags: Prisma.JsonNull,
+        moderationRunAt: null,
       },
+    });
+
+    // Fire-and-forget re-scan. No contributor/organiser notify
+    // emails on edits — the first submit already sent those and
+    // the product doesn't re-notify on revisions.
+    void rescanContributionAsync({
+      contributionId,
+      text: nextBody,
+      mediaUrls: nextMediaUrls,
+      mediaTypes: nextMediaTypes,
     });
 
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[capsule contribute PATCH] error:", err);
     return NextResponse.json({ error: "Couldn't update." }, { status: 500 });
+  }
+}
+
+/**
+ * Background processor for a fresh contributor submission.
+ *
+ * Order of operations:
+ *  1. Contributor confirmation email (fires first so the
+ *     contributor gets their "thanks" mail fast — does not
+ *     depend on scan result per product spec).
+ *  2. Hive scan (up to ~10s per asset).
+ *  3. Apply scan result to the contribution row: moderationState,
+ *     moderationFlags, moderationRunAt. Force approvalStatus to
+ *     PENDING_REVIEW when flagged, regardless of the capsule's
+ *     requiresApproval.
+ *  4. Organiser notification email — only when the item is not
+ *     flagged. Flagged items go to /admin/moderation first; the
+ *     organiser hears about them only once an admin clears the
+ *     flag (at which point the existing updates-inbox flow picks
+ *     them up).
+ *
+ * Errors inside this function are caught and logged; they never
+ * propagate because we've already responded to the client.
+ */
+async function processContributionAsync(params: {
+  contributionId: string;
+  capsuleId: string;
+  capsuleTitle: string;
+  recipientName: string;
+  organiserClerkId: string;
+  authorName: string;
+  inviteEmail: string | null;
+  inviteToken: string;
+  text: string | null;
+  mediaUrls: string[];
+  mediaTypes: string[];
+}): Promise<void> {
+  const origin = process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
+
+  // 1. Contributor confirmation email — fires regardless of
+  //    scan outcome so the contributor experience matches the
+  //    spec ("they see the normal thanks confirmation").
+  if (params.inviteEmail) {
+    try {
+      const { sendContributorConfirmation } = await import("@/lib/capsule-emails");
+      const bodyPreview = params.text
+        ? params.text.replace(/<[^>]+>/g, " ").trim()
+        : null;
+      await sendContributorConfirmation({
+        to: params.inviteEmail,
+        contributorName: params.authorName,
+        recipientName: params.recipientName,
+        capsuleTitle: params.capsuleTitle,
+        messagePreview: bodyPreview,
+        editUrl: `${origin}/contribute/capsule/${params.inviteToken}`,
+      });
+    } catch (err) {
+      console.error("[contribute async] contributor confirm:", err);
+    }
+  }
+
+  // 2 + 3. Hive scan → apply result.
+  let flagged = false;
+  try {
+    const scan = await scanContribution({
+      body: params.text,
+      mediaKeys: params.mediaUrls,
+      mediaTypes: params.mediaTypes,
+    });
+    flagged = scan.state === "FLAGGED";
+    const { prisma } = await import("@/lib/prisma");
+    await prisma.capsuleContribution.update({
+      where: { id: params.contributionId },
+      data: {
+        moderationState: scan.state,
+        moderationFlags:
+          Object.keys(scan.flags).length > 0
+            ? { flags: scan.flags, top: scan.rawTopClasses ?? [] }
+            : Prisma.JsonNull,
+        moderationRunAt: new Date(),
+        ...(flagged ? { approvalStatus: "PENDING_REVIEW" as const } : {}),
+      },
+    });
+  } catch (err) {
+    // Catastrophic: couldn't even write the scan result. Log and
+    // let the cleanup cron reclaim the SCANNING row later.
+    console.error("[contribute async] scan update failed:", err);
+    return;
+  }
+
+  // 4. Organiser notification — skip for flagged items.
+  if (!flagged) {
+    try {
+      const { clerkClient } = await import("@clerk/nextjs/server");
+      const clerk = await clerkClient();
+      const clerkUser = await clerk.users.getUser(params.organiserClerkId);
+      const organiserEmail =
+        clerkUser.primaryEmailAddress?.emailAddress ??
+        clerkUser.emailAddresses[0]?.emailAddress;
+      if (organiserEmail) {
+        await sendCapsuleContributionSubmitted({
+          to: organiserEmail,
+          contributorName: params.authorName,
+          title: params.capsuleTitle,
+          dashboardUrl: `${origin}/capsules/${params.capsuleId}`,
+        });
+      }
+    } catch (err) {
+      console.error("[contribute async] organiser notify:", err);
+    }
+  }
+}
+
+/**
+ * Background re-scan for a contributor edit. Lighter than the
+ * fresh-submit processor — no emails, just the scan + update.
+ */
+async function rescanContributionAsync(params: {
+  contributionId: string;
+  text: string | null;
+  mediaUrls: string[];
+  mediaTypes: string[];
+}): Promise<void> {
+  try {
+    const scan = await scanContribution({
+      body: params.text,
+      mediaKeys: params.mediaUrls,
+      mediaTypes: params.mediaTypes,
+    });
+    const flagged = scan.state === "FLAGGED";
+    const { prisma } = await import("@/lib/prisma");
+    await prisma.capsuleContribution.update({
+      where: { id: params.contributionId },
+      data: {
+        moderationState: scan.state,
+        moderationFlags:
+          Object.keys(scan.flags).length > 0
+            ? { flags: scan.flags, top: scan.rawTopClasses ?? [] }
+            : Prisma.JsonNull,
+        moderationRunAt: new Date(),
+        ...(flagged ? { approvalStatus: "PENDING_REVIEW" as const } : {}),
+      },
+    });
+  } catch (err) {
+    console.error("[contribute async] rescan failed:", err);
   }
 }

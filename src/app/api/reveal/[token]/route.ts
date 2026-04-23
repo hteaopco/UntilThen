@@ -40,7 +40,13 @@ export async function GET(
     where: { accessToken: token },
     include: {
       contributions: {
-        where: { approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] } },
+        where: {
+          approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+          // Don't expose items that haven't cleared Hive — even on
+          // AUTO_APPROVED capsules, items in SCANNING or FLAGGED
+          // states must stay hidden until moderation resolves.
+          moderationState: { notIn: ["SCANNING", "FLAGGED"] },
+        },
         orderBy: [{ orderIndex: "asc" }, { createdAt: "asc" }],
       },
     },

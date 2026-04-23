@@ -36,11 +36,13 @@ export default async function UpdatesPage() {
   const pending = await prisma.capsuleContribution.findMany({
     where: {
       approvalStatus: "PENDING_REVIEW",
-      // Hive-flagged contributions are routed to /admin/moderation
-      // for a human decision and never land in the organiser's
-      // inbox. Once an admin clears the flag (sets moderationState
-      // back to PASS) the item reappears here.
-      moderationState: { not: "FLAGGED" },
+      // Hide everything that hasn't cleared Hive yet:
+      //  - SCANNING: scan still in flight (async, normally <10s).
+      //    The cleanup cron reclaims anything stuck >5min.
+      //  - FLAGGED: routed to /admin/moderation for human review.
+      // Once a scan resolves (PASS / FAILED_OPEN) or an admin
+      // clears a flag, the item reappears in this inbox.
+      moderationState: { notIn: ["FLAGGED", "SCANNING"] },
       capsule: { organiserId: user.id },
     },
     include: {

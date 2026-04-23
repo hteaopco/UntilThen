@@ -39,10 +39,11 @@ export default async function CapsulePage({
     where: { id },
     include: {
       contributions: {
-        // Hive-flagged contributions are held back from the
-        // organiser until an admin reviews them in /admin/moderation.
-        // See src/lib/hive.ts for the scan pipeline.
-        where: { moderationState: { not: "FLAGGED" } },
+        // Hide both SCANNING (async scan in flight) and FLAGGED
+        // (held for admin review) from the organiser's capsule
+        // detail page. Items reappear once Hive resolves to
+        // PASS / FAILED_OPEN or an admin clears a flag.
+        where: { moderationState: { notIn: ["FLAGGED", "SCANNING"] } },
         orderBy: [{ orderIndex: "asc" }, { createdAt: "asc" }],
       },
       invites: { orderBy: { createdAt: "asc" } },

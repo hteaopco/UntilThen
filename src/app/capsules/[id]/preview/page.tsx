@@ -49,7 +49,10 @@ export default async function CapsulePreviewPage({
     where: { id },
     include: {
       contributions: {
-        where: { approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] } },
+        where: {
+          approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+          moderationState: { notIn: ["SCANNING", "FLAGGED"] },
+        },
         orderBy: [{ orderIndex: "asc" }, { createdAt: "asc" }],
       },
     },

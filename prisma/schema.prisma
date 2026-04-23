@@ -37,15 +37,21 @@ enum ApprovalStatus {
 //
 // NOT_SCANNED → hasn't been submitted to Hive yet (legacy rows,
 //   organiser self-contributions, or Hive not configured).
+// SCANNING → Hive scan kicked off async; result not back yet.
+//   Hidden from organiser + reveal views until it resolves. The
+//   /api/cron/moderation-cleanup cron reclaims any row stuck in
+//   this state (e.g. server crashed mid-scan) after 5 minutes.
 // PASS → Hive ran and every category stayed under threshold.
 // FLAGGED → At least one of { sexual, violence, hate, drugs } came
 //   back over the confidence threshold. Hidden from organiser,
 //   routed to /admin/moderation for a human decision.
-// FAILED_OPEN → Hive API call errored. We do NOT block the
-//   submission when the moderation service is down, but we record
-//   the state so the admin can re-check these later.
+// FAILED_OPEN → Hive API call errored, timed out, or is not
+//   configured. We do NOT block the submission when the
+//   moderation service is down — the contribution flows through
+//   as if no moderation ran. Sentry records every failure.
 enum ModerationState {
   NOT_SCANNED
+  SCANNING
   PASS
   FLAGGED
   FAILED_OPEN

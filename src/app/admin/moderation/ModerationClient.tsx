@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Check, CheckCircle, X } from "lucide-react";
+import { AlertTriangle, Check, CheckCircle, Loader2, RefreshCw, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -18,12 +18,23 @@ type PendingEntry = {
   targetName: string;
   type: string;
   createdAt: string;
-  moderationState: "NOT_SCANNED" | "PASS" | "FLAGGED" | "FAILED_OPEN";
+  moderationState:
+    | "NOT_SCANNED"
+    | "SCANNING"
+    | "PASS"
+    | "FLAGGED"
+    | "FAILED_OPEN";
   moderationFlags: HiveFlags | null;
   moderationRunAt: string | null;
 };
 
-export function ModerationClient({ items }: { items: PendingEntry[] }) {
+export function ModerationClient({
+  items,
+  scanning = [],
+}: {
+  items: PendingEntry[];
+  scanning?: PendingEntry[];
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -69,7 +80,7 @@ export function ModerationClient({ items }: { items: PendingEntry[] }) {
     }
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && scanning.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-navy/10 bg-warm-surface/40 px-5 py-12 text-center">
         <p className="text-sm text-ink-mid">Nothing to review. All clear.</p>
@@ -79,6 +90,59 @@ export function ModerationClient({ items }: { items: PendingEntry[] }) {
 
   return (
     <div className="space-y-3">
+      {scanning.length > 0 ? (
+        <section className="mb-5 rounded-xl border border-navy/[0.08] bg-navy/[0.02] px-5 py-4">
+          <header className="flex items-center justify-between gap-3 mb-3">
+            <h2 className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.1em] font-bold text-navy">
+              <Loader2
+                size={12}
+                strokeWidth={2.5}
+                className="animate-spin"
+                aria-hidden="true"
+              />
+              Currently scanning ({scanning.length})
+            </h2>
+            <button
+              type="button"
+              onClick={() => router.refresh()}
+              className="inline-flex items-center gap-1 text-[11px] font-semibold text-ink-mid hover:text-navy"
+            >
+              <RefreshCw size={11} strokeWidth={2} aria-hidden="true" />
+              Refresh
+            </button>
+          </header>
+          <ul className="space-y-1">
+            {scanning.map((s) => (
+              <li
+                key={s.id}
+                className="flex items-center justify-between gap-3 text-[12px] text-ink-mid"
+              >
+                <span className="truncate">
+                  <span className="font-semibold text-navy">
+                    {s.authorName}
+                  </span>{" "}
+                  → {s.targetName} ·{" "}
+                  <span className="font-mono text-[11px]">{s.type}</span>
+                </span>
+                <span className="text-[11px] text-ink-light whitespace-nowrap">
+                  submitted{" "}
+                  {Math.max(
+                    0,
+                    Math.floor(
+                      (Date.now() - new Date(s.createdAt).getTime()) / 1000,
+                    ),
+                  )}
+                  s ago
+                </span>
+              </li>
+            ))}
+          </ul>
+          <p className="text-[11px] text-ink-light mt-2">
+            Hive scans normally finish in under 10 seconds. Items stuck for
+            more than 5 minutes are auto-released by the cleanup cron.
+          </p>
+        </section>
+      ) : null}
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-ink-mid">
           {items.length} item{items.length !== 1 ? "s" : ""} awaiting review
