@@ -39,6 +39,10 @@ export default async function CapsulePage({
     where: { id },
     include: {
       contributions: {
+        // Hive-flagged contributions are held back from the
+        // organiser until an admin reviews them in /admin/moderation.
+        // See src/lib/hive.ts for the scan pipeline.
+        where: { moderationState: { not: "FLAGGED" } },
         orderBy: [{ orderIndex: "asc" }, { createdAt: "asc" }],
       },
       invites: { orderBy: { createdAt: "asc" } },

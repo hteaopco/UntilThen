@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { effectiveStatus } from "@/lib/capsules";
 import { sendCapsuleContributionSubmitted } from "@/lib/capsule-emails";
+import { scanContribution } from "@/lib/hive";
 import { captureServerEvent } from "@/lib/posthog-server";
 
 export const runtime = "nodejs";
@@ -140,6 +141,7 @@ export async function POST(
   try {
     const { prisma } = await import("@/lib/prisma");
 
+    const needsReview = invite.requiresApproval || c.requiresApproval;
     const contribution = await prisma.capsuleContribution.create({
       data: {
         capsuleId: c.id,
@@ -158,10 +160,34 @@ export async function POST(
         // this contributor's message needs review. Falls back to
         // the legacy capsule-wide flag for older invites that
         // predate the per-invite column.
-        approvalStatus:
-          invite.requiresApproval || c.requiresApproval
-            ? "PENDING_REVIEW"
-            : "AUTO_APPROVED",
+        approvalStatus: needsReview ? "PENDING_REVIEW" : "AUTO_APPROVED",
+      },
+    });
+
+    // Hive content moderation. Runs inline (up to ~10s per asset
+    // plus text) — the contributor sees the normal "thanks"
+    // response either way. If Hive flags the content we override
+    // approvalStatus to PENDING_REVIEW so auto-approved capsules
+    // don't publish the item, and the admin moderation queue
+    // picks it up via moderationState = FLAGGED.
+    const scan = await scanContribution({
+      body: text,
+      mediaKeys: mediaUrls,
+      mediaTypes,
+    });
+    const flagged = scan.state === "FLAGGED";
+    await prisma.capsuleContribution.update({
+      where: { id: contribution.id },
+      data: {
+        moderationState: scan.state,
+        moderationFlags:
+          Object.keys(scan.flags).length > 0
+            ? { flags: scan.flags, top: scan.rawTopClasses ?? [] }
+            : undefined,
+        moderationRunAt: new Date(),
+        // Flagged items must never publish directly — force a
+        // human review regardless of the capsule's requiresApproval.
+        ...(flagged ? { approvalStatus: "PENDING_REVIEW" as const } : {}),
       },
     });
 
@@ -178,30 +204,34 @@ export async function POST(
     await captureServerEvent(
       c.organiser.clerkId,
       "capsule_contribution_submitted",
-      { capsuleId: c.id, type },
+      { capsuleId: c.id, type, moderation: scan.state },
     );
 
     // Fire-and-forget organiser notification. Uses the organiser
-    // email lookup via Clerk — skip if we can't find it.
-    try {
-      const { clerkClient } = await import("@clerk/nextjs/server");
-      const clerk = await clerkClient();
-      const clerkUser = await clerk.users.getUser(c.organiser.clerkId);
-      const organiserEmail =
-        clerkUser.primaryEmailAddress?.emailAddress ??
-        clerkUser.emailAddresses[0]?.emailAddress;
-      if (organiserEmail) {
-        const origin =
-          process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
-        await sendCapsuleContributionSubmitted({
-          to: organiserEmail,
-          contributorName: authorName,
-          title: c.title,
-          dashboardUrl: `${origin}/capsules/${c.id}`,
-        });
+    // email lookup via Clerk — skip if we can't find it. SKIP
+    // entirely for flagged items so the organiser isn't alerted
+    // to content a human moderator hasn't cleared yet.
+    if (!flagged) {
+      try {
+        const { clerkClient } = await import("@clerk/nextjs/server");
+        const clerk = await clerkClient();
+        const clerkUser = await clerk.users.getUser(c.organiser.clerkId);
+        const organiserEmail =
+          clerkUser.primaryEmailAddress?.emailAddress ??
+          clerkUser.emailAddresses[0]?.emailAddress;
+        if (organiserEmail) {
+          const origin =
+            process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
+          await sendCapsuleContributionSubmitted({
+            to: organiserEmail,
+            contributorName: authorName,
+            title: c.title,
+            dashboardUrl: `${origin}/capsules/${c.id}`,
+          });
+        }
+      } catch (err) {
+        console.error("[capsule contribute] organiser notify:", err);
       }
-    } catch (err) {
-      console.error("[capsule contribute] organiser notify:", err);
     }
 
     // Confirmation email to the contributor
@@ -268,15 +298,39 @@ export async function PATCH(
       return NextResponse.json({ error: "Contribution not found." }, { status: 404 });
 
     const needsReApproval = invite.requiresApproval || c.requiresApproval;
+    const nextMediaUrls = Array.isArray(body.mediaUrls) ? body.mediaUrls : contribution.mediaUrls;
+    const nextMediaTypes = Array.isArray(body.mediaTypes) ? body.mediaTypes : contribution.mediaTypes;
+    const nextBody = body.body ?? contribution.body;
+
+    // Re-run Hive on the edited content — the contributor may
+    // have swapped in different media or rewritten the letter,
+    // so the moderation state from the original submission is
+    // no longer authoritative.
+    const scan = await scanContribution({
+      body: nextBody,
+      mediaKeys: nextMediaUrls,
+      mediaTypes: nextMediaTypes,
+    });
+    const flagged = scan.state === "FLAGGED";
 
     await prisma.capsuleContribution.update({
       where: { id: contributionId },
       data: {
         title: body.title ?? contribution.title,
-        body: body.body ?? contribution.body,
-        mediaUrls: Array.isArray(body.mediaUrls) ? body.mediaUrls : contribution.mediaUrls,
-        mediaTypes: Array.isArray(body.mediaTypes) ? body.mediaTypes : contribution.mediaTypes,
-        approvalStatus: needsReApproval ? "PENDING_REVIEW" : contribution.approvalStatus,
+        body: nextBody,
+        mediaUrls: nextMediaUrls,
+        mediaTypes: nextMediaTypes,
+        approvalStatus: flagged
+          ? "PENDING_REVIEW"
+          : needsReApproval
+            ? "PENDING_REVIEW"
+            : contribution.approvalStatus,
+        moderationState: scan.state,
+        moderationFlags:
+          Object.keys(scan.flags).length > 0
+            ? { flags: scan.flags, top: scan.rawTopClasses ?? [] }
+            : null,
+        moderationRunAt: new Date(),
       },
     });
 

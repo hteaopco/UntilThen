@@ -33,6 +33,24 @@ enum ApprovalStatus {
   REJECTED
 }
 
+// Hive content moderation outcome per contribution.
+//
+// NOT_SCANNED → hasn't been submitted to Hive yet (legacy rows,
+//   organiser self-contributions, or Hive not configured).
+// PASS → Hive ran and every category stayed under threshold.
+// FLAGGED → At least one of { sexual, violence, hate, drugs } came
+//   back over the confidence threshold. Hidden from organiser,
+//   routed to /admin/moderation for a human decision.
+// FAILED_OPEN → Hive API call errored. We do NOT block the
+//   submission when the moderation service is down, but we record
+//   the state so the admin can re-check these later.
+enum ModerationState {
+  NOT_SCANNED
+  PASS
+  FLAGGED
+  FAILED_OPEN
+}
+
 enum ContributorStatus {
   /// Added to the list but the invite email hasn't been sent
   /// yet. Used for DRAFT capsule invites that pay-to-activate.
@@ -336,11 +354,20 @@ model CapsuleContribution {
   orderIndex     Int?
   createdAt      DateTime       @default(now())
 
+  // Hive content moderation result. `moderationFlags` carries the
+  // per-category confidence scores we observed (e.g. `{"sexual":
+  // 0.91, "violence": 0.12}`), so the admin UI can show exactly
+  // what triggered the flag.
+  moderationState ModerationState @default(NOT_SCANNED)
+  moderationFlags Json?
+  moderationRunAt DateTime?
+
   capsule MemoryCapsule @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
 
   @@index([capsuleId])
   @@index([clerkUserId])
   @@index([approvalStatus])
+  @@index([moderationState])
 }
 
 model CapsuleInvite {

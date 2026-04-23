@@ -1,8 +1,13 @@
 "use client";
 
-import { Check, CheckCircle, X } from "lucide-react";
+import { AlertTriangle, Check, CheckCircle, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+type HiveFlags = {
+  flags?: Partial<Record<"sexual" | "violence" | "hate" | "drugs", number>>;
+  top?: Array<{ className: string; score: number }>;
+};
 
 type PendingEntry = {
   id: string;
@@ -13,6 +18,9 @@ type PendingEntry = {
   targetName: string;
   type: string;
   createdAt: string;
+  moderationState: "NOT_SCANNED" | "PASS" | "FLAGGED" | "FAILED_OPEN";
+  moderationFlags: HiveFlags | null;
+  moderationRunAt: string | null;
 };
 
 export function ModerationClient({ items }: { items: PendingEntry[] }) {
@@ -37,9 +45,13 @@ export function ModerationClient({ items }: { items: PendingEntry[] }) {
   }
 
   const [approvingAll, setApprovingAll] = useState(false);
+  const flaggedCount = items.filter((i) => i.moderationState === "FLAGGED").length;
 
   async function approveAll() {
-    if (!window.confirm(`Approve all ${items.length} items?`)) return;
+    const msg = flaggedCount
+      ? `Approve all ${items.length} items? ${flaggedCount} were flagged by Hive — approving them clears the flag and sends them back to the organiser's inbox (they do NOT auto-publish).`
+      : `Approve all ${items.length} items?`;
+    if (!window.confirm(msg)) return;
     setApprovingAll(true);
     try {
       for (const item of items) {
@@ -69,7 +81,14 @@ export function ModerationClient({ items }: { items: PendingEntry[] }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-ink-mid">
-          {items.length} item{items.length !== 1 ? "s" : ""} awaiting your review.
+          {items.length} item{items.length !== 1 ? "s" : ""} awaiting review
+          {flaggedCount > 0 ? (
+            <span className="ml-2 inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.08em] text-red-600">
+              <AlertTriangle size={12} strokeWidth={2.5} aria-hidden="true" />
+              {flaggedCount} flagged by Hive
+            </span>
+          ) : null}
+          .
         </p>
         <button
           type="button"
@@ -78,18 +97,24 @@ export function ModerationClient({ items }: { items: PendingEntry[] }) {
           className="inline-flex items-center gap-1.5 bg-sage text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-sage/90 transition-colors disabled:opacity-50"
         >
           <CheckCircle size={14} strokeWidth={2} aria-hidden="true" />
-          {approvingAll ? "Approving\u2026" : "Approve All"}
+          {approvingAll ? "Approving…" : "Approve All"}
         </button>
       </div>
       {items.map((item) => {
         const preview = item.body
           ? item.body.replace(/<[^>]+>/g, " ").trim().slice(0, 300)
           : null;
+        const flagged = item.moderationState === "FLAGGED";
         return (
           <div
             key={`${item.kind}-${item.id}`}
-            className="rounded-xl border border-navy/[0.08] bg-white px-5 py-4"
+            className={`rounded-xl border px-5 py-4 ${
+              flagged
+                ? "border-red-200 bg-red-50/40"
+                : "border-navy/[0.08] bg-white"
+            }`}
           >
+            {flagged ? <HiveFlagBadge flags={item.moderationFlags} /> : null}
             <div className="flex items-start justify-between gap-3 mb-2">
               <div>
                 <span className={`text-[10px] uppercase tracking-[0.1em] font-bold ${
@@ -129,7 +154,7 @@ export function ModerationClient({ items }: { items: PendingEntry[] }) {
                 className="inline-flex items-center gap-1.5 bg-sage text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-sage/90 transition-colors disabled:opacity-50"
               >
                 <Check size={14} strokeWidth={2} aria-hidden="true" />
-                Approve
+                {flagged ? "Clear flag (send to organiser)" : "Approve"}
               </button>
               <button
                 type="button"
@@ -144,6 +169,41 @@ export function ModerationClient({ items }: { items: PendingEntry[] }) {
           </div>
         );
       })}
+    </div>
+  );
+}
+
+function HiveFlagBadge({ flags }: { flags: HiveFlags | null }) {
+  const entries = flags?.flags
+    ? (Object.entries(flags.flags) as Array<[string, number]>)
+        .filter(([, score]) => typeof score === "number")
+        .sort(([, a], [, b]) => b - a)
+    : [];
+
+  return (
+    <div className="mb-3 rounded-lg border border-red-200 bg-red-100/50 px-3 py-2">
+      <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-red-700 mb-1">
+        <AlertTriangle size={12} strokeWidth={2.5} aria-hidden="true" />
+        Flagged by Hive
+      </div>
+      {entries.length > 0 ? (
+        <ul className="flex flex-wrap gap-2">
+          {entries.map(([category, score]) => (
+            <li
+              key={category}
+              className={`text-[11px] font-mono px-2 py-0.5 rounded ${
+                score >= 0.7
+                  ? "bg-red-200 text-red-900"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              {category}: {(score * 100).toFixed(0)}%
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-[11px] text-red-700">No category detail.</p>
+      )}
     </div>
   );
 }
