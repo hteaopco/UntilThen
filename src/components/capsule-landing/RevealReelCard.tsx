@@ -63,11 +63,11 @@ export function RevealReelCard({
   }
 
   return (
-    <div className="flex flex-col items-stretch gap-2 w-full sm:w-auto sm:items-end sm:flex-shrink-0 sm:max-w-[280px]">
+    <div className="flex flex-col items-end gap-2 shrink-0">
       <div
         role="group"
         aria-label="Reveal mode"
-        className="inline-flex items-center gap-0.5 rounded-full bg-white border border-navy/10 p-0.5 self-start sm:self-end"
+        className="inline-flex items-center gap-0.5 rounded-full bg-white border border-navy/10 p-0.5"
       >
         <PillOption
           active={mode === "RANDOM"}
@@ -85,36 +85,36 @@ export function RevealReelCard({
         />
       </div>
 
-      {mode === "BUILD" && (
-        <Link
-          href={`/vault/${childId}/reveal/curator`}
-          prefetch={false}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold text-amber hover:text-amber-dark transition-colors self-start sm:self-end"
-        >
-          <Settings2 size={12} strokeWidth={2} aria-hidden="true" />
-          {curatedSlideCount > 0
-            ? `${curatedSlideCount}/5 highlights · Edit`
-            : "Customize highlights"}
-        </Link>
-      )}
-
       <Link
         href={`/vault/${childId}/preview`}
         prefetch={false}
-        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-amber/30 text-amber font-semibold text-[13px] hover:border-amber hover:bg-amber-tint/40 transition-colors self-start sm:self-end whitespace-nowrap"
+        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-amber/30 text-amber font-semibold text-[13px] hover:border-amber hover:bg-amber-tint/40 transition-colors whitespace-nowrap"
       >
         <Eye size={14} strokeWidth={1.75} aria-hidden="true" />
         Preview the Reveal
       </Link>
 
+      {mode === "BUILD" && (
+        <Link
+          href={`/vault/${childId}/reveal/curator`}
+          prefetch={false}
+          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold text-amber hover:text-amber-dark transition-colors whitespace-nowrap"
+        >
+          <Settings2 size={11} strokeWidth={2} aria-hidden="true" />
+          {curatedSlideCount > 0
+            ? `${curatedSlideCount}/5 · Edit`
+            : "Customize"}
+        </Link>
+      )}
+
       {songName && (
-        <p className="text-[11px] text-ink-light italic self-start sm:self-end">
+        <p className="text-[11px] text-ink-light italic text-right max-w-[160px] truncate">
           Music: {songName}
         </p>
       )}
 
       {error && (
-        <p className="text-[12px] text-red-600 self-start sm:self-end" role="alert">
+        <p className="text-[12px] text-red-600 text-right" role="alert">
           {error}
         </p>
       )}

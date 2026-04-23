@@ -59,8 +59,8 @@ export default async function CapsuleLandingPage({
         />
 
         <section>
-          <div className="flex items-start justify-between gap-4 mb-5 flex-wrap">
-            <h2 className="text-[22px] sm:text-[26px] font-extrabold text-navy tracking-[-0.4px]">
+          <div className="flex items-start justify-between gap-3 mb-5">
+            <h2 className="text-[20px] sm:text-[26px] font-extrabold text-navy tracking-[-0.4px] leading-tight min-w-0 flex-1">
               {child.firstName}&rsquo;s Collections
             </h2>
             <RevealReelCard
