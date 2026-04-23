@@ -1,6 +1,7 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { logAdminAction } from "@/lib/admin-audit";
 import { getSquareClient, squareIsConfigured } from "@/lib/square";
 
 export const runtime = "nodejs";
@@ -125,6 +126,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // they resubscribe.
   const { reconcileVaultLocks } = await import("@/lib/vault-locks");
   await reconcileVaultLocks(user.id);
+
+  await logAdminAction(
+    req,
+    "subscription.reset",
+    { type: "User", id: user.id },
+    { email, canceled, totalSubs: toCancel.length },
+  );
 
   return NextResponse.json({
     success: true,

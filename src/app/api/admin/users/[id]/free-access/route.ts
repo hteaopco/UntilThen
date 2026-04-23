@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { logAdminAction } from "@/lib/admin-audit";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -77,6 +79,14 @@ export async function PATCH(
         freeGiftAccess: true,
       },
     });
+
+    await logAdminAction(
+      req,
+      "user.free-access",
+      { type: "User", id },
+      data,
+    );
+
     return NextResponse.json({ success: true, user });
   } catch (err) {
     const e = err as { code?: string; message?: string };

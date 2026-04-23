@@ -1,6 +1,7 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { logAdminAction } from "@/lib/admin-audit";
 import { R2_BUCKET, r2IsConfigured } from "@/lib/r2";
 
 export const runtime = "nodejs";
@@ -168,6 +169,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       uploadedAt: true,
     },
   });
+
+  await logAdminAction(
+    req,
+    "reveal-song.upload",
+    { type: "RevealSong", id: created.id },
+    { name: created.name, r2Key: created.r2Key, durationSec: created.durationSec },
+  );
 
   return NextResponse.json({
     song: {

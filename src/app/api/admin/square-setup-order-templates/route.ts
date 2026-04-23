@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { logAdminAction } from "@/lib/admin-audit";
 import {
   SQUARE_LOCATION_ID,
   getSquareClient,
@@ -111,6 +112,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       results.push({ label: spec.label, orderId: null, error: detail });
     }
   }
+
+  await logAdminAction(req, "square.setup-templates", undefined, {
+    results: results.map((r) => ({
+      label: r.label,
+      ok: Boolean(r.orderId),
+    })),
+  });
 
   return NextResponse.json({ results });
 }

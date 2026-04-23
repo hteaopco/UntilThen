@@ -1,6 +1,8 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { logAdminAction } from "@/lib/admin-audit";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -141,6 +143,19 @@ export async function PATCH(
       }
     });
 
+    await logAdminAction(
+      req,
+      "user.update",
+      { type: "User", id },
+      {
+        firstName,
+        lastName,
+        childId: child?.id ?? null,
+        childDob: childDob?.toISOString() ?? null,
+        childReveal: childReveal?.toISOString() ?? null,
+      },
+    );
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[admin/users PATCH] error:", err);
@@ -233,6 +248,13 @@ export async function DELETE(
     } catch (err) {
       console.error("[admin/users DELETE] clerk delete failed:", err);
     }
+
+    await logAdminAction(
+      req,
+      "user.delete",
+      { type: "User", id },
+      { clerkId: user.clerkId },
+    );
 
     return NextResponse.json({ success: true });
   } catch (err) {

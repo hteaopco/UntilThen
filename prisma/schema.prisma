@@ -449,3 +449,33 @@ model AppConfig {
   lockThrottleDisabled Boolean @default(false)
   updatedAt      DateTime @updatedAt
 }
+
+// ── Admin audit log ────────────────────────────────────────
+
+// Records every mutating admin action. Read-only admin views
+// (GETs, list fetches) are intentionally NOT logged — the log
+// is for accountability of state changes. Retention: 365 days,
+// pruned by the /api/cron/prune-audit-log cron.
+//
+// Admin auth is a shared password cookie today, so "actor" is
+// approximated by (ipAddress, userAgent). If we migrate to
+// per-admin identities later, add an `adminId` column.
+model AdminAuditLog {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  // Dotted namespace — "{surface}.{verb}". Examples:
+  // "user.delete", "contribution.approve", "reveal-song.upload".
+  action     String
+  // Optional target entity — not every action has one (auth.*).
+  targetType String?
+  targetId   String?
+  // Per-action context (fields changed, counts, email addresses
+  // redacted, etc.). Keep small — this table is append-only.
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+
+  @@index([createdAt])
+  @@index([action])
+  @@index([targetType, targetId])
+}

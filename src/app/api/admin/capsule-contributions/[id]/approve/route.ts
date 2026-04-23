@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { logAdminAction } from "@/lib/admin-audit";
+
 export const runtime = "nodejs";
 
 export async function POST(
@@ -17,6 +19,13 @@ export async function POST(
     data: { approvalStatus: "APPROVED" },
     include: { capsule: { select: { id: true, title: true, recipientName: true } } },
   });
+
+  await logAdminAction(
+    req,
+    "contribution.approve",
+    { type: "CapsuleContribution", id: contribution.id },
+    { capsuleId: contribution.capsule.id, capsuleTitle: contribution.capsule.title },
+  );
 
   try {
     if (contribution.authorEmail) {

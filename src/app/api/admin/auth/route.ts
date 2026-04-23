@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { logAdminAction } from "@/lib/admin-audit";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -21,10 +23,13 @@ export async function POST(req: NextRequest) {
   }
 
   if (password !== process.env.ADMIN_PASSWORD) {
+    await logAdminAction(req, "auth.login-failed");
     // Small delay to discourage brute force from the same connection.
     await new Promise((r) => setTimeout(r, 300));
     return NextResponse.json({ error: "Invalid password" }, { status: 401 });
   }
+
+  await logAdminAction(req, "auth.login");
 
   const res = NextResponse.json({ success: true });
   res.cookies.set({
@@ -39,7 +44,8 @@ export async function POST(req: NextRequest) {
   return res;
 }
 
-export async function DELETE() {
+export async function DELETE(req: NextRequest) {
+  await logAdminAction(req, "auth.logout");
   const res = NextResponse.json({ success: true });
   res.cookies.set({
     name: "admin_auth",

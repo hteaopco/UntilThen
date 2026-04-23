@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { logAdminAction } from "@/lib/admin-audit";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -12,6 +14,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const to = typeof body.to === "string" ? body.to.trim() : "";
   if (!to) return NextResponse.json({ error: "Missing 'to' email." }, { status: 400 });
   const only = Array.isArray(body.only) ? new Set(body.only) : null;
+
+  await logAdminAction(req, "email.test-send", undefined, {
+    to,
+    only: only ? [...only] : "all",
+  });
 
   const origin = process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
   const results: { name: string; ok: boolean; error?: string }[] = [];

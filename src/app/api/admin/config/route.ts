@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { logAdminAction } from "@/lib/admin-audit";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -101,6 +103,13 @@ export async function PATCH(req: NextRequest): Promise<NextResponse> {
       lockThrottleDisabled: update.lockThrottleDisabled ?? false,
     },
   });
+
+  await logAdminAction(
+    req,
+    "config.update",
+    { type: "AppConfig", id: "singleton" },
+    update,
+  );
 
   return NextResponse.json({
     success: true,

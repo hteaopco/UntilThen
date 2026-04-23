@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { logAdminAction } from "@/lib/admin-audit";
 import { deleteR2Object, r2IsConfigured } from "@/lib/r2";
 
 export const runtime = "nodejs";
@@ -42,6 +43,13 @@ export async function DELETE(
   }
 
   await prisma.revealSong.delete({ where: { id } });
+
+  await logAdminAction(
+    req,
+    "reveal-song.delete",
+    { type: "RevealSong", id: song.id },
+    { r2Key: song.r2Key },
+  );
 
   return NextResponse.json({ success: true });
 }
