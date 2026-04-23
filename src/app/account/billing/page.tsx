@@ -21,6 +21,8 @@ export default async function AccountBillingPage() {
     select: {
       id: true,
       squareCustomerId: true,
+      squareCardBrand: true,
+      squareCardLast4: true,
       freeVaultAccess: true,
       subscription: {
         select: {
@@ -72,6 +74,8 @@ export default async function AccountBillingPage() {
     voiceCount: entries.filter((e) => e.type === "VOICE").length,
     videoCount: entries.filter((e) => e.type === "VIDEO").length,
     hasCustomerOnFile: Boolean(user.squareCustomerId),
+    cardBrand: user.squareCardBrand,
+    cardLast4: user.squareCardLast4,
     freeVaultAccess: user.freeVaultAccess,
     capsules,
     subscription: user.subscription

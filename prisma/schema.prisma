@@ -78,6 +78,16 @@ model User {
   // saved on file during a SubscriptionCheckout flow. Null for
   // users who have never completed a paid checkout.
   squareCustomerId String?
+  // Current card on file, shared across the base subscription
+  // and every addon. Updating the card means replacing this row
+  // AND calling subscriptions.update on every sub so they all
+  // point at the new card — enforced atomically in the
+  // /api/payments/update-card endpoint (rolls back on partial
+  // failure). squareCardBrand + last4 power the billing-page
+  // "Visa •••• 4242" summary.
+  squareCardId     String?
+  squareCardBrand  String?
+  squareCardLast4  String?
 
   children                Child[]
   entries                 Entry[]

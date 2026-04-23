@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 
 import { AddOnCheckout } from "@/components/checkout/AddOnCheckout";
 import { SubscriptionCheckout } from "@/components/checkout/SubscriptionCheckout";
+import { UpdateCardForm } from "@/components/checkout/UpdateCardForm";
 import { formatLong } from "@/lib/dateFormatters";
 
 type Plan = "MONTHLY" | "ANNUAL";
@@ -53,6 +54,8 @@ export type BillingClientProps = {
   voiceCount: number;
   videoCount: number;
   hasCustomerOnFile: boolean;
+  cardBrand: string | null;
+  cardLast4: string | null;
   freeVaultAccess: boolean;
   capsules: Capsule[];
   subscription: Subscription | null;
@@ -60,7 +63,7 @@ export type BillingClientProps = {
   squareLocationId: string;
 };
 
-type Mode = "idle" | "subscribe" | "addon" | "confirm-cancel";
+type Mode = "idle" | "subscribe" | "addon" | "confirm-cancel" | "update-card";
 
 export function BillingClient({
   capsuleCount,
@@ -68,6 +71,8 @@ export function BillingClient({
   voiceCount,
   videoCount,
   hasCustomerOnFile,
+  cardBrand,
+  cardLast4,
   freeVaultAccess,
   capsules,
   subscription,
@@ -192,6 +197,22 @@ export function BillingClient({
         <AddOnCheckout
           plan={sub.plan}
           usedSlots={capsuleCount}
+          onDone={() => {
+            setMode("idle");
+            router.refresh();
+          }}
+          onCancel={() => setMode("idle")}
+        />
+      </div>
+    );
+  }
+
+  if (mode === "update-card") {
+    return (
+      <div className="max-w-[520px] mx-auto">
+        <UpdateCardForm
+          applicationId={squareApplicationId}
+          locationId={squareLocationId}
           onDone={() => {
             setMode("idle");
             router.refresh();
@@ -513,12 +534,32 @@ export function BillingClient({
         <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
           Payment method
         </div>
-        <div className="rounded-xl border border-navy/[0.08] bg-white px-5 py-5">
+        <div className="rounded-xl border border-navy/[0.08] bg-white px-5 py-5 flex items-center justify-between gap-3 flex-wrap">
           {hasCustomerOnFile ? (
-            <div className="flex items-center gap-2 text-sm text-ink-mid">
-              <Lock size={14} strokeWidth={1.75} aria-hidden="true" />
-              Card on file · managed by Square
-            </div>
+            <>
+              <div className="flex items-center gap-2 text-sm text-navy">
+                <Lock size={14} strokeWidth={1.75} aria-hidden="true" />
+                {cardBrand && cardLast4 ? (
+                  <span>
+                    <span className="font-semibold">
+                      {formatBrand(cardBrand)}
+                    </span>{" "}
+                    <span className="text-ink-mid">•••• {cardLast4}</span>
+                  </span>
+                ) : (
+                  <span className="text-ink-mid">
+                    Card on file · managed by Square
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setMode("update-card")}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-navy/15 text-[12px] font-semibold text-navy hover:border-amber hover:text-amber transition-colors"
+              >
+                Update
+              </button>
+            </>
           ) : (
             <p className="text-sm text-ink-mid">
               No payment method on file yet. You&rsquo;ll be prompted for
@@ -579,6 +620,29 @@ export function BillingClient({
         </section>
       )}
     </div>
+  );
+}
+
+/** Normalise Square's uppercase card brand strings ("VISA",
+ *  "MASTERCARD", "AMERICAN_EXPRESS") into display form. */
+function formatBrand(brand: string): string {
+  const map: Record<string, string> = {
+    VISA: "Visa",
+    MASTERCARD: "Mastercard",
+    AMERICAN_EXPRESS: "Amex",
+    DISCOVER: "Discover",
+    DISCOVER_DINERS: "Diners",
+    JCB: "JCB",
+    UNION_PAY: "UnionPay",
+    CHINA_UNION_PAY: "UnionPay",
+  };
+  return (
+    map[brand] ??
+    brand
+      .toLowerCase()
+      .split("_")
+      .map((w) => w[0]?.toUpperCase() + w.slice(1))
+      .join(" ")
   );
 }
 

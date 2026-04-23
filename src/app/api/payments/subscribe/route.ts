@@ -159,6 +159,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     //         trips Square's idempotency key reuse check on retry
     //         (same key, different request parameters = 400).
     let cardId: string | undefined;
+    let cardBrand: string | null = null;
+    let cardLast4: string | null = null;
     const existingCards = await square.cards.list({
       customerId: squareCustomerId,
     });
@@ -167,6 +169,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
     if (existingCard?.id) {
       cardId = existingCard.id;
+      cardBrand = existingCard.cardBrand ?? null;
+      cardLast4 = existingCard.last4 ?? null;
     } else {
       const cardResp = await square.cards.create({
         // Stable key per user — retries return the same card
@@ -179,10 +183,24 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         },
       });
       cardId = cardResp.card?.id;
+      cardBrand = cardResp.card?.cardBrand ?? null;
+      cardLast4 = cardResp.card?.last4 ?? null;
       if (!cardId) {
         throw new Error("Square card create returned no id.");
       }
     }
+
+    // Stamp the card on User so the billing page can show
+    // "Visa •••• 4242" and /api/payments/update-card knows which
+    // card to disable on replacement.
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        squareCardId: cardId,
+        squareCardBrand: cardBrand,
+        squareCardLast4: cardLast4,
+      },
+    });
 
     const now = new Date();
 
