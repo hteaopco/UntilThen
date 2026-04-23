@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { ArrowLeft, Lock, Pencil } from "lucide-react";
+import { ArrowLeft, Lock } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -7,6 +7,8 @@ import { MediaDisplay, type MediaItem } from "@/components/editor/MediaDisplay";
 import { TopNav } from "@/components/ui/TopNav";
 import { formatLong } from "@/lib/dateFormatters";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
+
+import { EntryDetailActions } from "./EntryDetailActions";
 
 export const metadata = {
   title: "Memory — untilThen",
@@ -163,25 +165,14 @@ export default async function EntryDetailPage({
             </p>
           )}
 
-          <div className="mt-12 flex items-center gap-4">
-            {!pastReveal && (
-              <Link
-                href={`/vault/${childId}/new?entry=${encodeURIComponent(entry.id)}`}
-                prefetch={false}
-                className="inline-flex items-center gap-2 rounded-lg bg-amber text-white px-5 py-2.5 text-[14px] font-bold hover:bg-amber-dark transition-colors"
-              >
-                <Pencil size={14} strokeWidth={2} aria-hidden="true" />
-                Edit memory
-              </Link>
-            )}
-            <Link
-              href={backHref}
-              prefetch={false}
-              className="text-[13px] font-semibold text-ink-mid hover:text-navy transition-colors"
-            >
-              Back
-            </Link>
-          </div>
+          <EntryDetailActions
+            editHref={
+              pastReveal
+                ? null
+                : `/vault/${childId}/new?entry=${encodeURIComponent(entry.id)}`
+            }
+            backHref={backHref}
+          />
         </article>
       </main>
     </>
