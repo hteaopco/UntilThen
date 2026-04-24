@@ -35,12 +35,6 @@
 - [ ] **Reveal theme picker** — currently a "Coming soon" placeholder.
   Decide whether to ship at launch or defer. If shipping, pick 2–3
   background/color variants
-- [ ] **Annual add-on on existing annual sub** — `addon-capsule` for annual
-  plans calls `subscriptions.update` with `priceOverrideMoney`. If Square
-  enforces the same "no override when template present" rule on update,
-  a user adding an addon to an existing annual sub will hit the same
-  error we fixed on create. Test before launch; if it errors, migrate
-  to template replacement
 - [ ] **Build-mode reveal QA** — curator flow + admin-uploaded music
   end-to-end on iPhone
 - [ ] **Billing regression sweep** — exercise subscribe → addon →
@@ -212,7 +206,6 @@ preview, admin mock). Remaining work is hands-on device QA.
   60 seconds
 
 ### Engineering
-- [ ] **Subscription gating for 4th+ vault ($1.99/mo)** — needs Square
 - [ ] **Prisma upgrade 5.22 → 7.x** — major version jump, needs audit
 - [ ] **Test suite expansion** — add E2E with Playwright; extend unit
   coverage beyond `ageOnDate`
