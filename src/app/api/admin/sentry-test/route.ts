@@ -18,7 +18,6 @@ function dsnSummary(): {
   hasDsn: boolean;
   dsnSource: "SENTRY_DSN" | "NEXT_PUBLIC_SENTRY_DSN" | null;
   dsnHost: string | null;
-  clientActive: boolean;
 } {
   const raw =
     process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN || null;
@@ -33,16 +32,7 @@ function dsnSummary(): {
   } catch {
     /* malformed — leave null */
   }
-  // Sentry's client is the authoritative check. If init didn't
-  // run (DSN missing, beforeSend threw, etc.), getClient()
-  // returns undefined.
-  const clientActive = Boolean(Sentry.getClient());
-  return {
-    hasDsn: Boolean(raw),
-    dsnSource: source,
-    dsnHost,
-    clientActive,
-  };
+  return { hasDsn: Boolean(raw), dsnSource: source, dsnHost };
 }
 
 /**

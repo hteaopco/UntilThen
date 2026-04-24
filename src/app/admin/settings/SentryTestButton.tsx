@@ -6,7 +6,6 @@ interface SentryStatus {
   hasDsn: boolean;
   dsnSource: "SENTRY_DSN" | "NEXT_PUBLIC_SENTRY_DSN" | null;
   dsnHost: string | null;
-  clientActive: boolean;
 }
 
 type Outcome =
@@ -24,8 +23,13 @@ export function SentryTestButton() {
   const [outcome, setOutcome] = useState<Outcome>({ kind: "idle" });
   const [status, setStatus] = useState<SentryStatus | null>(null);
 
-  // Pull init state on mount so we can show "DSN missing" before
-  // the admin even clicks the button.
+  // Pull init state on mount so we can show DSN source/host
+  // before the admin even clicks the button. We deliberately
+  // DON'T check Sentry.getClient() here — in @sentry/nextjs v10
+  // that returns undefined across async scope boundaries even
+  // when capture works fine, so the old "clientActive" field
+  // lied. The real signal is whether captureException returns
+  // a non-null event id after firing.
   useEffect(() => {
     fetch("/api/admin/sentry-test")
       .then((r) => r.json())
@@ -93,24 +97,11 @@ export function SentryTestButton() {
               <span className="text-navy">{status.dsnHost}</span>
             </div>
           ) : null}
-          <div>
-            <span className="text-ink-mid">Sentry client active:</span>{" "}
-            <span
-              className={
-                status.clientActive
-                  ? "text-sage font-bold"
-                  : "text-red-600 font-bold"
-              }
-            >
-              {status.clientActive ? "YES" : "NO"}
-            </span>
-          </div>
-          {!status.clientActive ? (
+          {!status.hasDsn ? (
             <p className="text-[11px] text-red-600 mt-1">
-              Sentry client is not bound in this request context. If
-              the DSN above is correct, trigger a fresh deploy so
-              instrumentation.ts re-runs. Watch Railway runtime logs
-              for <code className="font-mono">[sentry] node init complete</code>.
+              No Sentry DSN in the server env. Add{" "}
+              <code>NEXT_PUBLIC_SENTRY_DSN</code> or <code>SENTRY_DSN</code>{" "}
+              in Railway and redeploy.
             </p>
           ) : null}
         </div>
@@ -119,7 +110,7 @@ export function SentryTestButton() {
       <button
         type="button"
         onClick={fire}
-        disabled={outcome.kind === "firing" || !status?.clientActive}
+        disabled={outcome.kind === "firing" || !status?.hasDsn}
         className="bg-navy text-white rounded-md px-4 py-2.5 text-[13px] font-bold hover:bg-navy/90 disabled:opacity-50"
       >
         {outcome.kind === "firing" ? "Firing…" : "Fire test error"}
@@ -128,17 +119,22 @@ export function SentryTestButton() {
       {outcome.kind === "fired" ? (
         <div
           className={`mt-3 rounded-md border px-3 py-2 text-[13px] ${
-            outcome.sentry.flushed && outcome.eventId
+            outcome.eventId && outcome.sentry.flushed
               ? "border-sage/30 bg-sage-tint/50"
               : "border-amber/40 bg-amber-tint/40"
           }`}
         >
-          <p className="font-bold text-navy">Thrown.</p>
+          <p className="font-bold text-navy">
+            {outcome.eventId && outcome.sentry.flushed
+              ? "Fired and flushed."
+              : "Fired — but something was off, check below."}
+          </p>
           <ul className="text-ink-mid leading-[1.55] mt-1 text-[12px] font-mono">
             <li>
               Event id:{" "}
               <span className="text-navy">
-                {outcome.eventId ?? "(none — Sentry client not active)"}
+                {outcome.eventId ??
+                  "(none returned — SDK didn't accept the exception)"}
               </span>
             </li>
             <li>
@@ -148,7 +144,7 @@ export function SentryTestButton() {
                   ? "?"
                   : outcome.sentry.flushed
                     ? "yes"
-                    : "no (timeout or error)"}
+                    : "no (timeout or transport error)"}
               </span>
             </li>
             {outcome.sentry.flushError ? (
@@ -158,8 +154,9 @@ export function SentryTestButton() {
             ) : null}
           </ul>
           <p className="text-[11px] text-ink-mid leading-[1.5] mt-2">
-            Should appear in Sentry within ~30s. Filter by tag{" "}
-            <code className="font-mono">test:live</code>.
+            Confirm in Sentry → Issues → filter by tag{" "}
+            <code className="font-mono">test:live</code>. A real event id
+            + flushed=yes means capture is working end-to-end.
           </p>
         </div>
       ) : null}
