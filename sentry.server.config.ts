@@ -1,17 +1,7 @@
-// Sentry server init. The @sentry/nextjs webpack plugin treats
-// this file as a special entrypoint and wraps it so the client
-// binds to the scope that request handlers actually share — if
-// we inline Sentry.init() inside instrumentation.ts's register()
-// instead, getClient() returns undefined from handlers and events
-// never flush.
+// Sentry server init. The @sentry/nextjs webpack plugin treats this
+// file as a special entrypoint and wraps it so the client binds to
+// the scope request handlers share.
 import * as Sentry from "@sentry/nextjs";
-
-// Module-load marker. Imported by the admin sentry-test route so we
-// can tell whether this file actually ran during build/startup.
-export const SERVER_CONFIG_LOADED = true;
-export const SERVER_CONFIG_LOADED_AT = new Date().toISOString();
-
-console.log("[sentry-cfg] server module evaluated at", SERVER_CONFIG_LOADED_AT);
 
 const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
 
@@ -19,7 +9,6 @@ if (dsn) {
   Sentry.init({
     dsn,
     tracesSampleRate: 0.1,
-    enabled: true,
     beforeSend(event) {
       if (event.user) {
         delete event.user.email;
@@ -36,12 +25,4 @@ if (dsn) {
       return event;
     },
   });
-  console.log(
-    "[sentry] server init complete, client bound =",
-    Boolean(Sentry.getClient()),
-  );
-} else {
-  console.warn(
-    "[sentry] no DSN — server Sentry disabled, events will be dropped.",
-  );
 }

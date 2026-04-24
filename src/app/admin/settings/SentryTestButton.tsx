@@ -9,24 +9,8 @@ interface SentryStatus {
 }
 
 interface FiredPayload {
-  eventIds: { A: string | null; B: string | null; C: string | null };
-  sentry: SentryStatus & {
-    flushed?: boolean;
-    clientFlushed?: boolean | null;
-    flushError?: string | null;
-    clients?: {
-      direct: boolean;
-      currentScope: boolean;
-      isolationScope: boolean;
-    };
-    register?: {
-      ran: boolean;
-      runtime: string | null;
-      clientBoundAfterImport: boolean;
-      at: string | null;
-      error: string | null;
-    };
-  };
+  eventId: string | null;
+  sentry: SentryStatus & { flushed: boolean };
 }
 
 type Outcome =
@@ -53,11 +37,11 @@ export function SentryTestButton() {
       const data = (await res.json().catch(() => ({}))) as Partial<FiredPayload> & {
         error?: string;
       };
-      if (res.status === 500 && data.sentry && data.eventIds) {
+      if (res.status === 500 && data.sentry && "eventId" in data) {
         setOutcome({
           kind: "fired",
           at: new Date().toISOString(),
-          eventIds: data.eventIds,
+          eventId: data.eventId ?? null,
           sentry: data.sentry,
         });
       } else {
@@ -76,14 +60,10 @@ export function SentryTestButton() {
     }
   }
 
-  const anyEventId =
-    outcome.kind === "fired"
-      ? outcome.eventIds.A ?? outcome.eventIds.B ?? outcome.eventIds.C
-      : null;
-  const flushedSomehow =
-    outcome.kind === "fired"
-      ? Boolean(outcome.sentry.flushed) || Boolean(outcome.sentry.clientFlushed)
-      : false;
+  const landed =
+    outcome.kind === "fired" &&
+    Boolean(outcome.eventId) &&
+    outcome.sentry.flushed;
 
   return (
     <div>
@@ -132,83 +112,33 @@ export function SentryTestButton() {
       {outcome.kind === "fired" ? (
         <div
           className={`mt-3 rounded-md border px-3 py-2 text-[13px] ${
-            anyEventId && flushedSomehow
+            landed
               ? "border-sage/30 bg-sage-tint/50"
               : "border-amber/40 bg-amber-tint/40"
           }`}
         >
           <p className="font-bold text-navy">
-            {anyEventId && flushedSomehow
+            {landed
               ? "Fired and flushed."
-              : "Fired — check the event ids in Sentry to see which path landed."}
+              : "Fired — flush did not confirm. Check Sentry dashboard."}
           </p>
           <ul className="text-ink-mid leading-[1.55] mt-1 text-[12px] font-mono">
             <li>
-              Path A (plain):{" "}
+              Event id:{" "}
               <span className="text-navy">
-                {outcome.eventIds.A ?? "(none)"}
+                {outcome.eventId ?? "(none)"}
               </span>
             </li>
             <li>
-              Path B (withScope):{" "}
+              Flushed:{" "}
               <span className="text-navy">
-                {outcome.eventIds.B ?? "(none)"}
+                {outcome.sentry.flushed ? "yes" : "no"}
               </span>
             </li>
-            <li>
-              Path C (client.captureException):{" "}
-              <span className="text-navy">
-                {outcome.eventIds.C ?? "(none)"}
-              </span>
-            </li>
-            {outcome.sentry.clients ? (
-              <li className="text-ink-light">
-                Clients: direct={String(outcome.sentry.clients.direct)},{" "}
-                currentScope={String(outcome.sentry.clients.currentScope)},{" "}
-                isolationScope={String(outcome.sentry.clients.isolationScope)}
-              </li>
-            ) : null}
-            {outcome.sentry.register ? (
-              <li className="text-ink-light">
-                register(): ran={String(outcome.sentry.register.ran)},{" "}
-                runtime={outcome.sentry.register.runtime ?? "null"},{" "}
-                clientAfterImport=
-                {String(outcome.sentry.register.clientBoundAfterImport)}
-                {outcome.sentry.register.error
-                  ? ` · error: ${outcome.sentry.register.error}`
-                  : ""}
-              </li>
-            ) : null}
-            <li>
-              Sentry.flush:{" "}
-              <span className="text-navy">
-                {outcome.sentry.flushed === undefined
-                  ? "?"
-                  : outcome.sentry.flushed
-                    ? "yes"
-                    : "no"}
-              </span>
-              {" · "}
-              client.flush:{" "}
-              <span className="text-navy">
-                {outcome.sentry.clientFlushed === undefined ||
-                outcome.sentry.clientFlushed === null
-                  ? "n/a"
-                  : outcome.sentry.clientFlushed
-                    ? "yes"
-                    : "no"}
-              </span>
-            </li>
-            {outcome.sentry.flushError ? (
-              <li className="text-red-600">
-                Flush error: {outcome.sentry.flushError}
-              </li>
-            ) : null}
           </ul>
           <p className="text-[11px] text-ink-mid leading-[1.5] mt-2">
             In Sentry → Issues → filter by tag{" "}
-            <code className="font-mono">test:live</code>. Whichever of
-            A/B/C appears is the capture path we standardise on.
+            <code className="font-mono">test:live</code>.
           </p>
         </div>
       ) : null}
