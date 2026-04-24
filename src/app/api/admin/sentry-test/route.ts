@@ -74,7 +74,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   let flushed = false;
   let flushError: string | null = null;
   try {
-    flushed = await Sentry.flush(4000);
+    // 15s is generous — a cold first-request TLS/DNS handshake
+    // to Sentry's ingest can exceed the default 2s, and we'd
+    // rather wait than falsely report "flush failed" on the
+    // first-of-day test fire.
+    flushed = await Sentry.flush(15_000);
     console.log("[sentry-test] flush ok:", flushed);
   } catch (flushErr) {
     flushError = (flushErr as Error)?.message ?? String(flushErr);
