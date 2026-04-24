@@ -1,5 +1,6 @@
 import { AdminHeader } from "@/app/admin/AdminHeader";
 
+import { DbBackupTestButton } from "./DbBackupTestButton";
 import { LockThrottleToggle } from "./LockThrottleToggle";
 import { PaywallToggle } from "./PaywallToggle";
 import { ResetSubscriptionForm } from "./ResetSubscriptionForm";
@@ -142,6 +143,23 @@ export default async function AdminSettingsPage() {
             </p>
             <div className="mt-3">
               <SentryTestButton />
+            </div>
+          </div>
+
+          <div className="space-y-2 mt-8">
+            <p className="text-[13px] font-semibold text-navy">
+              DB backup live test
+            </p>
+            <p className="text-[12px] text-ink-mid max-w-[560px]">
+              Runs the same pg_dump → gzip → R2 pipeline the nightly
+              cron uses, under an admin auth check. Manual uploads
+              land under{" "}
+              <code className="font-mono">backups/db/manual/</code>{" "}
+              so they don&rsquo;t mix with the scheduled set. Takes a
+              minute or two on a prod-sized DB.
+            </p>
+            <div className="mt-3">
+              <DbBackupTestButton />
             </div>
           </div>
         </section>
