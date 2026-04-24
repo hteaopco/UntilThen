@@ -1,5 +1,5 @@
 # untilThen — Pre-Launch Checklist
-*Updated April 23, 2026*
+*Updated April 24, 2026*
 
 > Only outstanding items. Everything completed has been pruned —
 > see git history (`docs/pre-launch-checklist.md`) for the archive.
@@ -128,7 +128,9 @@ preview, admin mock). Remaining work is hands-on device QA.
 - [ ] **Contributor preview** (inside contribute flow) — shows their single
   message through full Entry → Story sequence
 - [ ] **Admin mock** (`/admin/previews` → Mock Capsule card) —
-  9-contribution seeded demo with stock Unsplash photos + W3C audio sample
+  9-contribution seeded demo with stock Unsplash photos + the ElevenLabs
+  stock voice note (falls back to W3C horse sample if `vault-mom.mp3`
+  hasn't been generated / uploaded yet via `/admin/audio`)
 
 ### Platform
 - [ ] **iOS Safari** — gate satisfies autoplay, music actually plays,
@@ -187,10 +189,13 @@ preview, admin mock). Remaining work is hands-on device QA.
 ## 🟢 Nice to Have (Post-Launch)
 
 ### Marketing / Content
-- [ ] **ElevenLabs voice snippet demo** — 3–4 short emotional snippets
-  (10–15 words each) rotating on landing page. Child, spouse, just because.
-  Cache audio files, essentially free to generate. "Great game today kiddo,
-  you really nailed those free throws."
+- [ ] **Generate / upload stock voice clips** — `/admin/audio` has two
+  slots: `vault-mom` (time capsule mock) and `capsule-birthday` (gift
+  capsule mock). Either Generate via ElevenLabs (paid plan needed —
+  Railway's shared IPs trip the free-tier abuse heuristic) or Upload
+  MP3s you generated elsewhere. Scripts live in
+  `src/lib/elevenlabs.ts`; voice IDs overridable via
+  `ELEVENLABS_VOICE_VAULT_MOM` / `ELEVENLABS_VOICE_CAPSULE_BIRTHDAY`.
 - [ ] **"How to use untilThen" marketing video** — short walkthrough for
   landing page. Show create → write → invite → reveal flow. Keep under
   60 seconds
@@ -199,4 +204,21 @@ preview, admin mock). Remaining work is hands-on device QA.
 
 ## 🟣 Tabled / Paused
 
-*(nothing currently tabled)*
+- [ ] **Intermittent 502 on deploy** — right after some deploys the
+  container goes dark and users see Railway's "Application failed to
+  respond" page until a manual restart clears it. Improved but not
+  fully solved this session:
+    - `dcf5b1d` simplified `/api/health` (dropped the loopback SSR
+      warmup that was stalling behind the old container's in-flight
+      requests)
+    - `ade41e4` rewrote the start command to exec Next directly
+      (skip npm), merge stderr into stdout, and emit `[start <iso>]
+      stage=X` markers at every boundary
+    - Outcome: most deploys now come up clean; it still recurs
+      occasionally (e.g. after commits `30f3604` and `6fe602e`).
+      When it does, manual restart always clears it.
+  When resuming: grab the Deploy Logs for a failing deploy and see
+  which `stage=X` marker is the last one before the silence. Prime
+  remaining suspects: Clerk JWKS fetch timing out on cold boot,
+  Sentry webpack plugin startup cost pushing past the edge-proxy
+  window, or the old container's shutdown timing.
