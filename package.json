@@ -41,7 +41,6 @@
     "next-mdx-remote": "^6.0.0",
     "posthog-js": "^1.194.0",
     "posthog-node": "^5.29.2",
-    "prisma": "^5.22.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-easy-crop": "^5.5.7",
@@ -60,6 +59,7 @@
     "eslint": "^9.14.0",
     "eslint-config-next": "^15.0.7",
     "postcss": "^8.4.49",
+    "prisma": "^5.22.0",
     "tailwindcss": "^3.4.14",
     "typescript": "^5.6.3",
     "vitest": "^4.1.4"
