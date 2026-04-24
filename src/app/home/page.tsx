@@ -1,7 +1,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Gift, Lock, Settings } from "lucide-react";
+import { Gift, Lock, Settings, Sparkles } from "lucide-react";
 
 import { Avatar } from "@/components/ui/Avatar";
 import { LogoSvg } from "@/components/ui/LogoSvg";
@@ -58,50 +58,69 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-cream flex flex-col">
-      <header className="px-5 sm:px-8 py-5 flex items-center justify-between">
+    <main className="min-h-dvh bg-cream flex flex-col overflow-hidden">
+      <header className="px-5 sm:px-8 py-3 flex items-center justify-between">
         <Link
           href="/account"
           aria-label="Settings"
-          className="w-10 h-10 rounded-full bg-white border border-navy/[0.08] flex items-center justify-center shadow-[0_2px_6px_-2px_rgba(15,31,61,0.08)] hover:border-amber/30 transition-colors"
+          className="w-9 h-9 rounded-full bg-white border border-navy/[0.08] flex items-center justify-center shadow-[0_2px_6px_-2px_rgba(15,31,61,0.08)] hover:border-amber/30 transition-colors"
         >
-          <Settings size={18} strokeWidth={1.5} className="text-navy" />
+          <Settings size={16} strokeWidth={1.5} className="text-navy" />
         </Link>
-        <LogoSvg variant="dark" width={110} height={22} />
+        <LogoSvg variant="dark" width={100} height={20} />
         <Avatar avatarUrl={avatarViewUrl} />
       </header>
 
-      <section className="px-6 pt-6 sm:pt-10 pb-8 text-center">
-        <h1 className="font-brush text-[44px] sm:text-[60px] leading-none text-navy">
+      <section className="px-6 pt-3 sm:pt-5 pb-3 text-center">
+        <h1 className="font-brush text-[40px] sm:text-[54px] leading-none text-navy">
           Hi, {firstName || "friend"}
-          <span className="ml-2 align-middle text-amber text-[26px] sm:text-[34px]">
+          <span className="ml-2 align-middle text-amber text-[22px] sm:text-[30px]">
             ♡
           </span>
         </h1>
-        <p className="mt-4 text-[15px] sm:text-[17px] text-navy/75 max-w-[340px] mx-auto leading-[1.45]">
+        <p className="mt-2 sm:mt-3 text-[13px] sm:text-[15px] text-navy/75 max-w-[320px] mx-auto leading-[1.4]">
           Every moment you save,
           <br />
           becomes timeless.
         </p>
       </section>
 
-      <section className="flex-1 flex flex-col items-center justify-center gap-8 sm:gap-10 px-8 pb-10">
+      <section className="flex-1 flex flex-col items-center justify-center gap-5 sm:gap-7 px-6 pb-3 relative">
+        {/* Decorative sparkles scattered around the bubbles. Purely
+            aesthetic — aria-hidden so screen readers skip them. */}
+        <Sparkle
+          className="absolute top-[8%] left-[6%] text-amber/35"
+          size={22}
+        />
+        <Sparkle
+          className="absolute top-[38%] right-[5%] text-amber/45"
+          size={18}
+        />
+        <Sparkle
+          className="absolute bottom-[12%] left-[8%] text-amber/40"
+          size={20}
+        />
+        <Sparkle
+          className="absolute top-[60%] right-[8%] text-amber/30"
+          size={14}
+        />
+
         <HomeBubble
           href="/dashboard"
-          icon={<Lock size={32} strokeWidth={1.5} className="text-amber" />}
+          icon={<Lock size={28} strokeWidth={1.5} className="text-amber" />}
           title="Enter Your Vault"
           subtitle="Your memories, preserved."
         />
         <HomeBubble
           href="/capsules/new"
-          icon={<Gift size={32} strokeWidth={1.5} className="text-amber" />}
+          icon={<Gift size={28} strokeWidth={1.5} className="text-amber" />}
           title="Create a Gift Capsule"
           subtitle="Create something unforgettable."
         />
       </section>
 
-      <footer className="px-6 py-6 text-center">
-        <p className="inline-flex items-center gap-1.5 text-[12px] text-navy/50">
+      <footer className="px-6 py-3 text-center">
+        <p className="inline-flex items-center gap-1.5 text-[11px] text-navy/50">
           <span className="text-amber" aria-hidden="true">
             ♡
           </span>
@@ -127,17 +146,29 @@ function HomeBubble({
     <Link
       href={href}
       prefetch={false}
-      className="group w-[260px] h-[260px] sm:w-[300px] sm:h-[300px] rounded-full bg-gradient-to-br from-amber-tint/70 via-white to-amber-tint/30 border-2 border-amber/20 shadow-[0_10px_28px_-8px_rgba(196,122,58,0.22)] flex flex-col items-center justify-center gap-3 text-center px-8 hover:border-amber/40 hover:shadow-[0_14px_36px_-8px_rgba(196,122,58,0.32)] active:scale-[0.98] transition-all"
+      className="relative z-10 w-[215px] h-[215px] sm:w-[240px] sm:h-[240px] rounded-full bg-gradient-to-br from-amber-tint/70 via-white to-amber-tint/30 border-2 border-amber/20 shadow-[0_10px_28px_-8px_rgba(196,122,58,0.22)] flex flex-col items-center justify-center gap-2 text-center px-6 hover:border-amber/40 hover:shadow-[0_14px_36px_-8px_rgba(196,122,58,0.32)] active:scale-[0.98] transition-all"
     >
-      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white/70 border border-amber/10 flex items-center justify-center shadow-inner">
+      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/70 border border-amber/10 flex items-center justify-center shadow-inner">
         {icon}
       </div>
-      <h2 className="font-bold text-[20px] sm:text-[22px] text-navy tracking-[-0.3px] leading-tight">
+      <h2 className="font-bold text-[17px] sm:text-[19px] text-navy tracking-[-0.3px] leading-tight">
         {title}
       </h2>
-      <p className="text-[13px] sm:text-[14px] text-navy/60 leading-[1.4]">
+      <p className="text-[12px] sm:text-[13px] text-navy/60 leading-[1.35]">
         {subtitle}
       </p>
     </Link>
+  );
+}
+
+/** Purely decorative sparkle. aria-hidden; size/class passed by caller. */
+function Sparkle({ className, size }: { className?: string; size: number }) {
+  return (
+    <Sparkles
+      aria-hidden="true"
+      size={size}
+      strokeWidth={1.5}
+      className={`pointer-events-none ${className ?? ""}`}
+    />
   );
 }
