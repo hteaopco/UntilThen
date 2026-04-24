@@ -15,7 +15,7 @@ export default function TermsPage() {
       title="The rules we live by."
       meta={
         <>
-          Last updated: April 15, 2026 · Effective: April 15, 2026
+          Last updated: April 23, 2026 · Effective: April 15, 2026
         </>
       }
     >
@@ -88,6 +88,20 @@ export default function TermsPage() {
       <p>
         Each person may maintain only one account. Creating multiple accounts
         to circumvent restrictions or bans is prohibited.
+      </p>
+
+      <h3>2.5 Death or Incapacity</h3>
+      <p>
+        In the event of a user&rsquo;s death, next-of-kin or designated
+        trustees may contact us at{" "}
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>{" "}
+        to request account access or data export. We will review each
+        request on a case-by-case basis and may require documentation
+        (such as a death certificate and proof of relationship or legal
+        authority) before taking any action on the account. Until such
+        a request is received and verified, existing automated reveals
+        and scheduled deliveries will continue to run as the account
+        owner originally configured them.
       </p>
 
       <hr />
