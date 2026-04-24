@@ -92,7 +92,7 @@ export default async function HomePage() {
         </p>
       </section>
 
-      <section className="flex-1 flex flex-col gap-4 px-4 sm:px-6 pb-4 relative max-w-[560px] w-full mx-auto">
+      <section className="flex-1 flex flex-col gap-4 px-2 sm:px-4 pb-4 relative max-w-[640px] w-full mx-auto">
         {/* Decorative sparkles scattered in the cards area. Held at
             20% amber opacity so they read as a uniform ambient
             layer. aria-hidden for screen readers. */}
