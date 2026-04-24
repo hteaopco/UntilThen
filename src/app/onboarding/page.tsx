@@ -32,7 +32,7 @@ export default async function OnboardingPage({
         where: { clerkId: userId },
         select: { id: true },
       });
-      if (existing) redirect("/dashboard");
+      if (existing) redirect("/home");
     } catch (err) {
       console.error("[onboarding] check error:", err);
     }

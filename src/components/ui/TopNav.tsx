@@ -14,9 +14,10 @@ import { r2IsConfigured, signGetUrl } from "@/lib/r2";
  *   [← back] [home] [untilThen]               [avatar]
  *   ────────────────────────────────────────────────────
  *
- * The home button and the wordmark both route to /dashboard when
- * the viewer is signed in, or to / otherwise — so this component
- * is safe to drop onto public pages too without double-logic.
+ * The home button and the wordmark both route to /home when the
+ * viewer is signed in (the two-bubble entry landing), or to / when
+ * signed out — so this component is safe to drop onto public pages
+ * too without double-logic.
  *
  * Kept as a server component so the auth check happens SSR — we
  * pick up the viewer's User.avatarUrl, sign a short-lived GET URL
@@ -26,7 +27,7 @@ import { r2IsConfigured, signGetUrl } from "@/lib/r2";
  */
 export async function TopNav() {
   const { userId } = auth();
-  const homeHref = userId ? "/dashboard" : "/";
+  const homeHref = userId ? "/home" : "/";
 
   let avatarViewUrl: string | null = null;
   if (userId && process.env.DATABASE_URL) {

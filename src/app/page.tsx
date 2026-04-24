@@ -13,7 +13,7 @@ import { ChooseYourVault } from "@/components/marketing/ChooseYourVault";
 
 export default function Home() {
   const { userId } = auth();
-  if (userId) redirect("/dashboard");
+  if (userId) redirect("/home");
 
   return (
     <>
