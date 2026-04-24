@@ -8,28 +8,30 @@ interface SentryStatus {
   dsnHost: string | null;
 }
 
+interface FiredPayload {
+  eventIds: { A: string | null; B: string | null; C: string | null };
+  sentry: SentryStatus & {
+    flushed?: boolean;
+    clientFlushed?: boolean | null;
+    flushError?: string | null;
+    clients?: {
+      direct: boolean;
+      currentScope: boolean;
+      isolationScope: boolean;
+    };
+  };
+}
+
 type Outcome =
   | { kind: "idle" }
   | { kind: "firing" }
-  | {
-      kind: "fired";
-      eventId: string | null;
-      at: string;
-      sentry: SentryStatus & { flushed?: boolean; flushError?: string | null };
-    }
+  | ({ kind: "fired"; at: string } & FiredPayload)
   | { kind: "error"; message: string };
 
 export function SentryTestButton() {
   const [outcome, setOutcome] = useState<Outcome>({ kind: "idle" });
   const [status, setStatus] = useState<SentryStatus | null>(null);
 
-  // Pull init state on mount so we can show DSN source/host
-  // before the admin even clicks the button. We deliberately
-  // DON'T check Sentry.getClient() here — in @sentry/nextjs v10
-  // that returns undefined across async scope boundaries even
-  // when capture works fine, so the old "clientActive" field
-  // lied. The real signal is whether captureException returns
-  // a non-null event id after firing.
   useEffect(() => {
     fetch("/api/admin/sentry-test")
       .then((r) => r.json())
@@ -41,19 +43,14 @@ export function SentryTestButton() {
     setOutcome({ kind: "firing" });
     try {
       const res = await fetch("/api/admin/sentry-test", { method: "POST" });
-      const data = (await res.json().catch(() => ({}))) as {
-        eventId?: string;
+      const data = (await res.json().catch(() => ({}))) as Partial<FiredPayload> & {
         error?: string;
-        sentry?: SentryStatus & {
-          flushed?: boolean;
-          flushError?: string | null;
-        };
       };
-      if (res.status === 500 && data.sentry) {
+      if (res.status === 500 && data.sentry && data.eventIds) {
         setOutcome({
           kind: "fired",
-          eventId: data.eventId ?? null,
           at: new Date().toISOString(),
+          eventIds: data.eventIds,
           sentry: data.sentry,
         });
       } else {
@@ -71,6 +68,15 @@ export function SentryTestButton() {
       });
     }
   }
+
+  const anyEventId =
+    outcome.kind === "fired"
+      ? outcome.eventIds.A ?? outcome.eventIds.B ?? outcome.eventIds.C
+      : null;
+  const flushedSomehow =
+    outcome.kind === "fired"
+      ? Boolean(outcome.sentry.flushed) || Boolean(outcome.sentry.clientFlushed)
+      : false;
 
   return (
     <div>
@@ -119,32 +125,60 @@ export function SentryTestButton() {
       {outcome.kind === "fired" ? (
         <div
           className={`mt-3 rounded-md border px-3 py-2 text-[13px] ${
-            outcome.eventId && outcome.sentry.flushed
+            anyEventId && flushedSomehow
               ? "border-sage/30 bg-sage-tint/50"
               : "border-amber/40 bg-amber-tint/40"
           }`}
         >
           <p className="font-bold text-navy">
-            {outcome.eventId && outcome.sentry.flushed
+            {anyEventId && flushedSomehow
               ? "Fired and flushed."
-              : "Fired — but something was off, check below."}
+              : "Fired — check the event ids in Sentry to see which path landed."}
           </p>
           <ul className="text-ink-mid leading-[1.55] mt-1 text-[12px] font-mono">
             <li>
-              Event id:{" "}
+              Path A (plain):{" "}
               <span className="text-navy">
-                {outcome.eventId ??
-                  "(none returned — SDK didn't accept the exception)"}
+                {outcome.eventIds.A ?? "(none)"}
               </span>
             </li>
             <li>
-              Flushed:{" "}
+              Path B (withScope):{" "}
+              <span className="text-navy">
+                {outcome.eventIds.B ?? "(none)"}
+              </span>
+            </li>
+            <li>
+              Path C (client.captureException):{" "}
+              <span className="text-navy">
+                {outcome.eventIds.C ?? "(none)"}
+              </span>
+            </li>
+            {outcome.sentry.clients ? (
+              <li className="text-ink-light">
+                Clients: direct={String(outcome.sentry.clients.direct)},{" "}
+                currentScope={String(outcome.sentry.clients.currentScope)},{" "}
+                isolationScope={String(outcome.sentry.clients.isolationScope)}
+              </li>
+            ) : null}
+            <li>
+              Sentry.flush:{" "}
               <span className="text-navy">
                 {outcome.sentry.flushed === undefined
                   ? "?"
                   : outcome.sentry.flushed
                     ? "yes"
-                    : "no (timeout or transport error)"}
+                    : "no"}
+              </span>
+              {" · "}
+              client.flush:{" "}
+              <span className="text-navy">
+                {outcome.sentry.clientFlushed === undefined ||
+                outcome.sentry.clientFlushed === null
+                  ? "n/a"
+                  : outcome.sentry.clientFlushed
+                    ? "yes"
+                    : "no"}
               </span>
             </li>
             {outcome.sentry.flushError ? (
@@ -154,9 +188,9 @@ export function SentryTestButton() {
             ) : null}
           </ul>
           <p className="text-[11px] text-ink-mid leading-[1.5] mt-2">
-            Confirm in Sentry → Issues → filter by tag{" "}
-            <code className="font-mono">test:live</code>. A real event id
-            + flushed=yes means capture is working end-to-end.
+            In Sentry → Issues → filter by tag{" "}
+            <code className="font-mono">test:live</code>. Whichever of
+            A/B/C appears is the capture path we standardise on.
           </p>
         </div>
       ) : null}
