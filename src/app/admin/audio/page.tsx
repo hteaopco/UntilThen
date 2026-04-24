@@ -3,6 +3,7 @@ import { STOCK_VOICE_SPECS, r2KeyForStockVoice } from "@/lib/elevenlabs";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
 import { RevealSongsManager } from "./RevealSongsManager";
+import { StockVoiceUpload } from "./StockVoiceUpload";
 import { StockVoicesButton } from "./StockVoicesButton";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,7 @@ export const runtime = "nodejs";
 export type StockVoicePreview = {
   key: string;
   label: string;
+  context: string;
   voiceFallbackName: string;
   voiceIdEnvVar: string;
   voiceIdResolved: string;
@@ -40,6 +42,7 @@ async function loadStockVoicePreviews(): Promise<StockVoicePreview[]> {
       return {
         key: spec.key,
         label: spec.label,
+        context: spec.context,
         voiceFallbackName: spec.voiceFallbackName,
         voiceIdEnvVar: spec.voiceIdEnvVar,
         voiceIdResolved,
@@ -79,14 +82,13 @@ export default async function AdminAudioPage() {
             Stock voice samples
           </p>
           <p className="text-sm text-ink-mid mb-5 max-w-[560px]">
-            Two ElevenLabs-generated voice notes used by the mock
-            recipient reveal at{" "}
-            <code className="text-xs">/admin/previews</code>. These stand
-            in for real contributor voices when demoing the product.
-            Scripts live in{" "}
-            <code className="text-xs">src/lib/elevenlabs.ts</code> and
-            can be tuned there. Voice IDs can be overridden via env vars
-            listed below.
+            Voice notes used by the mock recipient reveals at{" "}
+            <code className="text-xs">/admin/previews</code>. Each
+            slot can be <strong>Generated</strong> via ElevenLabs
+            (burns API credits) or <strong>Uploaded</strong> as an
+            MP3 you produced elsewhere (zero cost). Scripts live in{" "}
+            <code className="text-xs">src/lib/elevenlabs.ts</code>.
+            Voice IDs are overridable via env.
           </p>
 
           {!apiKeyConfigured ? (
@@ -112,7 +114,10 @@ export default async function AdminAudioPage() {
                     <p className="text-[14px] font-bold text-navy">
                       {p.label}
                     </p>
-                    <p className="text-[11px] font-mono text-ink-mid mt-0.5">
+                    <p className="text-[11px] text-ink-light mt-0.5">
+                      {p.context}
+                    </p>
+                    <p className="text-[11px] font-mono text-ink-mid mt-1">
                       voice_id: {p.voiceIdResolved}
                       {p.usingOverride ? (
                         <span className="ml-2 text-amber-dark">
@@ -132,7 +137,7 @@ export default async function AdminAudioPage() {
                     </span>
                   ) : (
                     <span className="text-[10px] uppercase tracking-[0.1em] font-bold text-ink-light bg-warm-surface/50 px-2 py-0.5 rounded">
-                      Not generated
+                      No clip yet
                     </span>
                   )}
                 </div>
@@ -149,6 +154,8 @@ export default async function AdminAudioPage() {
                     className="mt-3 w-full h-10"
                   />
                 ) : null}
+
+                <StockVoiceUpload voiceKey={p.key} />
               </div>
             ))}
           </div>

@@ -18,22 +18,19 @@ export type RecentCapsule = {
 };
 
 export type StockVoiceUrls = {
-  grandmaRose: string | null;
-  grandpaBill: string | null;
+  vaultMom: string | null;
+  capsuleBirthday: string | null;
 };
 
 async function signStockVoiceUrls(): Promise<StockVoiceUrls> {
-  if (!r2IsConfigured()) return { grandmaRose: null, grandpaBill: null };
-  try {
-    const [grandmaRose, grandpaBill] = await Promise.all([
-      signGetUrl(r2KeyForStockVoice("grandma-rose")),
-      signGetUrl(r2KeyForStockVoice("grandpa-bill")),
-    ]);
-    return { grandmaRose, grandpaBill };
-  } catch (err) {
-    console.error("[admin/previews] stock voice signing failed:", err);
-    return { grandmaRose: null, grandpaBill: null };
+  if (!r2IsConfigured()) {
+    return { vaultMom: null, capsuleBirthday: null };
   }
+  const [vaultMom, capsuleBirthday] = await Promise.all([
+    signGetUrl(r2KeyForStockVoice("vault-mom")).catch(() => null),
+    signGetUrl(r2KeyForStockVoice("capsule-birthday")).catch(() => null),
+  ]);
+  return { vaultMom, capsuleBirthday };
 }
 
 export default async function AdminPreviewsPage() {

@@ -1,28 +1,33 @@
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-// ElevenLabs text-to-speech. Used by /api/admin/generate-stock-voices
-// to build the stock audio played in MockRevealPreview — previously
-// a W3C horse-whinny sample. Also provides the scaffolding for any
-// one-off marketing clips we generate later.
+// ElevenLabs text-to-speech + R2 upload helpers. Powers the
+// stock-voice generation + upload flows on /admin/audio. Two
+// clips live under stock-voices/*.mp3:
+//   vault-mom         — used by the time-capsule / personal vault
+//                       mock reveal. Intimate, open-ended.
+//   capsule-birthday  — used by the gift capsule mock reveal.
+//                       Short birthday message from one contributor.
 
 const ELEVENLABS_BASE = "https://api.elevenlabs.io/v1";
 
 // Voice IDs from ElevenLabs' default library. Stable across accounts.
-// Can be overridden via env if someone wants a specific sound.
+// Overridable per spec via the `voiceIdEnvVar` below.
 const DEFAULT_VOICES = {
-  // Warm, motherly — closest to an older-female feel in the free lib.
-  grandmother: "EXAVITQu4vr4xnSDxMaL",
-  // Deep male voice, warm — stand-in for grandfather.
-  grandfather: "pNInz6obpgDQGcFmaJgB",
+  // Bella — warm, soft female. Default Mom voice.
+  bella: "EXAVITQu4vr4xnSDxMaL",
+  // Rachel — confident, friendly female. Default birthday-wisher voice.
+  rachel: "21m00Tcm4TlvDq8ikWAM",
 } as const;
 
-export type StockVoiceKey = "grandma-rose" | "grandpa-bill";
+export type StockVoiceKey = "vault-mom" | "capsule-birthday";
 
 export type StockVoiceSpec = {
   /** Filename the snippet lives under inside R2 stock-voices/. */
   key: StockVoiceKey;
   /** Display label shown in the admin audio panel. */
   label: string;
+  /** Short description of where this voice is used. */
+  context: string;
   /** ElevenLabs voice_id; overridable via env. */
   voiceIdEnvVar: string;
   voiceIdFallback: string;
@@ -34,30 +39,30 @@ export type StockVoiceSpec = {
 
 export const STOCK_VOICE_SPECS: StockVoiceSpec[] = [
   {
-    key: "grandma-rose",
-    label: "Grandma Rose",
-    voiceIdEnvVar: "ELEVENLABS_VOICE_GRANDMA",
-    voiceIdFallback: DEFAULT_VOICES.grandmother,
+    key: "vault-mom",
+    label: "Mom (time capsule)",
+    context: "Used by the personal-vault / time-capsule mock reveal.",
+    voiceIdEnvVar: "ELEVENLABS_VOICE_VAULT_MOM",
+    voiceIdFallback: DEFAULT_VOICES.bella,
     voiceFallbackName: "Bella (warm female)",
     text:
-      "Oh, my little Olivia. Happy first birthday, my sweet girl. " +
-      "I remember the day your mama called me, crying happy tears — " +
-      "I drove through the night just to hold you. You were so tiny. " +
-      "And now look at you, one whole year old. " +
-      "Grandma loves you to the moon, bug.",
+      "Hi, baby girl. Happy first birthday. " +
+      "I don't know when you'll hear this — maybe you're five, maybe you're twenty-five. " +
+      "But I want you to know: the day you were born, my whole world got quieter and louder all at once. " +
+      "I love you, Olivia. More than anything. Always.",
   },
   {
-    key: "grandpa-bill",
-    label: "Grandpa Bill",
-    voiceIdEnvVar: "ELEVENLABS_VOICE_GRANDPA",
-    voiceIdFallback: DEFAULT_VOICES.grandfather,
-    voiceFallbackName: "Adam (deep male)",
+    key: "capsule-birthday",
+    label: "Birthday wish (gift capsule)",
+    context: "Used by the gift-capsule mock reveal.",
+    voiceIdEnvVar: "ELEVENLABS_VOICE_CAPSULE_BIRTHDAY",
+    voiceIdFallback: DEFAULT_VOICES.rachel,
+    voiceFallbackName: "Rachel (friendly female)",
     text:
-      "Happy birthday, Olivia. I held you the day you came home " +
-      "from the hospital — you fell asleep right on my chest. " +
-      "Now you're walking around the backyard chasing butterflies " +
-      "and telling me exactly what's what. " +
-      "You're going to do wonderful things, kiddo. Grandpa's proud of you. Always.",
+      "Happy birthday, my girl. " +
+      "I can't believe how much you've grown — it feels like yesterday you were wobbling across the backyard. " +
+      "I hope today is full of cake and laughter and the people who love you. " +
+      "I love you. Always.",
   },
 ];
 
@@ -104,6 +109,7 @@ export async function synthesizeToElevenLabs(opts: {
 export async function uploadSnippetToR2(opts: {
   key: string;
   body: Buffer;
+  contentType?: string;
 }): Promise<void> {
   const accountId = process.env.R2_ACCOUNT_ID;
   const accessKeyId = process.env.R2_ACCESS_KEY_ID;
@@ -122,7 +128,7 @@ export async function uploadSnippetToR2(opts: {
       Bucket: bucket,
       Key: opts.key,
       Body: opts.body,
-      ContentType: "audio/mpeg",
+      ContentType: opts.contentType ?? "audio/mpeg",
     }),
   );
 }

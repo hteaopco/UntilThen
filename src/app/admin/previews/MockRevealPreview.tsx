@@ -29,8 +29,8 @@ export function MockRevealPreview({
   stockVoices: StockVoiceUrls;
 }) {
   const contributions = buildMockContributions({
-    grandmaRose: stockVoices.grandmaRose,
-    grandpaBill: stockVoices.grandpaBill,
+    vaultMom: stockVoices.vaultMom,
+    capsuleBirthday: stockVoices.capsuleBirthday,
   });
   return (
     <div className="fixed inset-0 z-[200] bg-black">

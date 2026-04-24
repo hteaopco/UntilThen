@@ -50,26 +50,26 @@ export function mockRevealCapsule(overrides: Partial<RevealCapsule> = {}): Revea
 }
 
 export type StockVoiceUrls = {
-  grandmaRose?: string | null;
-  grandpaBill?: string | null;
+  vaultMom?: string | null;
+  capsuleBirthday?: string | null;
 };
 
 /**
- * Build the mock contribution list with signed stock-voice URLs
+ * Build the mock contribution list with the signed stock-voice URL
  * injected (if available). Falls back to the placeholder horse
- * sample when the admin hasn't generated ElevenLabs audio yet.
+ * sample when the admin hasn't uploaded a stock voice yet.
+ *
+ * The shared mock currently uses the vault-mom clip for its one
+ * VOICE card. If / when we split the mock into separate vault +
+ * gift-capsule variants, the capsule variant will use capsuleBirthday.
  */
 export function buildMockContributions(
   urls: StockVoiceUrls = {},
 ): RevealContribution[] {
-  const grandma = urls.grandmaRose ?? VOICE_FALLBACK;
-  const grandpa = urls.grandpaBill ?? VOICE_FALLBACK;
+  const mom = urls.vaultMom ?? VOICE_FALLBACK;
   return MOCK_CONTRIBUTIONS_TEMPLATE.map((c) => {
     if (c.id === "m3") {
-      return { ...c, media: [{ kind: "voice", url: grandma }] };
-    }
-    if (c.id === "m8") {
-      return { ...c, media: [{ kind: "voice", url: grandpa }] };
+      return { ...c, media: [{ kind: "voice", url: mom }] };
     }
     return c;
   });
@@ -102,7 +102,7 @@ const MOCK_CONTRIBUTIONS_TEMPLATE: RevealContribution[] = [
   },
   {
     id: "m3",
-    authorName: "Grandma Rose",
+    authorName: "Mom",
     authorAvatarUrl: null,
     type: "VOICE",
     title: null,
@@ -162,10 +162,14 @@ const MOCK_CONTRIBUTIONS_TEMPLATE: RevealContribution[] = [
     id: "m8",
     authorName: "Grandpa Bill",
     authorAvatarUrl: null,
-    type: "VOICE",
+    type: "TEXT",
     title: null,
-    body: null,
-    media: [{ kind: "voice", url: VOICE_FALLBACK }],
+    body:
+      "<p>Happy birthday, Olivia.</p>" +
+      "<p>I held you the day you came home from the hospital — you fell asleep right on my chest. " +
+      "I don't think you stirred for three hours. Your mama kept checking to make sure I was still breathing too.</p>" +
+      "<p>Do wonderful things, kiddo. Grandpa's proud of you. Always.</p>",
+    media: [],
     createdAt: "2031-06-25T14:00:00Z",
   },
   {
