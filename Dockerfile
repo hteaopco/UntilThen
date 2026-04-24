@@ -20,11 +20,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy only package.json + package-lock.json first so the install layer
 # caches — invalidates only when dependencies change, not on every edit.
-# --ignore-scripts skips the `postinstall: prisma generate` hook; we
-# can't run it here because prisma/schema.prisma hasn't been COPY'd
-# yet. We run prisma generate manually after the full-tree COPY below.
 COPY package.json package-lock.json ./
-RUN npm ci --ignore-scripts --no-audit --no-fund
+RUN npm ci --no-audit --no-fund
 
 # Now copy the rest of the source tree and build.
 COPY . .
