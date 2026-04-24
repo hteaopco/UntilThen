@@ -204,27 +204,4 @@ preview, admin mock). Remaining work is hands-on device QA.
 
 ## 🟣 Tabled / Paused
 
-- [ ] **Slim the Railway image** — the built image is currently 622 MB,
-  which makes Railway's image-push stage take 5–15+ minutes per deploy.
-  During that window the old container has already drained and the new
-  one doesn't exist yet, so the site 502s until the push finishes.
-  (The 8s health-grace + lifecycle-hook fix in `173a104` means the
-  container-side behavior is fine once it starts — the 502s were
-  image-push slowness, not container startup.)
-
-  **First attempt (reverted):** Tried merging `npm ci` + `next build`
-  + `npm prune --omit=dev` into one install-phase RUN in `12a1119`
-  through `f2deb47`, plus moving `prisma` to runtime deps. Two build
-  failures and a net-larger image (699 MB vs 622 MB) — the `npm ci`
-  hit `EBUSY` on BuildKit's `.cache` bind mounts, and when finally
-  placed in the install phase the image somehow grew rather than
-  shrank (Railway UI truncated logs, couldn't confirm what prune
-  actually did). Reverted in `8ef6516`, `8da4626`, `764433a`.
-
-  When resuming, better approach:
-  1. Need desktop + full build logs to actually see `[slim] before:`
-     vs `[slim] after:` diff — Railway's mobile log view truncates.
-  2. Consider a multi-stage Dockerfile instead of nixpacks — full
-     control over which layers land in the runtime image.
-  3. Alternative: leave image as-is and accept the slow push. User
-     workflow is already "push → wait 2–5 min → site updates."
+*(nothing currently tabled)*
