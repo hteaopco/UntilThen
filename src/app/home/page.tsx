@@ -7,6 +7,8 @@ import { Avatar } from "@/components/ui/Avatar";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
+import { HomeBubble } from "./HomeBubble";
+
 /**
  * Signed-in main landing. Deliberately separate from /dashboard so
  * we can evolve the vault surface independently of the "which
@@ -128,36 +130,6 @@ export default async function HomePage() {
         </p>
       </footer>
     </main>
-  );
-}
-
-function HomeBubble({
-  href,
-  icon,
-  title,
-  subtitle,
-}: {
-  href: string;
-  icon: React.ReactNode;
-  title: string;
-  subtitle: string;
-}) {
-  return (
-    <Link
-      href={href}
-      prefetch={false}
-      className="relative z-10 w-[215px] h-[215px] sm:w-[240px] sm:h-[240px] rounded-full bg-gradient-to-br from-amber-tint/70 via-white to-amber-tint/30 border-2 border-amber/20 shadow-[0_10px_28px_-8px_rgba(196,122,58,0.22)] flex flex-col items-center justify-center gap-2 text-center px-6 hover:border-amber/40 hover:shadow-[0_14px_36px_-8px_rgba(196,122,58,0.32)] active:scale-[0.98] transition-all"
-    >
-      <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-white/70 border border-amber/10 flex items-center justify-center shadow-inner">
-        {icon}
-      </div>
-      <h2 className="font-bold text-[17px] sm:text-[19px] text-navy tracking-[-0.3px] leading-tight">
-        {title}
-      </h2>
-      <p className="text-[12px] sm:text-[13px] text-navy/60 leading-[1.35]">
-        {subtitle}
-      </p>
-    </Link>
   );
 }
 

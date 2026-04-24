@@ -57,6 +57,15 @@ html {
   50%, 100% { opacity: 0; }
 }
 
+/* Home-landing bubble progress ring. Draws an amber arc around the
+   bubble circumference when the user taps, completing at 0 offset —
+   at which point the client-side router.push fires. See
+   src/app/home/HomeBubble.tsx. */
+@keyframes home-ring-fill {
+  from { stroke-dashoffset: 100; }
+  to   { stroke-dashoffset: 0; }
+}
+
 /* Subtle left-nudge hint on the Choose Your Vault card panels.
    Fires once on first scroll-into-view to signal "swipe me". */
 @keyframes nudgeLeft {
