@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { PassThrough } from "node:stream";
 import { createGzip } from "node:zlib";
 import { S3Client } from "@aws-sdk/client-s3";
@@ -7,6 +7,12 @@ import { Upload } from "@aws-sdk/lib-storage";
 // Hard overall deadline. Railway's edge proxy eventually times out;
 // if pg_dump hangs we want a clean error well before that, not a 502.
 const OVERALL_TIMEOUT_MS = 10 * 60 * 1000;
+
+// An empty-stream gzip frame is 20 bytes (10-byte header + empty
+// deflate block + 8-byte footer). Any real pg_dump output is
+// many KB minimum — schema alone is larger than this. If we see
+// an upload come in under this, pg_dump produced no data.
+const MIN_PLAUSIBLE_DUMP_BYTES = 1024;
 
 function r2Client(): S3Client {
   const accountId = process.env.R2_ACCOUNT_ID!;
@@ -36,6 +42,58 @@ export type BackupResult = { bytes: number; durationMs: number; key: string };
  * the full dump in memory. Peak memory is O(partSize × queueSize),
  * so ~32MB regardless of DB size.
  */
+/**
+ * Resolve the pg_dump binary before spawning the real dump. On
+ * Nixpacks/Railway, `nixPkgs = ["postgresql_17"]` installs binaries
+ * under a nix profile dir that isn't always on PATH at runtime.
+ * Returns the resolved path so the caller can invoke an absolute
+ * path and get a loud ENOENT instead of a silent empty stream.
+ */
+export function resolvePgDumpPath(): { path: string | null; diagnostic: string } {
+  const { execSync } = require("node:child_process") as typeof import("node:child_process");
+  const lookup = (cmd: string): string | null => {
+    try {
+      const out = execSync(cmd, { encoding: "utf8", timeout: 5000 });
+      const first = out.split("\n").map((s) => s.trim()).find(Boolean);
+      return first || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const fromPath = lookup("command -v pg_dump || which pg_dump");
+  if (fromPath) {
+    // Confirm it's actually executable with --version.
+    const ver = spawnSync(fromPath, ["--version"], { encoding: "utf8" });
+    if (ver.status === 0) {
+      return {
+        path: fromPath,
+        diagnostic: `pg_dump at ${fromPath} (${ver.stdout.trim()})`,
+      };
+    }
+  }
+
+  // Fall back to common nix profile locations so we don't silently
+  // ship 20-byte empty gzip frames when PATH is missing the nix bins.
+  const candidates = [
+    "/root/.nix-profile/bin/pg_dump",
+    "/nix/var/nix/profiles/default/bin/pg_dump",
+    "/usr/bin/pg_dump",
+    "/usr/local/bin/pg_dump",
+  ];
+  for (const c of candidates) {
+    const ver = spawnSync(c, ["--version"], { encoding: "utf8" });
+    if (ver.status === 0) {
+      return { path: c, diagnostic: `pg_dump at ${c} (${ver.stdout.trim()})` };
+    }
+  }
+
+  return {
+    path: null,
+    diagnostic: `pg_dump not found. PATH=${process.env.PATH ?? "(unset)"}`,
+  };
+}
+
 export async function streamDumpToR2(opts: {
   databaseUrl: string;
   bucket: string;
@@ -46,8 +104,14 @@ export async function streamDumpToR2(opts: {
   const now = opts.now ?? new Date();
   const startedAt = Date.now();
 
+  const { path: pgDumpPath, diagnostic } = resolvePgDumpPath();
+  console.log(`[db-backup] ${diagnostic}`);
+  if (!pgDumpPath) {
+    throw new Error(diagnostic);
+  }
+
   const pg = spawn(
-    "pg_dump",
+    pgDumpPath,
     ["--no-owner", "--no-privileges", "--clean", "--if-exists", databaseUrl],
     { stdio: ["ignore", "pipe", "pipe"] },
   );
@@ -119,6 +183,13 @@ export async function streamDumpToR2(opts: {
       ),
     ),
   ]);
+
+  if (uploadedBytes < MIN_PLAUSIBLE_DUMP_BYTES) {
+    throw new Error(
+      `pg_dump produced only ${uploadedBytes} bytes (empty gzip frame). ` +
+        `stderr: ${pgStderr.slice(0, 2000) || "(none)"}`,
+    );
+  }
 
   return {
     bytes: uploadedBytes,
