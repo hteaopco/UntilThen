@@ -60,6 +60,14 @@ export function HomeCard({ href, imageSrc, icon, title, subtitle }: Props) {
         className="w-full h-auto block select-none"
       />
 
+      {/* Subtle dark tint over the illustration so the card reads
+          distinct from the cream page background. Sits below the
+          text overlay so the icon + heading aren't muddied. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-black/[0.07] pointer-events-none"
+      />
+
       {/* Text overlay on the left half */}
       <div className="absolute inset-y-0 left-0 w-[56%] sm:w-[52%] flex items-center pointer-events-none pl-7 sm:pl-10 pr-2">
         <div>

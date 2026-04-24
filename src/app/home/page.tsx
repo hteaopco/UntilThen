@@ -92,27 +92,7 @@ export default async function HomePage() {
         </p>
       </section>
 
-      <section className="flex-1 flex flex-col gap-4 px-2 sm:px-4 pb-4 relative max-w-[640px] w-full mx-auto">
-        {/* Decorative sparkles scattered in the cards area. Held at
-            20% amber opacity so they read as a uniform ambient
-            layer. aria-hidden for screen readers. */}
-        <Sparkle
-          className="absolute top-[6%] left-[4%] text-amber/20"
-          size={22}
-        />
-        <Sparkle
-          className="absolute top-[48%] right-[4%] text-amber/20"
-          size={18}
-        />
-        <Sparkle
-          className="absolute bottom-[10%] left-[6%] text-amber/20"
-          size={20}
-        />
-        <Sparkle
-          className="absolute top-[30%] right-[8%] text-amber/20"
-          size={14}
-        />
-
+      <section className="flex-1 flex flex-col gap-4 px-6 sm:px-8 pb-4 relative max-w-[576px] w-full mx-auto">
         <HomeCard
           href="/dashboard"
           imageSrc="/VaultEnter2.png"
