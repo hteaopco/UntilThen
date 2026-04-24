@@ -11,6 +11,7 @@ const TABS: Array<{ href: string; label: string }> = [
   { href: "/admin/moderation", label: "Moderation" },
   { href: "/admin/emails", label: "Emails" },
   { href: "/admin/previews", label: "Previews" },
+  { href: "/admin/audio", label: "Audio" },
   { href: "/admin/tones", label: "Tones" },
   { href: "/admin/qa", label: "QA" },
   { href: "/admin/checklist", label: "Checklist" },

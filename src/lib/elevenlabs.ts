@@ -21,9 +21,13 @@ export type StockVoiceKey = "grandma-rose" | "grandpa-bill";
 export type StockVoiceSpec = {
   /** Filename the snippet lives under inside R2 stock-voices/. */
   key: StockVoiceKey;
+  /** Display label shown in the admin audio panel. */
+  label: string;
   /** ElevenLabs voice_id; overridable via env. */
   voiceIdEnvVar: string;
   voiceIdFallback: string;
+  /** Which default library voice the fallback corresponds to. */
+  voiceFallbackName: string;
   /** Script read aloud by ElevenLabs. */
   text: string;
 };
@@ -31,8 +35,10 @@ export type StockVoiceSpec = {
 export const STOCK_VOICE_SPECS: StockVoiceSpec[] = [
   {
     key: "grandma-rose",
+    label: "Grandma Rose",
     voiceIdEnvVar: "ELEVENLABS_VOICE_GRANDMA",
     voiceIdFallback: DEFAULT_VOICES.grandmother,
+    voiceFallbackName: "Bella (warm female)",
     text:
       "Oh, my little Olivia. Happy first birthday, my sweet girl. " +
       "I remember the day your mama called me, crying happy tears — " +
@@ -42,8 +48,10 @@ export const STOCK_VOICE_SPECS: StockVoiceSpec[] = [
   },
   {
     key: "grandpa-bill",
+    label: "Grandpa Bill",
     voiceIdEnvVar: "ELEVENLABS_VOICE_GRANDPA",
     voiceIdFallback: DEFAULT_VOICES.grandfather,
+    voiceFallbackName: "Adam (deep male)",
     text:
       "Happy birthday, Olivia. I held you the day you came home " +
       "from the hospital — you fell asleep right on my chest. " +

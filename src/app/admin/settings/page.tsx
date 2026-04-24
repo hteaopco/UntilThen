@@ -4,11 +4,9 @@ import { DbBackupTestButton } from "./DbBackupTestButton";
 import { LockThrottleToggle } from "./LockThrottleToggle";
 import { PaywallToggle } from "./PaywallToggle";
 import { ResetSubscriptionForm } from "./ResetSubscriptionForm";
-import { RevealSongsManager } from "./RevealSongsManager";
 import { SentryTestButton } from "./SentryTestButton";
 import { SquareOrderTemplateSetup } from "./SquareOrderTemplateSetup";
 import { SquarePlanVariations } from "./SquarePlanVariations";
-import { StockVoicesButton } from "./StockVoicesButton";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -95,20 +93,6 @@ export default async function AdminSettingsPage() {
         </section>
 
         <section className="mt-12 pt-10 border-t border-navy/[0.06]">
-          <p className="text-[11px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-3">
-            Reveal background music
-          </p>
-          <p className="text-sm text-ink-mid mb-5 max-w-[560px]">
-            Songs uploaded here appear as picker options on every
-            capsule&rsquo;s reveal curator. Keep them short ambient loops
-            (2&ndash;4 minutes) and royalty-free &mdash; capsule owners
-            can&rsquo;t upload their own to keep us out of licensing
-            trouble.
-          </p>
-          <RevealSongsManager />
-        </section>
-
-        <section className="mt-12 pt-10 border-t border-navy/[0.06]">
           <p className="text-[11px] uppercase tracking-[0.12em] font-bold text-red-600 mb-3">
             Testing tools
           </p>
@@ -164,24 +148,6 @@ export default async function AdminSettingsPage() {
             </div>
           </div>
 
-          <div className="space-y-2 mt-8">
-            <p className="text-[13px] font-semibold text-navy">
-              Generate stock voice samples
-            </p>
-            <p className="text-[12px] text-ink-mid max-w-[560px]">
-              Calls ElevenLabs to synthesize the two VOICE
-              contributions (Grandma Rose, Grandpa Bill) used by the
-              mock recipient reveal at{" "}
-              <code className="font-mono">/admin/previews</code>.
-              Upload lands in R2 under{" "}
-              <code className="font-mono">stock-voices/</code>. Requires{" "}
-              <code className="font-mono">ELEVENLABS_API_KEY</code>{" "}
-              in Railway variables. Safe to re-run — overwrites in place.
-            </p>
-            <div className="mt-3">
-              <StockVoicesButton />
-            </div>
-          </div>
         </section>
       </div>
     </main>
