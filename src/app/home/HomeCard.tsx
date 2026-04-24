@@ -45,10 +45,10 @@ export function HomeCard({ href, imageSrc, icon, title, subtitle }: Props) {
       prefetch
       onClick={handleClick}
       aria-busy={loading}
-      className={`group relative z-10 block rounded-2xl overflow-hidden bg-cream transition-all ${
+      className={`group relative z-10 block rounded-2xl overflow-hidden bg-cream shadow-[0_10px_30px_-10px_rgba(15,31,61,0.18),0_4px_10px_-4px_rgba(196,122,58,0.18)] transition-all ${
         loading
           ? ""
-          : "hover:shadow-[0_10px_28px_-8px_rgba(196,122,58,0.22)] active:scale-[0.99]"
+          : "hover:shadow-[0_18px_44px_-12px_rgba(15,31,61,0.22),0_6px_14px_-4px_rgba(196,122,58,0.28)] hover:-translate-y-0.5 active:scale-[0.99]"
       }`}
     >
       {/* Base illustration */}
