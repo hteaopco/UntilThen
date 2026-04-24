@@ -212,19 +212,38 @@ preview, admin mock). Remaining work is hands-on device QA.
   container-side behavior is fine once it starts — the 502s were
   image-push slowness, not container startup.)
 
-  **First attempt (reverted):** Tried merging `npm ci` + `next build`
-  + `npm prune --omit=dev` into one install-phase RUN in `12a1119`
-  through `f2deb47`, plus moving `prisma` to runtime deps. Two build
-  failures and a net-larger image (699 MB vs 622 MB) — the `npm ci`
-  hit `EBUSY` on BuildKit's `.cache` bind mounts, and when finally
-  placed in the install phase the image somehow grew rather than
-  shrank (Railway UI truncated logs, couldn't confirm what prune
-  actually did). Reverted in `8ef6516`, `8da4626`, `764433a`.
+  **Two attempts this session, both reverted:**
 
-  When resuming, better approach:
-  1. Need desktop + full build logs to actually see `[slim] before:`
-     vs `[slim] after:` diff — Railway's mobile log view truncates.
-  2. Consider a multi-stage Dockerfile instead of nixpacks — full
-     control over which layers land in the runtime image.
-  3. Alternative: leave image as-is and accept the slow push. User
+  1. **Nixpacks in-place prune** (`12a1119` → `f2deb47`, reverted in
+     `8ef6516`, `8da4626`, `764433a`). Tried merging `npm ci` + `next
+     build` + `npm prune --omit=dev` into a single RUN, plus moving
+     `prisma` to runtime deps. Two build failures — `npm ci` hit
+     `EBUSY` on BuildKit's `node_modules/.cache` bind mount — and
+     when finally placed in the install phase the image somehow grew
+     from 622 MB → 699 MB.
+
+  2. **Multi-stage Dockerfile** (`7be2f63` → `82ae2cc`, reverted in
+     `f10547d`, `f78626f`, `022082a`, `96b5593`). Builder stage did
+     full install + build + `npm prune --omit=dev`, runtime stage
+     copied the pruned tree. Image dropped to 434 MB (-30%) and
+     first deploy came up clean. But subsequent restarts and
+     deploys crashed with no usable stdout — Deploy Logs showed
+     only `curl: (22) 502` (Railway's healthcheck probe failing),
+     no `[start ...]` stage markers from the CMD. Never pinned
+     down whether the CMD itself was failing to exec (bash issue?
+     JSON escape?) or whether something earlier in the container
+     boot was dying silently.
+
+  **When resuming** (desktop, not mobile — both attempts hit walls
+  that needed `docker build` + `docker run` locally to triage):
+  1. Start with the exact Dockerfile that gave us 434 MB on first
+     deploy (see git history around `82ae2cc`) — that part worked.
+  2. Debug the restart-crash separately. First guess: try a simple
+     `CMD ["sh", "-c", "printf hello && sleep 5"]` to confirm CMD
+     is running at all; if even that doesn't log, the issue is
+     Railway routing or healthcheck, not the container.
+  3. Consider writing the start command as a committed shell script
+     file (`scripts/start.sh`) instead of an inline JSON-encoded
+     bash command — easier to read, no escape pitfalls.
+  4. Alternative: leave image as-is and accept the slow push. User
      workflow is already "push → wait 2–5 min → site updates."
