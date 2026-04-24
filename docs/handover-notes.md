@@ -180,6 +180,8 @@ npm run dev  # http://localhost:3000
 
 Tests: `npm run test` (Vitest, minimal coverage — `tests/capsule-landing-data.test.ts` is the only real suite today).
 
+E2E smoke tests: `npm run test:e2e` (Playwright, `./e2e/`). Covers unauthenticated public surfaces: landing / sign-in / help-recovery / invalid-reveal-token / ToS. First-time setup on a new machine needs `npx playwright install --with-deps chromium`. Boots the dev server automatically; point `PLAYWRIGHT_BASE_URL=https://untilthenapp.io` to run against prod without spinning one up. Not wired to CI yet — run locally before risky pushes.
+
 Lint: `npm run lint`. Type-check: `npx tsc --noEmit`.
 
 ## Conventions picked up over the last few sessions
