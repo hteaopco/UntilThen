@@ -8,8 +8,8 @@ type Props = {
   href: string;
   imageSrc: string;
   icon: React.ReactNode;
-  title: string;
-  subtitle: string;
+  title: React.ReactNode;
+  subtitle: React.ReactNode;
 };
 
 // Ring-fill duration when the user taps. Matches the old HomeBubble

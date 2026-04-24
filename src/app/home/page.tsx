@@ -115,10 +115,22 @@ export default async function HomePage() {
 
         <HomeCard
           href="/dashboard"
-          imageSrc="/VaultEnter.png"
+          imageSrc="/VaultEnter2.png"
           icon={<Lock size={22} strokeWidth={1.5} className="text-amber" />}
-          title="Enter Your Vault"
-          subtitle="Your memories, preserved."
+          title={
+            <>
+              Enter Your
+              <br />
+              Vault
+            </>
+          }
+          subtitle={
+            <>
+              Your memories,
+              <br />
+              Preserved.
+            </>
+          }
         />
         <HomeCard
           href="/capsules/new"
