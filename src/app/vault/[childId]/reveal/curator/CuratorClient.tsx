@@ -206,7 +206,15 @@ export function CuratorClient({
     });
   }
 
-  const filledCount = slides.filter((s) => s !== null).length;
+  // filledCount should mirror what the user SEES as filled: a slot
+  // is "really filled" only if its entryId still resolves to an
+  // entry in the current library. Stale ids (entries deleted since
+  // the slide was saved) render as "Add" slots but used to count
+  // toward filledCount, which made the footer say "5/5 slides
+  // picked" even when only 2 were visually filled.
+  const filledCount = slides.filter(
+    (s) => s !== null && library.some((e) => e.id === s.entryId),
+  ).length;
   // Allow previewing as soon as at least one slot is filled. Early
   // in a vault's life users typically don't have 5 entries yet; the
   // old all-5-required gate made the flow awkward. The recipient
@@ -328,11 +336,17 @@ export function CuratorClient({
           realCapsule={previewCapsule}
           realContributions={previewContributions}
           childId={childId}
-          curatedSlides={slides.filter(
-            (s): s is CuratorSlide => s !== null,
-          )}
           musicUrl={selectedSongPreviewUrl}
         />
+        {/* NOTE: we intentionally do NOT pass curatedSlides here.
+            previewContributions is already pre-filtered (one
+            contribution per slot, in curator order, each carrying
+            only the modality of that slot) so RANDOM mode's
+            expandContributionsToSlides preserves the exact order
+            we want. Passing curatedSlides would be a footgun
+            because its entryIds don't match the composite
+            "${entry.id}-${slot.view}" contribution IDs we mint
+            above. */}
       </div>
     );
   }
