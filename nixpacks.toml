@@ -1,9 +1,11 @@
 # Nixpacks config for Railway
 [phases.setup]
-# postgresql_17 ships pg_dump / psql — used by the /api/cron/db-backup
+# postgresql_18 ships pg_dump / psql — used by the /api/cron/db-backup
 # endpoint to stream a nightly dump to R2 as a belt-and-suspenders
-# alongside Railway's native Postgres backups.
-nixPkgs = ["nodejs_22", "openssl", "postgresql_17"]
+# alongside Railway's native Postgres backups. Must match the server
+# major version (Railway PG is currently 18.3); pg_dump refuses to
+# dump a newer server with an older client.
+nixPkgs = ["nodejs_22", "openssl", "postgresql_18"]
 
 [phases.install]
 cmds = [
