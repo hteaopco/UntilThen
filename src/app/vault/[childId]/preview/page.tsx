@@ -56,6 +56,10 @@ export default async function VaultPreviewPage({
             where: {
               isSealed: true,
               approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+              // Hide entries still mid-Hive-scan or flagged for
+              // admin review so the reveal preview matches what
+              // a recipient would actually see.
+              moderationState: { notIn: ["SCANNING", "FLAGGED"] },
             },
             orderBy: { createdAt: "asc" },
             include: {

@@ -37,7 +37,7 @@ export default async function ModerationPage() {
 
   const { prisma } = await import("@/lib/prisma");
 
-  // Two buckets:
+  // Two buckets across BOTH row types:
   //  - Scanning: Hive scan still in flight. Shown at top so we
   //    can always see the queue; normally resolves in <10s. The
   //    /api/cron/moderation-cleanup cron reclaims anything stuck
@@ -45,26 +45,51 @@ export default async function ModerationPage() {
   //  - Pending review: everything awaiting a human decision —
   //    includes both Hive-flagged items (which get a red badge +
   //    category scores) and non-flagged PENDING_REVIEW items.
-  const [scanning, pending] = await Promise.all([
+  //
+  // Gift Capsule contributions and Time Capsule entries both
+  // follow the same moderationState lifecycle, so they're unioned
+  // client-side via the `kind` discriminator.
+  const [
+    scanningCapsules,
+    pendingCapsules,
+    scanningEntries,
+    pendingEntries,
+  ] = await Promise.all([
     prisma.capsuleContribution.findMany({
       where: { moderationState: "SCANNING" },
-      include: { capsule: true },
+      include: { capsule: { select: { title: true } } },
       orderBy: { createdAt: "desc" },
     }),
     prisma.capsuleContribution.findMany({
       where: { approvalStatus: "PENDING_REVIEW" },
-      include: { capsule: true },
+      include: { capsule: { select: { title: true } } },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.entry.findMany({
+      where: { moderationState: "SCANNING" },
+      include: {
+        author: { select: { firstName: true, lastName: true } },
+        vault: { include: { child: { select: { firstName: true } } } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.entry.findMany({
+      where: { approvalStatus: "PENDING_REVIEW" },
+      include: {
+        author: { select: { firstName: true, lastName: true } },
+        vault: { include: { child: { select: { firstName: true } } } },
+      },
       orderBy: { createdAt: "desc" },
     }),
   ]);
 
-  const mapRow = (c: (typeof pending)[number]): PendingEntry => ({
+  const mapCapsule = (c: (typeof pendingCapsules)[number]): PendingEntry => ({
     id: c.id,
     kind: "capsule" as const,
     title: c.title,
     body: c.body,
     authorName: c.authorName,
-    targetName: (c.capsule as Record<string, unknown>)?.title as string ?? "Unknown",
+    targetName: c.capsule.title ?? "Unknown",
     type: c.type,
     createdAt: c.createdAt.toISOString(),
     moderationState: c.moderationState,
@@ -72,8 +97,33 @@ export default async function ModerationPage() {
     moderationRunAt: c.moderationRunAt?.toISOString() ?? null,
   });
 
-  const scanningItems: PendingEntry[] = scanning.map(mapRow);
-  const items: PendingEntry[] = pending.map(mapRow).sort((a, b) => {
+  const mapEntry = (e: (typeof pendingEntries)[number]): PendingEntry => ({
+    id: e.id,
+    kind: "vault" as const,
+    title: e.title,
+    body: e.body,
+    authorName:
+      [e.author.firstName, e.author.lastName].filter(Boolean).join(" ") ||
+      "Vault owner",
+    targetName: e.vault.child.firstName
+      ? `${e.vault.child.firstName}'s vault`
+      : "Vault",
+    type: e.type,
+    createdAt: e.createdAt.toISOString(),
+    moderationState: e.moderationState,
+    moderationFlags: e.moderationFlags as HiveFlags | null,
+    moderationRunAt: e.moderationRunAt?.toISOString() ?? null,
+  });
+
+  const scanningItems: PendingEntry[] = [
+    ...scanningCapsules.map(mapCapsule),
+    ...scanningEntries.map(mapEntry),
+  ].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+  const items: PendingEntry[] = [
+    ...pendingCapsules.map(mapCapsule),
+    ...pendingEntries.map(mapEntry),
+  ].sort((a, b) => {
     // Flagged first, then by createdAt desc.
     const aFlag = a.moderationState === "FLAGGED" ? 0 : 1;
     const bFlag = b.moderationState === "FLAGGED" ? 0 : 1;

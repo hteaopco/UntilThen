@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { EntryType } from "@prisma/client";
 
+import { scanEntryAsync } from "@/lib/entry-moderation";
 import { userHasCapsuleAccess } from "@/lib/paywall";
 import { captureServerEvent } from "@/lib/posthog-server";
 
@@ -139,6 +140,18 @@ export async function POST(req: Request) {
       orderIndex = collection._count.entries;
     }
 
+    // If there's anything worth scanning (text body OR media),
+    // create in SCANNING state and kick off Hive async. Empty
+    // drafts with only a title don't need scanning — leave them
+    // NOT_SCANNED until the user actually writes content, at
+    // which point the PATCH path flips them to SCANNING.
+    const hasScannableContent =
+      Boolean(bodyText && bodyText.trim()) ||
+      // mediaUrls aren't wired through on POST today (editor uploads
+      // via PATCH after creation) but leave the check in place so the
+      // shape matches and future callers don't silently skip the scan.
+      false;
+
     const entry = await prisma.entry.create({
       data: {
         vaultId: vault.id,
@@ -152,8 +165,23 @@ export async function POST(req: Request) {
         isDraft,
         isSealed,
         approvalStatus: "AUTO_APPROVED",
+        moderationState: hasScannableContent ? "SCANNING" : "NOT_SCANNED",
       },
     });
+
+    if (hasScannableContent) {
+      // Fire-and-forget scan — responds to the author instantly.
+      // Vault + reveal queries filter out SCANNING so the entry
+      // is invisible to readers until the scan resolves. The
+      // /api/cron/moderation-cleanup cron reclaims anything
+      // stuck >5 min as FAILED_OPEN.
+      void scanEntryAsync({
+        entryId: entry.id,
+        body: bodyText || null,
+        mediaUrls: [],
+        mediaTypes: [],
+      });
+    }
 
     // entry_created fires exactly once, at create time, so
     // auto-save PATCH updates later don't double-count. If the

@@ -1,7 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { scanEntryAsync } from "@/lib/entry-moderation";
 import { userHasCapsuleAccess } from "@/lib/paywall";
 import { captureServerEvent } from "@/lib/posthog-server";
 
@@ -168,7 +170,39 @@ export async function PATCH(
       data.isDraft = body.isDraft;
     }
 
+    // If the edit touches content (body / title), flip the
+    // moderation state back to SCANNING and re-run Hive in the
+    // background. Flag metadata is cleared to null so stale
+    // scores don't stick around while the re-scan is in flight.
+    // Pure sealing / collection-reassign PATCHes don't rescan.
+    const contentChanged = "body" in body || "title" in body;
+    if (contentChanged) {
+      data.moderationState = "SCANNING";
+      // Prisma nullable Json fields need JsonNull to clear;
+      // bare null trips the InputJsonValue type check.
+      data.moderationFlags = Prisma.JsonNull;
+      data.moderationRunAt = null;
+    }
+
     await prisma.entry.update({ where: { id }, data });
+
+    if (contentChanged) {
+      // Re-fetch the final body so the scan sees exactly what's
+      // stored (covers the case where `data.body` was cleared
+      // back to null or trimmed).
+      const fresh = await prisma.entry.findUnique({
+        where: { id },
+        select: { body: true, mediaUrls: true, mediaTypes: true },
+      });
+      if (fresh) {
+        void scanEntryAsync({
+          entryId: id,
+          body: fresh.body,
+          mediaUrls: fresh.mediaUrls,
+          mediaTypes: fresh.mediaTypes,
+        });
+      }
+    }
 
     // Only fire entry_sealed on the transition false → true so
     // repeated "save" PATCHes (which can include isSealed: true

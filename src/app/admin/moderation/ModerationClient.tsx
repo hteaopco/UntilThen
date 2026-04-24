@@ -41,9 +41,12 @@ export function ModerationClient({
   async function act(item: PendingEntry, action: "approve" | "reject") {
     setBusy(item.id);
     try {
+      // Both paths are admin-gated via the admin_auth cookie so
+      // the parent/organiser /api/entries/[id]/* routes (Clerk-
+      // gated) aren't used from here.
       const url =
         item.kind === "vault"
-          ? `/api/entries/${item.id}/${action}`
+          ? `/api/admin/entries/${item.id}/${action}`
           : `/api/admin/capsule-contributions/${item.id}/${action}`;
       const res = await fetch(url, { method: "POST" });
       if (!res.ok) throw new Error("Failed");
@@ -60,7 +63,7 @@ export function ModerationClient({
 
   async function approveAll() {
     const msg = flaggedCount
-      ? `Approve all ${items.length} items? ${flaggedCount} were flagged by Hive — approving them clears the flag and sends them back to the organiser's inbox (they do NOT auto-publish).`
+      ? `Approve all ${items.length} items? ${flaggedCount} were flagged by Hive — approving them clears the flag and restores the item to its normal pipeline.`
       : `Approve all ${items.length} items?`;
     if (!window.confirm(msg)) return;
     setApprovingAll(true);
@@ -68,7 +71,7 @@ export function ModerationClient({
       for (const item of items) {
         const url =
           item.kind === "vault"
-            ? `/api/entries/${item.id}/approve`
+            ? `/api/admin/entries/${item.id}/approve`
             : `/api/admin/capsule-contributions/${item.id}/approve`;
         await fetch(url, { method: "POST" });
       }

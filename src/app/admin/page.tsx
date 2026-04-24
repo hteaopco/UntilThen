@@ -37,6 +37,7 @@ export default async function AdminDashboard() {
     recentUsers,
     recentCapsules,
     moderationByState,
+    entryModerationByState,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.user.count({
@@ -77,11 +78,16 @@ export default async function AdminDashboard() {
         _count: { select: { contributions: true, invites: true } },
       },
     }),
-    // Hive moderation health — one row per state so we can spot
-    // anomalies (large SCANNING backlog = scans getting stuck;
-    // large FAILED_OPEN count = Hive is flaky; large FLAGGED =
-    // admin queue needs attention).
+    // Hive moderation health — one row per state across both
+    // CapsuleContribution and Entry so we can spot anomalies
+    // (large SCANNING backlog = scans getting stuck; large
+    // FAILED_OPEN count = Hive is flaky; large FLAGGED = admin
+    // queue needs attention).
     prisma.capsuleContribution.groupBy({
+      by: ["moderationState"],
+      _count: true,
+    }),
+    prisma.entry.groupBy({
       by: ["moderationState"],
       _count: true,
     }),
@@ -118,8 +124,14 @@ export default async function AdminDashboard() {
     FLAGGED: 0,
     FAILED_OPEN: 0,
   };
+  // Sum both row types — capsule contributions + vault entries
+  // both flow through the same Hive pipeline, so the "health"
+  // numbers should reflect the combined load.
   for (const row of moderationByState) {
-    modCounts[row.moderationState] = row._count;
+    modCounts[row.moderationState] = (modCounts[row.moderationState] ?? 0) + row._count;
+  }
+  for (const row of entryModerationByState) {
+    modCounts[row.moderationState] = (modCounts[row.moderationState] ?? 0) + row._count;
   }
 
   let clerkUsers: Record<string, { email: string | null }> = {};

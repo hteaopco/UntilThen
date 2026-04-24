@@ -40,20 +40,40 @@ export const POST = cronRoute(
     const { prisma } = await import("@/lib/prisma");
     const cutoff = new Date(Date.now() - STUCK_MINUTES * 60_000);
 
-    const { count } = await prisma.capsuleContribution.updateMany({
-      where: {
-        moderationState: "SCANNING",
-        createdAt: { lt: cutoff },
-      },
-      data: {
-        moderationState: "FAILED_OPEN",
-        moderationRunAt: new Date(),
-      },
-    });
+    // Reclaim stuck SCANNING rows on both tables. Entry rows
+    // go through the same pipeline — if a server crashed
+    // mid-scan, the row's invisible to vault + reveal until
+    // the cron flips it to FAILED_OPEN (fail-open → visible
+    // again, same as Hive API failures).
+    const [capsuleResult, entryResult] = await Promise.all([
+      prisma.capsuleContribution.updateMany({
+        where: {
+          moderationState: "SCANNING",
+          createdAt: { lt: cutoff },
+        },
+        data: {
+          moderationState: "FAILED_OPEN",
+          moderationRunAt: new Date(),
+        },
+      }),
+      prisma.entry.updateMany({
+        where: {
+          moderationState: "SCANNING",
+          createdAt: { lt: cutoff },
+        },
+        data: {
+          moderationState: "FAILED_OPEN",
+          moderationRunAt: new Date(),
+        },
+      }),
+    ]);
 
     return NextResponse.json({
       success: true,
-      reclaimed: count,
+      reclaimed: {
+        capsuleContributions: capsuleResult.count,
+        entries: entryResult.count,
+      },
       cutoff: cutoff.toISOString(),
     });
   },

@@ -70,6 +70,12 @@ export async function loadCapsuleLandingData({
   });
   if (!child || child.parentId !== user.id || !child.vault) return null;
 
+  // Stats queries filter out entries that haven't cleared Hive
+  // yet (SCANNING) or got flagged (FLAGGED) — same contract as
+  // CapsuleContribution's vault landing. Otherwise the
+  // letter/photo/voice counts on capsule cards would include
+  // unmoderated content that the reader hasn't actually been
+  // allowed to see.
   const [collections, looseEntries] = await Promise.all([
     prisma.collection.findMany({
       where: { vaultId: child.vault.id },
@@ -79,6 +85,7 @@ export async function loadCapsuleLandingData({
           where: {
             isSealed: true,
             approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+            moderationState: { notIn: ["SCANNING", "FLAGGED"] },
           },
           select: { type: true, mediaTypes: true },
         },
@@ -90,6 +97,7 @@ export async function loadCapsuleLandingData({
         collectionId: null,
         isSealed: true,
         approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+        moderationState: { notIn: ["SCANNING", "FLAGGED"] },
       },
       select: { type: true, mediaTypes: true },
     }),

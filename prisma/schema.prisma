@@ -254,6 +254,16 @@ model Entry {
   updatedAt      DateTime       @updatedAt @default(now())
   unlockedAt     DateTime?
 
+  // Hive content moderation — same pipeline as CapsuleContribution.
+  // The parent writing in their own vault runs through Hive too so
+  // abusive content can't be stashed under the "memories" surface.
+  // Entries start NOT_SCANNED (for backfill safety); new writes
+  // flip to SCANNING immediately on create/edit and the cron
+  // reclaims stuck ones to FAILED_OPEN after 5 minutes.
+  moderationState ModerationState @default(NOT_SCANNED)
+  moderationFlags Json?
+  moderationRunAt DateTime?
+
   vault      Vault       @relation(fields: [vaultId], references: [id])
   author     User        @relation(fields: [authorId], references: [id])
   collection Collection? @relation(fields: [collectionId], references: [id])
@@ -262,6 +272,7 @@ model Entry {
   @@index([approvalStatus])
   @@index([vaultId, isSealed])
   @@index([authorId, createdAt])
+  @@index([moderationState])
 }
 
 // ── Gift Capsules ───────────────────────────────────────

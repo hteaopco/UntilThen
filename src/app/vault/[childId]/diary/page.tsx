@@ -53,6 +53,9 @@ export default async function MainDiaryPage({
       collectionId: null,
       isSealed: true,
       approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+      // Hide entries still mid-Hive-scan or flagged for admin
+      // review. See src/lib/entry-moderation.ts.
+      moderationState: { notIn: ["SCANNING", "FLAGGED"] },
     },
     select: {
       id: true,

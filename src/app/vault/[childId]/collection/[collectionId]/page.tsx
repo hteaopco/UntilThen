@@ -62,6 +62,9 @@ export default async function CollectionPage({
         where: {
           isSealed: true,
           approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+          // Hide entries still mid-Hive-scan or flagged for
+          // admin review.
+          moderationState: { notIn: ["SCANNING", "FLAGGED"] },
         },
         orderBy: [
           { orderIndex: "asc" },
