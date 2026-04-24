@@ -7,17 +7,22 @@ import { Avatar } from "@/components/ui/Avatar";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
-import { HomeBubble } from "./HomeBubble";
+import { HomeCard } from "./HomeCard";
 
 /**
  * Signed-in main landing. Deliberately separate from /dashboard so
  * we can evolve the vault surface independently of the "which
- * product do you want to use right now?" entry. Two bubbles: vault
- * (personal/private memories) and gift capsule (one-off, shared).
+ * product do you want to use right now?" entry.
  *
- * This page is NOT PIN-gated — that gate lives on /dashboard itself,
- * so users always land here first, then authenticate into the
- * vault via the bubble.
+ * Two big illustrated cards stacked vertically:
+ *   VaultEnter.png   → /dashboard       (personal, private memories)
+ *   GiftEnter.png    → /capsules/new    (shared, one-off)
+ *
+ * Text lives on the LEFT half of each card so the illustration on
+ * the right of the image stays the visual anchor. This page is NOT
+ * PIN-gated — that gate lives on /dashboard itself, so users always
+ * see the welcoming landing first and authenticate into the vault
+ * via the card.
  */
 
 export const runtime = "nodejs";
@@ -87,52 +92,42 @@ export default async function HomePage() {
         </p>
       </section>
 
-      <section className="flex-1 flex flex-col items-center justify-center gap-5 sm:gap-7 px-6 pb-3 relative">
-        {/* Decorative sparkles scattered around the bubbles. Purely
-            aesthetic — aria-hidden so screen readers skip them. All
-            held at the same 20% opacity so they read as a uniform
-            ambient layer rather than a mix of weights. */}
+      <section className="flex-1 flex flex-col gap-4 px-4 sm:px-6 pb-4 relative max-w-[560px] w-full mx-auto">
+        {/* Decorative sparkles scattered in the cards area. Held at
+            20% amber opacity so they read as a uniform ambient
+            layer. aria-hidden for screen readers. */}
         <Sparkle
-          className="absolute top-[8%] left-[6%] text-amber/20"
+          className="absolute top-[6%] left-[4%] text-amber/20"
           size={22}
         />
         <Sparkle
-          className="absolute top-[38%] right-[5%] text-amber/20"
+          className="absolute top-[48%] right-[4%] text-amber/20"
           size={18}
         />
         <Sparkle
-          className="absolute bottom-[12%] left-[8%] text-amber/20"
+          className="absolute bottom-[10%] left-[6%] text-amber/20"
           size={20}
         />
         <Sparkle
-          className="absolute top-[60%] right-[8%] text-amber/20"
+          className="absolute top-[30%] right-[8%] text-amber/20"
           size={14}
         />
 
-        <HomeBubble
+        <HomeCard
           href="/dashboard"
-          icon={<Lock size={28} strokeWidth={1.5} className="text-amber" />}
+          imageSrc="/VaultEnter.png"
+          icon={<Lock size={22} strokeWidth={1.5} className="text-amber" />}
           title="Enter Your Vault"
           subtitle="Your memories, preserved."
         />
-        <HomeBubble
+        <HomeCard
           href="/capsules/new"
-          icon={<Gift size={28} strokeWidth={1.5} className="text-amber" />}
+          imageSrc="/GiftEnter.png"
+          icon={<Gift size={22} strokeWidth={1.5} className="text-amber" />}
           title="Create a Gift Capsule"
           subtitle="Create something unforgettable."
         />
       </section>
-
-      {/* Decorative image sitting under both bubbles, above the
-          footer. 80% width, centered — 10% cream margin on each
-          side so it doesn't bleed to the edge. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/IMG_2492.png"
-        alt=""
-        aria-hidden="true"
-        className="w-4/5 h-auto block mx-auto"
-      />
 
       <footer className="px-6 py-3 text-center">
         <p className="inline-flex items-center gap-1.5 text-[11px] text-navy/50">
