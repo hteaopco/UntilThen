@@ -77,7 +77,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  await logAdminAction(req, "system.stock-voice-upload", { key: keyRaw });
+  await logAdminAction(
+    req,
+    "system.stock-voice-upload",
+    { type: "stock-voice", id: keyRaw },
+  );
 
   const buffer = Buffer.from(await file.arrayBuffer());
   const r2Key = r2KeyForStockVoice(keyRaw);
