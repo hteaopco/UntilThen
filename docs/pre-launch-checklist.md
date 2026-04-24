@@ -205,10 +205,6 @@ preview, admin mock). Remaining work is hands-on device QA.
   landing page. Show create → write → invite → reveal flow. Keep under
   60 seconds
 
-### Engineering
-- [ ] **Test suite expansion** — add E2E with Playwright; extend unit
-  coverage beyond `ageOnDate`
-
 ---
 
 ## 🟣 Tabled / Paused
