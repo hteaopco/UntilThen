@@ -19,6 +19,13 @@ interface FiredPayload {
       currentScope: boolean;
       isolationScope: boolean;
     };
+    register?: {
+      ran: boolean;
+      runtime: string | null;
+      clientBoundAfterImport: boolean;
+      at: string | null;
+      error: string | null;
+    };
   };
 }
 
@@ -159,6 +166,17 @@ export function SentryTestButton() {
                 Clients: direct={String(outcome.sentry.clients.direct)},{" "}
                 currentScope={String(outcome.sentry.clients.currentScope)},{" "}
                 isolationScope={String(outcome.sentry.clients.isolationScope)}
+              </li>
+            ) : null}
+            {outcome.sentry.register ? (
+              <li className="text-ink-light">
+                register(): ran={String(outcome.sentry.register.ran)},{" "}
+                runtime={outcome.sentry.register.runtime ?? "null"},{" "}
+                clientAfterImport=
+                {String(outcome.sentry.register.clientBoundAfterImport)}
+                {outcome.sentry.register.error
+                  ? ` · error: ${outcome.sentry.register.error}`
+                  : ""}
               </li>
             ) : null}
             <li>

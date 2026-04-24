@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { registerStatus } from "../../../../../instrumentation";
 import { logAdminAction } from "@/lib/admin-audit";
 
 export const runtime = "nodejs";
@@ -145,6 +146,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           currentScope: Boolean(clientCurrentScope),
           isolationScope: Boolean(clientIsolationScope),
         },
+        register: registerStatus,
       },
     },
     { status: 500 },
