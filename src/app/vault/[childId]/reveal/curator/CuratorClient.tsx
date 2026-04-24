@@ -207,6 +207,12 @@ export function CuratorClient({
   }
 
   const filledCount = slides.filter((s) => s !== null).length;
+  // Allow previewing as soon as at least one slot is filled. Early
+  // in a vault's life users typically don't have 5 entries yet; the
+  // old all-5-required gate made the flow awkward. The recipient
+  // reveal still handles <5 slots gracefully (RevealExperience
+  // skips the TransitionScreen when the stack is short).
+  const hasEnoughToPreview = filledCount >= 1;
   const allFilled = filledCount === SLOTS;
   const dirty = useMemo(() => {
     if (songId !== initialSongId) return true;
@@ -298,6 +304,14 @@ export function CuratorClient({
     hasCompleted: false,
   };
 
+  // Pipe the currently-selected song's signed preview URL into the
+  // preview surface. Without this the preview would fall back to the
+  // global NEXT_PUBLIC_REVEAL_MUSIC_URL (or the saved song from the
+  // DB) instead of the song the user is about to save — which looked
+  // like a "wrong song playing" bug on the curator → preview flow.
+  const selectedSongPreviewUrl =
+    (songId && songs.find((s) => s.id === songId)?.previewUrl) || null;
+
   if (previewOpen) {
     return (
       <div className="relative">
@@ -314,6 +328,10 @@ export function CuratorClient({
           realCapsule={previewCapsule}
           realContributions={previewContributions}
           childId={childId}
+          curatedSlides={slides.filter(
+            (s): s is CuratorSlide => s !== null,
+          )}
+          musicUrl={selectedSongPreviewUrl}
         />
       </div>
     );
@@ -369,6 +387,13 @@ export function CuratorClient({
                       {entry.title?.trim() || entry.bodySnippet.slice(0, 60) || "Untitled"}
                     </div>
                     <ViewBadge view={slot.view} />
+                    {/* Letter slides get a 3-line body preview so the
+                        user isn't guessing which entry they picked. */}
+                    {slot.view === "letter" && entry.bodySnippet ? (
+                      <p className="mt-2 text-[11px] text-ink-light leading-[1.4] line-clamp-3">
+                        {entry.bodySnippet}
+                      </p>
+                    ) : null}
                     <div className="mt-auto pt-2 flex items-center justify-between">
                       <button
                         type="button"
@@ -470,7 +495,12 @@ export function CuratorClient({
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                disabled={!allFilled}
+                disabled={!hasEnoughToPreview}
+                title={
+                  hasEnoughToPreview
+                    ? undefined
+                    : "Add at least one slide to preview."
+                }
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-amber/40 text-amber bg-amber-tint/40 text-[13px] font-bold hover:bg-amber-tint hover:border-amber transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Sparkles size={14} strokeWidth={1.75} aria-hidden="true" />
