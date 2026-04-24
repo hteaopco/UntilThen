@@ -123,6 +123,15 @@ export default async function HomePage() {
         />
       </section>
 
+      {/* Decorative image sitting under both bubbles, above the footer. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/IMG_2492.png"
+        alt=""
+        aria-hidden="true"
+        className="w-full h-auto block"
+      />
+
       <footer className="px-6 py-3 text-center">
         <p className="inline-flex items-center gap-1.5 text-[11px] text-navy/50">
           <span className="text-amber" aria-hidden="true">
@@ -132,16 +141,9 @@ export default async function HomePage() {
         </p>
       </footer>
 
-      {/* Full-width decorative image anchoring the bottom of the
-          page. Rendered underneath everything else so it becomes
-          visible on scroll past the footer. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/IMG_2492.png"
-        alt=""
-        aria-hidden="true"
-        className="w-full h-auto block mt-4"
-      />
+      {/* Trailing cream spacer — iOS overscroll bounce lands on
+          cream rather than white. */}
+      <div aria-hidden="true" className="h-16 sm:h-24 bg-cream" />
     </main>
   );
 }
