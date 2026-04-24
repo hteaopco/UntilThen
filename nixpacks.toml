@@ -27,14 +27,19 @@ cmds = ["true"]
 #   1. npm ci (dev deps included — needed by next build + TS)
 #   2. prisma generate (unset PRISMA_* first so nothing forces --no-engine)
 #   3. next build
-#   4. slim: drop .next/cache, drop stray source maps, npm prune --omit=dev
+#   4. slim: drop stray .map files, npm prune --omit=dev
 #
 # Prisma CLI is a runtime dependency (package.json moved) so prune keeps
 # it for the start command's `npx prisma migrate deploy`.
 #
+# Nixpacks / BuildKit bind-mounts node_modules/.cache and .next/cache
+# as cache mounts — NOT part of the image — so we don't try to delete
+# them (Device or resource busy). Not a problem since they're not in
+# the image anyway.
+#
 # Target: cut the 622 MB runtime image roughly in half (Playwright, TS,
 # ESLint, Vitest, @types/* alone are ~300 MB of dev deps).
-cmds = ['''bash -c 'set -e; echo "[build] npm ci..."; rm -rf node_modules .next; unset PRISMA_GENERATE_DATAPROXY PRISMA_GENERATE_NO_ENGINE PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION PRISMA_ACCELERATE_URL; npm ci --no-audit --no-fund; echo "[build] prisma generate..."; rm -rf node_modules/.prisma; npx prisma generate; grep -q "\"copyEngine\": true" node_modules/.prisma/client/index.js || { echo "ERROR: Prisma client generated with --no-engine"; exit 1; }; echo "[build] next build..."; npm run build; echo "[slim] before:"; du -sh node_modules .next 2>/dev/null || true; echo "[slim] drop .next/cache + stray source maps, prune dev deps..."; rm -rf .next/cache; find .next -type f -name "*.map" -delete; npm prune --omit=dev --no-audit --no-fund; echo "[slim] after:"; du -sh node_modules .next 2>/dev/null || true' ''']
+cmds = ['''bash -c 'set -e; echo "[build] npm ci..."; unset PRISMA_GENERATE_DATAPROXY PRISMA_GENERATE_NO_ENGINE PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION PRISMA_ACCELERATE_URL; npm ci --no-audit --no-fund; echo "[build] prisma generate..."; rm -rf node_modules/.prisma; npx prisma generate; grep -q "\"copyEngine\": true" node_modules/.prisma/client/index.js || { echo "ERROR: Prisma client generated with --no-engine"; exit 1; }; echo "[build] next build..."; npm run build; echo "[slim] before:"; du -sh node_modules .next 2>/dev/null || true; echo "[slim] drop stray source maps, prune dev deps..."; find .next -type f -name "*.map" -delete; npm prune --omit=dev --no-audit --no-fund; echo "[slim] after:"; du -sh node_modules .next 2>/dev/null || true' ''']
 
 [start]
 # NODE_OPTIONS bumps the HTTP parser's max header size to 64KB so the
