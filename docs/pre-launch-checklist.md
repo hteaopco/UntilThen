@@ -204,21 +204,4 @@ preview, admin mock). Remaining work is hands-on device QA.
 
 ## 🟣 Tabled / Paused
 
-- [ ] **Intermittent 502 on deploy** — right after some deploys the
-  container goes dark and users see Railway's "Application failed to
-  respond" page until a manual restart clears it. Improved but not
-  fully solved this session:
-    - `dcf5b1d` simplified `/api/health` (dropped the loopback SSR
-      warmup that was stalling behind the old container's in-flight
-      requests)
-    - `ade41e4` rewrote the start command to exec Next directly
-      (skip npm), merge stderr into stdout, and emit `[start <iso>]
-      stage=X` markers at every boundary
-    - Outcome: most deploys now come up clean; it still recurs
-      occasionally (e.g. after commits `30f3604` and `6fe602e`).
-      When it does, manual restart always clears it.
-  When resuming: grab the Deploy Logs for a failing deploy and see
-  which `stage=X` marker is the last one before the silence. Prime
-  remaining suspects: Clerk JWKS fetch timing out on cold boot,
-  Sentry webpack plugin startup cost pushing past the edge-proxy
-  window, or the old container's shutdown timing.
+*(nothing currently tabled)*
