@@ -62,6 +62,10 @@ export function NavigationProgress() {
 
     function tryActivate(e: MouseEvent | PointerEvent) {
       if (e.defaultPrevented) return;
+      // The /home landing uses its own ring-around-the-bubble load
+      // animation and deliberately suppresses this top bar so the
+      // two don't fight for attention.
+      if (window.location.pathname === "/home") return;
       // Ignore non-primary buttons + modifier keys (new tab etc).
       if ("button" in e && e.button !== 0) return;
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;

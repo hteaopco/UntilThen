@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Sparkles } from "lucide-react";
 
 type Props = {
   href: string;
@@ -14,12 +15,12 @@ type Props = {
 // How long the progress ring takes to draw fully. Picked by feel —
 // long enough to register as a deliberate load animation, short
 // enough not to feel sluggish.
-const RING_DURATION_MS = 650;
+const RING_DURATION_MS = 850;
 
 /**
  * Landing-page bubble with a click-to-load interaction: on tap, a
  * thin amber progress ring draws around the bubble, and when it
- * completes (~650ms) the router navigates to `href`. Replaces the
+ * completes (~850ms) the router navigates to `href`. Replaces the
  * browser's default top-edge loading indicator with something that
  * visually connects to the button the user just pressed.
  */
@@ -36,9 +37,6 @@ export function HomeBubble({ href, icon, title, subtitle }: Props) {
     e.preventDefault();
     if (loading) return;
     setLoading(true);
-    // Schedule the navigation for when the ring completes. Next's
-    // router.push runs a client-side transition; since we're also
-    // prefetching, the target is typically already in memory.
     window.setTimeout(() => {
       router.push(href);
     }, RING_DURATION_MS);
@@ -56,6 +54,23 @@ export function HomeBubble({ href, icon, title, subtitle }: Props) {
           : "hover:border-amber/40 hover:shadow-[0_14px_36px_-8px_rgba(196,122,58,0.32)] active:scale-[0.98]"
       }`}
     >
+      {/* Paired sparkles at the 10 o'clock and 5 o'clock positions
+          (upper-left and lower-right of the bubble). Positioned
+          outside the bubble via negative offsets. Purely decorative,
+          same size on both so they read as a matching pair. */}
+      <Sparkles
+        aria-hidden="true"
+        size={20}
+        strokeWidth={1.5}
+        className="absolute -top-3 -left-3 text-amber/20 pointer-events-none"
+      />
+      <Sparkles
+        aria-hidden="true"
+        size={20}
+        strokeWidth={1.5}
+        className="absolute -bottom-3 -right-3 text-amber/20 pointer-events-none"
+      />
+
       {/* Progress ring — renders on top of the existing border. */}
       {loading ? (
         <svg
