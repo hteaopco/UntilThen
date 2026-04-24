@@ -38,14 +38,6 @@
 - [ ] **Reveal theme picker** — currently a "Coming soon" placeholder.
   Decide whether to ship at launch or defer. If shipping, pick 2–3
   background/color variants
-- [ ] **Extend Hive moderation to Time Capsule entries** — Hive scanning
-  is live for Gift Capsule contributor submissions (photo + video + text)
-  but Time Capsule entries (parent writing in their own vault) are not
-  scanned. To extend: add `moderationState`/`moderationFlags`/`moderationRunAt`
-  to the `Entry` model, hook `scanContribution` into the entry POST/PATCH
-  endpoints, filter `FLAGGED` out of vault landing + reveal queries,
-  surface flagged entries in `/admin/moderation` (client already has a
-  `kind: "vault"` branch). Optional backfill script for pre-existing entries
 - [ ] **Annual add-on on existing annual sub** — `addon-capsule` for annual
   plans calls `subscriptions.update` with `priceOverrideMoney`. If Square
   enforces the same "no override when template present" rule on update,
@@ -227,9 +219,6 @@ preview, admin mock). Remaining work is hands-on device QA.
 - [ ] **Prisma upgrade 5.22 → 7.x** — major version jump, needs audit
 - [ ] **Test suite expansion** — add E2E with Playwright; extend unit
   coverage beyond `ageOnDate`
-- [ ] **Route-group error boundaries** — per-route-group `error.tsx`
-  boundaries so one crashing server component doesn't white-screen the
-  whole shell
 - [ ] **Transfer request flow (trustee)** — lost in revert, needs rebuild.
   Pairs with the ToS decedent / next-of-kin answer
 
