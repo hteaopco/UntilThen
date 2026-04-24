@@ -29,9 +29,9 @@ export async function register() {
   console.log("[sentry-reg] register() called, runtime =", registerStatus.runtime);
   try {
     if (process.env.NEXT_RUNTIME === "nodejs") {
-      await import("./sentry.server.config");
+      await import("../sentry.server.config");
     } else if (process.env.NEXT_RUNTIME === "edge") {
-      await import("./sentry.edge.config");
+      await import("../sentry.edge.config");
     }
     registerStatus.clientBoundAfterImport = Boolean(Sentry.getClient());
     console.log(

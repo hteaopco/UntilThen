@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { registerStatus } from "../../../../../instrumentation";
+import { registerStatus } from "../../../../instrumentation";
 import { logAdminAction } from "@/lib/admin-audit";
 
 export const runtime = "nodejs";
