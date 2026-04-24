@@ -20,9 +20,6 @@
 
 - [ ] **Terms of Service + Privacy Policy legal review** — minors' data,
   long-term storage, data export on request
-- [ ] **Decedent / next-of-kin** — answer in ToS for a deceased user's
-  account. Transfer flow (trustee) lost in a revert; queued under
-  _Nice to have_ below
 - [ ] **Sentry end-to-end live verification** — `/admin/settings →
   Sentry live test` + diagnostic panel shipped. **Picking up next
   session.** Last state: DSN resolved (SENTRY_DSN set), host parsed
