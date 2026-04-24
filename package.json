@@ -48,7 +48,7 @@
     "square": "^44.0.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.48.0",
+    "@playwright/test": "^1.59.1",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^22.9.0",
     "@types/react": "^19.0.0",
