@@ -20,18 +20,6 @@
 
 - [ ] **Terms of Service + Privacy Policy legal review** — minors' data,
   long-term storage, data export on request
-- [ ] **Sentry end-to-end live verification** — `/admin/settings →
-  Sentry live test` + diagnostic panel shipped. **Picking up next
-  session.** Last state: DSN resolved (SENTRY_DSN set), host parsed
-  (o4511224418795520.ingest.us.sentry.io), but `clientActive: NO`
-  before the inline-init fix. Commit `8f550c6` moved `Sentry.init()`
-  directly into `instrumentation.ts` (was failing across a dynamic-
-  import module boundary). On the next deploy, watch Railway runtime
-  logs for `[sentry] node init complete, client bound = true`, then
-  re-fire the button. If the diagnostic panel still shows
-  `clientActive: NO`, the next step is to audit the Sentry webpack
-  plugin in `next.config.ts` (it might be auto-wrapping the init
-  and we're double-initializing).
 - [ ] **Reveal theme picker** — currently a "Coming soon" placeholder.
   Decide whether to ship at launch or defer. If shipping, pick 2–3
   background/color variants
