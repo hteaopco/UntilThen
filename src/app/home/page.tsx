@@ -132,10 +132,16 @@ export default async function HomePage() {
         </p>
       </footer>
 
-      {/* Trailing cream spacer so the page extends a little beyond
-          the viewport. Avoids the hard cream-to-white edge that
-          iOS overscroll bounce would otherwise expose. */}
-      <div aria-hidden="true" className="h-32 sm:h-40 bg-cream" />
+      {/* Full-width decorative image anchoring the bottom of the
+          page. Rendered underneath everything else so it becomes
+          visible on scroll past the footer. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/IMG_2492.png"
+        alt=""
+        aria-hidden="true"
+        className="w-full h-auto block mt-4"
+      />
     </main>
   );
 }
