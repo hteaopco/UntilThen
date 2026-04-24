@@ -1,0 +1,34 @@
+# Build artifacts and deps — builder stage regenerates these
+node_modules
+.next
+
+# VCS + editor state
+.git
+.gitignore
+.github
+.vscode
+.idea
+.claude
+
+# Local env files (secrets come via Railway variables)
+.env
+.env.*
+!.env.example
+
+# Tests and test output
+e2e
+tests
+playwright-report
+playwright.config.ts
+vitest.config.ts
+coverage
+
+# Docs — not needed at runtime
+docs
+*.md
+CLAUDE.md
+
+# Misc dev files
+*.log
+.DS_Store
+tsconfig.tsbuildinfo
