@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 
 import { IntroSplash } from "@/components/landing/IntroSplash";
 import { CapsuleContributeForm } from "@/app/contribute/capsule/[token]/CapsuleContributeForm";
-import { LockedVaultView } from "@/app/vault/[childId]/child-view/LockedVaultView";
 import {
   TONE_LABELS,
   TONE_EMOJI,
@@ -21,8 +20,6 @@ type Preview =
   | "contributor-single"
   | "contributor-couple"
   | "pin"
-  | "vault-locked"
-  | "vault-unlocked"
   | "mock-reveal";
 
 const MOCK_SINGLE_CAPSULE = {
@@ -40,20 +37,6 @@ const MOCK_COUPLE_CAPSULE = {
   revealDate: new Date(Date.now() + 30 * 86400000).toISOString(),
   contributorDeadline: null,
 };
-
-const MOCK_VAULT_ENTRIES = [
-  { id: "e1", type: "TEXT" as const, author: "Mom" },
-  { id: "e2", type: "TEXT" as const, author: "Dad" },
-  { id: "e3", type: "PHOTO" as const, author: "Mom" },
-  { id: "e4", type: "VOICE" as const, author: "Grandma Rose" },
-  { id: "e5", type: "TEXT" as const, author: "Dad" },
-  { id: "e6", type: "VIDEO" as const, author: "Mom" },
-];
-
-const MOCK_VAULT_COLLECTIONS = [
-  { id: "col1", title: "First Year", coverEmoji: "👶", entryCount: 12 },
-  { id: "col2", title: "School Days", coverEmoji: "🎒", entryCount: 8 },
-];
 
 function ExitButton({ onClick }: { onClick: () => void }) {
   return (
@@ -128,38 +111,6 @@ export function PreviewsClient({ capsules }: { capsules: RecentCapsule[] }) {
     );
   }
 
-  if (active === "vault-locked") {
-    return (
-      <div className="relative">
-        <ExitButton onClick={() => setActive(null)} />
-        <main className="min-h-screen bg-[#f5f7f0]">
-          <LockedVaultView
-            childFirstName="Olivia"
-            revealDate={new Date(Date.now() + 365 * 86400000).toISOString()}
-            entries={MOCK_VAULT_ENTRIES}
-            collections={MOCK_VAULT_COLLECTIONS}
-          />
-        </main>
-      </div>
-    );
-  }
-
-  if (active === "vault-unlocked") {
-    return (
-      <div className="relative">
-        <ExitButton onClick={() => setActive(null)} />
-        <main className="min-h-screen bg-[#f5f7f0]">
-          <LockedVaultView
-            childFirstName="Olivia"
-            revealDate={new Date(Date.now() - 86400000).toISOString()}
-            entries={MOCK_VAULT_ENTRIES}
-            collections={MOCK_VAULT_COLLECTIONS}
-          />
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-8">
       <p className="text-sm text-ink-mid">
@@ -220,16 +171,6 @@ export function PreviewsClient({ capsules }: { capsules: RecentCapsule[] }) {
             title="Contributor Flow (Couple)"
             description={`${TONE_EMOJI[previewTone]} ${TONE_LABELS[previewTone]} tone. Same flow with couple pronouns.`}
             onClick={() => setActive("contributor-couple")}
-          />
-          <PreviewCard
-            title="Time Capsule — Locked"
-            description="Child view before reveal date: countdown, sealed memories, locked animation."
-            onClick={() => setActive("vault-locked")}
-          />
-          <PreviewCard
-            title="Time Capsule — Unlocked"
-            description="Child view after reveal date: vault is ready, memories accessible."
-            onClick={() => setActive("vault-unlocked")}
           />
           <PreviewCard
             title="PIN Screen"
