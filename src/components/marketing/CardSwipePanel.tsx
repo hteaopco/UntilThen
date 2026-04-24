@@ -147,10 +147,9 @@ export function CardSwipePanel({ defaultPanel, cards, pills }: Props) {
 // hero. Each card is ~300px wide and the stack is ~440px tall.
 
 function FannedStack({ cards }: { cards: StackCard[] }) {
-  // Layout matches the original HeroLetterStack — cards are
-  // "tossed on a table" with different rotations and offsets,
-  // overlapping organically. Front card (index 0) has the highest
-  // z-index and covers the others.
+  // Cards are "tossed on a table" with different rotations and
+  // offsets, overlapping organically. Front card (index 0) has
+  // the highest z-index and covers the others.
   const positions = [
     { top: 0, left: 20, width: 300, rotate: -1.5 },
     { top: 140, left: 0, width: 280, rotate: 1.2 },
