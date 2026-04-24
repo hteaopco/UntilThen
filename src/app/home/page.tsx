@@ -122,7 +122,7 @@ export default async function HomePage() {
         />
         <HomeCard
           href="/capsules/new"
-          imageSrc="/GiftEnter.png"
+          imageSrc="/auto_crop%23TUFISHowSlgtN3cjMSMxZmExNmQzYjc2N2RkY2NmNmU5N2I5NTA2ODc0NDhlNiMxNTM2IyNUUkFOU0ZPUk1BVElPTl9SRVFVRVNU.png"
           icon={<Gift size={22} strokeWidth={1.5} className="text-amber" />}
           title="Create a Gift Capsule"
           subtitle="Create something unforgettable."
