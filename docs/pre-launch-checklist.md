@@ -8,11 +8,13 @@
 
 ## 🔴 Blockers
 
-- [~] **Backup + restore verification** — code + infra shipped
-  (`/api/cron/db-backup`, `scripts/restore-db.ts`, `docs/backup-restore.md`,
-  Railway native PG backups enabled, R2 lifecycle rule live). **Outstanding:**
-  run the end-to-end restore drill into staging after the first cron produces
-  a backup. See also the `db-backup cron 502` item under _Tabled_ below.
+- [~] **Backup + restore verification** — pg_dump → gzip → R2 streaming
+  pipeline confirmed working via `/admin/settings → DB backup live test`
+  (`0bfff40` installed pg_dump 18 via PGDG, `30f3604` added the admin
+  button, `0bb171e` switched to streaming multipart upload to eliminate
+  OOM). Nightly cron + Railway's native PG backups + R2 lifecycle are
+  all live. **Outstanding:** run the end-to-end restore drill into
+  staging against a real backup.
 
 ---
 
@@ -197,25 +199,4 @@ preview, admin mock). Remaining work is hands-on device QA.
 
 ## 🟣 Tabled / Paused
 
-- [ ] **`db-backup` cron returning 502** — authed past 401 after we set
-  `CRON_SECRET` on every cron service, now hits 502 from the web service.
-  **Picking up next session.** Most likely: `pg_dump` spawn failure OR
-  `Buffer.concat` OOM under Railway's web-service memory cap. Paused
-  for now; Railway's native Postgres backups remain the primary layer
-  so we're not exposed.
-
-  **Debug order when resuming:**
-  1. Railway → Web service → Observability → filter for `[cron/db-backup]`
-     during a cron invocation window. The try/catch in
-     `/api/cron/db-backup/route.ts` should log `[cron/db-backup] failed:`
-     with the underlying error — that's the fastest diagnosis.
-  2. If no log lines at all: container died before the handler logged
-     → likely OOM. Switch from `Buffer.concat` to streaming via
-     `@aws-sdk/lib-storage` multipart upload (commented hook already
-     exists in the 500MB-ceiling safety check).
-  3. If log shows `pg_dump` error: confirm `DATABASE_URL` is set on
-     the web service (not just on the Postgres service) and that
-     `postgresql_17` is still in `nixpacks.toml`.
-  4. Alternative path: ditch the R2 pg_dump cron entirely and rely on
-     Railway's native PG backups as the single layer. Still acceptable
-     per the backup-restore runbook, just less belt-and-suspenders.
+*(nothing currently tabled)*
