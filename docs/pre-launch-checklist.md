@@ -206,11 +206,8 @@ preview, admin mock). Remaining work is hands-on device QA.
   60 seconds
 
 ### Engineering
-- [ ] **Prisma upgrade 5.22 → 7.x** — major version jump, needs audit
 - [ ] **Test suite expansion** — add E2E with Playwright; extend unit
   coverage beyond `ageOnDate`
-- [ ] **Transfer request flow (trustee)** — lost in revert, needs rebuild.
-  Pairs with the ToS decedent / next-of-kin answer
 
 ---
 
