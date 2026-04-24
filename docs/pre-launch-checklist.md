@@ -204,4 +204,20 @@ preview, admin mock). Remaining work is hands-on device QA.
 
 ## 🟣 Tabled / Paused
 
-*(nothing currently tabled)*
+- [ ] **Slim the Railway image** — the built image is currently 622 MB,
+  which makes Railway's image-push stage take 5–15+ minutes per deploy.
+  During that window the old container has already drained and the new
+  one doesn't exist yet, so the site 502s until the push finishes.
+  (The 8s health-grace + lifecycle-hook fix in `173a104` means the
+  container-side behavior is fine once it starts — the 502s were
+  image-push slowness, not container startup.)
+
+  Biggest wins when resuming:
+  1. `npm prune --omit=dev` after build — Playwright alone is ~200 MB
+  2. Exclude `.next/cache/` from the runtime image
+  3. Confirm Sentry source maps are actually being deleted post-upload
+     (we have `deleteSourcemapsAfterUpload: true` but the image is
+     still large — worth checking)
+  4. Move `prisma` CLI from `devDependencies` to `dependencies` so the
+     `npm prune` above doesn't remove it (start command needs it for
+     `prisma migrate deploy`)
