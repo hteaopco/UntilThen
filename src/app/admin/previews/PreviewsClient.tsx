@@ -12,7 +12,7 @@ import {
 } from "@/lib/tone";
 
 import { MockRevealPreview } from "./MockRevealPreview";
-import type { RecentCapsule } from "./page";
+import type { RecentCapsule, StockVoiceUrls } from "./page";
 
 type Preview =
   | null
@@ -59,7 +59,13 @@ const TONE_OPTIONS: CapsuleTone[] = [
   "OTHER",
 ];
 
-export function PreviewsClient({ capsules }: { capsules: RecentCapsule[] }) {
+export function PreviewsClient({
+  capsules,
+  stockVoices,
+}: {
+  capsules: RecentCapsule[];
+  stockVoices: StockVoiceUrls;
+}) {
   const [active, setActive] = useState<Preview>(null);
   const [previewTone, setPreviewTone] = useState<CapsuleTone>("CELEBRATION");
 
@@ -68,7 +74,12 @@ export function PreviewsClient({ capsules }: { capsules: RecentCapsule[] }) {
   }
 
   if (active === "mock-reveal") {
-    return <MockRevealPreview onExit={() => setActive(null)} />;
+    return (
+      <MockRevealPreview
+        onExit={() => setActive(null)}
+        stockVoices={stockVoices}
+      />
+    );
   }
 
   if (active === "contributor-single") {

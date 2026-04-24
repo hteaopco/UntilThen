@@ -3,10 +3,12 @@
 import { X } from "lucide-react";
 
 import {
-  MOCK_CONTRIBUTIONS,
+  buildMockContributions,
   mockRevealCapsule,
 } from "@/app/reveal/[token]/mockData";
 import { RevealExperience } from "@/app/reveal/[token]/RevealExperience";
+
+import type { StockVoiceUrls } from "./page";
 
 /**
  * Admin-only mock recipient reveal. Renders the same
@@ -14,13 +16,27 @@ import { RevealExperience } from "@/app/reveal/[token]/RevealExperience";
  * route uses — just with seed data + public stock media — so
  * admins can QA the full Entry → Stories → Transition → Gallery
  * flow without needing a real capsule with real contributions.
+ *
+ * Voice contributions use ElevenLabs-generated stock samples
+ * when the admin has run /admin/settings → "Generate stock
+ * voices", otherwise fall back to the placeholder.
  */
-export function MockRevealPreview({ onExit }: { onExit: () => void }) {
+export function MockRevealPreview({
+  onExit,
+  stockVoices,
+}: {
+  onExit: () => void;
+  stockVoices: StockVoiceUrls;
+}) {
+  const contributions = buildMockContributions({
+    grandmaRose: stockVoices.grandmaRose,
+    grandpaBill: stockVoices.grandpaBill,
+  });
   return (
     <div className="fixed inset-0 z-[200] bg-black">
       <RevealExperience
         capsule={mockRevealCapsule()}
-        contributions={MOCK_CONTRIBUTIONS}
+        contributions={contributions}
       />
       <button
         type="button"

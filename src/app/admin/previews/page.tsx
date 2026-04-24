@@ -1,5 +1,7 @@
 import { AdminHeader } from "@/app/admin/AdminHeader";
 import { PreviewsClient } from "@/app/admin/previews/PreviewsClient";
+import { r2KeyForStockVoice } from "@/lib/elevenlabs";
+import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -14,6 +16,25 @@ export type RecentCapsule = {
   isPaid: boolean;
   contributionCount: number;
 };
+
+export type StockVoiceUrls = {
+  grandmaRose: string | null;
+  grandpaBill: string | null;
+};
+
+async function signStockVoiceUrls(): Promise<StockVoiceUrls> {
+  if (!r2IsConfigured()) return { grandmaRose: null, grandpaBill: null };
+  try {
+    const [grandmaRose, grandpaBill] = await Promise.all([
+      signGetUrl(r2KeyForStockVoice("grandma-rose")),
+      signGetUrl(r2KeyForStockVoice("grandpa-bill")),
+    ]);
+    return { grandmaRose, grandpaBill };
+  } catch (err) {
+    console.error("[admin/previews] stock voice signing failed:", err);
+    return { grandmaRose: null, grandpaBill: null };
+  }
+}
 
 export default async function AdminPreviewsPage() {
   let capsules: RecentCapsule[] = [];
@@ -49,11 +70,13 @@ export default async function AdminPreviewsPage() {
     }
   }
 
+  const stockVoices = await signStockVoiceUrls();
+
   return (
     <main className="min-h-screen bg-white">
       <div className="mx-auto max-w-6xl px-6 py-10">
         <AdminHeader />
-        <PreviewsClient capsules={capsules} />
+        <PreviewsClient capsules={capsules} stockVoices={stockVoices} />
       </div>
     </main>
   );

@@ -8,6 +8,7 @@ import { RevealSongsManager } from "./RevealSongsManager";
 import { SentryTestButton } from "./SentryTestButton";
 import { SquareOrderTemplateSetup } from "./SquareOrderTemplateSetup";
 import { SquarePlanVariations } from "./SquarePlanVariations";
+import { StockVoicesButton } from "./StockVoicesButton";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -160,6 +161,25 @@ export default async function AdminSettingsPage() {
             </p>
             <div className="mt-3">
               <DbBackupTestButton />
+            </div>
+          </div>
+
+          <div className="space-y-2 mt-8">
+            <p className="text-[13px] font-semibold text-navy">
+              Generate stock voice samples
+            </p>
+            <p className="text-[12px] text-ink-mid max-w-[560px]">
+              Calls ElevenLabs to synthesize the two VOICE
+              contributions (Grandma Rose, Grandpa Bill) used by the
+              mock recipient reveal at{" "}
+              <code className="font-mono">/admin/previews</code>.
+              Upload lands in R2 under{" "}
+              <code className="font-mono">stock-voices/</code>. Requires{" "}
+              <code className="font-mono">ELEVENLABS_API_KEY</code>{" "}
+              in Railway variables. Safe to re-run — overwrites in place.
+            </p>
+            <div className="mt-3">
+              <StockVoicesButton />
             </div>
           </div>
         </section>

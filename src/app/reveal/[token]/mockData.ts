@@ -24,7 +24,10 @@ const PHOTO_BABY =
 const PHOTO_FAMILY =
   "https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800&q=80";
 
-const VOICE_SAMPLE = "https://www.w3schools.com/html/horse.mp3";
+// Fallback used when the admin hasn't yet generated the ElevenLabs
+// stock voices via /admin/settings → "Generate stock voices". Keeps
+// the mock preview functional (however silly) on a fresh install.
+const VOICE_FALLBACK = "https://www.w3schools.com/html/horse.mp3";
 
 /**
  * Build a seeded capsule. Callers can override recipientName +
@@ -46,7 +49,33 @@ export function mockRevealCapsule(overrides: Partial<RevealCapsule> = {}): Revea
   };
 }
 
-export const MOCK_CONTRIBUTIONS: RevealContribution[] = [
+export type StockVoiceUrls = {
+  grandmaRose?: string | null;
+  grandpaBill?: string | null;
+};
+
+/**
+ * Build the mock contribution list with signed stock-voice URLs
+ * injected (if available). Falls back to the placeholder horse
+ * sample when the admin hasn't generated ElevenLabs audio yet.
+ */
+export function buildMockContributions(
+  urls: StockVoiceUrls = {},
+): RevealContribution[] {
+  const grandma = urls.grandmaRose ?? VOICE_FALLBACK;
+  const grandpa = urls.grandpaBill ?? VOICE_FALLBACK;
+  return MOCK_CONTRIBUTIONS_TEMPLATE.map((c) => {
+    if (c.id === "m3") {
+      return { ...c, media: [{ kind: "voice", url: grandma }] };
+    }
+    if (c.id === "m8") {
+      return { ...c, media: [{ kind: "voice", url: grandpa }] };
+    }
+    return c;
+  });
+}
+
+const MOCK_CONTRIBUTIONS_TEMPLATE: RevealContribution[] = [
   {
     id: "m1",
     authorName: "Mom",
@@ -78,7 +107,7 @@ export const MOCK_CONTRIBUTIONS: RevealContribution[] = [
     type: "VOICE",
     title: null,
     body: null,
-    media: [{ kind: "voice", url: VOICE_SAMPLE }],
+    media: [{ kind: "voice", url: VOICE_FALLBACK }],
     createdAt: "2031-06-24T17:00:00Z",
   },
   {
@@ -136,7 +165,7 @@ export const MOCK_CONTRIBUTIONS: RevealContribution[] = [
     type: "VOICE",
     title: null,
     body: null,
-    media: [{ kind: "voice", url: VOICE_SAMPLE }],
+    media: [{ kind: "voice", url: VOICE_FALLBACK }],
     createdAt: "2031-06-25T14:00:00Z",
   },
   {
@@ -152,3 +181,12 @@ export const MOCK_CONTRIBUTIONS: RevealContribution[] = [
     createdAt: "2031-06-26T08:00:00Z",
   },
 ];
+
+/**
+ * Back-compat export for callers without access to signed R2 URLs
+ * (client-only surfaces). Shows the VOICE_FALLBACK placeholder for
+ * the two VOICE contributions; surfaces that want the real stock
+ * voices should call buildMockContributions(urls) from a server
+ * component that has signed the R2 keys.
+ */
+export const MOCK_CONTRIBUTIONS: RevealContribution[] = buildMockContributions();
