@@ -3,8 +3,6 @@ import { NextResponse } from "next/server";
 
 import { captureServerEvent } from "@/lib/posthog-server";
 import {
-  ANNUAL_ADDON_CENTS,
-  ANNUAL_BASE_CENTS,
   calculateProration,
   nextFirstOfMonth,
 } from "@/lib/proration";
@@ -16,6 +14,7 @@ import {
   squareIsConfigured,
 } from "@/lib/square";
 import { retryOnIdempotencyReuse } from "@/lib/square-idempotency";
+import { scheduleAnnualRebuild } from "@/lib/square-sub-rebuild";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -78,6 +77,9 @@ export async function POST(): Promise<NextResponse> {
           status: true,
           squareSubId: true,
           addonCapsuleCount: true,
+          currentPeriodEnd: true,
+          pendingPlan: true,
+          pendingSquareSubId: true,
         },
       },
     },
@@ -111,25 +113,70 @@ export async function POST(): Promise<NextResponse> {
   const now = new Date();
 
   try {
-    // ── ANNUAL path: merge into base sub via price_override ──
+    // ── ANNUAL path: scheduled-rebuild at renewal ──
+    //
+    // We used to call `subscriptions.update` with
+    // `priceOverrideMoney`, but Square rejects that when an
+    // `orderTemplateId` is present on the sub (and every annual
+    // sub we create has one). Instead we schedule a fresh annual
+    // sub to start at the existing currentPeriodEnd with a new
+    // custom template baking in the updated addon total. The slot
+    // is granted immediately in our DB; Square bills the current
+    // cycle at the old amount and the merged total kicks in at
+    // renewal.
     if (plan === "ANNUAL") {
-      const newCount = addonIndex + 1;
-      const newBasePriceCents = ANNUAL_BASE_CENTS + ANNUAL_ADDON_CENTS * newCount;
-
-      await square.subscriptions.update({
-        subscriptionId: user.subscription.squareSubId,
-        subscription: {
-          priceOverrideMoney: {
-            amount: BigInt(newBasePriceCents),
-            currency: "USD",
+      // A switch-plan (monthly→annual or annual→monthly) in
+      // flight conflicts — addon rebuilds and cadence switches
+      // use the same pending-sub slot. Also reject if a previous
+      // addon rebuild's pending sub is for a DIFFERENT target
+      // plan (defense-in-depth against race conditions).
+      const earlierPendingSubId = user.subscription.pendingSquareSubId;
+      const earlierPendingPlan = user.subscription.pendingPlan;
+      if (
+        earlierPendingPlan &&
+        earlierPendingPlan !== "ANNUAL"
+      ) {
+        return NextResponse.json(
+          {
+            error:
+              "A plan change is already scheduled. Wait for it to take effect before adding capsules.",
           },
-        },
+          { status: 409 },
+        );
+      }
+      if (!user.squareCardId) {
+        return NextResponse.json(
+          {
+            error:
+              "No card on file found. Please re-enter your card details.",
+          },
+          { status: 409 },
+        );
+      }
+
+      const newCount = addonIndex + 1;
+      const rebuild = await scheduleAnnualRebuild({
+        square,
+        userId: user.id,
+        customerId: user.squareCustomerId,
+        cardId: user.squareCardId,
+        currentSubscriptionId: user.subscription.squareSubId,
+        effectiveDate: user.subscription.currentPeriodEnd,
+        newAddonCount: newCount,
+        existingPendingSubId: earlierPendingSubId,
       });
 
       const updated = await prisma.subscription.update({
         where: { userId: user.id },
         data: {
           addonCapsuleCount: { increment: 1 },
+          // Piggyback on the existing pendingPlan machinery so
+          // the existing webhook promotion path picks up the new
+          // sub when it activates. plan === pendingPlan signals
+          // "annual rebuild" to the webhook (vs a cadence switch).
+          pendingPlan: "ANNUAL",
+          pendingSquareSubId: rebuild.newPendingSubId,
+          pendingEffectiveDate: rebuild.effectiveDate,
         },
         select: {
           addonCapsuleCount: true,
@@ -140,17 +187,18 @@ export async function POST(): Promise<NextResponse> {
       await captureServerEvent(userId, "subscription_addon_added", {
         plan,
         newAddonCount: updated.addonCapsuleCount,
-        billingModel: "annual-override",
+        billingModel: "annual-rebuild",
       });
 
       return NextResponse.json({
         success: true,
         newSlotCount: updated.baseCapsuleCount + updated.addonCapsuleCount,
-        // Annual addons don't charge right now — they ride the
-        // next renewal. Client UI reads this flag to show the
-        // "free until renewal" confirmation copy.
+        // Annual addons don't charge today. Client UI reads
+        // these fields to show the "free until renewal"
+        // confirmation copy with the exact effective date.
         freeUntilRenewal: true,
-        nextRenewalAmountCents: newBasePriceCents,
+        nextRenewalAmountCents: rebuild.nextRenewalAmountCents,
+        effectiveDate: rebuild.effectiveDate.toISOString(),
       });
     }
 

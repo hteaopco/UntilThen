@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { backfillAddonSquareSubIds } from "@/lib/addon-backfill";
 import { captureServerEvent } from "@/lib/posthog-server";
 import { getSquareClient, squareIsConfigured } from "@/lib/square";
+import { scheduleAnnualRebuild } from "@/lib/square-sub-rebuild";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -63,6 +64,9 @@ export async function POST(): Promise<NextResponse> {
       baseCapsuleCount: true,
       addonCapsuleCount: true,
       addonSquareSubIds: true,
+      currentPeriodEnd: true,
+      pendingPlan: true,
+      pendingSquareSubId: true,
     },
   });
   if (!sub)
@@ -84,41 +88,87 @@ export async function POST(): Promise<NextResponse> {
   const square = getSquareClient();
   const newAddonCount = sub.addonCapsuleCount - 1;
 
-  // ── ANNUAL: decrement the base sub's price_override ──
+  // ── ANNUAL: scheduled-rebuild at renewal ──
+  //
+  // Same pattern as the add path in addon-capsule. We don't
+  // touch the current sub's price (annual subs reject
+  // priceOverrideMoney when a template is present). Instead we
+  // schedule a fresh annual sub for the start of the next
+  // cycle with a new merged template. The slot drops in our
+  // DB immediately; the sub keeps billing the old higher
+  // amount through the current cycle (the user is effectively
+  // "paying for" the removed slot until renewal — acceptable
+  // trade-off).
   if (sub.plan === "ANNUAL") {
-    const newBasePriceCents = 3599 + 600 * newAddonCount;
-    try {
-      await square.subscriptions.update({
-        subscriptionId: sub.squareSubId,
-        subscription: {
-          priceOverrideMoney: {
-            amount: BigInt(newBasePriceCents),
-            currency: "USD",
-          },
+    const earlierPendingSubId = sub.pendingSquareSubId;
+    const earlierPendingPlan = sub.pendingPlan;
+    if (earlierPendingPlan && earlierPendingPlan !== "ANNUAL") {
+      return NextResponse.json(
+        {
+          error:
+            "A plan change is already scheduled. Wait for it to take effect before removing capsules.",
         },
+        { status: 409 },
+      );
+    }
+
+    const userRow = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { squareCustomerId: true, squareCardId: true },
+    });
+    if (!userRow?.squareCustomerId || !userRow.squareCardId) {
+      return NextResponse.json(
+        {
+          error:
+            "No card on file found. Please re-enter your card details.",
+        },
+        { status: 409 },
+      );
+    }
+
+    try {
+      const rebuild = await scheduleAnnualRebuild({
+        square,
+        userId: user.id,
+        customerId: userRow.squareCustomerId,
+        cardId: userRow.squareCardId,
+        currentSubscriptionId: sub.squareSubId,
+        effectiveDate: sub.currentPeriodEnd,
+        newAddonCount,
+        existingPendingSubId: earlierPendingSubId,
+      });
+      await applyRemovalToDb({
+        subId: sub.id,
+        userId: user.id,
+        newAddonCount,
+        newAddonSubIds: sub.addonSquareSubIds,
+        baseCapsuleCount: sub.baseCapsuleCount,
+        pending: {
+          plan: "ANNUAL",
+          subId: rebuild.newPendingSubId,
+          effectiveDate: rebuild.effectiveDate,
+        },
+      });
+      await captureServerEvent(userId, "subscription_addon_removed", {
+        newAddonCount,
+        billingModel: "annual-rebuild",
+      });
+      return NextResponse.json({
+        success: true,
+        newSlotCount: sub.baseCapsuleCount + newAddonCount,
+        nextRenewalAmountCents: rebuild.nextRenewalAmountCents,
+        effectiveDate: rebuild.effectiveDate.toISOString(),
       });
     } catch (err) {
       console.error(
-        "[payments/remove-addon] annual priceOverride update failed:",
+        "[payments/remove-addon] annual rebuild failed:",
         err,
       );
+      return NextResponse.json(
+        { error: "We couldn't remove that slot. Please try again." },
+        { status: 500 },
+      );
     }
-    // No addonSquareSubIds to touch in the annual model.
-    await applyRemovalToDb({
-      subId: sub.id,
-      userId: user.id,
-      newAddonCount,
-      newAddonSubIds: sub.addonSquareSubIds,
-      baseCapsuleCount: sub.baseCapsuleCount,
-    });
-    await captureServerEvent(userId, "subscription_addon_removed", {
-      newAddonCount,
-      billingModel: "annual-override",
-    });
-    return NextResponse.json({
-      success: true,
-      newSlotCount: sub.baseCapsuleCount + newAddonCount,
-    });
   }
 
   // ── MONTHLY: pop + cancel one Square addon sub ──
@@ -180,12 +230,18 @@ async function applyRemovalToDb({
   newAddonCount,
   newAddonSubIds,
   baseCapsuleCount,
+  pending,
 }: {
   subId: string;
   userId: string;
   newAddonCount: number;
   newAddonSubIds: string[];
   baseCapsuleCount: number;
+  pending?: {
+    plan: "MONTHLY" | "ANNUAL";
+    subId: string;
+    effectiveDate: Date;
+  };
 }) {
   const { prisma } = await import("@/lib/prisma");
   const newSlots = baseCapsuleCount + newAddonCount;
@@ -196,6 +252,13 @@ async function applyRemovalToDb({
       data: {
         addonCapsuleCount: newAddonCount,
         addonSquareSubIds: newAddonSubIds,
+        ...(pending
+          ? {
+              pendingPlan: pending.plan,
+              pendingSquareSubId: pending.subId,
+              pendingEffectiveDate: pending.effectiveDate,
+            }
+          : {}),
       },
     });
 

@@ -58,6 +58,7 @@ export async function POST(): Promise<NextResponse> {
           id: true,
           squareSubId: true,
           status: true,
+          plan: true,
           pendingPlan: true,
           pendingSquareSubId: true,
           pendingEffectiveDate: true,
@@ -76,6 +77,23 @@ export async function POST(): Promise<NextResponse> {
       { error: "No pending plan switch to cancel." },
       { status: 409 },
     );
+  // Annual-addon rebuilds park their scheduled sub in the same
+  // pendingSquareSubId slot used by cadence switches (plan ===
+  // pendingPlan signals "rebuild"). The cancel-switch UI is
+  // only meant for monthly→annual cadence changes; rolling back
+  // an addon rebuild is a different flow and could strand the
+  // user with the new addon count but no corresponding billing.
+  // Reject here so the wrong button can't silently un-schedule
+  // a rebuild.
+  if (sub.plan === sub.pendingPlan) {
+    return NextResponse.json(
+      {
+        error:
+          "Can't undo a scheduled capsule-count update this way. Remove the extra capsule from your plan instead, or wait for the next renewal.",
+      },
+      { status: 409 },
+    );
+  }
   if (sub.pendingEffectiveDate.getTime() <= Date.now())
     return NextResponse.json(
       {

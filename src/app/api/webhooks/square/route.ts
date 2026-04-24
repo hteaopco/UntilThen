@@ -167,9 +167,9 @@ async function handleSubscriptionUpsert(event: WebhookEvent) {
           : oneYearLater(new Date());
       // Promoting to ANNUAL: the addons that were separate
       // monthly subs before the switch now live inside the new
-      // base sub via priceOverrideMoney, so the addonSquareSubIds
-      // array is stale. Wipe it. Promoting to MONTHLY: leave
-      // addonSquareSubIds untouched (we don't currently support
+      // base sub, so the addonSquareSubIds array is stale. Wipe
+      // it. Promoting to MONTHLY: leave addonSquareSubIds
+      // untouched (we don't currently support
       // monthly→annual→monthly carry-over of addons).
       const clearAddonIds =
         pendingMatch.pendingPlan === "ANNUAL"
@@ -188,13 +188,22 @@ async function handleSubscriptionUpsert(event: WebhookEvent) {
           ...clearAddonIds,
         },
       });
+      // plan === pendingPlan signals "annual-addon rebuild" (the
+      // add/remove-addon flow parks its scheduled sub in the
+      // same pending slots used by cadence switches). Fire a
+      // distinct event so the analytics funnel stays honest.
+      const isRebuild = pendingMatch.plan === pendingMatch.pendingPlan;
       await captureServerEvent(
         `user:${pendingMatch.userId}`,
-        "subscription_plan_switched",
-        {
-          from: pendingMatch.plan,
-          to: pendingMatch.pendingPlan,
-        },
+        isRebuild
+          ? "subscription_annual_rebuilt"
+          : "subscription_plan_switched",
+        isRebuild
+          ? { plan: pendingMatch.pendingPlan }
+          : {
+              from: pendingMatch.plan,
+              to: pendingMatch.pendingPlan,
+            },
       );
     }
     return;
