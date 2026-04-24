@@ -212,12 +212,19 @@ preview, admin mock). Remaining work is hands-on device QA.
   container-side behavior is fine once it starts — the 502s were
   image-push slowness, not container startup.)
 
-  Biggest wins when resuming:
-  1. `npm prune --omit=dev` after build — Playwright alone is ~200 MB
-  2. Exclude `.next/cache/` from the runtime image
-  3. Confirm Sentry source maps are actually being deleted post-upload
-     (we have `deleteSourcemapsAfterUpload: true` but the image is
-     still large — worth checking)
-  4. Move `prisma` CLI from `devDependencies` to `dependencies` so the
-     `npm prune` above doesn't remove it (start command needs it for
-     `prisma migrate deploy`)
+  **First attempt (reverted):** Tried merging `npm ci` + `next build`
+  + `npm prune --omit=dev` into one install-phase RUN in `12a1119`
+  through `f2deb47`, plus moving `prisma` to runtime deps. Two build
+  failures and a net-larger image (699 MB vs 622 MB) — the `npm ci`
+  hit `EBUSY` on BuildKit's `.cache` bind mounts, and when finally
+  placed in the install phase the image somehow grew rather than
+  shrank (Railway UI truncated logs, couldn't confirm what prune
+  actually did). Reverted in `8ef6516`, `8da4626`, `764433a`.
+
+  When resuming, better approach:
+  1. Need desktop + full build logs to actually see `[slim] before:`
+     vs `[slim] after:` diff — Railway's mobile log view truncates.
+  2. Consider a multi-stage Dockerfile instead of nixpacks — full
+     control over which layers land in the runtime image.
+  3. Alternative: leave image as-is and accept the slow push. User
+     workflow is already "push → wait 2–5 min → site updates."
