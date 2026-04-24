@@ -1,11 +1,19 @@
 # Nixpacks config for Railway
 [phases.setup]
-# postgresql_18 ships pg_dump / psql — used by the /api/cron/db-backup
-# endpoint to stream a nightly dump to R2 as a belt-and-suspenders
-# alongside Railway's native Postgres backups. Must match the server
-# major version (Railway PG is currently 18.3); pg_dump refuses to
-# dump a newer server with an older client.
-nixPkgs = ["nodejs_22", "openssl", "postgresql_18"]
+# pg_dump 18 is needed by /api/cron/db-backup to dump the Railway
+# managed PG (currently 18.x). pg_dump refuses to dump a newer-major
+# server with an older client, and Nixpacks' pinned nixpkgs revision
+# only ships postgresql_17, so we install the PG-18 client via PGDG's
+# official apt repo. nix still handles nodejs + openssl.
+nixPkgs = ["nodejs_22", "openssl"]
+aptPkgs = ["ca-certificates", "curl", "gnupg", "lsb-release"]
+cmds = [
+  "bash -c 'curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg'",
+  "bash -c 'echo \"deb [signed-by=/etc/apt/trusted.gpg.d/pgdg.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main\" > /etc/apt/sources.list.d/pgdg.list'",
+  "apt-get update",
+  "apt-get install -y --no-install-recommends postgresql-client-18",
+  "pg_dump --version",
+]
 
 [phases.install]
 cmds = [
