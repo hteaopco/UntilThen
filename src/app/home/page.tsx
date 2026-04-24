@@ -123,13 +123,15 @@ export default async function HomePage() {
         />
       </section>
 
-      {/* Decorative image sitting under both bubbles, above the footer. */}
+      {/* Decorative image sitting under both bubbles, above the
+          footer. 80% width, centered — 10% cream margin on each
+          side so it doesn't bleed to the edge. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/IMG_2492.png"
         alt=""
         aria-hidden="true"
-        className="w-full h-auto block"
+        className="w-4/5 h-auto block mx-auto"
       />
 
       <footer className="px-6 py-3 text-center">
