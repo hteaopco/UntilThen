@@ -61,7 +61,7 @@ export function HomeCard({ href, imageSrc, icon, title, subtitle }: Props) {
       />
 
       {/* Text overlay on the left half */}
-      <div className="absolute inset-y-0 left-0 w-[56%] sm:w-[52%] flex items-center pointer-events-none pl-5 sm:pl-7">
+      <div className="absolute inset-y-0 left-0 w-[56%] sm:w-[52%] flex items-center pointer-events-none pl-7 sm:pl-10 pr-2">
         <div>
           {/* Icon tile with ring-fill overlay when loading */}
           <div className="relative w-11 h-11 sm:w-12 sm:h-12">
@@ -100,7 +100,7 @@ export function HomeCard({ href, imageSrc, icon, title, subtitle }: Props) {
               </svg>
             ) : null}
           </div>
-          <h2 className="mt-3 sm:mt-4 font-serif text-[20px] sm:text-[24px] font-bold text-navy tracking-[-0.3px] leading-[1.1]">
+          <h2 className="mt-3 sm:mt-4 text-[18px] sm:text-[22px] font-extrabold text-navy tracking-[-0.4px] leading-[1.15]">
             {title}
           </h2>
           <div
