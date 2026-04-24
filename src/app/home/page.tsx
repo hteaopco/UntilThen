@@ -60,7 +60,7 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="min-h-dvh bg-cream flex flex-col overflow-hidden">
+    <main className="min-h-dvh bg-cream flex flex-col">
       <header className="px-5 sm:px-8 py-3 flex items-center justify-between">
         <Link
           href="/account"
@@ -89,21 +89,23 @@ export default async function HomePage() {
 
       <section className="flex-1 flex flex-col items-center justify-center gap-5 sm:gap-7 px-6 pb-3 relative">
         {/* Decorative sparkles scattered around the bubbles. Purely
-            aesthetic — aria-hidden so screen readers skip them. */}
+            aesthetic — aria-hidden so screen readers skip them. All
+            held at the same 20% opacity so they read as a uniform
+            ambient layer rather than a mix of weights. */}
         <Sparkle
-          className="absolute top-[8%] left-[6%] text-amber/35"
+          className="absolute top-[8%] left-[6%] text-amber/20"
           size={22}
         />
         <Sparkle
-          className="absolute top-[38%] right-[5%] text-amber/45"
+          className="absolute top-[38%] right-[5%] text-amber/20"
           size={18}
         />
         <Sparkle
-          className="absolute bottom-[12%] left-[8%] text-amber/40"
+          className="absolute bottom-[12%] left-[8%] text-amber/20"
           size={20}
         />
         <Sparkle
-          className="absolute top-[60%] right-[8%] text-amber/30"
+          className="absolute top-[60%] right-[8%] text-amber/20"
           size={14}
         />
 
@@ -129,6 +131,11 @@ export default async function HomePage() {
           Made with love. Meant to last.
         </p>
       </footer>
+
+      {/* Trailing cream spacer so the page extends a little beyond
+          the viewport. Avoids the hard cream-to-white edge that
+          iOS overscroll bounce would otherwise expose. */}
+      <div aria-hidden="true" className="h-32 sm:h-40 bg-cream" />
     </main>
   );
 }
