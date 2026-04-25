@@ -496,13 +496,8 @@ export function CapsuleOverview({
         <ActivationModal
           capsuleId={capsule.id}
           capsuleTitle={capsule.title}
-          recipientName={capsule.recipientName}
           recipientDisplayName={recipientDisplayName}
           recipientPronoun={pronoun}
-          isCouple={isCouple}
-          subjectPronoun={subjectPronoun}
-          initialEmail={capsule.recipientEmail}
-          initialPhone={capsule.recipientPhone}
           invitesStaged={invites.filter((i) => i.status === "STAGED").length}
           stagedInvites={invites.filter((i) => i.status === "STAGED")}
           requiresPayment={requiresPayment}
@@ -1261,26 +1256,11 @@ function ConfirmDelete({
 //            validates contact, flips status to ACTIVE, and
 //            dispatches staged invite emails atomically.
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_MIN_DIGITS = 10;
-
-function formatPhone(raw: string): string {
-  const digits = raw.replace(/\D/g, "");
-  if (digits.length <= 3) return digits;
-  if (digits.length <= 6) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-  return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
-}
-
 function ActivationModal({
   capsuleId,
   capsuleTitle,
-  recipientName,
   recipientDisplayName,
   recipientPronoun,
-  isCouple,
-  subjectPronoun,
-  initialEmail,
-  initialPhone,
   invitesStaged,
   stagedInvites,
   requiresPayment,
@@ -1289,83 +1269,37 @@ function ActivationModal({
 }: {
   capsuleId: string;
   capsuleTitle: string;
-  recipientName: string;
   recipientDisplayName: string;
   recipientPronoun: "her" | "him" | "them";
-  isCouple: boolean;
-  subjectPronoun: string;
-  initialEmail: string | null;
-  initialPhone: string | null;
   invitesStaged: number;
   stagedInvites: InviteRow[];
   requiresPayment: boolean;
   onClose: () => void;
   onDone: () => void;
 }) {
-  // Three possible steps:
-  //   summary  — contributor list + "Next" button (always)
+  // Two possible steps now (recipient contact info is captured at
+  // capsule creation time, so we don't ask for it again here):
+  //   summary  — contributor list + send button (always)
   //   pay      — card entry (only when requiresPayment)
-  //   contact  — email / phone + final activate
-  const [step, setStep] = useState<"summary" | "pay" | "contact">("summary");
-  const [email, setEmail] = useState(initialEmail ?? "");
-  const [phone, setPhone] = useState(
-    initialPhone ? formatPhone(initialPhone) : "",
-  );
-  const [email2, setEmail2] = useState("");
-  const [phone2, setPhone2] = useState("");
-  const [sourceId, setSourceId] = useState<string | null>(null);
+  const [step, setStep] = useState<"summary" | "pay">("summary");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const squareAppId = process.env.NEXT_PUBLIC_SQUARE_APPLICATION_ID ?? "";
   const squareLocationId = process.env.NEXT_PUBLIC_SQUARE_LOCATION_ID ?? "";
 
-  function confirmSummary() {
-    setError(null);
-    // Skip the card step entirely when this user has free gift
-    // access or the paywall is off.
-    setStep(requiresPayment ? "pay" : "contact");
-  }
-
-  async function handleTokenized(nonce: string) {
-    setSourceId(nonce);
-    setError(null);
-    setStep("contact");
-  }
-
-  async function saveAndActivate(e: FormEvent) {
-    e.preventDefault();
-    if (busy) return;
-    const trimmedEmail = email.trim().toLowerCase();
-    const trimmedPhone = phone.trim();
-    if (!trimmedEmail && !trimmedPhone) {
-      setError("Add an email or phone number so we can reach them.");
-      return;
-    }
-    if (trimmedEmail && !EMAIL_RE.test(trimmedEmail)) {
-      setError("Please enter a valid email.");
-      return;
-    }
-    if (requiresPayment && !sourceId) {
-      // Defensive — the UI flow shouldn't let us land here
-      // without a nonce, but if someone navigates back and
-      // forward, bounce them to the pay step instead of
-      // submitting a bad request.
-      setError("Please enter your card details first.");
-      setStep("pay");
-      return;
-    }
+  // Shared activation call. Pass the Square nonce when paying;
+  // pass null for free activations. The API uses whatever
+  // recipientEmail / recipientPhone is already on the capsule
+  // (collected at creation in the gift capsule flow).
+  async function runActivate(sourceId: string | null) {
     setBusy(true);
     setError(null);
     try {
       const res = await fetch(`/api/capsules/${capsuleId}/activate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sourceId: sourceId ?? null,
-          recipientEmail: trimmedEmail || null,
-          recipientPhone: trimmedPhone || null,
-        }),
+        body: JSON.stringify({ sourceId }),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as {
@@ -1376,9 +1310,23 @@ function ActivationModal({
       onDone();
     } catch (err) {
       setError((err as Error).message);
-    } finally {
       setBusy(false);
     }
+  }
+
+  async function confirmSummary() {
+    setError(null);
+    if (requiresPayment) {
+      setStep("pay");
+      return;
+    }
+    // Free activation path — fire activate immediately.
+    await runActivate(null);
+  }
+
+  async function handleTokenized(nonce: string) {
+    setError(null);
+    await runActivate(nonce);
   }
 
   return (
@@ -1398,26 +1346,15 @@ function ActivationModal({
           <div>
             <div className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-1">
               {(() => {
-                const totalSteps = requiresPayment ? 3 : 2;
-                const current =
-                  step === "summary"
-                    ? 1
-                    : step === "pay"
-                      ? 2
-                      : requiresPayment
-                        ? 3
-                        : 2;
+                const totalSteps = requiresPayment ? 2 : 1;
+                const current = step === "summary" ? 1 : 2;
                 return `Step ${current} of ${totalSteps}`;
               })()}
             </div>
             <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] leading-[1.25] whitespace-nowrap">
               {step === "summary"
                 ? `Invite everyone who loves ${recipientPronoun}`
-                : step === "pay"
-                  ? "Add your card"
-                  : isCouple
-                    ? "How should we reach them?"
-                    : `How should we reach ${recipientDisplayName}?`}
+                : "Add your card"}
             </h2>
           </div>
           <button
@@ -1499,15 +1436,20 @@ function ActivationModal({
             <button
               type="button"
               onClick={confirmSummary}
-              className="w-full bg-amber text-white py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
+              disabled={busy}
+              className="w-full bg-amber text-white py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
             >
-              Next
+              {busy
+                ? "Sending…"
+                : requiresPayment
+                  ? "Continue to payment"
+                  : "Send contributor invites"}
             </button>
             <p className="text-sm font-semibold text-navy text-center">
               Nothing is sent to {recipientDisplayName} yet. You&rsquo;ll review everything before delivery.
             </p>
           </div>
-        ) : step === "pay" ? (
+        ) : (
           <div className="p-6">
             <GiftCapsuleCheckout
               capsuleTitle={capsuleTitle}
@@ -1519,109 +1461,6 @@ function ActivationModal({
               serverError={error}
             />
           </div>
-        ) : (
-          <form onSubmit={saveAndActivate} className="p-6 space-y-4">
-            <p className="text-sm text-ink-mid leading-[1.6]">
-              Add an email, a phone number, or both.
-            </p>
-            <div className="rounded-lg bg-amber-tint border border-amber/25 px-4 py-3">
-              <p className="text-xs font-bold text-navy mb-0.5">
-                Contributions are not sent until the reveal date.
-              </p>
-              <p className="text-[11px] text-ink-mid leading-[1.5]">
-                Invites go out now so contributors can write, but {isCouple ? "they" : recipientDisplayName} won&rsquo;t receive anything until the scheduled reveal day and time.
-              </p>
-            </div>
-            <label className="block">
-              <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
-                {isCouple ? `${recipientDisplayName.split(" and ")[0]} email` : "Recipient email"}
-              </span>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={`${recipientDisplayName.split(" and ")[0]?.toLowerCase() ?? "recipient"}@email.com`}
-                className="account-input"
-              />
-            </label>
-            <label className="block">
-              <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
-                {isCouple ? `${recipientDisplayName.split(" and ")[0]} phone` : "Recipient phone"}
-              </span>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(formatPhone(e.target.value))}
-                placeholder="337-288-6073"
-                className="account-input"
-              />
-            </label>
-            {isCouple && (
-              <>
-                <hr className="border-navy/[0.06]" />
-                <label className="block">
-                  <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
-                    {recipientDisplayName.split(" and ")[1]} email
-                  </span>
-                  <input
-                    type="email"
-                    value={email2}
-                    onChange={(e) => setEmail2(e.target.value)}
-                    placeholder={`${recipientDisplayName.split(" and ")[1]?.toLowerCase() ?? "recipient2"}@email.com`}
-                    className="account-input"
-                  />
-                </label>
-                <label className="block">
-                  <span className="block text-[11px] font-bold tracking-[0.12em] uppercase text-ink-mid mb-2">
-                    {recipientDisplayName.split(" and ")[1]} phone
-                  </span>
-                  <input
-                    type="tel"
-                    value={phone2}
-                    onChange={(e) => setPhone2(formatPhone(e.target.value))}
-                    placeholder="337-288-6073"
-                    className="account-input"
-                  />
-                </label>
-              </>
-            )}
-            {error && (
-              <p className="text-sm text-red-600" role="alert">
-                {error}
-              </p>
-            )}
-            <div className="flex items-center gap-3 pt-1">
-              {(() => {
-                const emailValid = EMAIL_RE.test(email.trim());
-                const phoneDigits = phone.replace(/\D/g, "").length;
-                const phoneValid = phoneDigits >= PHONE_MIN_DIGITS;
-                const contactValid = emailValid || phoneValid;
-                return (
-                  <button
-                    type="submit"
-                    disabled={busy || !contactValid}
-                    className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors ${
-                      contactValid
-                        ? "bg-amber text-white hover:bg-amber-dark disabled:opacity-60"
-                        : "bg-navy/10 text-ink-light cursor-not-allowed"
-                    }`}
-                  >
-                    {busy ? "Sending…" : "Send Invites, Save Recipient Info"}
-                  </button>
-                );
-              })()}
-              <button
-                type="button"
-                onClick={() => {
-                  if (!busy) setStep("pay");
-                }}
-                disabled={busy}
-                className="text-sm font-medium text-ink-mid hover:text-navy transition-colors disabled:opacity-50"
-              >
-                Back
-              </button>
-            </div>
-          </form>
         )}
       </div>
     </div>
