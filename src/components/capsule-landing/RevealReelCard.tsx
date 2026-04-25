@@ -60,8 +60,36 @@ export function RevealReelCard({
     }
   }
 
+  const isBuild = mode === "BUILD";
+  // Stable label so the height of the count/edit row never
+  // changes — keeps the layout below from shifting on toggle.
+  const countLabel = `${curatedSlideCount}/5 · Edit`;
+
   return (
     <div className="flex flex-col items-end gap-2 shrink-0">
+      {/* Curator edit link sits ABOVE the mode pill so it stays in
+          a fixed position. Always rendered (no layout shift on
+          toggle) — greyed out on Random, amber-bold + clickable
+          on Build. */}
+      {isBuild ? (
+        <Link
+          href={`/vault/${childId}/reveal/curator`}
+          prefetch={false}
+          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-bold text-amber hover:text-amber-dark transition-colors whitespace-nowrap"
+        >
+          <Settings2 size={11} strokeWidth={2} aria-hidden="true" />
+          {countLabel}
+        </Link>
+      ) : (
+        <span
+          aria-hidden="true"
+          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold text-ink-light/60 whitespace-nowrap cursor-default"
+        >
+          <Settings2 size={11} strokeWidth={2} aria-hidden="true" />
+          {countLabel}
+        </span>
+      )}
+
       <div
         role="group"
         aria-label="Reveal mode"
@@ -91,19 +119,6 @@ export function RevealReelCard({
         <Eye size={14} strokeWidth={1.75} aria-hidden="true" />
         Preview the Reveal
       </Link>
-
-      {mode === "BUILD" && (
-        <Link
-          href={`/vault/${childId}/reveal/curator`}
-          prefetch={false}
-          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold text-amber hover:text-amber-dark transition-colors whitespace-nowrap"
-        >
-          <Settings2 size={11} strokeWidth={2} aria-hidden="true" />
-          {curatedSlideCount > 0
-            ? `${curatedSlideCount}/5 · Edit`
-            : "Customize"}
-        </Link>
-      )}
 
       {error && (
         <p className="text-[12px] text-red-600 text-right" role="alert">

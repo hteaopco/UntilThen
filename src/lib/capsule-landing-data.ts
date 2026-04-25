@@ -18,6 +18,10 @@ export type CapsuleLandingData = {
     revealDate: Date | null;
     revealMode: "RANDOM" | "BUILD";
     curatedSlides: CuratedSlide[];
+    /** Slides whose entryId still resolves to a visible entry —
+     *  what the curator-edit pill on the landing page actually
+     *  shows ("X/5"). Always ≤ curatedSlides.length. */
+    validCuratedSlideCount: number;
     revealSongId: string | null;
     revealSongName: string | null;
   };
@@ -153,6 +157,30 @@ export async function loadCapsuleLandingData({
     })),
   ];
 
+  // Count curated slides whose entryId still maps to a visible
+  // entry. Stale slides (entry deleted, unpublished, or stuck in
+  // moderation) get filtered out so the "X/5" display reflects
+  // what would actually play, not whatever was saved last.
+  const curatedSlides = parseCuratedSlides(child.vault.curatedSlides);
+  let validCuratedSlideCount = 0;
+  if (curatedSlides.length > 0) {
+    const candidateIds = Array.from(new Set(curatedSlides.map((s) => s.entryId)));
+    const validEntries = await prisma.entry.findMany({
+      where: {
+        vaultId: child.vault.id,
+        id: { in: candidateIds },
+        isSealed: true,
+        approvalStatus: { in: ["AUTO_APPROVED", "APPROVED"] },
+        moderationState: { notIn: ["SCANNING", "FLAGGED"] },
+      },
+      select: { id: true },
+    });
+    const validIdSet = new Set(validEntries.map((e) => e.id));
+    validCuratedSlideCount = curatedSlides.filter((s) =>
+      validIdSet.has(s.entryId),
+    ).length;
+  }
+
   return {
     child: {
       id: child.id,
@@ -164,7 +192,8 @@ export async function loadCapsuleLandingData({
       coverUrl: signedCoverUrl,
       revealDate: child.vault.revealDate,
       revealMode: child.vault.revealMode,
-      curatedSlides: parseCuratedSlides(child.vault.curatedSlides),
+      curatedSlides,
+      validCuratedSlideCount,
       revealSongId: child.vault.revealSongId,
       revealSongName: child.vault.revealSong?.name ?? null,
     },

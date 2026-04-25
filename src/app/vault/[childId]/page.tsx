@@ -67,7 +67,7 @@ export default async function CapsuleLandingPage({
               vaultId={vault.id}
               childId={child.id}
               initialMode={vault.revealMode}
-              curatedSlideCount={vault.curatedSlides.length}
+              curatedSlideCount={vault.validCuratedSlideCount}
             />
           </div>
 
