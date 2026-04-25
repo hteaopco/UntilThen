@@ -26,6 +26,11 @@ const SECTIONS: AccordionSection[] = [
           "untilThen is a time capsule app. You write letters, record voice notes, and upload photos and videos for someone you love — sealed in a private Time Capsule until they reach a milestone you choose, like an 18th birthday, a wedding, or a future anniversary.",
       },
       {
+        question: "What's the difference between a Time Capsule and a Gift Capsule?",
+        answer:
+          "Two different products. A Time Capsule lives in your Vault — long-form, written by you over weeks or years, opened on a future milestone you choose. Best for things like a letter-a-week to your kids or a private record sealed until a future anniversary. Subscription product, $4.99/month (3 capsules included). A Gift Capsule is a one-off — you organise it for a specific occasion (birthday, retirement, graduation, wedding) and invite friends and family to add their own messages alongside yours. Multi-contributor, opened all at once on the reveal day. One-time $9.99 charge per capsule, no subscription required.",
+      },
+      {
         question: "When does the recipient get access to their Time Capsule?",
         answer:
           "On the reveal date, the recipient gets an email with a private link to open their Time Capsule. Until that day, no content has been sent to them — there's nothing to log into and nothing for them to find. The link works after the reveal date too, so they can come back any time to revisit what was opened.",
