@@ -76,34 +76,26 @@ export default async function DashboardPage() {
                 href="/account/capsules/new"
                 prefetch={false}
                 aria-label="Add a time capsule"
-                className="shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl bg-white border-2 border-dashed border-amber/40 hover:border-amber/60 transition-colors overflow-hidden flex flex-col"
+                className="shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] min-h-[197px] sm:min-h-[228px] rounded-2xl bg-white border-2 border-dashed border-amber/40 hover:border-amber/60 transition-colors flex flex-col items-center justify-center gap-2.5 text-center px-4"
               >
-                {/* Mirrors VaultCard's cover/footer layout exactly so
-                    total card height lines up with the rest of the
-                    row — bottoms align without per-breakpoint
-                    aspect-ratio guesswork. */}
-                <div className="aspect-[4/3] sm:aspect-square flex items-center justify-center">
-                  {/* Lighter button — smaller, two-stop amber
-                      gradient (light → amber) with a soft drop
-                      shadow. Plus icon sized down + thinner stroke
-                      so it reads as a tap target, not a heavy CTA. */}
-                  <span
-                    aria-hidden="true"
-                    className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-light to-amber text-white flex items-center justify-center shadow-[0_3px_10px_-2px_rgba(196,122,58,0.3)]"
-                  >
-                    <Plus size={22} strokeWidth={2} />
-                  </span>
-                </div>
-                <div className="p-3 text-center">
-                  <h3 className="text-[15px] font-bold text-navy tracking-[-0.3px] leading-tight">
-                    New Capsule
-                  </h3>
-                  <p className="mt-1 text-[11px] font-medium text-ink-mid leading-[1.35]">
-                    Create moments worth
-                    <br />
-                    remembering
-                  </p>
-                </div>
+                {/* Lighter button — smaller, two-stop amber
+                    gradient (light → amber) with a soft drop
+                    shadow. Plus icon sized down + thinner stroke
+                    so it reads as a tap target, not a heavy CTA. */}
+                <span
+                  aria-hidden="true"
+                  className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-light to-amber text-white flex items-center justify-center shadow-[0_3px_10px_-2px_rgba(196,122,58,0.3)]"
+                >
+                  <Plus size={22} strokeWidth={2} />
+                </span>
+                <h3 className="text-[15px] font-bold text-navy tracking-[-0.3px] leading-tight">
+                  New Capsule
+                </h3>
+                <p className="text-[11px] font-medium text-ink-mid leading-[1.35]">
+                  Create moments worth
+                  <br />
+                  remembering
+                </p>
               </Link>
             </HorizontalCardRail>
           )}
