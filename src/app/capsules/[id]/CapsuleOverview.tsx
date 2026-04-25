@@ -285,9 +285,11 @@ export function CapsuleOverview({
       >
         <OwnContribution
           capsuleId={capsule.id}
-          recipientName={capsule.recipientName}
           recipientDisplayName={recipientDisplayName}
           possessivePronoun={possessivePronoun}
+          isCouple={isCouple}
+          firstName1={firstName1}
+          firstName2={firstName2}
           tone={capsule.tone}
           contribution={ownContribution ?? null}
           initialAttachments={ownAttachments}
@@ -516,21 +518,32 @@ export function CapsuleOverview({
 
 function OwnContribution({
   capsuleId,
-  recipientName,
   recipientDisplayName,
   possessivePronoun,
+  isCouple,
+  firstName1,
+  firstName2,
   tone,
   contribution,
   initialAttachments,
 }: {
   capsuleId: string;
-  recipientName: string;
   recipientDisplayName: string;
   possessivePronoun: string;
+  isCouple: boolean;
+  firstName1: string;
+  firstName2: string;
   tone: CapsuleTone;
   contribution: ContributionRow | null;
   initialAttachments: Attachment[];
 }) {
+  // Match surface 1 (CapsuleContributeForm) — couple capsules get
+  // both first names in the placeholder so the "&" separator
+  // matches what contributors see.
+  const dearLine =
+    isCouple && firstName2
+      ? `Dear ${firstName1} & ${firstName2},`
+      : `Dear ${firstName1},`;
   const router = useRouter();
   const [editing, setEditing] = useState(false);
 
@@ -768,7 +781,7 @@ function OwnContribution({
             <TiptapEditor
               initialContent={body}
               onUpdate={setBody}
-              placeholder={`Dear ${recipientName.split(" ")[0]},`}
+              placeholder={dearLine}
             />
             <div className="absolute top-3 right-2.5 bottom-2 w-px flex flex-col items-center pointer-events-none">
               <div className="w-[3px] flex-1 rounded-full bg-gradient-to-b from-amber via-amber/60 to-transparent" />
@@ -829,8 +842,20 @@ function OwnContribution({
           </p>
         )}
 
-        {/* ── Actions: Save bottom-right with Cancel to its left ── */}
-        <div className="mt-4 flex items-center justify-end gap-2">
+        {/* ── Actions: centered primary + Cancel link below, matching
+            CapsuleContributeForm + MemoryEditorForm. ── */}
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full max-w-[400px] bg-amber text-white py-3.5 rounded-xl text-[16px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60 shadow-[0_2px_8px_rgba(196,122,58,0.25)]"
+          >
+            {saving
+              ? "Saving…"
+              : contribution
+                ? "Save changes"
+                : "Save my message"}
+          </button>
           <button
             type="button"
             onClick={() => {
@@ -840,20 +865,9 @@ function OwnContribution({
               setError(null);
             }}
             disabled={saving}
-            className="px-4 py-2 rounded-lg border border-navy/10 text-[13px] font-semibold text-ink-mid hover:text-navy hover:border-navy/20 transition-colors disabled:opacity-50"
+            className="text-[14px] font-semibold text-ink-mid hover:text-navy transition-colors disabled:opacity-50"
           >
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-4 py-2 rounded-lg bg-amber text-white text-[13px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
-          >
-            {saving
-              ? "Saving…"
-              : contribution
-                ? "Save changes"
-                : "Save my message"}
           </button>
         </div>
       </form>
