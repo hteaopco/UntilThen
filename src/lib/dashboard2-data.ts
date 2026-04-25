@@ -1,6 +1,7 @@
 import { effectiveStatus } from "@/lib/capsules";
 import { prisma } from "@/lib/prisma";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
+import { ensureUserEmail } from "@/lib/user-sync";
 import type { VaultCardData } from "@/components/dashboard2/VaultCard";
 import type { GiftCapsuleCreatingData } from "@/components/dashboard2/GiftCapsuleCreatingCard";
 import type { GiftCapsuleReceivedData } from "@/components/dashboard2/GiftCapsuleReceivedCard";
@@ -33,6 +34,11 @@ export async function loadDashboard2Data({
   creating: GiftCapsuleCreatingData[];
   received: GiftCapsuleReceivedData[];
 }> {
+  // Opportunistic email backfill so the avatar lookup below has
+  // something to match against. No-op when User.email is already
+  // populated; one Clerk lookup + one UPDATE per user, ever.
+  await ensureUserEmail(clerkUserId);
+
   const [children, creatingCapsules, receivedCapsules] = await Promise.all([
     prisma.child.findMany({
       where: { parentId: userId, vault: { isNot: null } },
@@ -44,7 +50,11 @@ export async function loadDashboard2Data({
       include: {
         invites: {
           orderBy: { createdAt: "asc" },
-          take: 4,
+          // Bumped from 4 → 6 because the dashboard card shows 3
+          // visible avatars + an overflow counter; pulling 6 lets
+          // us tell "+3 more" for capsules with 6+ invitees
+          // without a second query.
+          take: 6,
           select: { name: true, email: true },
         },
         _count: { select: { invites: true } },
@@ -128,16 +138,60 @@ export async function loadDashboard2Data({
       };
     });
 
+  // Look up real-user avatars for invitees. Match invite.email →
+  // User.email; only matches when the invitee has signed up to
+  // untilThen and their User.email column has been populated
+  // (new users at signup, existing users on next sign-in via
+  // ensureUserEmail). Misses fall back to the placeholder avatar.
+  const inviteEmails = Array.from(
+    new Set(
+      creatingCapsules.flatMap((c) =>
+        c.invites.map((i) => i.email.toLowerCase()),
+      ),
+    ),
+  );
+  const matchedUsers =
+    inviteEmails.length === 0
+      ? []
+      : await prisma.user.findMany({
+          where: { email: { in: inviteEmails } },
+          select: { email: true, avatarUrl: true },
+        });
+  const avatarKeyByEmail = new Map<string, string>();
+  for (const u of matchedUsers) {
+    if (u.email && u.avatarUrl) avatarKeyByEmail.set(u.email, u.avatarUrl);
+  }
+  // Sign R2 URLs for every avatar key we matched. Single-pass so
+  // we don't await inside the per-card map below.
+  const signedAvatars = new Map<string, string>();
+  if (avatarKeyByEmail.size > 0 && r2IsConfigured()) {
+    await Promise.all(
+      Array.from(avatarKeyByEmail.entries()).map(async ([email, key]) => {
+        try {
+          const url = await signGetUrl(key);
+          signedAvatars.set(email, url);
+        } catch {
+          /* skip — falls through to placeholder */
+        }
+      }),
+    );
+  }
+
   const creating: GiftCapsuleCreatingData[] = creatingCapsules.map((c) => {
     const inviteNames = c.invites
       .map((i) => i.name?.trim() || i.email.split("@")[0])
       .filter(Boolean);
+    const contributorAvatars = c.invites.map((i) => ({
+      name: i.name?.trim() || i.email.split("@")[0] || null,
+      avatarUrl: signedAvatars.get(i.email.toLowerCase()) ?? null,
+    }));
     return {
       id: c.id,
       title: c.title,
       contributorCount: c._count.invites,
       newCount: newByCapsule.get(c.id) ?? 0,
       contributorNames: inviteNames,
+      contributorAvatars,
       coverUrl: null,
       // effectiveStatus folds the manual seal (contributionsClosed)
       // and deadline-passed cases back into "SEALED" so the pill

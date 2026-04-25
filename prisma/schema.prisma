@@ -86,6 +86,17 @@ model User {
   lastName    String
   displayName String?
   avatarUrl   String?
+  /// Email address mirrored from Clerk so we can match
+  /// CapsuleInvite.email + CapsuleContribution.authorEmail
+  /// back to the User row (e.g. for showing real avatars on
+  /// the gift-capsule dashboard cards). New users get this
+  /// written by /api/onboarding at create time; existing rows
+  /// backfill on next sign-in via the helper in src/lib/user-sync.ts.
+  email       String?  @unique
+  /// Optional phone number for the user. Not collected in the UI
+  /// today — column added ahead of time so future SMS / 2FA
+  /// features can write to it without a new migration.
+  phone       String?
   // Vault PIN is opt-in. When pinHash is null the PIN gate is
   // disabled (default). When set, the user must enter the 4-digit
   // PIN once per session to access /dashboard and /vault. Reset

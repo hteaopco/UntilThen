@@ -7,6 +7,15 @@ export type GiftCapsuleCreatingData = {
   contributorCount: number;
   newCount: number;
   contributorNames: string[];
+  /** First N invitees for the avatar row. avatarUrl is non-null
+   *  only when the invitee has signed up and their User.email
+   *  matches the invite. Misses fall back to the gradient
+   *  placeholder. Length is capped at the include-take in
+   *  dashboard2-data.ts (currently 6). */
+  contributorAvatars: Array<{
+    name: string | null;
+    avatarUrl: string | null;
+  }>;
   coverUrl: string | null;
   status: "DRAFT" | "ACTIVE" | "SEALED" | "REVEALED";
 };
@@ -46,7 +55,10 @@ export function GiftCapsuleCreatingCard({ capsule }: { capsule: GiftCapsuleCreat
         <p className="mt-0.5 text-[13px] text-ink-light">
           {capsule.contributorCount} {capsule.contributorCount === 1 ? "contributor" : "contributors"}
         </p>
-        <AvatarRow total={capsule.contributorCount} />
+        <AvatarRow
+          total={capsule.contributorCount}
+          contributors={capsule.contributorAvatars}
+        />
       </div>
 
       <div className="shrink-0 flex items-center gap-2">
@@ -101,18 +113,39 @@ function StatusPill({
 }
 
 /**
- * Avatar row: always three default User-icon avatars, a "+N" counter
- * when there are more than three contributors, and a dashed "+"
- * affordance at the end signalling "invite more". All decorative for
- * now — no wiring.
+ * Avatar row: up to three avatars from the invite list. Real
+ * profile photos render for invitees who've signed up to
+ * untilThen (via User.email match in dashboard2-data.ts);
+ * everyone else falls back to a coloured initials/icon
+ * placeholder. Trailing "+N" counter when there are more
+ * contributors than visible slots, and a dashed "+" affordance
+ * for the invite-more pattern.
  */
-function AvatarRow({ total }: { total: number }) {
+function AvatarRow({
+  total,
+  contributors,
+}: {
+  total: number;
+  contributors: Array<{ name: string | null; avatarUrl: string | null }>;
+}) {
+  const visible = contributors.slice(0, 3);
+  // Pad with placeholders if the invite list has fewer than 3
+  // entries so the row keeps a consistent shape.
+  const placeholderCount = Math.max(0, 3 - visible.length);
   const extra = Math.max(0, total - 3);
   return (
     <div className="mt-2 flex items-center gap-1.5">
       <div className="flex items-center -space-x-1.5">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <DefaultAvatar key={i} index={i} />
+        {visible.map((c, i) => (
+          <ContributorAvatar
+            key={i}
+            index={i}
+            name={c.name}
+            avatarUrl={c.avatarUrl}
+          />
+        ))}
+        {Array.from({ length: placeholderCount }).map((_, i) => (
+          <DefaultAvatar key={`p-${i}`} index={visible.length + i} />
         ))}
         {extra > 0 && (
           <span className="w-6 h-6 rounded-full border-2 border-white bg-[#e7e3db] text-ink-mid text-[10px] font-semibold flex items-center justify-center">
@@ -127,6 +160,37 @@ function AvatarRow({ total }: { total: number }) {
         <Plus size={12} strokeWidth={2.25} />
       </span>
     </div>
+  );
+}
+
+function ContributorAvatar({
+  index,
+  name,
+  avatarUrl,
+}: {
+  index: number;
+  name: string | null;
+  avatarUrl: string | null;
+}) {
+  if (avatarUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={avatarUrl}
+        alt={name ?? "Contributor"}
+        className="w-6 h-6 rounded-full border-2 border-white object-cover"
+      />
+    );
+  }
+  // No real avatar — fall back to initials on the coloured chip.
+  const initial = (name ?? "").trim().charAt(0).toUpperCase();
+  const bg = AVATAR_BGS[index % AVATAR_BGS.length];
+  return (
+    <span
+      className={`w-6 h-6 rounded-full border-2 border-white ${bg} flex items-center justify-center text-white text-[10px] font-semibold`}
+    >
+      {initial || <User size={12} strokeWidth={2} />}
+    </span>
   );
 }
 

@@ -133,11 +133,27 @@ export async function POST(req: Request) {
         : flow === "memory_capsule"
           ? "ORGANISER"
           : "BOTH";
+    // Pull the Clerk user up front so we can write email onto the
+    // User row at create time. Falls back to null if Clerk hiccups
+    // — backfill via ensureUserEmail() handles it later.
+    let clerkEmail: string | null = null;
+    try {
+      const clerk = await clerkClient();
+      const clerkUser = await clerk.users.getUser(userId);
+      clerkEmail =
+        clerkUser.primaryEmailAddress?.emailAddress?.toLowerCase() ??
+        clerkUser.emailAddresses[0]?.emailAddress?.toLowerCase() ??
+        null;
+    } catch (err) {
+      console.warn("[onboarding] clerk email lookup failed:", err);
+    }
+
     const user = await prisma.user.create({
       data: {
         clerkId: userId,
         firstName,
         lastName: lastName || "",
+        email: clerkEmail,
         role: "PARENT",
         userType,
       },
