@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight, Volume2, VolumeX, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { useRevealAnalytics } from "./analytics";
@@ -189,6 +189,28 @@ export function StoryCards({
         onClick={advance}
         className="absolute top-0 bottom-0 right-0 w-1/2 z-10 cursor-default focus:outline-none"
       />
+
+      {/* Visible mid-screen chevrons — discoverable nav for users
+          who don't realise the surrounding area is tappable. Sit
+          on z-20 above the tap zones so the button hit-target wins
+          when fingers land here. Back fades on the first card. */}
+      <button
+        type="button"
+        aria-label="Previous card"
+        onClick={back}
+        disabled={index === 0}
+        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white/70 backdrop-blur text-navy shadow-[0_2px_8px_rgba(15,31,61,0.12)] hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-default"
+      >
+        <ChevronLeft size={20} strokeWidth={2} />
+      </button>
+      <button
+        type="button"
+        aria-label={index === total - 1 ? "Continue" : "Next card"}
+        onClick={advance}
+        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 flex h-11 w-11 items-center justify-center rounded-full bg-white/70 backdrop-blur text-navy shadow-[0_2px_8px_rgba(15,31,61,0.12)] hover:bg-white transition-colors"
+      >
+        <ChevronRight size={20} strokeWidth={2} />
+      </button>
 
       {/* Header: ✕ left, 🔊/🔇 right. z above tap zones. Chrome
           adapts to the card background underneath — Photo cards

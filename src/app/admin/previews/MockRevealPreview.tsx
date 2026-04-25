@@ -53,7 +53,7 @@ export function MockRevealPreview({
           capsuleBirthday: stockVoices.capsuleBirthday,
         });
   return (
-    <div className="fixed inset-0 z-[200] bg-black">
+    <div className="fixed inset-0 z-[200] bg-black overflow-y-auto overscroll-contain">
       <RevealExperience capsule={capsule} contributions={contributions} />
       <button
         type="button"
