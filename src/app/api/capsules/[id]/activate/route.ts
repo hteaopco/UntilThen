@@ -275,13 +275,6 @@ export async function POST(
       console.error("[capsules activate] post-activate emails:", err);
     }
 
-    // TODO: schedule the reveal-day email (sendCapsuleRevealDay)
-    // to fire at capsule.revealDate. Needs a job runner /
-    // scheduled Railway task — deferred for v1.
-    console.log(
-      `[capsules activate] reveal email pending for ${id} on ${capsule.revealDate.toISOString()}`,
-    );
-
     return NextResponse.json({
       success: true,
       invitesDispatched: stagedInvites.length,
