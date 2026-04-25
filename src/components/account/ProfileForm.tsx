@@ -220,6 +220,52 @@ export function ProfileForm({
             </p>
           </Field>
 
+          <Field label="Phone number">
+            <input
+              type="tel"
+              value={user?.primaryPhoneNumber?.phoneNumber ?? ""}
+              readOnly
+              placeholder="—"
+              className="account-input bg-warm-surface cursor-not-allowed text-ink-mid"
+            />
+            <p className="mt-1.5 text-xs italic text-ink-light">
+              {user?.primaryPhoneNumber?.verification?.status === "verified" ? (
+                <>
+                  Verified through your sign-in provider.{" "}
+                  <button
+                    type="button"
+                    onClick={() => openUserProfile()}
+                    className="text-amber underline-offset-4 underline hover:text-amber-dark"
+                  >
+                    Change phone
+                  </button>
+                </>
+              ) : user?.primaryPhoneNumber?.phoneNumber ? (
+                <>
+                  Awaiting verification.{" "}
+                  <button
+                    type="button"
+                    onClick={() => openUserProfile()}
+                    className="text-amber underline-offset-4 underline hover:text-amber-dark"
+                  >
+                    Verify phone
+                  </button>
+                </>
+              ) : (
+                <>
+                  Optional &mdash; used for SMS recovery and reveal-day notifications.{" "}
+                  <button
+                    type="button"
+                    onClick={() => openUserProfile()}
+                    className="text-amber underline-offset-4 underline hover:text-amber-dark"
+                  >
+                    Add phone
+                  </button>
+                </>
+              )}
+            </p>
+          </Field>
+
           <Field
             label="Display name"
             hint={'How you appear on entries — e.g. \u201CMom\u201D or \u201CDad\u201D.'}

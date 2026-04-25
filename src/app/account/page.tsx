@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { ProfileForm } from "@/components/account/ProfileForm";
 import { VaultPinSection } from "@/components/account/VaultPinSection";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
+import { ensureUserEmail, ensureUserPhone } from "@/lib/user-sync";
 
 export const metadata = {
   title: "Profile — untilThen",
@@ -16,6 +17,11 @@ export default async function AccountProfilePage() {
   const { userId } = auth();
   if (!userId) redirect("/sign-in");
   if (!process.env.DATABASE_URL) redirect("/dashboard");
+
+  // Sync email + verified phone from Clerk before reading the
+  // User row so the form reflects the latest state right after
+  // a Clerk modal save (add/verify/remove phone).
+  await Promise.all([ensureUserEmail(userId), ensureUserPhone(userId)]);
 
   const { prisma } = await import("@/lib/prisma");
   const user = await prisma.user.findUnique({

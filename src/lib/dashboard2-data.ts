@@ -1,7 +1,7 @@
 import { effectiveStatus } from "@/lib/capsules";
 import { prisma } from "@/lib/prisma";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
-import { ensureUserEmail } from "@/lib/user-sync";
+import { ensureUserEmail, ensureUserPhone } from "@/lib/user-sync";
 import type { VaultCardData } from "@/components/dashboard2/VaultCard";
 import type { GiftCapsuleCreatingData } from "@/components/dashboard2/GiftCapsuleCreatingCard";
 import type { GiftCapsuleReceivedData } from "@/components/dashboard2/GiftCapsuleReceivedCard";
@@ -34,10 +34,15 @@ export async function loadDashboard2Data({
   creating: GiftCapsuleCreatingData[];
   received: GiftCapsuleReceivedData[];
 }> {
-  // Opportunistic email backfill so the avatar lookup below has
-  // something to match against. No-op when User.email is already
-  // populated; one Clerk lookup + one UPDATE per user, ever.
-  await ensureUserEmail(clerkUserId);
+  // Opportunistic email + phone sync so server-side reads of
+  // User.email / User.phone stay current with what Clerk has.
+  // ensureUserEmail is a one-shot backfill (no-op once filled);
+  // ensureUserPhone reconciles each load so changes made in the
+  // Clerk user-profile modal propagate without an explicit save.
+  await Promise.all([
+    ensureUserEmail(clerkUserId),
+    ensureUserPhone(clerkUserId),
+  ]);
 
   const [children, creatingCapsules, receivedCapsules] = await Promise.all([
     prisma.child.findMany({
