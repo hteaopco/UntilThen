@@ -28,10 +28,14 @@ export const dynamic = "force-dynamic";
  *   {
  *     firstName: string    (required)
  *     lastName?: string
- *     path: "child_vault" | "memory_capsule"   // stored as
- *                                              // userType for
- *                                              // dashboard
- *                                              // personalisation
+ *     path?: "child_vault" | "memory_capsule"   // optional. When
+ *                                               // omitted the user
+ *                                               // is stamped as
+ *                                               // userType: BOTH
+ *                                               // so the dashboard
+ *                                               // shows both
+ *                                               // products until
+ *                                               // they pick one.
  *   }
  *
  * Idempotent: if the User already exists, returns
@@ -41,8 +45,9 @@ interface Body {
   firstName?: string;
   lastName?: string;
   /** Which path the user came through — drives the post-signup
-   *  redirect + userType stamping. Child-vault creation itself
-   *  happens later, gated by AddChildModal + paywall. */
+   *  redirect + userType stamping. Optional: omitted means the
+   *  user landed on the simplified onboarding form without
+   *  declaring a product preference, so we default to BOTH. */
   path?: "child_vault" | "memory_capsule";
 }
 
@@ -78,8 +83,15 @@ export async function POST(req: Request) {
     );
   }
 
-  const flow: "child_vault" | "memory_capsule" =
-    body.path === "child_vault" ? "child_vault" : "memory_capsule";
+  // Optional path — omit on the simplified onboarding form, set
+  // when the user came through the Gift Capsule CTA so we still
+  // bump them to ORGANISER on the dashboard.
+  const flow: "child_vault" | "memory_capsule" | null =
+    body.path === "child_vault"
+      ? "child_vault"
+      : body.path === "memory_capsule"
+        ? "memory_capsule"
+        : null;
 
   try {
     const { prisma } = await import("@/lib/prisma");
@@ -92,25 +104,35 @@ export async function POST(req: Request) {
     if (existing) {
       // Already onboarded. Bump userType to BOTH when the user
       // is now completing the other path so the dashboard
-      // personalisation stays accurate.
-      const targetType =
-        flow === "child_vault"
-          ? existing.userType === "ORGANISER"
-            ? "BOTH"
-            : "PARENT"
-          : existing.userType === "PARENT"
-            ? "BOTH"
-            : "ORGANISER";
-      if (targetType !== existing.userType) {
-        await prisma.user.update({
-          where: { id: existing.id },
-          data: { userType: targetType },
-        });
+      // personalisation stays accurate. When flow is null
+      // (simplified onboarding) leave userType untouched.
+      if (flow !== null) {
+        const targetType =
+          flow === "child_vault"
+            ? existing.userType === "ORGANISER"
+              ? "BOTH"
+              : "PARENT"
+            : existing.userType === "PARENT"
+              ? "BOTH"
+              : "ORGANISER";
+        if (targetType !== existing.userType) {
+          await prisma.user.update({
+            where: { id: existing.id },
+            data: { userType: targetType },
+          });
+        }
       }
       return NextResponse.json({ success: true, alreadyOnboarded: true });
     }
 
-    const userType = flow === "child_vault" ? "PARENT" : "ORGANISER";
+    // New user — stamp userType from the path if given, else BOTH
+    // so the dashboard surfaces both products until they pick one.
+    const userType =
+      flow === "child_vault"
+        ? "PARENT"
+        : flow === "memory_capsule"
+          ? "ORGANISER"
+          : "BOTH";
     const user = await prisma.user.create({
       data: {
         clerkId: userId,
