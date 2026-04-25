@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 
 import { Footer } from "@/components/landing/Footer";
-import { Nav } from "@/components/landing/Nav";
+import { TopNav } from "@/components/ui/TopNav";
 import {
   formatPostDate,
   getAllPosts,
@@ -76,8 +76,8 @@ export default async function BlogPostPage({
 
   return (
     <>
-      <Nav />
-      <main className="min-h-screen bg-cream pt-[120px] pb-20 px-6 lg:px-14">
+      <TopNav />
+      <main className="min-h-screen bg-cream pt-10 pb-20 px-6 lg:px-14">
         <div className="mx-auto max-w-[720px]">
           <Link
             href="/blog"

@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Footer } from "@/components/landing/Footer";
-import { Nav } from "@/components/landing/Nav";
+import { TopNav } from "@/components/ui/TopNav";
 
 interface LegalShellProps {
   eyebrow: string;
@@ -17,11 +17,11 @@ interface LegalShellProps {
  * / navy 800 headings / amber links) so legal copy reads with the
  * same comfort as a blog post.
  */
-export function LegalShell({ eyebrow, title, meta, children }: LegalShellProps) {
+export async function LegalShell({ eyebrow, title, meta, children }: LegalShellProps) {
   return (
     <>
-      <Nav />
-      <main className="min-h-screen bg-cream pt-[120px] pb-20 px-6 lg:px-14">
+      <TopNav />
+      <main className="min-h-screen bg-cream pb-20 px-6 lg:px-14 pt-10">
         <div className="mx-auto max-w-[720px]">
           <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-3.5">
             {eyebrow}

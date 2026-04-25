@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Footer } from "@/components/landing/Footer";
-import { Nav } from "@/components/landing/Nav";
+import { TopNav } from "@/components/ui/TopNav";
 import {
   Accordion,
   type AccordionSection,
@@ -116,8 +116,8 @@ const SECTIONS: AccordionSection[] = [
 export default function FAQPage() {
   return (
     <>
-      <Nav />
-      <main className="min-h-screen bg-cream pt-[120px] pb-20 px-6 lg:px-14">
+      <TopNav />
+      <main className="min-h-screen bg-cream pt-10 pb-20 px-6 lg:px-14">
         <div className="mx-auto max-w-[720px]">
           {/* Header */}
           <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-3.5">

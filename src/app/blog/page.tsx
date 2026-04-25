@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Footer } from "@/components/landing/Footer";
-import { Nav } from "@/components/landing/Nav";
+import { TopNav } from "@/components/ui/TopNav";
 import { formatPostDate, getAllPosts, type PostMeta } from "@/lib/posts";
 
 export const metadata: Metadata = {
@@ -29,8 +29,8 @@ export default function BlogIndexPage() {
 
   return (
     <>
-      <Nav />
-      <main className="min-h-screen bg-cream pt-[120px] pb-20 px-6 lg:px-14">
+      <TopNav />
+      <main className="min-h-screen bg-cream pt-10 pb-20 px-6 lg:px-14">
         <div className="mx-auto max-w-[1100px]">
           <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-3.5">
             Blog

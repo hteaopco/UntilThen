@@ -1,8 +1,8 @@
 import Link from "next/link";
 
 import { Footer } from "@/components/landing/Footer";
-import { Nav } from "@/components/landing/Nav";
 import { LogoSvg } from "@/components/ui/LogoSvg";
+import { TopNav } from "@/components/ui/TopNav";
 import { RecoveryForm } from "@/app/help/recovery/RecoveryForm";
 
 export const metadata = {
@@ -13,8 +13,8 @@ export const metadata = {
 export default function RecoveryPage() {
   return (
     <>
-      <Nav />
-    <main className="min-h-screen bg-cream px-6 pt-[120px] pb-12">
+      <TopNav />
+      <main className="min-h-screen bg-cream px-6 pt-10 pb-12">
       <div className="mx-auto max-w-[560px]">
         <Link
           href="/"
