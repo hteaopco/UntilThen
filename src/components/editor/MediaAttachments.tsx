@@ -126,8 +126,8 @@ export function MediaAttachments({
    */
   canAttach: boolean;
   /** What kind of row the upload anchors to. Default = "entry"
-   * preserves the original NewEntryForm + ContributorEntryForm
-   * callers. Capsule organisers pass "capsuleContribution". */
+   * for vault memory writes. Capsule organisers pass
+   * "capsuleContribution". */
   target?: AttachmentTarget;
   /** Required when target = "capsuleContribution" so the delete
    * route can be addressed correctly

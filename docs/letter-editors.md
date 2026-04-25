@@ -4,7 +4,7 @@ Keep these in sync. Any chrome change (prompt banner wording, scroll rail,
 Expand/Collapse controls, media attachment card, submit button language, etc.)
 needs to land on **every** surface in this list or the UX drifts.
 
-All four surfaces share the same visual building blocks:
+All three surfaces share the same visual building blocks:
 
 - **Prompt card** — amber-bordered writing card with a pale-blue
   instruction banner ("Write something meaningful.") + tone-specific hint
@@ -43,18 +43,16 @@ All four surfaces share the same visual building blocks:
    organiser's `clerkUserId`). Media via `MediaAttachments` with
    `target="capsuleContribution"`.
 
-4. **Private child-vault contributor** (invited contributor, not
-   organiser)
-   `src/app/contribute/[vaultId]/new/ContributorEntryForm.tsx`
-   Clerk-auth (contributor flow). Posts to `/api/contribute/entries`
-   (→ `Entry` with `contributorId` set). Media via
-   `MediaAttachments` with `target="entry"`.
+> Historical note: a fourth surface (private child-vault contributor)
+> existed before `20260422_remove_vault_contributors`. Vault writing
+> is now organiser-only — the public capsule flow is the only
+> contributor surface.
 
 ## Shared building blocks (edit these to propagate)
 
 - `src/components/editor/TiptapEditor.tsx` — the actual Tiptap instance
 - `src/components/editor/MediaAttachments.tsx` — authed media uploader
-  (used by surfaces 2, 3, 4)
+  (used by surfaces 2, 3)
 - `src/app/contribute/capsule/[token]/PublicMediaAttachments.tsx` —
   public variant (surface 1)
 - `src/lib/tone.ts` — `TONE_EDITOR_HINT` map that drives the prompt
@@ -62,7 +60,7 @@ All four surfaces share the same visual building blocks:
 
 ## When you change one editor
 
-1. Port the change to the other three. Don't leave drift.
+1. Port the change to the other two. Don't leave drift.
 2. Update this doc if you add/rename a surface.
 3. If the change touches media attachments, verify both
    `MediaAttachments` and `PublicMediaAttachments` render consistently.
