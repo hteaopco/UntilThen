@@ -53,17 +53,9 @@ volume.)*
 - [ ] Audit capsule detail page layout on mobile
 - [ ] Verify activation card shows correctly in DRAFT and ACTIVE states
 - [ ] Confirm post-activation copy is correct
-- [ ] **Recipient email is captured at creation, not at activate** — verify
-  the activate modal no longer asks for email/phone (collapsed to summary →
-  pay), and that the summary CTA reads "Send contributor invites" on free
-  activations / "Continue to payment" when paywall is on
 - [ ] **Couple capsules deliver to both addresses** — seed a couple capsule,
   jump the reveal date, run `/api/cron/reveal`, confirm both
   `recipientEmail` and `recipient2Email` receive the reveal-day mail (deduped)
-- [ ] Verify "Preview their moment" link is visible and functional in
-  both states
-- [ ] Test adding contributor to already-active capsule — invite email
-  fires immediately
 - [ ] Verify gift capsule pricing card renders correctly
 - [ ] Test swipe between pricing cards on mobile
 
@@ -111,19 +103,11 @@ preview, admin mock). Remaining work is hands-on device QA.
 - [ ] **Primary type pills** — all four (Letters, Audio, Photos, Videos)
   always visible; "All" chip doesn't jam against left edge during
   horizontal scroll
-- [ ] **Filter section** — "From" row only on gift capsules with > 1
-  contributor; "Collection" row only on vaults with collections
 - [ ] **Clear all** link appears when any filter is active
 - [ ] **Grid ⇄ List toggle** — grid shows uniform 240px tiles; list shows
   type badge + title + from + date rows
 - [ ] **GalleryCard tap** → full-screen card view, ✕ + Esc close, ✕
   accessible above preview top bar
-
-### Edge cases
-- [ ] **Replay** — "Relive the opening" restarts music + runs through full
-  flow, fades out again into gallery
-- [ ] **Returning visitor** — `recipientCompletedAt` set; lands directly
-  in gallery, no music auto-start
 
 ### Preview surfaces
 - [ ] **Organiser preview** (`/capsules/[id]/preview`) — This-capsule /
