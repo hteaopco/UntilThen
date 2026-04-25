@@ -44,6 +44,11 @@ export async function PATCH(
   const owned = await findOwnedCapsule(userId ?? null, id);
   if (!owned.ok)
     return NextResponse.json({ error: "Not found." }, { status: owned.status });
+  if (owned.capsule.contributionsClosed)
+    return NextResponse.json(
+      { error: "This capsule is sealed. Unseal it to make changes." },
+      { status: 410 },
+    );
 
   const target = await loadOwnContribution(id, contributionId, userId!);
   if (!target)
@@ -95,6 +100,11 @@ export async function DELETE(
   const owned = await findOwnedCapsule(userId ?? null, id);
   if (!owned.ok)
     return NextResponse.json({ error: "Not found." }, { status: owned.status });
+  if (owned.capsule.contributionsClosed)
+    return NextResponse.json(
+      { error: "This capsule is sealed. Unseal it to make changes." },
+      { status: 410 },
+    );
 
   const target = await loadOwnContribution(id, contributionId, userId!);
   if (!target)

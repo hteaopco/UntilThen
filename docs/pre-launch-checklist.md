@@ -50,8 +50,6 @@ volume.)*
 - [ ] **Couple capsules deliver to both addresses** — seed a couple capsule,
   jump the reveal date, run `/api/cron/reveal`, confirm both
   `recipientEmail` and `recipient2Email` receive the reveal-day mail (deduped)
-- [ ] Verify gift capsule pricing card renders correctly
-- [ ] Test swipe between pricing cards on mobile
 
 ---
 

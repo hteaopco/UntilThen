@@ -333,6 +333,13 @@ model MemoryCapsule {
   revealDate          DateTime
   contributorDeadline DateTime?
   status              CapsuleStatus @default(DRAFT)
+  /// Manual seal — when true, /invites + /contribute submit
+  /// routes return 410 ("contributions closed") and the
+  /// dashboard pill reads SEALED even on an ACTIVE capsule.
+  /// Reversible by the organiser; reveal cron is unaffected.
+  /// Treated as effectively-SEALED via lib/capsules.ts
+  /// effectiveStatus().
+  contributionsClosed Boolean       @default(false)
   requiresApproval    Boolean       @default(false)
   // paymentId holds the Square Payment resource id once the
   // organiser's $9.99 one-time charge clears. Historic DRAFT

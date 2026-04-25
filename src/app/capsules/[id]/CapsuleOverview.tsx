@@ -3,6 +3,7 @@
 import {
   AlertTriangle,
   Check,
+  Lock,
   Mail,
   Paperclip,
   Pencil,
@@ -42,6 +43,9 @@ type CapsuleSummary = {
   rawStatus: "DRAFT" | "ACTIVE" | "SEALED" | "REVEALED";
   isPaid: boolean;
   requiresApproval: boolean;
+  /** Manual seal — true once the organiser has locked the
+   *  capsule. Reversible via the Seal/Unseal control. */
+  contributionsClosed: boolean;
   accessToken: string;
 };
 
@@ -105,8 +109,38 @@ export function CapsuleOverview({
   const [activateOpen, setActivateOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [sealing, setSealing] = useState(false);
 
   const isDraft = capsule.rawStatus === "DRAFT";
+  const isSealed = capsule.contributionsClosed;
+
+  async function toggleSeal(next: boolean) {
+    if (sealing) return;
+    if (next) {
+      const ok = window.confirm(
+        "Seal this capsule? Contributors won't be able to add or edit anything until you unseal it. The reveal date is unaffected.",
+      );
+      if (!ok) return;
+    }
+    setSealing(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/capsules/${capsule.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contributionsClosed: next }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? "Couldn't update the capsule.");
+      }
+      router.refresh();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSealing(false);
+    }
+  }
   const pronoun = recipientPronounOf(capsule);
   const subjectPronoun = pronoun === "her" ? "she" : pronoun === "him" ? "he" : "they";
   const possessivePronoun = pronoun === "her" ? "her" : pronoun === "him" ? "his" : "their";
@@ -389,30 +423,78 @@ export function CapsuleOverview({
       >
         <div className="rounded-2xl border border-amber/25 bg-amber-tint/40 px-6 py-6 space-y-3">
           <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] text-balance break-words">
-            {isDraft ? `Invite everyone who loves ${pronoun}` : `${recipientDisplayName}\u2019s capsule is live`}
+            {isDraft
+              ? `Invite everyone who loves ${pronoun}`
+              : isSealed
+                ? `${recipientDisplayName}\u2019s capsule is sealed`
+                : `${recipientDisplayName}\u2019s capsule is live`}
           </h2>
           <p className="text-sm text-ink-mid leading-[1.6]">
-            {isDraft
-              ? <>Each contributor adds something &mdash; a message, a memory, a voice note &mdash; and {subjectPronoun}&rsquo;ll open it all at once.</>
-              : <>Invites are out. You can still add more contributors above &mdash; they&rsquo;ll get their invite right away.</>
-            }
+            {isDraft ? (
+              <>
+                Each contributor adds something &mdash; a message, a memory, a
+                voice note &mdash; and {subjectPronoun}&rsquo;ll open it all at
+                once.
+              </>
+            ) : isSealed ? (
+              <>
+                Locked from edits. Contributors who follow their invite link
+                will see a friendly &ldquo;contact the organiser&rdquo; screen.
+                The capsule will still deliver to {recipientDisplayName} on the
+                reveal date.
+              </>
+            ) : (
+              <>
+                Invites are out. You can still add more contributors above
+                &mdash; they&rsquo;ll get their invite right away.
+              </>
+            )}
           </p>
-          {isDraft ? (
-            <button
-              type="button"
-              onClick={() => setActivateOpen(true)}
-              className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
-            >
-              Send invites &mdash; $9.99
-            </button>
-          ) : (
-            <span className="inline-flex items-center gap-2 bg-navy/10 text-ink-light px-5 py-2.5 rounded-lg text-sm font-bold cursor-default">
-              Invites sent
-            </span>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            {isDraft ? (
+              <button
+                type="button"
+                onClick={() => setActivateOpen(true)}
+                className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
+              >
+                Send invites &mdash; $9.99
+              </button>
+            ) : isSealed ? (
+              <>
+                <span className="inline-flex items-center gap-1.5 bg-navy text-white px-3 py-1.5 rounded-lg text-[12px] font-bold">
+                  <Lock size={12} strokeWidth={2.25} aria-hidden="true" />
+                  Sealed
+                </span>
+                <button
+                  type="button"
+                  onClick={() => toggleSeal(false)}
+                  disabled={sealing}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold border border-navy/15 text-ink-mid hover:text-navy hover:border-navy/30 transition-colors disabled:opacity-50"
+                >
+                  {sealing ? "Unsealing\u2026" : "Unseal capsule"}
+                </button>
+              </>
+            ) : (
+              <>
+                <span className="inline-flex items-center gap-2 bg-navy/10 text-ink-light px-5 py-2.5 rounded-lg text-sm font-bold cursor-default">
+                  Invites sent
+                </span>
+                <button
+                  type="button"
+                  onClick={() => toggleSeal(true)}
+                  disabled={sealing}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors disabled:opacity-50"
+                >
+                  <Lock size={12} strokeWidth={2.25} aria-hidden="true" />
+                  {sealing ? "Sealing\u2026" : "Seal capsule"}
+                </button>
+              </>
+            )}
+          </div>
           {isDraft && (
             <p className="text-sm font-semibold text-navy">
-              Nothing is sent to {recipientDisplayName} yet. You&rsquo;ll review everything before delivery.
+              Nothing is sent to {recipientDisplayName} yet. You&rsquo;ll review
+              everything before delivery.
             </p>
           )}
           <div className="pt-1">

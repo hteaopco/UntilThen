@@ -30,6 +30,10 @@ interface PatchBody {
   revealDate?: string;
   contributorDeadline?: string | null;
   requiresApproval?: boolean;
+  /** Manual seal — locks all contribution-mutating routes when
+   *  true. Reversible. ACTIVE capsule status is preserved so the
+   *  reveal cron still picks the capsule up on revealDate. */
+  contributionsClosed?: boolean;
 }
 
 export async function GET(
@@ -153,6 +157,18 @@ export async function PATCH(
   }
   if (typeof body.requiresApproval === "boolean") {
     data.requiresApproval = body.requiresApproval;
+  }
+  if (typeof body.contributionsClosed === "boolean") {
+    // Only meaningful on ACTIVE capsules. DRAFT capsules can't
+    // be sealed (no one can contribute yet); SEALED/REVEALED
+    // capsules are already past this gate.
+    if (owned.capsule.status !== "ACTIVE") {
+      return NextResponse.json(
+        { error: "Only active capsules can be sealed." },
+        { status: 400 },
+      );
+    }
+    data.contributionsClosed = body.contributionsClosed;
   }
 
   try {

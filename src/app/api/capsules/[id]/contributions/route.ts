@@ -34,6 +34,14 @@ export async function POST(
   const owned = await findOwnedCapsule(userId ?? null, id);
   if (!owned.ok)
     return NextResponse.json({ error: "Not found." }, { status: owned.status });
+  // Manual seal blocks the organiser too — same gate as the
+  // contributor-submit + invite-add routes. The organiser can
+  // unseal to make changes.
+  if (owned.capsule.contributionsClosed)
+    return NextResponse.json(
+      { error: "This capsule is sealed. Unseal it to make changes." },
+      { status: 410 },
+    );
 
   let payload: Body;
   try {

@@ -47,13 +47,21 @@ export async function findOwnedCapsule(
 /**
  * Computed status for read paths. The stored `status` column
  * moves DRAFT → ACTIVE on payment and → REVEALED on first open;
- * SEALED is purely temporal (past the contributor deadline) so
- * we derive it instead of polling a cron.
+ * SEALED is derived — either temporal (past the contributor
+ * deadline) or organiser-triggered (contributionsClosed flag
+ * toggled from the capsule dashboard).
  */
 export function effectiveStatus(
-  c: Pick<MemoryCapsule, "status" | "contributorDeadline" | "firstOpenedAt">,
+  c: Pick<
+    MemoryCapsule,
+    | "status"
+    | "contributorDeadline"
+    | "firstOpenedAt"
+    | "contributionsClosed"
+  >,
 ): CapsuleStatus {
   if (c.firstOpenedAt) return "REVEALED";
+  if (c.status === "ACTIVE" && c.contributionsClosed) return "SEALED";
   if (
     c.status === "ACTIVE" &&
     c.contributorDeadline &&

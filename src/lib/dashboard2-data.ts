@@ -1,3 +1,4 @@
+import { effectiveStatus } from "@/lib/capsules";
 import { prisma } from "@/lib/prisma";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 import type { VaultCardData } from "@/components/dashboard2/VaultCard";
@@ -138,7 +139,10 @@ export async function loadDashboard2Data({
       newCount: newByCapsule.get(c.id) ?? 0,
       contributorNames: inviteNames,
       coverUrl: null,
-      status: c.status,
+      // effectiveStatus folds the manual seal (contributionsClosed)
+      // and deadline-passed cases back into "SEALED" so the pill
+      // reads the same regardless of which path got there.
+      status: effectiveStatus(c),
     };
   });
 

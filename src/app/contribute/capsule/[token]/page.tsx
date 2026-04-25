@@ -32,6 +32,7 @@ export default async function CapsuleContributePage({
           revealDate: true,
           contributorDeadline: true,
           firstOpenedAt: true,
+          contributionsClosed: true,
         },
       },
     },
@@ -57,6 +58,18 @@ export default async function CapsuleContributePage({
   }
   const status = effectiveStatus(c);
   if (status === "SEALED") {
+    // Distinguish manual seal (contributionsClosed true) from
+    // deadline-passed so the organiser-locked path can point the
+    // contributor at the organiser instead of just saying "the
+    // deadline passed."
+    if (c.contributionsClosed) {
+      return (
+        <ClosedScreen
+          headline="This capsule is locked."
+          sub="The organiser sealed it before the deadline. Reach out to them if you need to add to it."
+        />
+      );
+    }
     return (
       <ClosedScreen
         headline="Contributions are closed."

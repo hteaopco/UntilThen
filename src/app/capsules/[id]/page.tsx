@@ -121,6 +121,7 @@ export default async function CapsulePage({
         rawStatus: capsule.status,
         isPaid: capsule.isPaid,
         requiresApproval: capsule.requiresApproval,
+        contributionsClosed: capsule.contributionsClosed,
         accessToken: capsule.accessToken,
       }}
       currentUserClerkId={userId}
