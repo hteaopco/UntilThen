@@ -128,6 +128,7 @@ export function RevealExperience({
   musicUrl,
   gateHeaderSlot,
   gateBelowSlot,
+  galleryExit,
 }: {
   capsule: RevealCapsule;
   contributions: RevealContribution[];
@@ -138,6 +139,11 @@ export function RevealExperience({
   /** Optional UI rendered directly under the gate's 'Tap to begin'
    *  content. Sibling of the tap button — clicks don't bubble. */
   gateBelowSlot?: React.ReactNode;
+  /** Optional gallery exit pill. Preview surfaces pass a
+   *  destination + label (e.g. /capsules/[id], "Back to capsule")
+   *  so organisers can leave the reveal without backing out of
+   *  the entire takeover. The real recipient reveal omits this. */
+  galleryExit?: { href: string; label: string };
   /** Fires once, the first time the recipient reaches the gallery
    *  in this session. The wrapper is responsible for any server-
    *  side stamping (POST /api/reveal/{token}/complete). Optional
@@ -461,6 +467,7 @@ export function RevealExperience({
         muted={muted}
         onToggleMuted={() => setMuted((m) => !m)}
         musicEnabled={Boolean(effectiveMusicUrl)}
+        exit={galleryExit}
         onReplay={() => {
           // Replay is session-only — recipientCompletedAt is not
           // reset on the server. The recipient gets the cinematic

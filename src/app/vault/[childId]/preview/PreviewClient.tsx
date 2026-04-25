@@ -108,6 +108,10 @@ export function VaultPreviewClient({
       capsule={capsule}
       contributions={contributions}
       variant="vault"
+      galleryExit={{
+        href: `/vault/${childId}`,
+        label: "Back to capsule",
+      }}
       // Curator + music only apply to "this vault" — the
       // demo mode is always a fresh randomised reel against
       // mock contributions.

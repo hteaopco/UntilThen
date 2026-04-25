@@ -120,6 +120,10 @@ export function PreviewClient({
           key={mode}
           capsule={capsule}
           contributions={contributions}
+          galleryExit={{
+            href: `/capsules/${capsuleId}`,
+            label: "Back to capsule",
+          }}
         />
       </div>
     </div>

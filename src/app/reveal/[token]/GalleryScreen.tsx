@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowLeft,
   Image as ImageIcon,
   LayoutGrid,
   List,
@@ -13,6 +14,7 @@ import {
   VolumeX,
   X,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { useRevealAnalytics } from "./analytics";
@@ -42,6 +44,7 @@ export function GalleryScreen({
   recipientName,
   contributions,
   onReplay,
+  exit,
   variant = "capsule",
   muted = false,
   onToggleMuted,
@@ -49,10 +52,16 @@ export function GalleryScreen({
 }: {
   recipientName: string;
   contributions: RevealContribution[];
-  /** Optional replay handler. When provided, renders a subtle
-   *  "Relive the opening" link near the gallery header that
-   *  re-runs Phase 1 → Phase 2 → Phase 3. Session-only. */
+  /** Optional replay handler. When provided, renders a "Relive
+   *  the reveal" pill near the gallery header that re-runs
+   *  Phase 1 → Phase 2 → Phase 3. Session-only. */
   onReplay?: () => void;
+  /** Optional exit destination. Renders a "Back to capsule"
+   *  pill alongside the replay pill. Provided by preview
+   *  surfaces (organiser preview, vault preview); the real
+   *  recipient reveal omits this so the gallery has no back
+   *  affordance for the recipient. */
+  exit?: { href: string; label: string };
   /** capsule: gift capsule — shows 'From' filter row + 'people
    *  who love you' subhead. vault: time capsule — no contributor
    *  filter, compact subhead. */
@@ -227,18 +236,32 @@ export function GalleryScreen({
           paddingTop: "max(env(safe-area-inset-top), 56px)",
         }}
       >
-        {onReplay && (
-          <button
-            type="button"
-            onClick={() => {
-              capture("reveal_replay_clicked");
-              onReplay();
-            }}
-            className="mb-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-amber/85 hover:text-amber-dark transition-colors"
-          >
-            <RotateCcw size={12} strokeWidth={2} aria-hidden="true" />
-            Relive the opening
-          </button>
+        {(onReplay || exit) && (
+          <div className="mb-3 flex items-center gap-2 flex-wrap">
+            {onReplay && (
+              <button
+                type="button"
+                onClick={() => {
+                  capture("reveal_replay_clicked");
+                  onReplay();
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber text-white text-[12px] font-bold hover:bg-amber-dark transition-colors shadow-[0_2px_8px_rgba(196,122,58,0.18)]"
+              >
+                <RotateCcw size={12} strokeWidth={2.25} aria-hidden="true" />
+                Relive the reveal
+              </button>
+            )}
+            {exit && (
+              <Link
+                href={exit.href}
+                prefetch={false}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-navy/15 text-[12px] font-bold text-navy hover:border-navy/40 hover:bg-cream transition-colors"
+              >
+                <ArrowLeft size={12} strokeWidth={2.25} aria-hidden="true" />
+                {exit.label}
+              </Link>
+            )}
+          </div>
         )}
         <h1 className="font-brush text-warm-slate text-[34px] leading-[1.1]">
           {recipientName ? `${recipientName}'s Capsule` : "Your Capsule"}
