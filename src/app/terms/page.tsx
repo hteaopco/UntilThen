@@ -31,10 +31,10 @@ export default function TermsPage() {
       <h2>1. The Service</h2>
       <p>untilThen provides two products:</p>
       <p>
-        <strong>Child Vault</strong> — a subscription service that allows
-        parents and guardians to create sealed vaults of memories, letters,
-        voice notes, photos and videos addressed to their children, to be
-        opened at a milestone date chosen by the parent.
+        <strong>Vault</strong> — a subscription service that lets you create
+        Time Capsules: sealed collections of memories, letters, voice notes,
+        photos and videos for someone you love, opened at a milestone date
+        you choose.
       </p>
       <p>
         <strong>Gift Capsule</strong> — a one-time service that allows
@@ -56,17 +56,17 @@ export default function TermsPage() {
         you are 18 or older.
       </p>
       <p>
-        <strong>Vault recipients (children)</strong> may receive and open
-        vaults at any age set by the parent or guardian — there is no minimum
-        age for receiving a vault. When a child recipient creates an account
-        to access their vault at reveal, they may do so at whatever age the
-        parent has designated as their reveal date. Parents are responsible
-        for ensuring the reveal age is appropriate for their child.
+        <strong>Recipients</strong> may receive and open Time Capsules at any
+        age set by the Vault owner — there is no minimum age for receiving a
+        Time Capsule. When a recipient creates an account to access their
+        Time Capsule at reveal, they may do so at whatever age the Vault
+        owner has designated as the reveal date. Vault owners are responsible
+        for ensuring the reveal age is appropriate for the recipient.
       </p>
       <p>
-        If a child recipient is under 13 at the time of reveal, the parent or
-        guardian should assist with account creation and access in compliance
-        with COPPA.
+        If a recipient is a child under 13 at the time of reveal, the parent
+        or guardian should assist with account creation and access in
+        compliance with COPPA.
       </p>
 
       <h3>2.2 Account Responsibility</h3>
@@ -108,7 +108,7 @@ export default function TermsPage() {
 
       <h2>3. Subscriptions and Payments</h2>
 
-      <h3>3.1 Child Vault Subscription</h3>
+      <h3>3.1 Vault Subscription</h3>
       <ul>
         <li>
           <strong>Monthly plan:</strong> $4.99 per month (includes 3 capsules)
@@ -287,9 +287,10 @@ export default function TermsPage() {
         whatever age the parent has designated.
       </p>
 
-      <h3>5.2 Parental Responsibility</h3>
+      <h3>5.2 Vault Owner Responsibility</h3>
       <p>
-        Parents and guardians who create Child Vaults are responsible for:
+        Vault owners who create Time Capsules for children are responsible
+        for:
       </p>
       <ul>
         <li>
@@ -305,20 +306,20 @@ export default function TermsPage() {
 
       <h3>5.3 Contributor Conduct</h3>
       <p>
-        Contributors invited to a vault agree to these Terms of Service.
-        Contributors must:
+        Contributors invited to a Gift Capsule or Time Capsule agree to these
+        Terms of Service. Contributors must:
       </p>
       <ul>
         <li>
-          Only submit content that is appropriate for the child recipient
+          Only submit content that is appropriate for the recipient
         </li>
         <li>
           Not use their contributor access to contact or communicate with the
-          child directly
+          recipient directly
         </li>
         <li>
-          Not submit content that sexualises, exploits, or harms the child in
-          any way
+          Not submit content that sexualises, exploits, or harms the recipient
+          in any way
         </li>
       </ul>
 
@@ -406,7 +407,7 @@ export default function TermsPage() {
         <li>
           Does not violate Section 4 (Prohibited Content) of these Terms
         </li>
-        <li>Is appropriate for the child recipient of the vault</li>
+        <li>Is appropriate for the recipient</li>
       </ul>
 
       <h3>6.4 Content Removal</h3>

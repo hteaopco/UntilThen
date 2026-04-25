@@ -50,7 +50,7 @@ const OG_IMAGE_URL = `${SITE_URL}/og-image.png`;
 const DEFAULT_TITLE =
   "untilThen — Moments from the past, opened in the future.";
 const DEFAULT_DESCRIPTION =
-  "Write letters, record voice notes, and seal memories in a vault your child opens when they're ready.";
+  "Write letters, record voice notes, and seal memories in a time capsule someone you love opens when the moment is right.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

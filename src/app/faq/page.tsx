@@ -11,7 +11,7 @@ import {
 export const metadata: Metadata = {
   title: "FAQ — untilThen",
   description:
-    "Everything you need to know about untilThen — the time capsule app for parents.",
+    "Everything you need to know about untilThen — a time capsule app for the people you love.",
 };
 
 const SUPPORT_EMAIL = "hello@untilthenapp.io";
@@ -23,42 +23,42 @@ const SECTIONS: AccordionSection[] = [
       {
         question: "What is untilThen?",
         answer:
-          "untilThen is a time capsule app for parents. You write letters, record voice notes, and upload photos and videos addressed to your child — sealed in a private vault until they reach a milestone you choose, like their 18th birthday.",
+          "untilThen is a time capsule app. You write letters, record voice notes, and upload photos and videos for someone you love — sealed in a private Time Capsule until they reach a milestone you choose, like an 18th birthday, a wedding, or a future anniversary.",
       },
       {
-        question: "When does my child get access to the vault?",
+        question: "When does the recipient get access to their Time Capsule?",
         answer:
-          "Your child has their own account and can log in to see their vault any time. They'll see a countdown to their reveal date and how many sealed memories are waiting for them — but the contents stay completely locked until the reveal date arrives. Think of it like seeing wrapped gifts under the tree but not being able to open them.",
+          "The recipient has their own account and can log in to see their Time Capsule any time. They'll see a countdown to the reveal date and how many sealed memories are waiting for them — but the contents stay completely locked until the reveal date arrives. Think of it like seeing wrapped gifts under the tree but not being able to open them.",
       },
       {
-        question: "Can I start before my child is born?",
+        question: "Can I start a Time Capsule before the recipient is ready?",
         answer:
-          "Yes — many parents write their first entry before their child arrives. You set the reveal date later once you know their birthday.",
+          "Yes — many people start writing well before the recipient is even old enough to read. New parents often write their first entry before their child arrives. You can set or update the reveal date at any time before sealing.",
       },
     ],
   },
   {
-    label: "The Vault & Security",
+    label: "Security & Privacy",
     items: [
       {
-        question: "Can my child open entries before the reveal date?",
+        question: "Can the recipient open entries before the reveal date?",
         answer:
-          "No. Locked entries are never sent to your child's device — not even hidden. The content doesn't exist on their side until the reveal date passes. There is nothing to find.",
+          "No. Locked entries are never sent to their device — not even hidden. The content doesn't exist on their side until the reveal date passes. There is nothing to find.",
       },
       {
         question: "What if I pass away before the reveal date?",
         answer:
-          "During onboarding you nominate a trusted person — a partner, sibling, or close friend. If your account is inactive for 12 or more months, they can request access to transfer the vault. We verify this manually before any transfer happens.",
+          "During onboarding you nominate a trusted person — a partner, sibling, or close friend. If your account is inactive for 12 or more months, they can request access to transfer your Vault. We verify this manually before any transfer happens.",
       },
       {
         question: "Can I edit an entry after sealing it?",
         answer:
-          "Yes — until the vault unlocks. Once the reveal date passes and your child opens the vault, entries are permanently locked. We think there's something meaningful about that.",
+          "Yes — until the Time Capsule unlocks. Once the reveal date passes and the recipient opens it, entries are permanently locked. We think there's something meaningful about that.",
       },
       {
         question: "Who can see my entries?",
         answer:
-          "Only you. Contributors can only see their own entries. Your child cannot see any content until the reveal date. untilThen staff do not access your entries. All content is encrypted at rest.",
+          "Only you. The recipient cannot see any content until the reveal date. untilThen staff do not access your entries. All content is encrypted at rest.",
       },
     ],
   },
@@ -76,9 +76,9 @@ const SECTIONS: AccordionSection[] = [
           "Your entries are preserved for 12 months after cancellation. We'll email you before deleting anything. You can resubscribe at any time and pick up exactly where you left off.",
       },
       {
-        question: "What happens to the vault if I stop paying?",
+        question: "What happens to my Time Capsules if I stop paying?",
         answer:
-          "The vault enters read-only mode — you can view entries but not add new ones. Your child's reveal date is unaffected. If the reveal date arrives while your account is paused, the vault still unlocks for your child.",
+          "Your Vault enters read-only mode — you can view entries but not add new ones. Reveal dates are unaffected. If a reveal date arrives while your account is paused, the Time Capsule still unlocks for the recipient.",
       },
     ],
   },
@@ -86,18 +86,18 @@ const SECTIONS: AccordionSection[] = [
     label: "Edge Cases",
     items: [
       {
-        question: "What if my child doesn't want to open the vault?",
+        question: "What if the recipient doesn't want to open it?",
         answer:
-          "That's entirely their choice. The vault stays accessible indefinitely — they can open it the day it unlocks or years later. It never expires.",
+          "That's entirely their choice. The Time Capsule stays accessible indefinitely — they can open it the day it unlocks or years later. It never expires.",
       },
       {
         question: "What if I lose access to my account?",
         answer: `Use the standard password reset flow. If you've lost access to your email as well, contact us at ${SUPPORT_EMAIL} and we'll verify your identity before restoring access.`,
       },
       {
-        question: "What if my family situation changes?",
+        question: "What if my situation changes?",
         answer:
-          "You can update your nominated trustee, change contributor access, or transfer vault ownership at any time from your account settings.",
+          "You can update your nominated trustee or transfer Vault ownership at any time from your account settings.",
       },
       {
         question: "How long do you store my memories?",

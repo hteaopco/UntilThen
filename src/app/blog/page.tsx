@@ -8,11 +8,11 @@ import { formatPostDate, getAllPosts, type PostMeta } from "@/lib/posts";
 export const metadata: Metadata = {
   title: "Blog — untilThen",
   description:
-    "Stories, prompts and ideas for parents who want to leave something behind for their children.",
+    "Stories, prompts and ideas for anyone who wants to leave something behind for the people they love.",
   openGraph: {
     title: "The untilThen Blog",
     description:
-      "Stories, prompts and ideas for parents who want to leave something behind.",
+      "Stories, prompts and ideas for anyone who wants to leave something behind.",
     url: "https://untilthenapp.io/blog",
     type: "website",
   },
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "The untilThen Blog",
     description:
-      "Stories, prompts and ideas for parents who want to leave something behind.",
+      "Stories, prompts and ideas for anyone who wants to leave something behind.",
   },
 };
 
@@ -39,7 +39,7 @@ export default function BlogIndexPage() {
             The untilThen Blog
           </h1>
           <p className="text-base text-ink-mid leading-[1.7] max-w-[560px]">
-            Stories, prompts and ideas for parents who want to leave
+            Stories, prompts and ideas for anyone who wants to leave
             something behind.
           </p>
 

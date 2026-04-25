@@ -169,8 +169,8 @@ export function PreviewsClient({
         </h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <PreviewCard
-            title="Recipient Reveal — Vault (Mock)"
-            description="Vault flavour — parents writing into a child's first-birthday vault. 9 contributions (letters, photos, voice). No real vault needed."
+            title="Recipient Reveal — Time Capsule (Mock)"
+            description="Time Capsule flavour — Mom writing to Olivia across her life from birth to her wedding. 15 entries (letters, photos, voice). No real Time Capsule needed."
             onClick={() => setActive("mock-reveal-vault")}
           />
           <PreviewCard

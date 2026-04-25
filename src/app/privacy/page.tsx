@@ -22,13 +22,13 @@ export default function PrivacyPage() {
       <h2>Our Commitment to You</h2>
       <p>
         untilThen was built to help families preserve memories across time. We
-        take the trust you place in us — especially when it involves your
-        children — with the utmost seriousness. This Privacy Policy explains
-        what we collect, how we use it, and how we protect it.
+        take the trust you place in us — especially when it involves the
+        people you love — with the utmost seriousness. This Privacy Policy
+        explains what we collect, how we use it, and how we protect it.
       </p>
       <p>
         <strong>
-          We will never sell your data. We will never use your children&rsquo;s
+          We will never sell your data. We will never use your recipients&rsquo;
           information for advertising. We will never share your memories with
           anyone who isn&rsquo;t you.
         </strong>
@@ -60,21 +60,22 @@ export default function PrivacyPage() {
         <li>Your date of birth (optional, for demographic purposes only)</li>
       </ul>
 
-      <h3>2.2 Children&rsquo;s Information</h3>
-      <p>When you create a Child Vault we collect:</p>
+      <h3>2.2 Time Capsule Recipient Information</h3>
+      <p>When you create a Time Capsule we collect:</p>
       <ul>
-        <li>Your child&rsquo;s first name</li>
-        <li>Your child&rsquo;s date of birth (optional)</li>
-        <li>Your child&rsquo;s reveal date or age</li>
+        <li>The recipient&rsquo;s first name</li>
+        <li>The recipient&rsquo;s date of birth (optional)</li>
+        <li>The Time Capsule&rsquo;s reveal date</li>
       </ul>
       <p>
         <strong>
-          We collect the absolute minimum information necessary about children.
+          We collect the absolute minimum information necessary about
+          recipients.
         </strong>{" "}
-        We do not collect children&rsquo;s email addresses, phone numbers,
-        photos of children&rsquo;s faces for identification purposes, or any
-        biometric data. Children&rsquo;s names and birthdays are stored solely
-        to personalise the vault experience.
+        We do not collect recipients&rsquo; email addresses, phone numbers,
+        photos of recipients&rsquo; faces for identification purposes, or any
+        biometric data. Names and birthdays are stored solely to personalise
+        the Time Capsule experience.
       </p>
 
       <h3>2.3 Content You Create</h3>
@@ -124,8 +125,8 @@ export default function PrivacyPage() {
         <li>Browser type and device type</li>
       </ul>
       <p>
-        We use this data to improve the product. It is never linked to your
-        child&rsquo;s identity.
+        We use this data to improve the product. It is never linked to a
+        recipient&rsquo;s identity.
       </p>
 
       <h3>2.8 Technical Data</h3>
@@ -139,8 +140,9 @@ export default function PrivacyPage() {
 
       <h2>3. Children&rsquo;s Privacy — Our Strongest Commitment</h2>
       <p>
-        untilThen is a product used by adults to create content for children.
-        We take children&rsquo;s privacy with the highest level of seriousness.
+        Time Capsule recipients can be anyone — yourself, a partner, a
+        parent, a friend, or a child. When a recipient is under 13, we apply
+        the additional protections described in this section.
       </p>
 
       <h3>3.1 COPPA Compliance</h3>
@@ -150,47 +152,47 @@ export default function PrivacyPage() {
         from children under 13 for the purpose of creating accounts.
       </p>
       <p>
-        <strong>Account creators</strong> — parents, guardians, contributors,
-        and Gift Capsule organisers — must be 18 or older. They create and
-        manage vaults on behalf of their children.
+        <strong>Account creators</strong> — Vault owners, contributors, and
+        Gift Capsule organisers — must be 18 or older. They create and manage
+        Time Capsules on behalf of recipients.
       </p>
       <p>
-        <strong>Vault recipients</strong> — children receive vaults at whatever
-        age the parent designates as the reveal date. There is no minimum age
-        for receiving a vault. When a child creates an account to access their
-        vault at reveal, they do so at the age their parent has chosen. If
-        that age is under 13, the parent or guardian should assist with
-        account creation and the parent remains responsible for the
-        child&rsquo;s use of the service in accordance with COPPA.
+        <strong>Recipients</strong> — receive Time Capsules at whatever age
+        the Vault owner designates as the reveal date. There is no minimum
+        age for receiving a Time Capsule. When a recipient creates an account
+        to access their Time Capsule at reveal, they do so at the age the
+        Vault owner has chosen. If that age is under 13, the parent or
+        guardian should assist with account creation and the parent remains
+        responsible for the child&rsquo;s use of the service in accordance
+        with COPPA.
       </p>
 
-      <h3>3.2 Child Account Creation</h3>
+      <h3>3.2 Recipient Account Creation</h3>
       <p>
-        Children only create untilThen accounts when their vault reveal date
-        arrives and they are old enough to do so. At no point do we solicit
-        personal information from children to create accounts before they are
-        of appropriate age.
+        Recipients only create untilThen accounts when their Time Capsule
+        reveal date arrives. At no point do we solicit personal information
+        from children to create accounts before they are of appropriate age.
       </p>
 
-      <h3>3.3 What We Store About Children</h3>
+      <h3>3.3 What We Store About Recipients</h3>
       <p>We store only:</p>
       <ul>
-        <li>First name (as entered by the parent)</li>
-        <li>Date of birth (optional, entered by the parent)</li>
-        <li>Reveal date (set by the parent)</li>
+        <li>First name (as entered by the Vault owner)</li>
+        <li>Date of birth (optional, entered by the Vault owner)</li>
+        <li>Reveal date (set by the Vault owner)</li>
       </ul>
       <p>
-        We do not store children&rsquo;s phone numbers, addresses, school
+        We do not store recipients&rsquo; phone numbers, addresses, school
         information, photographs for identification purposes, or any other
         sensitive personal data.
       </p>
 
-      <h3>3.4 Children&rsquo;s Content</h3>
+      <h3>3.4 Time Capsule Content</h3>
       <p>
-        Photos, videos, and voice recordings uploaded to a child&rsquo;s vault
-        are stored securely and are never accessible to anyone other than the
-        parent, approved contributors, and the child themselves after the
-        reveal date.
+        Photos, videos, and voice recordings uploaded to a Time Capsule are
+        stored securely and are never accessible to anyone other than the
+        Vault owner, approved contributors, and the recipient themselves
+        after the reveal date.
       </p>
 
       <h3>3.5 No Advertising to Children</h3>
@@ -201,12 +203,14 @@ export default function PrivacyPage() {
         Ever.
       </p>
 
-      <h3>3.6 Parental Control</h3>
-      <p>Parents have full control over their child&rsquo;s vault at all times:</p>
+      <h3>3.6 Vault-Owner Control</h3>
+      <p>
+        Vault owners have full control over their Time Capsules at all times:
+      </p>
       <ul>
         <li>Delete individual entries</li>
-        <li>Delete the entire vault</li>
-        <li>Transfer vault ownership to a designated trustee</li>
+        <li>Delete the entire Time Capsule</li>
+        <li>Transfer Vault ownership to a designated trustee</li>
         <li>Request complete data deletion</li>
       </ul>
 
@@ -255,15 +259,14 @@ export default function PrivacyPage() {
 
       <h3>4.3 Misrepresentation</h3>
       <p>
-        Creating accounts with false identities to gain access to a
-        child&rsquo;s vault or to deceive contributors or recipients is
-        prohibited.
+        Creating accounts with false identities to gain access to a Time
+        Capsule or to deceive contributors or recipients is prohibited.
       </p>
 
       <h3>4.4 Unauthorised Access</h3>
       <p>
-        Attempting to access sealed vault content before the reveal date
-        through any technical means is prohibited.
+        Attempting to access sealed Time Capsule content before the reveal
+        date through any technical means is prohibited.
       </p>
 
       <hr />
@@ -360,8 +363,8 @@ export default function PrivacyPage() {
           access URLs
         </li>
         <li>
-          Sealed vault content is never transmitted to a child&rsquo;s device
-          until the reveal date
+          Sealed Time Capsule content is never transmitted to a recipient&rsquo;s
+          device until the reveal date
         </li>
         <li>
           Passwords are managed by Clerk and never stored in plain text
@@ -425,7 +428,7 @@ export default function PrivacyPage() {
 
       <h3>8.4 Data Export</h3>
       <p>
-        You can request a full export of your vault contents — letters,
+        You can request a full export of your Vault contents — letters,
         photos, voice notes, and videos — by emailing{" "}
         <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>.
       </p>

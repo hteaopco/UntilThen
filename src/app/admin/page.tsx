@@ -158,7 +158,7 @@ export default async function AdminDashboard() {
         {/* Key Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Stat icon={<Users size={18} strokeWidth={1.5} />} label="Total Users" value={totalUsers} sub={`+${usersThisWeek} this week`} />
-          <Stat icon={<Lock size={18} strokeWidth={1.5} />} label="Time Capsules" value={totalVaults} sub={`${totalChildren} children`} />
+          <Stat icon={<Lock size={18} strokeWidth={1.5} />} label="Time Capsules" value={totalVaults} sub={`${totalChildren} recipients`} />
           <Stat icon={<Gift size={18} strokeWidth={1.5} />} label="Gift Capsules" value={totalCapsules} sub={`${totalContributions} contributions`} />
           <Stat icon={<Inbox size={18} strokeWidth={1.5} />} label="Total Entries" value={totalEntries} sub={`+${entriesThisWeek} this week`} />
         </div>

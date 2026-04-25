@@ -172,8 +172,8 @@ export function OnboardingForm({
 
             <PathCard
               icon="vault"
-              title="Write to my child"
-              body="Seal memories, letters and voice notes in a vault they open when they're ready."
+              title="Start a Time Capsule"
+              body="Seal memories, letters and voice notes for someone you love to open when they're ready."
               price="$4.99/month"
               cta="Get started"
               onClick={() => saveAndRoute("vault")}
