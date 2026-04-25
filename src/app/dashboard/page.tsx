@@ -76,28 +76,24 @@ export default async function DashboardPage() {
                 href="/account/capsules/new"
                 prefetch={false}
                 aria-label="Add a time capsule"
-                className="shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl bg-white border-2 border-dashed border-amber/40 hover:border-amber/60 transition-colors overflow-hidden flex flex-col"
+                className="shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] aspect-square sm:aspect-[3/4] rounded-2xl bg-white border-2 border-dashed border-amber/40 hover:border-amber/60 transition-colors flex flex-col items-center justify-center gap-3 px-4 text-center"
               >
-                {/* Single white surface — no inner backgrounds, no
-                    border-t between cover and footer. The whole card
-                    is one continuous white plane defined by the
-                    dashed amber border. */}
-                <div className="aspect-[4/3] sm:aspect-square flex items-center justify-center">
-                  <Plus
-                    size={36}
-                    strokeWidth={1.75}
-                    className="text-amber"
-                    aria-hidden="true"
-                  />
-                </div>
-                <div className="p-3">
-                  <h3 className="text-[17px] font-bold text-amber tracking-[-0.3px] leading-tight">
-                    New Capsule
-                  </h3>
-                  <p className="mt-1.5 text-[11px] font-medium text-amber/70">
-                    Tap to start
-                  </p>
-                </div>
+                {/* Amber gradient pill — three-stop so it has visible
+                    depth (light at top-left, mid through, dark at
+                    bottom-right) plus a soft amber drop shadow for
+                    lift. White Plus icon inside. */}
+                <span
+                  aria-hidden="true"
+                  className="w-14 h-14 rounded-full bg-gradient-to-br from-amber-light via-amber to-amber-dark text-white flex items-center justify-center shadow-[0_6px_16px_-4px_rgba(196,122,58,0.45),inset_0_1px_2px_rgba(255,255,255,0.4)]"
+                >
+                  <Plus size={28} strokeWidth={2.5} />
+                </span>
+                <h3 className="text-[17px] font-bold text-navy tracking-[-0.3px] leading-tight">
+                  New Capsule
+                </h3>
+                <p className="text-[11px] font-medium text-ink-mid leading-[1.35]">
+                  Create moments worth remembering
+                </p>
               </Link>
             </HorizontalCardRail>
           )}
