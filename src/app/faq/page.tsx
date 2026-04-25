@@ -28,7 +28,7 @@ const SECTIONS: AccordionSection[] = [
       {
         question: "When does the recipient get access to their Time Capsule?",
         answer:
-          "The recipient has their own account and can log in to see their Time Capsule any time. They'll see a countdown to the reveal date and how many sealed memories are waiting for them — but the contents stay completely locked until the reveal date arrives. Think of it like seeing wrapped gifts under the tree but not being able to open them.",
+          "On the reveal date, the recipient gets an email with a private link to open their Time Capsule. Until that day, no content has been sent to them — there's nothing to log into and nothing for them to find. The link works after the reveal date too, so they can come back any time to revisit what was opened.",
       },
       {
         question: "Can I start a Time Capsule before the recipient is ready?",
