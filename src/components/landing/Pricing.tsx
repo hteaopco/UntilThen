@@ -373,7 +373,7 @@ const giftCapsulePlan = (
     priceUnit="one-time"
     features={GIFT_CAPSULE_FEATURES}
     cta="Create a Gift Capsule"
-    ctaHref="/capsules/new"
+    ctaHref="/sign-up?path=capsule"
     overlay={<ConfettiOverlay />}
     billingToggle={<OccasionTicker />}
   />
