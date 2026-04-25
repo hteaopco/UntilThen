@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil, Plus } from "lucide-react";
+import { Layers, Pencil, Plus } from "lucide-react";
 
 import { CoverUploader } from "@/components/dashboard2/CoverUploader";
 import { CreateCollectionModal } from "@/components/capsule-landing/CreateCollectionModal";
@@ -163,11 +163,17 @@ function CreateCollectionCard({
       }`}
     >
       <span
-        className={`font-bold text-navy tracking-[-0.2px] leading-tight truncate ${
+        className={`inline-flex items-center gap-2 font-bold text-navy tracking-[-0.2px] leading-tight truncate ${
           compact ? "text-[12px]" : "text-[14px]"
         }`}
       >
-        Create New Collection
+        <Layers
+          size={compact ? 14 : 16}
+          strokeWidth={1.75}
+          className="text-amber shrink-0"
+          aria-hidden="true"
+        />
+        New Collection
       </span>
       <span
         aria-hidden="true"
