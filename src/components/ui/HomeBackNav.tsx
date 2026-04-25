@@ -6,14 +6,17 @@ import { useRouter } from "next/navigation";
 
 /**
  * Small pair of circular nav buttons that sits in the top-left
- * of sub-page headers: back (browser history), home (→
- * /dashboard), and settings (→ /account). On mobile there's no
- * system-level "home", so having all three explicit + always-
- * visible beats the current mix of page-specific "Back to X"
- * links.
+ * of sub-page headers: back (browser history), home (→ /home),
+ * and settings (→ /account). On mobile there's no system-level
+ * "home", so having all three explicit + always-visible beats
+ * the current mix of page-specific "Back to X" links.
+ *
+ * Default homeHref is /home (the signed-in two-bubble landing).
+ * Callers can override — TopNav passes "/" for signed-out
+ * viewers so the public home button still routes sensibly.
  */
 export function HomeBackNav({
-  homeHref = "/dashboard",
+  homeHref = "/home",
   homeLabel = "Home",
 }: {
   homeHref?: string;
