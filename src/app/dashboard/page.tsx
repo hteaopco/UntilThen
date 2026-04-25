@@ -75,12 +75,24 @@ export default async function DashboardPage() {
               <Link
                 href="/account/capsules/new"
                 prefetch={false}
-                className="snap-start shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl border-2 border-dashed border-amber/40 bg-white/50 flex flex-col items-center justify-center gap-2 text-amber hover:bg-white transition-colors py-8"
+                aria-label="Add a time capsule"
+                className="snap-start shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl bg-white border-2 border-dashed border-amber/40 shadow-[0_8px_24px_-10px_rgba(15,31,61,0.18)] hover:shadow-[0_12px_32px_-10px_rgba(15,31,61,0.24)] hover:border-amber/60 transition-all overflow-hidden"
               >
-                <span className="w-12 h-12 rounded-full bg-amber-tint flex items-center justify-center">
-                  <Plus size={22} strokeWidth={2} />
-                </span>
-                <span className="text-[13px] font-semibold">Add a time capsule</span>
+                {/* Image area mirrors VaultCard's cover so total
+                    card height matches across the row. */}
+                <div className="aspect-[4/3] sm:aspect-square bg-amber-tint/40 flex items-center justify-center">
+                  <span className="w-12 h-12 rounded-full bg-white border border-amber/30 flex items-center justify-center text-amber shadow-[0_2px_8px_-2px_rgba(196,122,58,0.3)]">
+                    <Plus size={22} strokeWidth={2} />
+                  </span>
+                </div>
+                {/* Footer mirrors VaultCard's name + stats row. */}
+                <div className="p-3 border-t border-amber/15 bg-white">
+                  <h3 className="text-[15px] font-bold text-amber tracking-[-0.3px] leading-tight">
+                    Add a Time
+                    <br />
+                    Capsule
+                  </h3>
+                </div>
               </Link>
             </HorizontalCardRail>
           )}

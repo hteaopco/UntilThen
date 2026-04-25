@@ -43,7 +43,7 @@ export function VaultCard({ vault }: { vault: VaultCardData }) {
   const hasCover = !!vault.coverUrl;
 
   return (
-    <div className="relative snap-start shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl bg-white border border-amber/60 shadow-[0_8px_24px_-8px_rgba(196,122,58,0.2)] hover:shadow-[0_12px_32px_-8px_rgba(196,122,58,0.3)] transition-shadow overflow-hidden">
+    <div className="relative snap-start shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl bg-white border border-amber/60 shadow-[0_8px_24px_-10px_rgba(15,31,61,0.18)] hover:shadow-[0_12px_32px_-10px_rgba(15,31,61,0.24)] transition-shadow overflow-hidden">
       {hasCover ? (
         <Link
           href={detailHref}

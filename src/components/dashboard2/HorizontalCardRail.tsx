@@ -100,7 +100,7 @@ export function HorizontalCardRail({
             <div
               key={i}
               data-rail-slot
-              className={`snap-center shrink-0 transition-[transform,filter,opacity] duration-300 ease-out -ml-[50px] first:ml-0 ${
+              className={`snap-center shrink-0 transition-[transform,filter,opacity] duration-300 ease-out -ml-[100px] first:ml-0 ${
                 isActive
                   ? "scale-100 opacity-100 z-10"
                   : "scale-[0.92] opacity-75 z-0"
