@@ -1,5 +1,5 @@
 # untilThen — Pre-Launch Checklist
-*Updated April 24, 2026*
+*Updated April 25, 2026*
 
 > Only outstanding items. Everything completed has been pruned —
 > see git history (`docs/pre-launch-checklist.md`) for the archive.
@@ -8,13 +8,9 @@
 
 ## 🔴 Blockers
 
-- [~] **Backup + restore verification** — pg_dump → gzip → R2 streaming
-  pipeline confirmed working via `/admin/settings → DB backup live test`
-  (`0bfff40` installed pg_dump 18 via PGDG, `30f3604` added the admin
-  button, `0bb171e` switched to streaming multipart upload to eliminate
-  OOM). Nightly cron + Railway's native PG backups + R2 lifecycle are
-  all live. **Outstanding:** run the end-to-end restore drill into
-  staging against a real backup.
+*(none — backup-restore drill demoted; Railway native PG backups
+plus the proven R2 pipeline give enough coverage at this user
+volume.)*
 
 ---
 
@@ -31,6 +27,20 @@
   remove-addon → update-card → switch → cancel-switch → cancel → resume
   on prod, verify vault-lock reconciliation and webhook promotion at
   each step
+
+---
+
+## 🟤 Before First 100 Paying Users
+
+- [ ] **Backup + restore drill** — pg_dump → gzip → R2 streaming
+  pipeline already confirmed working via `/admin/settings → DB
+  backup live test` (commits `0bfff40`, `30f3604`, `0bb171e`).
+  Railway native PG backups are on as the primary safety net.
+  When data volume warrants it, run the end-to-end restore drill
+  per `docs/backup-restore.md` "Pre-launch drill" section: spin
+  up a staging Postgres, run `scripts/restore-db.ts` against the
+  latest dump, verify row counts + spot-check one real capsule's
+  contributions + media keys.
 
 ---
 
