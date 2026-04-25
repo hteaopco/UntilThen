@@ -78,12 +78,13 @@ export default async function DashboardPage() {
                 aria-label="Add a time capsule"
                 className="shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl bg-white border-2 border-dashed border-amber/40 hover:border-amber/60 transition-colors overflow-hidden"
               >
-                {/* Image area mirrors VaultCard's cover so total
-                    card height matches across the row. Full-opacity
-                    amber-tint instead of /40 so it doesn't read as
-                    transparent against the page background. */}
-                <div className="aspect-[4/3] sm:aspect-square bg-amber-tint flex items-center justify-center">
-                  <span className="w-12 h-12 rounded-full bg-white border border-amber/30 flex items-center justify-center text-amber">
+                {/* Image area mirrors VaultCard's empty-cover state:
+                    solid white cover (distinct from the near-identical
+                    cream page bg) with the amber-tint colour moved
+                    onto the Plus-icon circle where it reads as a
+                    deliberate accent rather than a transparent wash. */}
+                <div className="aspect-[4/3] sm:aspect-square bg-white flex flex-col items-center justify-center gap-2">
+                  <span className="w-12 h-12 rounded-full bg-amber-tint flex items-center justify-center text-amber">
                     <Plus size={22} strokeWidth={2} />
                   </span>
                 </div>
