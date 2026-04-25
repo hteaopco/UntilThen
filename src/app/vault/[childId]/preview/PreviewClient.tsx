@@ -61,62 +61,63 @@ export function VaultPreviewClient({
   const capsule = mode === "real" ? realCapsule : demoCapsule;
   const contributions = mode === "real" ? realContributions : MOCK_CONTRIBUTIONS;
 
-  return (
-    <div className="relative">
-      <div
-        className="fixed top-0 inset-x-0 z-[250] flex items-center justify-between gap-3 px-3 py-2.5 bg-cream/90 backdrop-blur-md text-navy border-b border-navy/[0.06]"
-        style={{ paddingTop: "max(env(safe-area-inset-top), 10px)" }}
+  // Slot rendered inside the GateScreen ONLY (i.e. before the user
+  // taps Begin). Lets the previewer pick the theme up front instead
+  // of seeing a sticky bar overlaid on the entire reveal.
+  const gateHeader = (
+    <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+      <Link
+        href={`/vault/${childId}`}
+        prefetch={false}
+        className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-ink-mid hover:text-navy transition-colors"
       >
-        <Link
-          href={`/vault/${childId}`}
-          prefetch={false}
-          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-ink-mid hover:text-navy transition-colors"
+        <ArrowLeft size={14} strokeWidth={2} />
+        Back
+      </Link>
+
+      <div className="flex items-center gap-1 rounded-full bg-white p-0.5 border border-navy/10 shadow-[0_2px_8px_rgba(15,31,61,0.04)]">
+        <ToggleButton
+          active={mode === "real"}
+          onClick={() => setMode("real")}
+          disabled={!hasRealContent}
+          title={
+            hasRealContent
+              ? undefined
+              : "No sealed entries yet — demo only"
+          }
         >
-          <ArrowLeft size={14} strokeWidth={2} />
-          Back
-        </Link>
-
-        <div className="flex items-center gap-1 rounded-full bg-white p-0.5 border border-navy/10 shadow-[0_2px_8px_rgba(15,31,61,0.04)]">
-          <ToggleButton
-            active={mode === "real"}
-            onClick={() => setMode("real")}
-            disabled={!hasRealContent}
-            title={
-              hasRealContent
-                ? undefined
-                : "No sealed entries yet — demo only"
-            }
-          >
-            This vault
-          </ToggleButton>
-          <ToggleButton active={mode === "demo"} onClick={() => setMode("demo")}>
-            <Sparkles
-              size={11}
-              strokeWidth={2}
-              className="inline mr-1 -mt-0.5"
-              aria-hidden="true"
-            />
-            Full demo
-          </ToggleButton>
-        </div>
-
-        <span className="text-[11px] uppercase tracking-[0.14em] text-amber font-semibold hidden sm:inline">
-          Preview
-        </span>
+          This vault
+        </ToggleButton>
+        <ToggleButton active={mode === "demo"} onClick={() => setMode("demo")}>
+          <Sparkles
+            size={11}
+            strokeWidth={2}
+            className="inline mr-1 -mt-0.5"
+            aria-hidden="true"
+          />
+          Full demo
+        </ToggleButton>
       </div>
 
-      <RevealExperience
-        key={mode}
-        capsule={capsule}
-        contributions={contributions}
-        variant="vault"
-        // Curator + music only apply to "this vault" — the
-        // demo mode is always a fresh randomised reel against
-        // mock contributions.
-        curatedSlides={mode === "real" ? curatedSlides : undefined}
-        musicUrl={mode === "real" ? musicUrl ?? null : null}
-      />
+      <span className="text-[11px] uppercase tracking-[0.14em] text-amber font-semibold hidden sm:inline">
+        Preview
+      </span>
     </div>
+  );
+
+  return (
+    <RevealExperience
+      key={mode}
+      capsule={capsule}
+      contributions={contributions}
+      variant="vault"
+      // Curator + music only apply to "this vault" — the
+      // demo mode is always a fresh randomised reel against
+      // mock contributions.
+      curatedSlides={mode === "real" ? curatedSlides : undefined}
+      musicUrl={mode === "real" ? musicUrl ?? null : null}
+      gateHeaderSlot={gateHeader}
+    />
   );
 }
 

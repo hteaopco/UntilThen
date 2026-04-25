@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 /**
  * Pre-entry gate. Universal one-tap screen shown before the
@@ -16,8 +16,19 @@ import { useEffect, useState } from "react";
  * Always shown (not just on iOS) so the experience is uniform
  * across devices. One extra tap is a negligible cost for
  * guaranteed audio-start alignment.
+ *
+ * Optional `headerSlot` renders absolutely-positioned at the top,
+ * OUTSIDE the tap button — taps on it don't bubble to onEnter.
+ * Used by the preview surfaces to expose a "This vault / Full demo"
+ * toggle (and any back link) before the reveal kicks off.
  */
-export function GateScreen({ onEnter }: { onEnter: () => void }) {
+export function GateScreen({
+  onEnter,
+  headerSlot,
+}: {
+  onEnter: () => void;
+  headerSlot?: ReactNode;
+}) {
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     // Small delay so the gate itself fades in, avoiding a
@@ -27,48 +38,63 @@ export function GateScreen({ onEnter }: { onEnter: () => void }) {
   }, []);
 
   return (
-    <button
-      type="button"
-      onClick={onEnter}
-      aria-label="Enter reveal"
-      className="fixed inset-0 z-[270] flex items-center justify-center bg-cream w-full h-full text-center select-none cursor-pointer"
+    <div
+      className="fixed inset-0 z-[270] bg-cream w-full h-full select-none overflow-hidden"
       style={{
         background:
           "radial-gradient(ellipse at 50% 50%, rgba(224, 154, 90, 0.12) 0%, transparent 60%), " +
           "linear-gradient(180deg, rgba(253, 243, 233, 1) 0%, rgba(253, 248, 242, 1) 100%)",
-        paddingTop: "max(env(safe-area-inset-top), 24px)",
-        paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
       }}
     >
-      <div
-        className="flex flex-col items-center gap-4"
+      {headerSlot ? (
+        <div
+          className="absolute inset-x-0 top-0 z-[10]"
+          style={{ paddingTop: "max(env(safe-area-inset-top), 8px)" }}
+        >
+          {headerSlot}
+        </div>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={onEnter}
+        aria-label="Enter reveal"
+        className="absolute inset-0 flex items-center justify-center text-center cursor-pointer"
         style={{
-          opacity: visible ? 1 : 0,
-          transform: visible ? "translateY(0)" : "translateY(8px)",
-          transition: "opacity 700ms ease-out, transform 700ms ease-out",
+          paddingTop: "max(env(safe-area-inset-top), 24px)",
+          paddingBottom: "max(env(safe-area-inset-bottom), 24px)",
         }}
       >
-        <span
-          aria-hidden="true"
-          className="inline-flex h-12 w-12 rounded-full items-center justify-center"
+        <div
+          className="flex flex-col items-center gap-4"
           style={{
-            background:
-              "radial-gradient(circle at 50% 50%, rgba(196,122,58,0.25) 0%, rgba(196,122,58,0) 70%)",
-            animation: "gatePulse 2600ms ease-in-out infinite",
+            opacity: visible ? 1 : 0,
+            transform: visible ? "translateY(0)" : "translateY(8px)",
+            transition: "opacity 700ms ease-out, transform 700ms ease-out",
           }}
         >
           <span
-            className="block h-2 w-2 rounded-full bg-amber"
-            style={{ boxShadow: "0 0 0 0 rgba(196,122,58,0.35)" }}
-          />
-        </span>
-        <p className="font-serif text-navy text-[20px] tracking-[-0.2px]">
-          Tap to begin
-        </p>
-        <p className="text-[12px] text-ink-mid tracking-[0.08em]">
-          Sound will play quietly in the background.
-        </p>
-      </div>
+            aria-hidden="true"
+            className="inline-flex h-12 w-12 rounded-full items-center justify-center"
+            style={{
+              background:
+                "radial-gradient(circle at 50% 50%, rgba(196,122,58,0.25) 0%, rgba(196,122,58,0) 70%)",
+              animation: "gatePulse 2600ms ease-in-out infinite",
+            }}
+          >
+            <span
+              className="block h-2 w-2 rounded-full bg-amber"
+              style={{ boxShadow: "0 0 0 0 rgba(196,122,58,0.35)" }}
+            />
+          </span>
+          <p className="font-serif text-navy text-[20px] tracking-[-0.2px]">
+            Tap to begin
+          </p>
+          <p className="text-[12px] text-ink-mid tracking-[0.08em]">
+            Sound will play quietly in the background.
+          </p>
+        </div>
+      </button>
 
       <style jsx global>{`
         @keyframes gatePulse {
@@ -83,6 +109,6 @@ export function GateScreen({ onEnter }: { onEnter: () => void }) {
           }
         }
       `}</style>
-    </button>
+    </div>
   );
 }

@@ -126,9 +126,14 @@ export function RevealExperience({
   variant = "capsule",
   curatedSlides,
   musicUrl,
+  gateHeaderSlot,
 }: {
   capsule: RevealCapsule;
   contributions: RevealContribution[];
+  /** Optional UI rendered at the top of the GateScreen (and only
+   *  the gate). Used by preview surfaces to expose the
+   *  This-vault / Full-demo toggle before the user taps Begin. */
+  gateHeaderSlot?: React.ReactNode;
   /** Fires once, the first time the recipient reaches the gallery
    *  in this session. The wrapper is responsible for any server-
    *  side stamping (POST /api/reveal/{token}/complete). Optional
@@ -391,6 +396,7 @@ export function RevealExperience({
     if (phase === "gate") {
       return (
         <GateScreen
+          headerSlot={gateHeaderSlot}
           onEnter={() => {
             // This tap is the autoplay-unlocking user gesture.
             // Start the bed here BEFORE transitioning so the
