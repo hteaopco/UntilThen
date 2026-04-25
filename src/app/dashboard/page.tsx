@@ -76,7 +76,7 @@ export default async function DashboardPage() {
                 href="/account/capsules/new"
                 prefetch={false}
                 aria-label="Add a time capsule"
-                className="snap-start shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl bg-white border-2 border-dashed border-amber/40 hover:border-amber/60 transition-colors overflow-hidden"
+                className="shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl bg-white border-2 border-dashed border-amber/40 hover:border-amber/60 transition-colors overflow-hidden"
               >
                 {/* Image area mirrors VaultCard's cover so total
                     card height matches across the row. Full-opacity
@@ -87,13 +87,15 @@ export default async function DashboardPage() {
                     <Plus size={22} strokeWidth={2} />
                   </span>
                 </div>
-                {/* Footer mirrors VaultCard's name + stats row. */}
+                {/* Footer mirrors VaultCard's name + stats row so
+                    the two card types share an identical height. */}
                 <div className="p-3 border-t border-amber/15 bg-white">
-                  <h3 className="text-[15px] font-bold text-amber tracking-[-0.3px] leading-tight">
-                    Add a Time
-                    <br />
-                    Capsule
+                  <h3 className="text-[17px] font-bold text-amber tracking-[-0.3px] leading-tight">
+                    New Capsule
                   </h3>
+                  <p className="mt-1.5 text-[11px] font-medium text-amber/70">
+                    Tap to start
+                  </p>
                 </div>
               </Link>
             </HorizontalCardRail>

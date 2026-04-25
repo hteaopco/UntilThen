@@ -113,10 +113,14 @@ export function NavigationProgress() {
       });
     }
 
-    document.addEventListener("pointerdown", tryActivate, { passive: true });
+    // Only listen to `click`, not `pointerdown`. iOS Safari
+    // suppresses click when the user scrolls during a touch — that
+    // suppression is exactly what we want here, so progress doesn't
+    // light up when someone drags the dashboard carousel. The
+    // earlier pointerdown listener defeated that suppression and
+    // flashed the bar on every scroll touch.
     document.addEventListener("click", tryActivate);
     return () => {
-      document.removeEventListener("pointerdown", tryActivate);
       document.removeEventListener("click", tryActivate);
     };
   }, []);

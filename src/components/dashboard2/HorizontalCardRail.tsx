@@ -76,6 +76,25 @@ export function HorizontalCardRail({
     };
   }, [measure]);
 
+  // Default to centring the SECOND card on first paint when there
+  // are at least two slots, so the user lands inside the carousel
+  // rather than against its left edge. Runs once after layout.
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const slots = el.querySelectorAll<HTMLElement>("[data-rail-slot]");
+    if (slots.length < 2) return;
+    const target = slots[1];
+    const targetCenter = target.offsetLeft + target.offsetWidth / 2;
+    // scrollTo with 'instant' so the user doesn't see the rail
+    // animate from 0 → centred on every fresh page load.
+    el.scrollTo({
+      left: Math.max(0, targetCenter - el.clientWidth / 2),
+      behavior: "instant",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const scrollByPage = (direction: 1 | -1) => {
     const el = scrollerRef.current;
     if (!el) return;
