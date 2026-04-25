@@ -67,10 +67,12 @@ const STEP_BLURBS = [
   "Getting closer",
   "Almost there",
   "One more",
+  "Last detail",
   "",
 ] as const;
 
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 6;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const TONE_OPTIONS: CapsuleTone[] = [
   "CELEBRATION", "GRATITUDE", "THINKING_OF_YOU", "ENCOURAGEMENT", "LOVE", "OTHER",
@@ -118,6 +120,7 @@ export function CapsuleCreationFlow() {
   const [customTime, setCustomTime] = useState(false);
   const [timezone, setTimezone] = useState(detectTimezone);
   const [dateAlert, setDateAlert] = useState(false);
+  const [recipientEmail, setRecipientEmail] = useState("");
 
   const maxDateIso = yyyymmdd(new Date(Date.now() + CAPSULE_MAX_HORIZON_MS));
   const minDateIso = yyyymmdd(new Date(Date.now() + 86400000));
@@ -175,6 +178,12 @@ export function CapsuleCreationFlow() {
       if (!deliveryTime) return "Please select a delivery time";
       return null;
     }
+    if (step === 4) {
+      const trimmed = recipientEmail.trim();
+      if (!trimmed) return "Recipient email is required";
+      if (!EMAIL_RE.test(trimmed)) return "Please enter a valid email address";
+      return null;
+    }
     return null;
   }
 
@@ -223,6 +232,7 @@ export function CapsuleCreationFlow() {
           title: title.trim(),
           recipientName: fullName,
           recipientPronoun,
+          recipientEmail: recipientEmail.trim() || null,
           occasionType: occasionType ?? "OTHER",
           tone: tone ?? "CELEBRATION",
           revealDate,
@@ -500,8 +510,45 @@ export function CapsuleCreationFlow() {
             </div>
           )}
 
-          {/* ── Step 4: Review & create ────────────────── */}
+          {/* ── Step 4: Recipient email ────────────────── */}
           {step === 4 && (
+            <div className="space-y-5">
+              <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
+                Where should we send it?
+              </h1>
+              <p className="text-[15px] text-ink-mid leading-[1.6]">
+                On the reveal date, we&rsquo;ll email{" "}
+                {recipientFirstName.trim() || "the recipient"} a link to open
+                the capsule.
+                {isCouple ? (
+                  <>
+                    {" "}For couples, pick the primary contact —{" "}
+                    {recipientFirstName.trim() || "either of them"} or{" "}
+                    {recipient2FirstName.trim() || "their partner"} — and they
+                    can share the link.
+                  </>
+                ) : null}
+              </p>
+
+              <Field label="Recipient email" hint="We'll only use this on the reveal date. Nothing is sent now.">
+                <input
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  value={recipientEmail}
+                  onChange={(e) => {
+                    setRecipientEmail(e.target.value);
+                    setStepError(null);
+                  }}
+                  placeholder="them@example.com"
+                  className="account-input"
+                />
+              </Field>
+            </div>
+          )}
+
+          {/* ── Step 5: Review & create ────────────────── */}
+          {step === 5 && (
             <div className="space-y-5">
               <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
                 Review your capsule
@@ -514,6 +561,7 @@ export function CapsuleCreationFlow() {
                 <ReviewRow label="Tone" value={TONE_LABELS[tone ?? "CELEBRATION"]} />
                 <ReviewRow label="Title" value={title} />
                 <ReviewRow label="For" value={recipientName} />
+                <ReviewRow label="Recipient email" value={recipientEmail.trim() || "—"} />
                 <ReviewRow label="Occasion" value={OCCASIONS.find((o) => o.value === occasionType)?.label ?? "Other"} />
                 <ReviewRow label="Reveal date" value={revealDate ? new Date(revealDate + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "—"} />
                 <ReviewRow label="Delivery time" value={deliveryTime ?? "—"} />
