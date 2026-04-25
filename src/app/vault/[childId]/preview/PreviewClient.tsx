@@ -61,11 +61,9 @@ export function VaultPreviewClient({
   const capsule = mode === "real" ? realCapsule : demoCapsule;
   const contributions = mode === "real" ? realContributions : MOCK_CONTRIBUTIONS;
 
-  // Slot rendered inside the GateScreen ONLY (i.e. before the user
-  // taps Begin). Lets the previewer pick the theme up front instead
-  // of seeing a sticky bar overlaid on the entire reveal.
+  // Top of the gate — Back link only.
   const gateHeader = (
-    <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+    <div className="flex items-center px-3 py-2.5">
       <Link
         href={`/vault/${childId}`}
         prefetch={false}
@@ -74,34 +72,33 @@ export function VaultPreviewClient({
         <ArrowLeft size={14} strokeWidth={2} />
         Back
       </Link>
+    </div>
+  );
 
-      <div className="flex items-center gap-1 rounded-full bg-white p-0.5 border border-navy/10 shadow-[0_2px_8px_rgba(15,31,61,0.04)]">
-        <ToggleButton
-          active={mode === "real"}
-          onClick={() => setMode("real")}
-          disabled={!hasRealContent}
-          title={
-            hasRealContent
-              ? undefined
-              : "No sealed entries yet — demo only"
-          }
-        >
-          This vault
-        </ToggleButton>
-        <ToggleButton active={mode === "demo"} onClick={() => setMode("demo")}>
-          <Sparkles
-            size={11}
-            strokeWidth={2}
-            className="inline mr-1 -mt-0.5"
-            aria-hidden="true"
-          />
-          Full demo
-        </ToggleButton>
-      </div>
-
-      <span className="text-[11px] uppercase tracking-[0.14em] text-amber font-semibold hidden sm:inline">
-        Preview
-      </span>
+  // Sits directly under the gate's 'Tap to begin' content. Lets the
+  // previewer pick the theme up front without an overlay covering
+  // the whole reveal.
+  const gateBelow = (
+    <div className="flex items-center gap-1 rounded-full bg-white p-0.5 border border-navy/10 shadow-[0_2px_8px_rgba(15,31,61,0.04)]">
+      <ToggleButton
+        active={mode === "real"}
+        onClick={() => setMode("real")}
+        disabled={!hasRealContent}
+        title={
+          hasRealContent ? undefined : "No sealed entries yet — demo only"
+        }
+      >
+        This vault
+      </ToggleButton>
+      <ToggleButton active={mode === "demo"} onClick={() => setMode("demo")}>
+        <Sparkles
+          size={11}
+          strokeWidth={2}
+          className="inline mr-1 -mt-0.5"
+          aria-hidden="true"
+        />
+        Full demo
+      </ToggleButton>
     </div>
   );
 
@@ -117,6 +114,7 @@ export function VaultPreviewClient({
       curatedSlides={mode === "real" ? curatedSlides : undefined}
       musicUrl={mode === "real" ? musicUrl ?? null : null}
       gateHeaderSlot={gateHeader}
+      gateBelowSlot={gateBelow}
     />
   );
 }
