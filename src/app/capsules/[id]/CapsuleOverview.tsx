@@ -3,6 +3,7 @@
 import {
   AlertTriangle,
   Check,
+  ChevronDown,
   Lock,
   Mail,
   Paperclip,
@@ -114,6 +115,10 @@ export function CapsuleOverview({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [sealing, setSealing] = useState(false);
+  // Add-contributors panel collapsed by default so a brand-new
+  // capsule doesn't open as a wall of empty form fields. Auto-
+  // opens when there's an existing invite list to surface.
+  const [inviteOpen, setInviteOpen] = useState(invites.length > 0);
 
   const isDraft = capsule.rawStatus === "DRAFT";
   const isSealed = capsule.contributionsClosed;
@@ -334,31 +339,55 @@ export function CapsuleOverview({
         />
       </section>
 
-      {/* Invite people — collapsed by default on drafts with no
-          contributors yet so the page doesn't open as a wall of
-          empty forms. Expands with a click; auto-opens once any
-          invites exist or once the organiser saves their own
-          message (handled in OwnContribution via the ref). */}
+      {/* Invite people — collapsed by default so a brand-new
+          capsule doesn't open as a wall of empty form fields.
+          Tap the header to expand; auto-opens when there are
+          already invites to display. */}
       <section
         id="invite-people"
         className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8"
       >
-        <div className="mb-3">
+        <button
+          type="button"
+          onClick={() => setInviteOpen((v) => !v)}
+          aria-expanded={inviteOpen}
+          aria-controls="invite-people-panel"
+          className="w-full flex items-center justify-between gap-3 mb-3 text-left group"
+        >
           <h2 className="text-[17px] font-bold text-navy tracking-[-0.2px]">
             Add contributors (optional)
+            {invites.length > 0 && (
+              <span className="ml-2 text-[13px] font-semibold text-ink-light">
+                · {invites.length}
+              </span>
+            )}
           </h2>
-        </div>
+          <span
+            aria-hidden="true"
+            className="shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-full border border-navy/10 text-ink-mid group-hover:text-navy group-hover:border-navy/30 transition-colors"
+          >
+            <ChevronDown
+              size={16}
+              strokeWidth={2}
+              className={`transition-transform ${inviteOpen ? "rotate-180" : ""}`}
+            />
+          </span>
+        </button>
 
-        <ContributorsPanel
-          capsuleId={capsule.id}
-          recipientName={capsule.recipientName}
-          recipientDisplayName={recipientDisplayName}
-          isCouple={isCouple}
-          invites={invites}
-          isDraft={isDraft}
-          busyId={busy}
-          onRemove={removeInvite}
-        />
+        {inviteOpen && (
+          <div id="invite-people-panel">
+            <ContributorsPanel
+              capsuleId={capsule.id}
+              recipientName={capsule.recipientName}
+              recipientDisplayName={recipientDisplayName}
+              isCouple={isCouple}
+              invites={invites}
+              isDraft={isDraft}
+              busyId={busy}
+              onRemove={removeInvite}
+            />
+          </div>
+        )}
       </section>
 
       {pending.length > 0 && (
