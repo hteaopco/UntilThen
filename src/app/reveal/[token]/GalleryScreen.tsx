@@ -215,7 +215,12 @@ export function GalleryScreen({
   const opened = openId ? sorted.find((c) => c.id === openId) ?? null : null;
 
   return (
-    <main className="min-h-screen bg-cream pb-20">
+    <main
+      className="min-h-[100dvh] bg-cream"
+      style={{
+        paddingBottom: "max(env(safe-area-inset-bottom), 5rem)",
+      }}
+    >
       <header
         className="relative px-5"
         style={{
