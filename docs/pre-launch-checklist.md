@@ -69,21 +69,6 @@ volume.)*
 
 ---
 
-## 🟠 Letter Editor Uniformity
-
-- [ ] Verify all 3 editor surfaces use the same design (public capsule
-  contributor, vault memory editor, capsule organiser self-contribution
-  — see `docs/letter-editors.md`)
-- [ ] Confirm toolbar is consistent (B I U | quote | list ordered-list)
-- [ ] Confirm scroll indicator appears on all editors
-- [ ] Confirm "Write as much as you'd like." hint on all editors
-- [ ] Confirm Expand/Collapse button works on capsule contributor editor
-- [ ] Confirm tone-specific instruction banner appears with correct copy
-- [ ] Confirm "Dear [name]," placeholder is correct across all editors
-- [ ] Test editor on mobile — toolbar doesn't overlap, min-height 180px
-
----
-
 ## 🟠 Reveal Visual QA
 
 The full recipient reveal runs through `RevealExperience` everywhere
