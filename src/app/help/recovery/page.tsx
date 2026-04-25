@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { Footer } from "@/components/landing/Footer";
+import { Nav } from "@/components/landing/Nav";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import { RecoveryForm } from "@/app/help/recovery/RecoveryForm";
 
@@ -10,7 +12,9 @@ export const metadata = {
 
 export default function RecoveryPage() {
   return (
-    <main className="min-h-screen bg-cream px-6 py-12">
+    <>
+      <Nav />
+    <main className="min-h-screen bg-cream px-6 pt-[120px] pb-12">
       <div className="mx-auto max-w-[560px]">
         <Link
           href="/"
@@ -63,6 +67,8 @@ export default function RecoveryPage() {
         </p>
       </div>
     </main>
+      <Footer />
+    </>
   );
 }
 

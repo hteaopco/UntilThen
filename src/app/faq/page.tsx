@@ -73,7 +73,7 @@ const SECTIONS: AccordionSection[] = [
       {
         question: "How much does untilThen cost?",
         answer:
-          "The base plan is $4.99 per month and includes 3 capsules. Each additional capsule is $0.99 per month. You can also pay annually at $35.99 per year (additional capsules $6.00/year each) — saving around 40%. All plans start with a 7-day free trial. No credit card required to start.",
+          "Two pricing models depending on which product you use. The Vault subscription is $4.99 per month and includes 3 Time Capsules — each additional Time Capsule is $0.99/month. Annual pricing is $35.99 per year (additional capsules $6.00/year each), saving around 40%. All Vault subscriptions start with a 7-day free trial; no credit card required to start. Gift Capsules are pay-once: $9.99 per Gift Capsule, no subscription required. You can mix and match — many people keep a Vault running for long-form letters and also organise the occasional Gift Capsule for someone's birthday.",
       },
       {
         question: "What happens if I cancel my subscription?",
