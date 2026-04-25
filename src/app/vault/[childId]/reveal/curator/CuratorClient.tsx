@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowLeft,
   Check,
   FileText,
   Image as ImageIcon,
@@ -15,7 +14,6 @@ import {
   Video,
   X,
 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -354,15 +352,6 @@ export function CuratorClient({
   return (
     <main className="min-h-screen bg-cream pb-20">
       <div className="mx-auto max-w-[920px] px-5 sm:px-6 lg:px-10 pt-6">
-        <Link
-          href={`/vault/${childId}`}
-          prefetch={false}
-          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-ink-mid hover:text-navy transition-colors"
-        >
-          <ArrowLeft size={13} strokeWidth={2} aria-hidden="true" />
-          Back to capsule
-        </Link>
-
         <header className="mt-4 mb-8">
           <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-2">
             Customize the reveal
