@@ -148,19 +148,24 @@ export function mockRevealCapsuleBirthday(
 }
 
 /**
- * Vault template — Olivia's time capsule, written by family
- * across her life from birth (2031) to her wedding (2056).
- * Fifteen contributions: five Story highlights (in array order —
+ * Vault template — Olivia's time capsule, written by Mom across
+ * her life from birth (2031) to her wedding (2056). Fifteen
+ * contributions: five Story highlights (in array order —
  * Stories phase picks the first 5) followed by ten gallery-only
- * letters from different family members at different ages.
- * Triggers the Transition screen between Stories and Gallery.
+ * letters from different ages of Olivia's life. Triggers the
+ * Transition screen between Stories and Gallery.
+ *
+ * All entries are authored by "Mom" since vault writing is
+ * single-author after migration 20260422_remove_vault_contributors
+ * — the parent (organiser) is the only person who writes into a
+ * child's vault. The mock reflects that.
  *
  * Highlights (Stories slides):
- *   v1 — Mom, baby photo (newborn)
- *   v2 — Dad, wedding photo (her wedding day)
- *   v3 — Mom, voice note (admin-uploaded vault-mom; fallback before)
- *   v4 — Mom, letter at age 10
- *   v5 — Mom, letter at age 25 / her wedding day
+ *   v1 — Baby photo (newborn)
+ *   v2 — Wedding photo (her wedding day)
+ *   v3 — Voice note (admin-uploaded vault-mom; fallback before)
+ *   v4 — Letter at age 10
+ *   v5 — Letter at age 25 / her wedding day
  *
  * Photo highlights (v1 + v2) intentionally have title=null and
  * body=null so each maps to exactly one Stories slide. Adding a
@@ -169,8 +174,7 @@ export function mockRevealCapsuleBirthday(
  *
  * Gallery letters (v6-v15) span Olivia's life in chronological
  * createdAt order so the Gallery's date column reads as a
- * timeline. Authors vary across Mom, Dad, grandparents, aunt,
- * brother, and her best friend.
+ * timeline of Mom's letters across the years.
  */
 const MOCK_CONTRIBUTIONS_TEMPLATE: RevealContribution[] = [
   // ── Highlight #1 — Baby photo ─────────────────────────────────
@@ -188,7 +192,7 @@ const MOCK_CONTRIBUTIONS_TEMPLATE: RevealContribution[] = [
   // ── Highlight #2 — Wedding photo ──────────────────────────────
   {
     id: "v2",
-    authorName: "Dad",
+    authorName: "Mom",
     authorAvatarUrl: null,
     type: "PHOTO",
     title: null,
@@ -246,53 +250,53 @@ const MOCK_CONTRIBUTIONS_TEMPLATE: RevealContribution[] = [
   // ── Gallery letters (v6-v15, 5-7 sentences, life timeline) ────
   {
     id: "v6",
-    authorName: "Dad",
+    authorName: "Mom",
     authorAvatarUrl: null,
     type: "TEXT",
     title: null,
     body:
-      "<p>Olivia. You arrived at 4:17am, screaming like you had things to say and were already mad we were late asking.</p>" +
-      "<p>Your mom held you first — I think she might still be holding you, somewhere in that newborn-photo memory of mine. When she handed you to me I remember thinking, this is going to change everything. I had no idea how right I was.</p>" +
-      "<p>Every good thing I do from this point on is for you. Welcome to the world, kid.</p>",
+      "<p>Olivia. You arrived at 4:17am, after a long night I'll never forget.</p>" +
+      "<p>They put you on my chest and I cried — not the kind of crying you'd expect, but a quiet kind, like everything in my life had just rearranged itself to make room for you. Your dad was a wreck. I think he forgot his own name for about an hour.</p>" +
+      "<p>I want you to know that the second I saw your face, I understood why people say their lives changed when they had a baby. Welcome to the world, sweet girl.</p>",
     media: [],
     createdAt: "2031-06-24T05:00:00Z",
   },
   {
     id: "v7",
-    authorName: "Grandma Ruth",
+    authorName: "Mom",
     authorAvatarUrl: null,
     type: "TEXT",
     title: null,
     body:
       "<p>Sweet Olivia, today you started kindergarten.</p>" +
-      "<p>Your mom said you waved goodbye without crying — that's more than your mom did when she dropped you off, by the way. I want you to know that being brave like that is something you've always had in you.</p>" +
-      "<p>The world is full of new doors. Walk through them. Grandma loves you.</p>",
+      "<p>You waved goodbye without crying — and I absolutely fell apart in the car after. I want you to know that being brave like that is something you've always had in you.</p>" +
+      "<p>The world is full of new doors. Walk through them. I love you to pieces.</p>",
     media: [],
     createdAt: "2036-09-01T16:30:00Z",
   },
   {
     id: "v8",
-    authorName: "Aunt Jess",
+    authorName: "Mom",
     authorAvatarUrl: null,
     type: "TEXT",
     title: null,
     body:
-      "<p>Liv, this Christmas you opened your present — that ridiculous singing reindeer — and laughed so hard you got the hiccups.</p>" +
-      "<p>Watching you find joy in something so small reminded me of what Christmas is supposed to feel like. I hope you keep that knack for being delighted by little things forever. The world will try to take it from you. Don't let it.</p>" +
-      "<p>Love, Auntie Jess.</p>",
+      "<p>Liv, this Christmas you opened your presents — including that ridiculous singing reindeer your dad got you — and laughed so hard you got the hiccups.</p>" +
+      "<p>Watching you find joy in something so small reminded me what Christmas is supposed to feel like. I hope you keep that knack for being delighted by little things forever. The world will try to take it from you. Don't let it.</p>" +
+      "<p>Love you, baby.</p>",
     media: [],
     createdAt: "2038-12-25T18:00:00Z",
   },
   {
     id: "v9",
-    authorName: "Grandpa Bill",
+    authorName: "Mom",
     authorAvatarUrl: null,
     type: "TEXT",
     title: null,
     body:
-      "<p>Olivia. Last weekend we sat on the dock for two hours and you didn't catch a single fish. Neither did I.</p>" +
-      "<p>You announced halfway through that fishing was 'mostly waiting and I'm okay with that,' and I about fell off my chair laughing. You're going to be alright in this world, kid. You already understand things some adults never figure out.</p>" +
-      "<p>Save me a seat on the dock next summer.</p>",
+      "<p>Olivia. This afternoon we sat on the couch for two hours and you read me a chapter of your dragon book. You made me close my eyes during the scary parts.</p>" +
+      "<p>Halfway through you announced that you wanted to be a writer 'when I grow up, and also a vet, and also maybe a baker.' I'm writing this so you'll see it later — you can absolutely be all three.</p>" +
+      "<p>You already understand things some adults never figure out. Don't let anybody talk you out of it.</p>",
     media: [],
     createdAt: "2040-05-12T15:00:00Z",
   },
@@ -311,14 +315,14 @@ const MOCK_CONTRIBUTIONS_TEMPLATE: RevealContribution[] = [
   },
   {
     id: "v11",
-    authorName: "Brother Jake",
+    authorName: "Mom",
     authorAvatarUrl: null,
     type: "TEXT",
     title: null,
     body:
       "<p>Liv. Sixteen, huh.</p>" +
-      "<p>I was sixteen four years ago and I still feel like a moron most days, so don't trust anyone who says it's all figured out by now. You're already smarter than I was at this age.</p>" +
-      "<p>Don't let any of these dumb high school boys break your heart — and if they do, tell me their address. Happy birthday, kid sister.</p>",
+      "<p>I remember sixteen — I felt invincible and also like a complete moron, mostly at the same time. You're already smarter than I was at this age, and you've barely tried.</p>" +
+      "<p>Don't let any of these dumb high school boys break your heart — and if they do, the door is always open here. Happy birthday, my big girl.</p>",
     media: [],
     createdAt: "2047-06-24T20:30:00Z",
   },
@@ -337,25 +341,25 @@ const MOCK_CONTRIBUTIONS_TEMPLATE: RevealContribution[] = [
   },
   {
     id: "v13",
-    authorName: "Best friend Alex",
+    authorName: "Mom",
     authorAvatarUrl: null,
     type: "TEXT",
     title: null,
     body:
-      "<p>Liv, twenty-one years old and somehow still my best friend. We've grown out of the friendship-bracelet phase but the loyalty's the same.</p>" +
-      "<p>Tonight we're going to do something stupid together and I am thrilled about it. Thank you for being the person I've called every single time something good or bad happened since we were eleven.</p>" +
-      "<p>Cheers, you absolute legend. Happy birthday.</p>",
+      "<p>Olivia, twenty-one. I cannot believe I'm allowed to write that sentence.</p>" +
+      "<p>Twenty-one years ago I was holding you in a hospital wondering how I was supposed to keep you alive, and tonight you're out drinking legally with your friends. I am thrilled and slightly terrified.</p>" +
+      "<p>Be safe, be a little bit reckless, take a thousand pictures. Happy birthday, my love.</p>",
     media: [],
     createdAt: "2052-06-24T21:00:00Z",
   },
   {
     id: "v14",
-    authorName: "Dad",
+    authorName: "Mom",
     authorAvatarUrl: null,
     type: "TEXT",
     title: null,
     body:
-      "<p>Olivia. I watched you cross that stage today and I'm not going to pretend I didn't cry. Your mom warned me. I tried.</p>" +
+      "<p>Olivia. I watched you cross that stage today and I'm not going to pretend I didn't cry. Your dad warned me. I tried.</p>" +
       "<p>Anyway — you did it, and you did it your way, and I'm so proud I don't have the words.</p>" +
       "<p>The world is yours now. Go take it.</p>",
     media: [],
@@ -363,14 +367,14 @@ const MOCK_CONTRIBUTIONS_TEMPLATE: RevealContribution[] = [
   },
   {
     id: "v15",
-    authorName: "Grandma Ruth",
+    authorName: "Mom",
     authorAvatarUrl: null,
     type: "TEXT",
     title: null,
     body:
-      "<p>My darling Olivia. Your mom called me yesterday and said the words I've been waiting to hear since you were six and announced you were going to marry the boy down the street.</p>" +
+      "<p>My darling Olivia. You called me yesterday and said the words I've been waiting to hear since you were six and announced you were going to marry the boy down the street.</p>" +
       "<p>I'm so happy for you. He's lucky and I think he knows it.</p>" +
-      "<p>Welcome to the next chapter. Grandma loves you both.</p>",
+      "<p>Welcome to the next chapter. I love you both already.</p>",
     media: [],
     createdAt: "2056-02-14T11:00:00Z",
   },
