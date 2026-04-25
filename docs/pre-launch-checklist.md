@@ -22,9 +22,6 @@ volume.)*
   applied via `prisma migrate deploy` in `railway.json:startCommand`)
 - [ ] **Terms of Service + Privacy Policy legal review** — minors' data,
   long-term storage, data export on request
-- [ ] **Reveal theme picker** — currently a "Coming soon" placeholder.
-  Decide whether to ship at launch or defer. If shipping, pick 2–3
-  background/color variants
 - [ ] **Build-mode reveal QA** — curator flow + admin-uploaded music
   end-to-end on iPhone
 - [ ] **Billing regression sweep** — exercise subscribe → addon →
@@ -50,7 +47,6 @@ volume.)*
 
 ## 🟠 Capsule Dashboard QA
 
-- [ ] Audit capsule detail page layout on mobile
 - [ ] Verify activation card shows correctly in DRAFT and ACTIVE states
 - [ ] Confirm post-activation copy is correct
 - [ ] **Couple capsules deliver to both addresses** — seed a couple capsule,
@@ -199,6 +195,14 @@ preview, admin mock). Remaining work is hands-on device QA.
 - [ ] **"How to use untilThen" marketing video** — short walkthrough for
   landing page. Show create → write → invite → reveal flow. Keep under
   60 seconds
+
+---
+
+## 🔵 v2
+
+- [ ] **Reveal theme picker** — currently a "Coming soon" placeholder.
+  Decide whether to ship at launch or defer. If shipping, pick 2–3
+  background/color variants
 
 ---
 
