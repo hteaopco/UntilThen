@@ -76,21 +76,21 @@ export default async function DashboardPage() {
                 href="/account/capsules/new"
                 prefetch={false}
                 aria-label="Add a time capsule"
-                className="shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl bg-white border-2 border-dashed border-amber/40 hover:border-amber/60 transition-colors overflow-hidden"
+                className="shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl bg-white border-2 border-dashed border-amber/40 hover:border-amber/60 transition-colors overflow-hidden flex flex-col"
               >
-                {/* Image area mirrors VaultCard's empty-cover state:
-                    solid white cover (distinct from the near-identical
-                    cream page bg) with the amber-tint colour moved
-                    onto the Plus-icon circle where it reads as a
-                    deliberate accent rather than a transparent wash. */}
-                <div className="aspect-[4/3] sm:aspect-square bg-white flex flex-col items-center justify-center gap-2">
-                  <span className="w-12 h-12 rounded-full bg-amber-tint flex items-center justify-center text-amber">
-                    <Plus size={22} strokeWidth={2} />
-                  </span>
+                {/* Single white surface — no inner backgrounds, no
+                    border-t between cover and footer. The whole card
+                    is one continuous white plane defined by the
+                    dashed amber border. */}
+                <div className="aspect-[4/3] sm:aspect-square flex items-center justify-center">
+                  <Plus
+                    size={36}
+                    strokeWidth={1.75}
+                    className="text-amber"
+                    aria-hidden="true"
+                  />
                 </div>
-                {/* Footer mirrors VaultCard's name + stats row so
-                    the two card types share an identical height. */}
-                <div className="p-3 border-t border-amber/15 bg-white">
+                <div className="p-3">
                   <h3 className="text-[17px] font-bold text-amber tracking-[-0.3px] leading-tight">
                     New Capsule
                   </h3>
