@@ -120,9 +120,6 @@ preview, admin mock). Remaining work is hands-on device QA.
   accessible above preview top bar
 
 ### Edge cases
-- [ ] **Sealed before reveal date** — soft "opens on …" screen
-- [ ] **Invalid token** — `/reveal/garbage` shows graceful error + logo
-- [ ] **Empty capsule** — gallery empty-state
 - [ ] **Replay** — "Relive the opening" restarts music + runs through full
   flow, fades out again into gallery
 - [ ] **Returning visitor** — `recipientCompletedAt` set; lands directly

@@ -94,14 +94,7 @@ export default function PrivacyPage() {
         storing it and delivering it to you and your designated recipients.
       </p>
 
-      <h3>2.4 Contributor Information</h3>
-      <p>
-        When you invite contributors we collect their name (optional) and email
-        address to send the invitation. Contributors who create accounts are
-        subject to this same Privacy Policy.
-      </p>
-
-      <h3>2.5 Gift Capsule Recipients</h3>
+      <h3>2.4 Gift Capsule Recipients</h3>
       <p>
         For Gift Capsules, we collect the recipient&rsquo;s name and email
         address to deliver the capsule on the reveal date. Recipients who
@@ -211,7 +204,6 @@ export default function PrivacyPage() {
       <h3>3.6 Parental Control</h3>
       <p>Parents have full control over their child&rsquo;s vault at all times:</p>
       <ul>
-        <li>Add or remove contributors</li>
         <li>Delete individual entries</li>
         <li>Delete the entire vault</li>
         <li>Transfer vault ownership to a designated trustee</li>
@@ -333,22 +325,14 @@ export default function PrivacyPage() {
         each provider to perform their service.
       </p>
 
-      <h3>6.2 Contributors You Invite</h3>
-      <p>
-        When you invite a contributor, we share the child&rsquo;s name and the
-        occasion details with them so they can contribute meaningfully. We do
-        not share the child&rsquo;s date of birth, your contact details, or
-        any other personal information with contributors.
-      </p>
-
-      <h3>6.3 Legal Requirements</h3>
+      <h3>6.2 Legal Requirements</h3>
       <p>
         We may disclose information if required by law, court order, or to
         protect the safety of our users or the public. We will notify you of
         any such disclosure where legally permitted to do so.
       </p>
 
-      <h3>6.4 Business Transfer</h3>
+      <h3>6.3 Business Transfer</h3>
       <p>
         If untilThen is acquired or merged, your data may transfer to the new
         entity. We will notify you before any such transfer and give you the

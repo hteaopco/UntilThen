@@ -25,28 +25,28 @@ export const dynamic = "force-dynamic";
  *
  * Body:
  *   {
- *     sourceId?: string,       // Square card nonce — required
- *                              // when the paywall is on and the
- *                              // organiser doesn't have
- *                              // User.freeGiftAccess. Ignored
- *                              // otherwise.
- *     recipientEmail?: string, // at least one of email / phone
- *     recipientPhone?: string, // must be set by the time this
- *                              // returns
+ *     sourceId?: string,  // Square card nonce — required when the
+ *                         // paywall is on and the organiser doesn't
+ *                         // have User.freeGiftAccess. Ignored
+ *                         // otherwise.
  *   }
+ *
+ * Recipient contact is captured during the creation flow
+ * (CapsuleCreationFlow.tsx) and persisted on the capsule row at
+ * that point, so this route only needs to confirm at least one
+ * channel is present before charging.
  *
  * Flow:
  *   1. Ownership + DRAFT-state checks
- *   2. Recipient contact validation
+ *   2. Confirm capsule has at least one recipient contact channel
  *   3. If payment required → charge $9.99 via Square
  *      (idempotent on capsuleId + userId)
  *   4. Flip the capsule to ACTIVE + promote STAGED invites,
  *      dispatch invite emails, fire analytics
  *
- * Replaces the previous placeholder flow that accepted any
- * paymentId string. Splitting payment into a separate endpoint
- * would let a successful charge strand without activation (or
- * vice-versa) if one side failed, so they stay coupled.
+ * Splitting payment into a separate endpoint would let a
+ * successful charge strand without activation (or vice-versa) if
+ * one side failed, so they stay coupled.
  */
 export async function POST(
   req: NextRequest,
@@ -66,52 +66,22 @@ export async function POST(
     });
   }
 
-  // Body shape: { sourceId?, recipientEmail?, recipientPhone? }.
-  // Recipient contact is collected at the activation paywall
-  // (deferred from creation) — at least one of email/phone must
-  // be on the capsule by the time activation completes, so the
-  // reveal-day message has somewhere to go.
   let sourceId: string | null = null;
-  let incomingEmail: string | null | undefined;
-  let incomingPhone: string | null | undefined;
   try {
     const body = (await req.json().catch(() => null)) as {
       sourceId?: unknown;
-      recipientEmail?: unknown;
-      recipientPhone?: unknown;
     } | null;
     if (body && typeof body.sourceId === "string" && body.sourceId.trim()) {
       sourceId = body.sourceId.trim();
-    }
-    if (body && typeof body.recipientEmail === "string") {
-      const v = body.recipientEmail.trim().toLowerCase();
-      incomingEmail = v || null;
-    }
-    if (body && typeof body.recipientPhone === "string") {
-      const v = body.recipientPhone.trim();
-      incomingPhone = v || null;
     }
   } catch {
     /* noop */
   }
 
-  // Validate email format if provided.
-  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (incomingEmail && !EMAIL_RE.test(incomingEmail)) {
-    return NextResponse.json(
-      { error: "Please enter a valid recipient email." },
-      { status: 400 },
-    );
-  }
-
-  // Resolve the final contact state — prefer body, fall back to
-  // whatever was already on the capsule. Then require at least
-  // one channel before we charge / activate.
-  const finalEmail =
-    incomingEmail !== undefined ? incomingEmail : capsule.recipientEmail;
-  const finalPhone =
-    incomingPhone !== undefined ? incomingPhone : capsule.recipientPhone;
-  if (!finalEmail && !finalPhone) {
+  // Defensive guard — creation-time validation should already
+  // prevent capsules without contact from existing, but check
+  // again before we charge.
+  if (!capsule.recipientEmail && !capsule.recipientPhone) {
     return NextResponse.json(
       {
         error:
@@ -205,8 +175,6 @@ export async function POST(
     // Atomic flip: capsule → ACTIVE + every STAGED invite →
     // PENDING. Doing both in one transaction means a partial
     // failure can't leave staged rows behind a paid capsule.
-    // Recipient contact saves alongside so the reveal-day
-    // dispatch has an address the moment the capsule is live.
     const [, stagedInvites] = await prisma.$transaction([
       prisma.memoryCapsule.update({
         where: { id },
@@ -216,8 +184,6 @@ export async function POST(
           paymentId,
           paidAt,
           tokenExpiresAt,
-          recipientEmail: finalEmail,
-          recipientPhone: finalPhone,
         },
       }),
       prisma.capsuleInvite.findMany({

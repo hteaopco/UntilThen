@@ -50,6 +50,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const {
     sendAccountDeleted,
+    sendTrusteeNominated,
     sendWritingReminder,
     sendRevealCountdown,
     sendAccountRecoveryRequest,
@@ -191,6 +192,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   // #17 — Account Deleted
   await fire("account-deleted", "#17 Account Deleted", () =>
     sendAccountDeleted({ to, firstName: "Jett" }),
+  );
+
+  // #17b — Trustee Nominated
+  await fire("trustee-nominated", "#17b Trustee Nominated", () =>
+    sendTrusteeNominated({
+      to,
+      trusteeName: "Sam",
+      parentName: "Jett",
+      childName: "Olivia",
+    }),
   );
 
   // #18 — Writing Reminder

@@ -35,11 +35,6 @@ const SECTIONS: AccordionSection[] = [
         answer:
           "Yes — many parents write their first entry before their child arrives. You set the reveal date later once you know their birthday.",
       },
-      {
-        question: "Can contributors add to the vault?",
-        answer:
-          "Yes. You invite grandparents, godparents, or other family members by email from your dashboard. Each contributor creates their own account and writes directly into your child's vault. They can only see their own entries — not yours.",
-      },
     ],
   },
   {

@@ -143,6 +143,15 @@ const TEMPLATES: EmailTemplate[] = [
     funnel: "Retention",
   },
   {
+    id: "trustee-nominated",
+    name: "#17b Trustee Nominated",
+    subject: "Someone trusts you with something important.",
+    bodyPreview: "{parentName} named you as a trusted person. If they're ever unable to access their account, you may be contacted to help transfer {childName}'s time capsule.",
+    trigger: "Parent nominates a trustee",
+    frequency: "On event",
+    funnel: "Trust",
+  },
+  {
     id: "writing-reminder",
     name: "#18 Writing Reminder",
     subject: "Don't forget this version of them.",
