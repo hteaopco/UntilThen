@@ -3,8 +3,10 @@
 import { X } from "lucide-react";
 
 import {
+  buildMockCapsuleContributions,
   buildMockContributions,
   mockRevealCapsule,
+  mockRevealCapsuleBirthday,
 } from "@/app/reveal/[token]/mockData";
 import { RevealExperience } from "@/app/reveal/[token]/RevealExperience";
 
@@ -17,27 +19,42 @@ import type { StockVoiceUrls } from "./page";
  * admins can QA the full Entry → Stories → Transition → Gallery
  * flow without needing a real capsule with real contributions.
  *
- * Voice contributions use ElevenLabs-generated stock samples
- * when the admin has run /admin/settings → "Generate stock
- * voices", otherwise fall back to the placeholder.
+ * Variant picks which mock data to mount:
+ *   - "vault" → 9 contributions of parents writing to a child's
+ *     vault (vault-mom voice clip).
+ *   - "capsule" → 15 contributions for an adult-Olivia birthday
+ *     gift capsule: 5 highlights followed by 10 letters from
+ *     different people in her life. Triggers the Transition
+ *     screen between Stories and Gallery.
+ *
+ * Voice contributions use the matching ElevenLabs-generated
+ * stock samples when the admin has uploaded them; otherwise
+ * fall back to the placeholder horse clip.
  */
 export function MockRevealPreview({
   onExit,
   stockVoices,
+  variant = "vault",
 }: {
   onExit: () => void;
   stockVoices: StockVoiceUrls;
+  variant?: "vault" | "capsule";
 }) {
-  const contributions = buildMockContributions({
-    vaultMom: stockVoices.vaultMom,
-    capsuleBirthday: stockVoices.capsuleBirthday,
-  });
+  const capsule =
+    variant === "capsule" ? mockRevealCapsuleBirthday() : mockRevealCapsule();
+  const contributions =
+    variant === "capsule"
+      ? buildMockCapsuleContributions({
+          vaultMom: stockVoices.vaultMom,
+          capsuleBirthday: stockVoices.capsuleBirthday,
+        })
+      : buildMockContributions({
+          vaultMom: stockVoices.vaultMom,
+          capsuleBirthday: stockVoices.capsuleBirthday,
+        });
   return (
     <div className="fixed inset-0 z-[200] bg-black">
-      <RevealExperience
-        capsule={mockRevealCapsule()}
-        contributions={contributions}
-      />
+      <RevealExperience capsule={capsule} contributions={contributions} />
       <button
         type="button"
         onClick={onExit}

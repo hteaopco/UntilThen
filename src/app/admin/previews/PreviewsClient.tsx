@@ -20,7 +20,8 @@ type Preview =
   | "contributor-single"
   | "contributor-couple"
   | "pin"
-  | "mock-reveal";
+  | "mock-reveal-vault"
+  | "mock-reveal-capsule";
 
 const MOCK_SINGLE_CAPSULE = {
   title: "Mom's 60th Birthday",
@@ -73,11 +74,22 @@ export function PreviewsClient({
     return <IntroSplash onComplete={() => setActive(null)} />;
   }
 
-  if (active === "mock-reveal") {
+  if (active === "mock-reveal-vault") {
     return (
       <MockRevealPreview
         onExit={() => setActive(null)}
         stockVoices={stockVoices}
+        variant="vault"
+      />
+    );
+  }
+
+  if (active === "mock-reveal-capsule") {
+    return (
+      <MockRevealPreview
+        onExit={() => setActive(null)}
+        stockVoices={stockVoices}
+        variant="capsule"
       />
     );
   }
@@ -157,9 +169,14 @@ export function PreviewsClient({
         </h2>
         <div className="grid gap-3 sm:grid-cols-2">
           <PreviewCard
-            title="Recipient Reveal — Mock Capsule"
-            description="Full Entry → Stories → Transition → Gallery flow with seed data: 9 contributions (letters, photos, voice notes) and public stock media. No real capsule needed."
-            onClick={() => setActive("mock-reveal")}
+            title="Recipient Reveal — Vault (Mock)"
+            description="Vault flavour — parents writing into a child's first-birthday vault. 9 contributions (letters, photos, voice). No real vault needed."
+            onClick={() => setActive("mock-reveal-vault")}
+          />
+          <PreviewCard
+            title="Recipient Reveal — Gift Capsule (Mock)"
+            description="Adult-Olivia birthday gift capsule. 5 Story highlights (best-friend letter, cake, mom letter, friend voice, group photo) + 10 gallery letters. Exercises the Transition screen."
+            onClick={() => setActive("mock-reveal-capsule")}
           />
           <PreviewCard
             title="Intro Splash"
