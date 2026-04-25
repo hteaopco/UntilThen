@@ -8,6 +8,7 @@ export type GiftCapsuleCreatingData = {
   newCount: number;
   contributorNames: string[];
   coverUrl: string | null;
+  status: "DRAFT" | "ACTIVE" | "SEALED" | "REVEALED";
 };
 
 /**
@@ -56,7 +57,46 @@ export function GiftCapsuleCreatingCard({ capsule }: { capsule: GiftCapsuleCreat
         )}
         <ChevronRight size={18} strokeWidth={1.75} className="text-ink-light" />
       </div>
+
+      <StatusPill status={capsule.status} />
     </Link>
+  );
+}
+
+const STATUS_STYLES: Record<
+  GiftCapsuleCreatingData["status"],
+  { label: string; className: string }
+> = {
+  DRAFT: {
+    label: "Draft",
+    className: "text-ink-mid bg-[#f1f5f9] border-navy/[0.08]",
+  },
+  ACTIVE: {
+    label: "Active",
+    className: "text-amber-dark bg-amber-tint border-amber/30",
+  },
+  SEALED: {
+    label: "Sealed",
+    className: "text-gold bg-gold-tint border-gold/30",
+  },
+  REVEALED: {
+    label: "Revealed",
+    className: "text-green-700 bg-green-50 border-green-200",
+  },
+};
+
+function StatusPill({
+  status,
+}: {
+  status: GiftCapsuleCreatingData["status"];
+}) {
+  const { label, className } = STATUS_STYLES[status];
+  return (
+    <span
+      className={`absolute bottom-2.5 right-3 text-[10px] uppercase tracking-[0.12em] font-bold px-2 py-0.5 rounded-full border ${className}`}
+    >
+      {label}
+    </span>
   );
 }
 

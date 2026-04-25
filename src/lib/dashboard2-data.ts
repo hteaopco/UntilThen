@@ -138,6 +138,7 @@ export async function loadDashboard2Data({
       newCount: newByCapsule.get(c.id) ?? 0,
       contributorNames: inviteNames,
       coverUrl: null,
+      status: c.status,
     };
   });
 

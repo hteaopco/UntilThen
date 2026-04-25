@@ -47,8 +47,6 @@ volume.)*
 
 ## 🟠 Capsule Dashboard QA
 
-- [ ] Verify activation card shows correctly in DRAFT and ACTIVE states
-- [ ] Confirm post-activation copy is correct
 - [ ] **Couple capsules deliver to both addresses** — seed a couple capsule,
   jump the reveal date, run `/api/cron/reveal`, confirm both
   `recipientEmail` and `recipient2Email` receive the reveal-day mail (deduped)
