@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useState } from "react";
 
 import {
-  MOCK_CONTRIBUTIONS,
-  mockRevealCapsule,
+  MOCK_CAPSULE_CONTRIBUTIONS,
+  mockRevealCapsuleBirthday,
 } from "@/app/reveal/[token]/mockData";
 import {
   RevealExperience,
@@ -53,7 +53,7 @@ export function PreviewClient({
 
   // Build the demo data on top of THIS capsule so recipient name
   // + reveal date match what the organiser will actually send.
-  const demoCapsule = mockRevealCapsule({
+  const demoCapsule = mockRevealCapsuleBirthday({
     id: realCapsule.id,
     recipientName: realCapsule.recipientName,
     revealDate: realCapsule.revealDate,
@@ -61,7 +61,8 @@ export function PreviewClient({
   });
 
   const capsule = mode === "real" ? realCapsule : demoCapsule;
-  const contributions = mode === "real" ? realContributions : MOCK_CONTRIBUTIONS;
+  const contributions =
+    mode === "real" ? realContributions : MOCK_CAPSULE_CONTRIBUTIONS;
 
   return (
     <div className="relative">
