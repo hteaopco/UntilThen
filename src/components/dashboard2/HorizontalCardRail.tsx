@@ -88,14 +88,12 @@ export function HorizontalCardRail({
     <div className="relative" aria-label={ariaLabel}>
       <div
         ref={scrollerRef}
-        // snap-center means each card snaps to the rail's center,
-        // so the user always sees one focused card + peeks of the
-        // neighbours on either side. -ml-[100px] on every slot
-        // after the first creates the heavy overlap effect.
-        // scroll-padding-inline gives the first/last cards enough
-        // room to actually reach the center on snap (otherwise the
-        // edges can't scroll into focus).
-        className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth scroll-pl-[35%] scroll-pr-[35%] pb-2 -mx-6 px-6 lg:mx-0 lg:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        // Real padding (not scroll-padding) on each side so the
+        // first/last card can scroll to the rail's horizontal
+        // centre. (50vw - card half-width) is the exact offset
+        // needed for the edge cards to snap-center; 91px is half
+        // of the 182px max card width.
+        className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 pl-[calc(50vw-91px)] pr-[calc(50vw-91px)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {childArray.map((child, i) => {
           const isActive = i === activeIdx;

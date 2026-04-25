@@ -79,9 +79,11 @@ export default async function DashboardPage() {
                 className="snap-start shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl bg-white border-2 border-dashed border-amber/40 hover:border-amber/60 transition-colors overflow-hidden"
               >
                 {/* Image area mirrors VaultCard's cover so total
-                    card height matches across the row. */}
-                <div className="aspect-[4/3] sm:aspect-square bg-amber-tint/40 flex items-center justify-center">
-                  <span className="w-12 h-12 rounded-full bg-white border border-amber/30 flex items-center justify-center text-amber shadow-[0_2px_8px_-2px_rgba(196,122,58,0.3)]">
+                    card height matches across the row. Full-opacity
+                    amber-tint instead of /40 so it doesn't read as
+                    transparent against the page background. */}
+                <div className="aspect-[4/3] sm:aspect-square bg-amber-tint flex items-center justify-center">
+                  <span className="w-12 h-12 rounded-full bg-white border border-amber/30 flex items-center justify-center text-amber">
                     <Plus size={22} strokeWidth={2} />
                   </span>
                 </div>
