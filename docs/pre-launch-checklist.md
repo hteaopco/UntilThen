@@ -117,9 +117,12 @@ preview, admin mock). Remaining work is hands-on device QA.
 - [ ] **Contributor preview** (inside contribute flow) — shows their single
   message through full Entry → Story sequence
 - [ ] **Admin mock — Vault** (`/admin/previews` → "Recipient Reveal —
-  Vault (Mock)") — 9-contribution seeded demo with Unsplash photos +
-  the ElevenLabs vault-mom voice note (falls back to W3C horse sample
-  if `vault-mom.mp3` hasn't been generated yet via `/admin/audio`)
+  Vault (Mock)") — 15-contribution time-capsule demo following Olivia
+  from birth (2031) through her wedding (2056). 5 Story highlights
+  (baby photo, wedding photo, mom's voice, letter at age 10, letter
+  at age 25) + 10 gallery letters from family. Voice card uses the
+  ElevenLabs vault-mom clip (W3C fallback before upload). Exercises
+  the Transition screen.
 - [ ] **Admin mock — Gift Capsule** (`/admin/previews` → "Recipient
   Reveal — Gift Capsule (Mock)") — 15-contribution adult-birthday
   demo: 5 Story highlights + 10 gallery letters. Voice card uses the

@@ -1,22 +1,30 @@
 import type { RevealCapsule, RevealContribution } from "./RevealExperience";
 
 /**
- * Seed data for reveal previews. Two flavours:
+ * Seed data for reveal previews. Two flavours, same shape:
  *
  *   VAULT (MOCK_CONTRIBUTIONS_TEMPLATE / buildMockContributions /
- *   MOCK_CONTRIBUTIONS) — parents writing into a child's vault.
- *   Nine contributions exercising every card type. Used by
- *   /vault/[childId]/preview's "Full demo" toggle and the admin
- *   mock at /admin/previews.
+ *   MOCK_CONTRIBUTIONS) — Olivia's time capsule, written by
+ *   family across her life from birth (2031) to her wedding
+ *   (2056). Fifteen contributions: 5 Story highlights (baby
+ *   photo, wedding photo, mom's voice, letter at age 10, letter
+ *   at age 25) + 10 gallery letters from family at different
+ *   ages. Used by /vault/[childId]/preview's "Full demo" toggle
+ *   and the admin Vault mock at /admin/previews.
  *
  *   CAPSULE (MOCK_CAPSULE_CONTRIBUTIONS_TEMPLATE /
  *   buildMockCapsuleContributions / MOCK_CAPSULE_CONTRIBUTIONS)
- *   — friends + family writing into a gift capsule for an adult
- *   birthday. Fifteen contributions: 5 highlights for the Stories
- *   phase + 10 gallery-only letters. Used by
- *   /capsules/[id]/preview's "Full demo" toggle. mockRevealCapsuleBirthday
- *   pairs with this template to give the demo capsule a matching
- *   title.
+ *   — friends + family writing into a gift capsule for adult
+ *   Olivia's birthday. Fifteen contributions: 5 highlights
+ *   (best-friend letter, cake, mom letter, friend voice, group
+ *   photo) + 10 gallery letters from people in different parts
+ *   of her life. Used by /capsules/[id]/preview's "Full demo"
+ *   toggle and the admin Gift Capsule mock at /admin/previews.
+ *   mockRevealCapsuleBirthday pairs with this template to give
+ *   the demo capsule a matching title.
+ *
+ * Both flavours hit > STORY_LIMIT so the Transition screen fires
+ * between Stories and Gallery in either preview.
  *
  * Photos hot-link from Unsplash CDN, voice samples from the W3C
  * public MP3 — both stable and free. Voice cards rebind their
@@ -39,6 +47,9 @@ const PHOTO_FAMILY =
 // gift-capsule mock. Stable Unsplash CDN.
 const PHOTO_FRIEND_GROUP =
   "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800&q=80";
+// Wedding shot — vault mock highlight #2 (Olivia's adult wedding day).
+const PHOTO_WEDDING =
+  "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80";
 
 // Fallback used when the admin hasn't yet generated the ElevenLabs
 // stock voices via /admin/settings → "Generate stock voices". Keeps
@@ -54,11 +65,15 @@ const VOICE_FALLBACK = "https://www.w3schools.com/html/horse.mp3";
 export function mockRevealCapsule(overrides: Partial<RevealCapsule> = {}): RevealCapsule {
   return {
     id: "mock-capsule",
-    title: "Olivia's First Birthday",
+    title: "Olivia's Time Capsule",
     recipientName: "Olivia",
     occasionType: "BIRTHDAY",
     tone: "CELEBRATION",
-    revealDate: new Date("2032-06-24T09:00:00Z").toISOString(),
+    // Reveal date sits in 2056 — the vault mock spans Olivia's
+    // whole life from birth (2031) through her wedding (2056),
+    // and we want createdAt timestamps to fall within the vault's
+    // collection window.
+    revealDate: new Date("2056-09-15T09:00:00Z").toISOString(),
     isFirstOpen: true,
     hasCompleted: false,
     ...overrides,
@@ -85,7 +100,7 @@ export function buildMockContributions(
 ): RevealContribution[] {
   const mom = urls.vaultMom ?? VOICE_FALLBACK;
   return MOCK_CONTRIBUTIONS_TEMPLATE.map((c) => {
-    if (c.id === "m3") {
+    if (c.id === "v3") {
       return { ...c, media: [{ kind: "voice", url: mom }] };
     }
     return c;
@@ -132,114 +147,232 @@ export function mockRevealCapsuleBirthday(
   };
 }
 
+/**
+ * Vault template — Olivia's time capsule, written by family
+ * across her life from birth (2031) to her wedding (2056).
+ * Fifteen contributions: five Story highlights (in array order —
+ * Stories phase picks the first 5) followed by ten gallery-only
+ * letters from different family members at different ages.
+ * Triggers the Transition screen between Stories and Gallery.
+ *
+ * Highlights (Stories slides):
+ *   v1 — Mom, baby photo (newborn)
+ *   v2 — Dad, wedding photo (her wedding day)
+ *   v3 — Mom, voice note (admin-uploaded vault-mom; fallback before)
+ *   v4 — Mom, letter at age 10
+ *   v5 — Mom, letter at age 25 / her wedding day
+ *
+ * Photo highlights (v1 + v2) intentionally have title=null and
+ * body=null so each maps to exactly one Stories slide. Adding a
+ * caption would split it into a letter slide + photo slide and
+ * push v5 out of the highlights window.
+ *
+ * Gallery letters (v6-v15) span Olivia's life in chronological
+ * createdAt order so the Gallery's date column reads as a
+ * timeline. Authors vary across Mom, Dad, grandparents, aunt,
+ * brother, and her best friend.
+ */
 const MOCK_CONTRIBUTIONS_TEMPLATE: RevealContribution[] = [
+  // ── Highlight #1 — Baby photo ─────────────────────────────────
   {
-    id: "m1",
+    id: "v1",
     authorName: "Mom",
     authorAvatarUrl: null,
     type: "PHOTO",
-    title: "Your first birthday.",
-    body: "<p>Look at that smile. You wouldn't stop laughing all afternoon.</p>",
-    media: [{ kind: "photo", url: PHOTO_BIRTHDAY }],
+    title: null,
+    body: null,
+    media: [{ kind: "photo", url: PHOTO_BABY }],
     createdAt: "2031-06-24T15:30:00Z",
   },
+
+  // ── Highlight #2 — Wedding photo ──────────────────────────────
   {
-    id: "m2",
+    id: "v2",
     authorName: "Dad",
     authorAvatarUrl: null,
-    type: "TEXT",
+    type: "PHOTO",
     title: null,
-    body:
-      "<p>Dear Olivia,</p>" +
-      "<p>I can't believe how fast the years have gone. Watching you grow has been the greatest joy of my life.</p>" +
-      "<p>You are kind, curious, and braver than you know. Never forget that you are so loved, always.</p>" +
-      "<p>I'll always be here, cheering you on in everything you do.</p>",
-    media: [],
-    createdAt: "2031-06-24T16:00:00Z",
+    body: null,
+    media: [{ kind: "photo", url: PHOTO_WEDDING }],
+    createdAt: "2056-09-15T16:00:00Z",
   },
+
+  // ── Highlight #3 — Mom voice note ─────────────────────────────
+  // URL is rebound to vaultMom in buildMockContributions.
   {
-    id: "m3",
+    id: "v3",
     authorName: "Mom",
     authorAvatarUrl: null,
     type: "VOICE",
     title: null,
     body: null,
     media: [{ kind: "voice", url: VOICE_FALLBACK }],
-    createdAt: "2031-06-24T17:00:00Z",
+    createdAt: "2036-12-15T20:00:00Z",
+  },
+
+  // ── Highlight #4 — Mom's letter on her 10th birthday ──────────
+  {
+    id: "v4",
+    authorName: "Mom",
+    authorAvatarUrl: null,
+    type: "TEXT",
+    title: null,
+    body:
+      "<p>Olivia, you turned ten today. We had pizza and your dad made the cake from scratch even though I told him to buy one. He's like that.</p>" +
+      "<p>I want to tell you that ten was a great age for me too — you start to see the world a little wider, but you haven't decided yet what kind of person you want to be. You're sitting in this house right now reading on the couch, completely absorbed, and I wish you could see what I see.</p>" +
+      "<p>You are funny and kind and so much more interesting than I was at ten. Whatever you become, please keep this version of you somewhere inside you — the curious one, the one who believes the most outlandish thing without flinching.</p>" +
+      "<p>I love you a thousand times tonight and a thousand times tomorrow. Happy birthday, my big girl.</p>",
+    media: [],
+    createdAt: "2041-06-24T19:00:00Z",
+  },
+
+  // ── Highlight #5 — Mom's letter on Olivia's wedding day ───────
+  {
+    id: "v5",
+    authorName: "Mom",
+    authorAvatarUrl: null,
+    type: "TEXT",
+    title: null,
+    body:
+      "<p>My Olivia. Today you got married.</p>" +
+      "<p>I watched you walk toward someone who looks at you the way your dad still looks at me, and I have rarely been so grateful. I want you to know that nothing has prepared me for how proud I am of the woman you've become.</p>" +
+      "<p>You are kind in a way that's becoming rare. You are brave in a way that doesn't always announce itself. Marriage is not always easy — there will be hard nights — but you already know how to choose someone, again and again, on the days it's not effortless.</p>" +
+      "<p>That's the whole secret. Love each other on the boring Tuesdays.</p>" +
+      "<p>Today and always, I love you to the moon and back.</p>",
+    media: [],
+    createdAt: "2056-09-15T22:00:00Z",
+  },
+
+  // ── Gallery letters (v6-v15, 5-7 sentences, life timeline) ────
+  {
+    id: "v6",
+    authorName: "Dad",
+    authorAvatarUrl: null,
+    type: "TEXT",
+    title: null,
+    body:
+      "<p>Olivia. You arrived at 4:17am, screaming like you had things to say and were already mad we were late asking.</p>" +
+      "<p>Your mom held you first — I think she might still be holding you, somewhere in that newborn-photo memory of mine. When she handed you to me I remember thinking, this is going to change everything. I had no idea how right I was.</p>" +
+      "<p>Every good thing I do from this point on is for you. Welcome to the world, kid.</p>",
+    media: [],
+    createdAt: "2031-06-24T05:00:00Z",
   },
   {
-    id: "m4",
+    id: "v7",
+    authorName: "Grandma Ruth",
+    authorAvatarUrl: null,
+    type: "TEXT",
+    title: null,
+    body:
+      "<p>Sweet Olivia, today you started kindergarten.</p>" +
+      "<p>Your mom said you waved goodbye without crying — that's more than your mom did when she dropped you off, by the way. I want you to know that being brave like that is something you've always had in you.</p>" +
+      "<p>The world is full of new doors. Walk through them. Grandma loves you.</p>",
+    media: [],
+    createdAt: "2036-09-01T16:30:00Z",
+  },
+  {
+    id: "v8",
     authorName: "Aunt Jess",
     authorAvatarUrl: null,
     type: "TEXT",
     title: null,
     body:
-      "<p>Dear Olivia,</p>" +
-      "<p>The day you were born, the whole family changed. Your mom called me at 4am crying-happy, your dad couldn't string two words together, and your grandma drove three hours through traffic just to be there when she could finally hold you.</p>" +
-      "<p>I want you to know — every person who showed up that week, and every person who's still here now, is rooting for you. Quietly, loudly, always. You will never be alone in this.</p>" +
-      "<p>The world you're growing up in is going to push you. You're going to have hard days where nothing makes sense. On those days I want you to know two things: it's okay to fall apart, and the people who love you will help you put it back together.</p>" +
-      "<p>I hope you grow up brave. I hope you grow up curious. I hope you grow up exactly as you are.</p>" +
-      "<p>All my love,</p>",
+      "<p>Liv, this Christmas you opened your present — that ridiculous singing reindeer — and laughed so hard you got the hiccups.</p>" +
+      "<p>Watching you find joy in something so small reminded me of what Christmas is supposed to feel like. I hope you keep that knack for being delighted by little things forever. The world will try to take it from you. Don't let it.</p>" +
+      "<p>Love, Auntie Jess.</p>",
     media: [],
-    createdAt: "2031-06-24T18:00:00Z",
+    createdAt: "2038-12-25T18:00:00Z",
   },
   {
-    id: "m5",
-    authorName: "Mom",
-    authorAvatarUrl: null,
-    type: "PHOTO",
-    title: "You and Dad on the porch.",
-    body: null,
-    media: [{ kind: "photo", url: PHOTO_FAMILY }],
-    createdAt: "2031-06-25T09:00:00Z",
-  },
-  {
-    id: "m6",
-    authorName: "Best Friend Alex",
-    authorAvatarUrl: null,
-    type: "TEXT",
-    title: "To my person",
-    body:
-      "<p>Twenty years of friendship and you still make me laugh harder than anyone.</p>" +
-      "<p>Here's to twenty more.</p>",
-    media: [],
-    createdAt: "2031-06-25T11:00:00Z",
-  },
-  {
-    id: "m7",
-    authorName: "Brother Jake",
-    authorAvatarUrl: null,
-    type: "PHOTO",
-    title: "When you fell asleep on me",
-    body: null,
-    media: [{ kind: "photo", url: PHOTO_BABY }],
-    createdAt: "2031-06-25T12:30:00Z",
-  },
-  {
-    id: "m8",
+    id: "v9",
     authorName: "Grandpa Bill",
     authorAvatarUrl: null,
     type: "TEXT",
     title: null,
     body:
-      "<p>Happy birthday, Olivia.</p>" +
-      "<p>I held you the day you came home from the hospital — you fell asleep right on my chest. " +
-      "I don't think you stirred for three hours. Your mama kept checking to make sure I was still breathing too.</p>" +
-      "<p>Do wonderful things, kiddo. Grandpa's proud of you. Always.</p>",
+      "<p>Olivia. Last weekend we sat on the dock for two hours and you didn't catch a single fish. Neither did I.</p>" +
+      "<p>You announced halfway through that fishing was 'mostly waiting and I'm okay with that,' and I about fell off my chair laughing. You're going to be alright in this world, kid. You already understand things some adults never figure out.</p>" +
+      "<p>Save me a seat on the dock next summer.</p>",
     media: [],
-    createdAt: "2031-06-25T14:00:00Z",
+    createdAt: "2040-05-12T15:00:00Z",
   },
   {
-    id: "m9",
+    id: "v10",
     authorName: "Mom",
     authorAvatarUrl: null,
     type: "TEXT",
     title: null,
     body:
-      "<p>Dear Olivia,</p>" +
-      "<p>One more for you. I love being your mom. Today and every day.</p>",
+      "<p>Olivia, this was the first night you've ever slept somewhere I couldn't get to you in five minutes.</p>" +
+      "<p>The house feels strange without your noise. I keep walking past your room expecting to see your light on. I hope camp is everything you wanted — bug bites, terrible mac and cheese, friends you'll keep forever.</p>" +
+      "<p>Be brave, baby. I'll see you Sunday.</p>",
     media: [],
-    createdAt: "2031-06-26T08:00:00Z",
+    createdAt: "2042-07-08T22:00:00Z",
+  },
+  {
+    id: "v11",
+    authorName: "Brother Jake",
+    authorAvatarUrl: null,
+    type: "TEXT",
+    title: null,
+    body:
+      "<p>Liv. Sixteen, huh.</p>" +
+      "<p>I was sixteen four years ago and I still feel like a moron most days, so don't trust anyone who says it's all figured out by now. You're already smarter than I was at this age.</p>" +
+      "<p>Don't let any of these dumb high school boys break your heart — and if they do, tell me their address. Happy birthday, kid sister.</p>",
+    media: [],
+    createdAt: "2047-06-24T20:30:00Z",
+  },
+  {
+    id: "v12",
+    authorName: "Mom",
+    authorAvatarUrl: null,
+    type: "TEXT",
+    title: null,
+    body:
+      "<p>My Olivia. You called me crying tonight and I wanted to drive across town and fix it for you, the way I could when you were small. I can't anymore.</p>" +
+      "<p>So instead I want you to know: this hurts now and that hurt is real. It will not last forever. The boy who didn't see how lucky he was will look back at this exact moment and know.</p>" +
+      "<p>I love you. Eat something.</p>",
+    media: [],
+    createdAt: "2048-10-18T23:00:00Z",
+  },
+  {
+    id: "v13",
+    authorName: "Best friend Alex",
+    authorAvatarUrl: null,
+    type: "TEXT",
+    title: null,
+    body:
+      "<p>Liv, twenty-one years old and somehow still my best friend. We've grown out of the friendship-bracelet phase but the loyalty's the same.</p>" +
+      "<p>Tonight we're going to do something stupid together and I am thrilled about it. Thank you for being the person I've called every single time something good or bad happened since we were eleven.</p>" +
+      "<p>Cheers, you absolute legend. Happy birthday.</p>",
+    media: [],
+    createdAt: "2052-06-24T21:00:00Z",
+  },
+  {
+    id: "v14",
+    authorName: "Dad",
+    authorAvatarUrl: null,
+    type: "TEXT",
+    title: null,
+    body:
+      "<p>Olivia. I watched you cross that stage today and I'm not going to pretend I didn't cry. Your mom warned me. I tried.</p>" +
+      "<p>Anyway — you did it, and you did it your way, and I'm so proud I don't have the words.</p>" +
+      "<p>The world is yours now. Go take it.</p>",
+    media: [],
+    createdAt: "2053-05-22T14:00:00Z",
+  },
+  {
+    id: "v15",
+    authorName: "Grandma Ruth",
+    authorAvatarUrl: null,
+    type: "TEXT",
+    title: null,
+    body:
+      "<p>My darling Olivia. Your mom called me yesterday and said the words I've been waiting to hear since you were six and announced you were going to marry the boy down the street.</p>" +
+      "<p>I'm so happy for you. He's lucky and I think he knows it.</p>" +
+      "<p>Welcome to the next chapter. Grandma loves you both.</p>",
+    media: [],
+    createdAt: "2056-02-14T11:00:00Z",
   },
 ];
 
