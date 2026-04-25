@@ -60,12 +60,12 @@ export function HomeCard({ href, imageSrc, icon, title, subtitle }: Props) {
         className="w-full h-auto block select-none"
       />
 
-      {/* Subtle dark tint over the illustration so the card reads
+      {/* Subtle warm tint over the illustration so the card reads
           distinct from the cream page background. Sits below the
           text overlay so the icon + heading aren't muddied. */}
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-black/[0.07] pointer-events-none"
+        className="absolute inset-0 bg-amber/[0.02] pointer-events-none"
       />
 
       {/* Text overlay on the left half */}
