@@ -1,30 +1,40 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Children,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 /**
- * Horizontal snap-scroll rail with peek-card behavior. Designed for the
- * dashboard2 vault carousel — each child is a fixed-width card that
- * snaps into place. Chevron buttons appear on desktop for click
- * advancement (dimmed when you can't scroll further that direction);
- * mobile users swipe natively.
+ * Horizontal carousel rail with overlap + focus blur. Each child is
+ * a fixed-width card; whichever one is nearest the rail's horizontal
+ * center is the "active" card and renders sharp at full scale. The
+ * others scale down a touch and pick up a soft blur so the active
+ * card pops out of the row.
  *
- * Assumes each child has its own width class. We size nothing here so
- * the cards stay responsible for their own aspect.
+ * Cards stay responsible for their own width — we don't size them
+ * here. That keeps the API the same as the previous rail (still
+ * accepts plain children, no extra props).
  */
 export function HorizontalCardRail({
   children,
   ariaLabel,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   ariaLabel?: string;
 }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
-  const [pageCount, setPageCount] = useState(1);
-  const [activePage, setActivePage] = useState(0);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [slotCount, setSlotCount] = useState(0);
+
+  const childArray = Children.toArray(children);
 
   const measure = useCallback(() => {
     const el = scrollerRef.current;
@@ -34,9 +44,23 @@ export function HorizontalCardRail({
     const scrollLeft = el.scrollLeft;
     setCanScrollLeft(scrollLeft > 4);
     setCanScrollRight(scrollLeft + viewportWidth < scrollWidth - 4);
-    const pages = Math.max(1, Math.ceil(scrollWidth / viewportWidth));
-    setPageCount(pages);
-    setActivePage(Math.round(scrollLeft / viewportWidth));
+
+    // Find the slot whose center is closest to the scroller's
+    // horizontal center — that becomes the focused card.
+    const slots = el.querySelectorAll<HTMLElement>("[data-rail-slot]");
+    setSlotCount(slots.length);
+    const center = scrollLeft + viewportWidth / 2;
+    let bestIdx = 0;
+    let bestDist = Infinity;
+    slots.forEach((slot, i) => {
+      const slotCenter = slot.offsetLeft + slot.offsetWidth / 2;
+      const dist = Math.abs(center - slotCenter);
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestIdx = i;
+      }
+    });
+    setActiveIdx(bestIdx);
   }, []);
 
   useEffect(() => {
@@ -55,18 +79,41 @@ export function HorizontalCardRail({
   const scrollByPage = (direction: 1 | -1) => {
     const el = scrollerRef.current;
     if (!el) return;
-    el.scrollBy({ left: direction * el.clientWidth * 0.9, behavior: "smooth" });
+    el.scrollBy({ left: direction * el.clientWidth * 0.7, behavior: "smooth" });
   };
 
-  const showArrows = pageCount > 1;
+  const showArrows = slotCount > 1;
 
   return (
     <div className="relative" aria-label={ariaLabel}>
       <div
         ref={scrollerRef}
-        className="flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 -mx-6 px-6 scroll-pl-6 scroll-pr-6 lg:mx-0 lg:px-0 lg:scroll-pl-0 lg:scroll-pr-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        // snap-center means each card snaps to the rail's center,
+        // so the user always sees one focused card + peeks of the
+        // neighbours on either side. -ml-2 on every slot after the
+        // first creates the overlap effect.
+        className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 -mx-6 px-6 scroll-pl-6 scroll-pr-6 lg:mx-0 lg:px-0 lg:scroll-pl-0 lg:scroll-pr-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {children}
+        {childArray.map((child, i) => {
+          const isActive = i === activeIdx;
+          return (
+            <div
+              key={i}
+              data-rail-slot
+              className={`snap-center shrink-0 transition-[transform,filter,opacity] duration-300 ease-out -ml-2 first:ml-0 ${
+                isActive
+                  ? "scale-100 opacity-100 z-10"
+                  : "scale-[0.92] opacity-75 z-0"
+              }`}
+              // Inline filter so the blur transitions cleanly from
+              // 0 → 1.5px (Tailwind's blur-0/blur-sm jump). Keep it
+              // subtle: heavier blur fights the focus animation.
+              style={{ filter: isActive ? "blur(0px)" : "blur(1.5px)" }}
+            >
+              {child}
+            </div>
+          );
+        })}
       </div>
 
       {showArrows && (
@@ -84,18 +131,18 @@ export function HorizontalCardRail({
         </>
       )}
 
-      {pageCount > 1 && (
+      {slotCount > 1 ? (
         <div className="mt-3 flex justify-center gap-1.5">
-          {Array.from({ length: pageCount }).map((_, i) => (
+          {Array.from({ length: slotCount }).map((_, i) => (
             <span
               key={i}
               className={`h-1.5 rounded-full transition-all ${
-                i === activePage ? "w-4 bg-amber" : "w-1.5 bg-navy/15"
+                i === activeIdx ? "w-4 bg-amber" : "w-1.5 bg-navy/15"
               }`}
             />
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
