@@ -16,6 +16,10 @@ volume.)*
 
 ## 🟡 Before Soft Launch
 
+- [ ] **Verify `recipient2Email` migration on prod** — after the next
+  Railway deploy, confirm `\d "MemoryCapsule"` shows the new
+  `recipient2Email TEXT` column (migration `20260425_recipient2_email`,
+  applied via `prisma migrate deploy` in `railway.json:startCommand`)
 - [ ] **Terms of Service + Privacy Policy legal review** — minors' data,
   long-term storage, data export on request
 - [ ] **Reveal theme picker** — currently a "Coming soon" placeholder.
