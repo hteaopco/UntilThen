@@ -39,6 +39,9 @@ interface CreateBody {
   recipientPronoun?: string | null;
   /** Optional at creation — captured at activation instead. */
   recipientEmail?: string | null;
+  /** Second recipient email for couple capsules. Reveal-day mail
+   *  delivers to both addresses when set. */
+  recipient2Email?: string | null;
   /** Optional at creation — captured at activation instead. */
   recipientPhone?: string | null;
   occasionType?: string;
@@ -86,6 +89,16 @@ export async function POST(req: Request) {
   if (recipientEmail && !EMAIL_RE.test(recipientEmail)) {
     return NextResponse.json(
       { error: "Please enter a valid recipient email." },
+      { status: 400 },
+    );
+  }
+  const recipient2Email =
+    typeof body.recipient2Email === "string" && body.recipient2Email.trim()
+      ? body.recipient2Email.trim().toLowerCase()
+      : null;
+  if (recipient2Email && !EMAIL_RE.test(recipient2Email)) {
+    return NextResponse.json(
+      { error: "Please enter a valid second recipient email." },
       { status: 400 },
     );
   }
@@ -179,6 +192,7 @@ export async function POST(req: Request) {
         recipientName,
         recipientPronoun,
         recipientEmail,
+        recipient2Email,
         recipientPhone,
         occasionType,
         tone,

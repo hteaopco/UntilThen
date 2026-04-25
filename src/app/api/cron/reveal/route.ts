@@ -63,14 +63,27 @@ export const POST = cronRoute("reveal", async (): Promise<NextResponse> => {
       continue;
     }
 
+    // For couple capsules, both recipientEmail and recipient2Email
+    // get a copy. We dedupe in case the user accidentally entered
+    // the same address twice.
+    const recipients = Array.from(
+      new Set(
+        [capsule.recipientEmail, capsule.recipient2Email]
+          .filter((e): e is string => !!e)
+          .map((e) => e.toLowerCase()),
+      ),
+    );
+
     try {
-      await sendCapsuleRevealDay({
-        to: capsule.recipientEmail,
-        recipientName: capsule.recipientName,
-        title: capsule.title,
-        capsuleId: capsule.id,
-        accessToken: capsule.accessToken,
-      });
+      for (const to of recipients) {
+        await sendCapsuleRevealDay({
+          to,
+          recipientName: capsule.recipientName,
+          title: capsule.title,
+          capsuleId: capsule.id,
+          accessToken: capsule.accessToken,
+        });
+      }
 
       await prisma.memoryCapsule.update({
         where: { id: capsule.id },

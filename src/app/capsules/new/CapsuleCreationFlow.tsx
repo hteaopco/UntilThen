@@ -121,6 +121,7 @@ export function CapsuleCreationFlow() {
   const [timezone, setTimezone] = useState(detectTimezone);
   const [dateAlert, setDateAlert] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
+  const [recipient2Email, setRecipient2Email] = useState("");
 
   const maxDateIso = yyyymmdd(new Date(Date.now() + CAPSULE_MAX_HORIZON_MS));
   const minDateIso = yyyymmdd(new Date(Date.now() + 86400000));
@@ -181,7 +182,14 @@ export function CapsuleCreationFlow() {
     if (step === 4) {
       const trimmed = recipientEmail.trim();
       if (!trimmed) return "Recipient email is required";
-      if (!EMAIL_RE.test(trimmed)) return "Please enter a valid email address";
+      if (!EMAIL_RE.test(trimmed))
+        return "Please enter a valid email address";
+      if (isCouple) {
+        const trimmed2 = recipient2Email.trim();
+        if (!trimmed2) return "Second recipient email is required";
+        if (!EMAIL_RE.test(trimmed2))
+          return "Please enter a valid second recipient email";
+      }
       return null;
     }
     return null;
@@ -233,6 +241,9 @@ export function CapsuleCreationFlow() {
           recipientName: fullName,
           recipientPronoun,
           recipientEmail: recipientEmail.trim() || null,
+          recipient2Email: isCouple
+            ? recipient2Email.trim() || null
+            : null,
           occasionType: occasionType ?? "OTHER",
           tone: tone ?? "CELEBRATION",
           revealDate,
@@ -510,7 +521,7 @@ export function CapsuleCreationFlow() {
             </div>
           )}
 
-          {/* ── Step 4: Recipient email ────────────────── */}
+          {/* ── Step 4: Recipient email(s) ──────────────── */}
           {step === 4 && (
             <div className="space-y-5">
               <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
@@ -518,19 +529,20 @@ export function CapsuleCreationFlow() {
               </h1>
               <p className="text-[15px] text-ink-mid leading-[1.6]">
                 On the reveal date, we&rsquo;ll email{" "}
-                {recipientFirstName.trim() || "the recipient"} a link to open
-                the capsule.
-                {isCouple ? (
-                  <>
-                    {" "}For couples, pick the primary contact —{" "}
-                    {recipientFirstName.trim() || "either of them"} or{" "}
-                    {recipient2FirstName.trim() || "their partner"} — and they
-                    can share the link.
-                  </>
-                ) : null}
+                {isCouple
+                  ? "both recipients"
+                  : recipientFirstName.trim() || "the recipient"}{" "}
+                a link to open the capsule.
               </p>
 
-              <Field label="Recipient email" hint="We'll only use this on the reveal date. Nothing is sent now.">
+              <Field
+                label={
+                  isCouple
+                    ? `${recipientFirstName.trim() || "First recipient"}'s email`
+                    : "Recipient email"
+                }
+                hint="We'll only use this on the reveal date. Nothing is sent now."
+              >
                 <input
                   type="email"
                   inputMode="email"
@@ -544,6 +556,25 @@ export function CapsuleCreationFlow() {
                   className="account-input"
                 />
               </Field>
+
+              {isCouple ? (
+                <Field
+                  label={`${recipient2FirstName.trim() || "Second recipient"}'s email`}
+                >
+                  <input
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                    value={recipient2Email}
+                    onChange={(e) => {
+                      setRecipient2Email(e.target.value);
+                      setStepError(null);
+                    }}
+                    placeholder="them@example.com"
+                    className="account-input"
+                  />
+                </Field>
+              ) : null}
             </div>
           )}
 
@@ -561,7 +592,16 @@ export function CapsuleCreationFlow() {
                 <ReviewRow label="Tone" value={TONE_LABELS[tone ?? "CELEBRATION"]} />
                 <ReviewRow label="Title" value={title} />
                 <ReviewRow label="For" value={recipientName} />
-                <ReviewRow label="Recipient email" value={recipientEmail.trim() || "—"} />
+                <ReviewRow
+                  label={isCouple ? "Recipient emails" : "Recipient email"}
+                  value={
+                    isCouple
+                      ? [recipientEmail.trim(), recipient2Email.trim()]
+                          .filter(Boolean)
+                          .join(", ") || "—"
+                      : recipientEmail.trim() || "—"
+                  }
+                />
                 <ReviewRow label="Occasion" value={OCCASIONS.find((o) => o.value === occasionType)?.label ?? "Other"} />
                 <ReviewRow label="Reveal date" value={revealDate ? new Date(revealDate + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "—"} />
                 <ReviewRow label="Delivery time" value={deliveryTime ?? "—"} />
