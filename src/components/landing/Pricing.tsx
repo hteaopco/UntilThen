@@ -282,6 +282,7 @@ function TimeCapsulePlan() {
       priceNote={isAnnual ? "That\u2019s less than $3/month" : "Or $35.99/year \u2014 save 40%"}
       features={BASE_FEATURES}
       cta="Start your first capsule"
+      ctaHref="/sign-up"
       ctaNote="No credit card needed. Cancel anytime."
       overlay={<RisingDotsOverlay />}
       billingToggle={
