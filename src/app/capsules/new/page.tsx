@@ -1,3 +1,5 @@
+import { Footer } from "@/components/landing/Footer";
+
 import { CapsuleIntroGate } from "./CapsuleIntroGate";
 
 export const metadata = {
@@ -13,5 +15,10 @@ export const runtime = "nodejs";
 // intro for the existing CapsuleCreationFlow wizard client-side,
 // so the URL stays /capsules/new throughout.
 export default function NewCapsulePage() {
-  return <CapsuleIntroGate />;
+  return (
+    <>
+      <CapsuleIntroGate />
+      <Footer />
+    </>
+  );
 }

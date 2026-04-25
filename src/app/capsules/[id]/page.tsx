@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 import type { Attachment } from "@/components/editor/MediaAttachments";
+import { Footer } from "@/components/landing/Footer";
 import { TopNav } from "@/components/ui/TopNav";
 import { effectiveStatus, findOwnedCapsule } from "@/lib/capsules";
 import { userHasGiftAccess } from "@/lib/paywall";
@@ -150,6 +151,7 @@ export default async function CapsulePage({
         inviteToken: i.inviteToken,
       }))}
     />
+      <Footer />
     </>
   );
 }
