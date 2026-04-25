@@ -49,6 +49,13 @@ volume.)*
 - [ ] Audit capsule detail page layout on mobile
 - [ ] Verify activation card shows correctly in DRAFT and ACTIVE states
 - [ ] Confirm post-activation copy is correct
+- [ ] **Recipient email is captured at creation, not at activate** — verify
+  the activate modal no longer asks for email/phone (collapsed to summary →
+  pay), and that the summary CTA reads "Send contributor invites" on free
+  activations / "Continue to payment" when paywall is on
+- [ ] **Couple capsules deliver to both addresses** — seed a couple capsule,
+  jump the reveal date, run `/api/cron/reveal`, confirm both
+  `recipientEmail` and `recipient2Email` receive the reveal-day mail (deduped)
 - [ ] Verify "Preview their moment" link is visible and functional in
   both states
 - [ ] Test adding contributor to already-active capsule — invite email
@@ -160,9 +167,12 @@ preview, admin mock). Remaining work is hands-on device QA.
 - [ ] Write text entry → verify saves and appears
 - [ ] Write text entry with photo → verify upload and display
 - [ ] Record voice note → verify upload and playback
-- [ ] Create Gift Capsule → all 5 steps → verify DRAFT
+- [ ] Create Gift Capsule → all 6 steps (incl. recipient email step) → verify DRAFT
+- [ ] Create couple Gift Capsule → enter both recipient emails → verify both
+  saved on the capsule row (`recipientEmail`, `recipient2Email`)
 - [ ] Add contributors to DRAFT → verify list
-- [ ] Activate capsule → verify ACTIVE + invite emails
+- [ ] Activate capsule → activate modal is just summary → pay (no contact step)
+  → verify ACTIVE + invite emails fire
 - [ ] Open contributor invite link → full flow end to end
 - [ ] Verify contributor message appears in organiser view
 - [ ] Add contributor to ACTIVE capsule → invite fires immediately
