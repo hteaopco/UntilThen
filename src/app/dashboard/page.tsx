@@ -76,7 +76,7 @@ export default async function DashboardPage() {
                 href="/account/capsules/new"
                 prefetch={false}
                 aria-label="Add a time capsule"
-                className="snap-start shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl bg-white border-2 border-dashed border-amber/40 shadow-[0_8px_24px_-10px_rgba(15,31,61,0.18)] hover:shadow-[0_12px_32px_-10px_rgba(15,31,61,0.24)] hover:border-amber/60 transition-all overflow-hidden"
+                className="snap-start shrink-0 w-[50vw] max-w-[182px] sm:w-[168px] rounded-2xl bg-white border-2 border-dashed border-amber/40 hover:border-amber/60 transition-colors overflow-hidden"
               >
                 {/* Image area mirrors VaultCard's cover so total
                     card height matches across the row. */}

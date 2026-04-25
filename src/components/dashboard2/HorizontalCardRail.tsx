@@ -90,25 +90,35 @@ export function HorizontalCardRail({
         ref={scrollerRef}
         // snap-center means each card snaps to the rail's center,
         // so the user always sees one focused card + peeks of the
-        // neighbours on either side. -ml-2 on every slot after the
-        // first creates the overlap effect.
-        className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 -mx-6 px-6 scroll-pl-6 scroll-pr-6 lg:mx-0 lg:px-0 lg:scroll-pl-0 lg:scroll-pr-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        // neighbours on either side. -ml-[100px] on every slot
+        // after the first creates the heavy overlap effect.
+        // scroll-padding-inline gives the first/last cards enough
+        // room to actually reach the center on snap (otherwise the
+        // edges can't scroll into focus).
+        className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth scroll-pl-[35%] scroll-pr-[35%] pb-2 -mx-6 px-6 lg:mx-0 lg:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {childArray.map((child, i) => {
           const isActive = i === activeIdx;
+          // Distance-from-active z-index: the active card is on top;
+          // cards stack down from there so a card adjacent to the
+          // active one always renders above a card further away.
+          // Without this, the rightmost (Add) card was rendering on
+          // top of its left neighbour because of DOM order.
+          const z = Math.max(0, 10 - Math.abs(i - activeIdx));
           return (
             <div
               key={i}
               data-rail-slot
-              className={`snap-center shrink-0 transition-[transform,filter,opacity] duration-300 ease-out -ml-[100px] first:ml-0 ${
-                isActive
-                  ? "scale-100 opacity-100 z-10"
-                  : "scale-[0.92] opacity-75 z-0"
+              className={`snap-center shrink-0 transition-[transform,filter] duration-300 ease-out -ml-[100px] first:ml-0 ${
+                isActive ? "scale-100" : "scale-[0.92]"
               }`}
               // Inline filter so the blur transitions cleanly from
-              // 0 → 1.5px (Tailwind's blur-0/blur-sm jump). Keep it
-              // subtle: heavier blur fights the focus animation.
-              style={{ filter: isActive ? "blur(0px)" : "blur(1.5px)" }}
+              // 0 → 1.5px (Tailwind's blur-0/blur-sm jump). zIndex
+              // also inline so it can be a computed number.
+              style={{
+                filter: isActive ? "blur(0px)" : "blur(1.5px)",
+                zIndex: z,
+              }}
             >
               {child}
             </div>
