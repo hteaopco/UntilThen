@@ -78,7 +78,7 @@ export default async function HomePage() {
         <Avatar avatarUrl={avatarViewUrl} />
       </header>
 
-      <section className="px-6 pt-3 sm:pt-5 pb-3 text-center">
+      <section className="px-6 pt-3 sm:pt-5 pb-7 sm:pb-9 text-center">
         <h1 className="font-brush text-[40px] sm:text-[54px] leading-none text-navy">
           Hi, {firstName || "friend"}
           <span className="ml-2 align-middle text-amber text-[22px] sm:text-[30px]">
@@ -108,7 +108,7 @@ export default async function HomePage() {
             <>
               Your memories,
               <br />
-              Preserved.
+              preserved.
             </>
           }
         />
@@ -131,8 +131,9 @@ export default async function HomePage() {
       </footer>
 
       {/* Trailing cream spacer — iOS overscroll bounce lands on
-          cream rather than white. */}
-      <div aria-hidden="true" className="h-16 sm:h-24 bg-cream" />
+          cream rather than white. Generous height so the footer
+          doesn't hard-transition into a white edge below. */}
+      <div aria-hidden="true" className="h-32 sm:h-48 bg-cream" />
     </main>
   );
 }
