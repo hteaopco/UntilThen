@@ -134,16 +134,21 @@ export function CapsuleCreationFlow() {
     : `${recipientFirstName.trim()} ${recipientLastName.trim()}`.trim();
 
   useEffect(() => {
+    // Consume-on-read: hydrate the form from the stash that was
+    // written when a signed-out user got redirected to /sign-up
+    // mid-flow, then immediately clear it. Without the clear, a
+    // user who abandons the flow after signing up sees the old
+    // values pre-filled the next time they start a new capsule.
     try {
       const raw = window.localStorage.getItem(PENDING_STEP1_KEY);
-      if (raw) {
-        const p = JSON.parse(raw) as Record<string, string>;
-        if (p.title) setTitle(p.title);
-        if (p.recipientFirstName) setRecipientFirstName(p.recipientFirstName);
-        if (p.recipientLastName) setRecipientLastName(p.recipientLastName);
-        if (p.occasionType) setOccasionType(p.occasionType as OccasionType);
-        if (p.revealDate) setRevealDate(p.revealDate);
-      }
+      if (!raw) return;
+      window.localStorage.removeItem(PENDING_STEP1_KEY);
+      const p = JSON.parse(raw) as Record<string, string>;
+      if (p.title) setTitle(p.title);
+      if (p.recipientFirstName) setRecipientFirstName(p.recipientFirstName);
+      if (p.recipientLastName) setRecipientLastName(p.recipientLastName);
+      if (p.occasionType) setOccasionType(p.occasionType as OccasionType);
+      if (p.revealDate) setRevealDate(p.revealDate);
     } catch { /* ignore */ }
   }, []);
 
