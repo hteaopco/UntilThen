@@ -102,6 +102,34 @@ export default async function CapsulePage({
     );
   }
 
+  // Avatar lookup for invitees who've signed up. Matches
+  // CapsuleInvite.email → User.email (populated for new sign-ups
+  // by /api/onboarding and backfilled for existing users via
+  // ensureUserEmail). Same R2-signing dance as the contribution
+  // author lookup above; misses fall through to initials.
+  const inviteEmails = Array.from(
+    new Set(capsule.invites.map((i) => i.email.toLowerCase())),
+  );
+  const inviteAvatarByEmail = new Map<string, string>();
+  if (inviteEmails.length > 0 && r2IsConfigured()) {
+    const inviteUsers = await prisma.user.findMany({
+      where: { email: { in: inviteEmails } },
+      select: { email: true, avatarUrl: true },
+    });
+    await Promise.all(
+      inviteUsers
+        .filter((u) => u.email && u.avatarUrl)
+        .map(async (u) => {
+          try {
+            const url = await signGetUrl(u.avatarUrl!);
+            inviteAvatarByEmail.set(u.email!, url);
+          } catch {
+            /* skip — initials fallback */
+          }
+        }),
+    );
+  }
+
   return (
     <>
       <TopNav />
@@ -149,6 +177,7 @@ export default async function CapsulePage({
         status: i.status,
         requiresApproval: i.requiresApproval,
         inviteToken: i.inviteToken,
+        avatarUrl: inviteAvatarByEmail.get(i.email.toLowerCase()) ?? null,
       }))}
     />
       <Footer />

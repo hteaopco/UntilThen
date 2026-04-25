@@ -74,6 +74,10 @@ type InviteRow = {
    * sees it on reveal day. */
   requiresApproval: boolean;
   inviteToken: string;
+  /** Pre-signed R2 URL for the invitee's profile photo when their
+   *  email matches a registered User with avatarUrl. Null
+   *  otherwise — UI falls back to initials. */
+  avatarUrl: string | null;
 };
 
 function daysUntil(iso: string): number {
@@ -1239,22 +1243,29 @@ function ContributorsPanel({
                 className="rounded-xl border border-navy/[0.08] px-4 py-3"
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-semibold text-navy truncate">
-                      {i.name || "—"}
-                    </div>
-                    <div className="text-xs text-ink-light truncate">
-                      {i.email}
-                    </div>
-                    <div className="mt-1 flex items-center gap-1 text-xs">
-                      {i.requiresApproval ? (
-                        <span className="inline-flex items-center gap-1 text-green-600 font-semibold">
-                          <Check size={12} strokeWidth={2.5} aria-hidden="true" />
-                          Review prior
-                        </span>
-                      ) : (
-                        <span className="text-ink-light">&mdash; No review</span>
-                      )}
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    <InviteAvatar
+                      avatarUrl={i.avatarUrl}
+                      name={i.name}
+                      email={i.email}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold text-navy truncate">
+                        {i.name || "—"}
+                      </div>
+                      <div className="text-xs text-ink-light truncate">
+                        {i.email}
+                      </div>
+                      <div className="mt-1 flex items-center gap-1 text-xs">
+                        {i.requiresApproval ? (
+                          <span className="inline-flex items-center gap-1 text-green-600 font-semibold">
+                            <Check size={12} strokeWidth={2.5} aria-hidden="true" />
+                            Review prior
+                          </span>
+                        ) : (
+                          <span className="text-ink-light">&mdash; No review</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   <button
@@ -1273,6 +1284,49 @@ function ContributorsPanel({
         </>
       )}
     </div>
+  );
+}
+
+const INVITE_AVATAR_BGS = [
+  "bg-[#d6b49c]",
+  "bg-[#a08b73]",
+  "bg-[#8aa4bd]",
+  "bg-[#c58e7a]",
+  "bg-[#b0a088]",
+];
+
+function InviteAvatar({
+  avatarUrl,
+  name,
+  email,
+}: {
+  avatarUrl: string | null;
+  name: string | null;
+  email: string;
+}) {
+  if (avatarUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={avatarUrl}
+        alt={name ?? email}
+        className="shrink-0 w-9 h-9 rounded-full object-cover"
+      />
+    );
+  }
+  // Hash on email so the placeholder colour is stable across
+  // renders even when the invitee's name changes.
+  let hash = 0;
+  for (let i = 0; i < email.length; i++) hash = (hash * 31 + email.charCodeAt(i)) >>> 0;
+  const bg = INVITE_AVATAR_BGS[hash % INVITE_AVATAR_BGS.length];
+  const initial = (name ?? email).trim().charAt(0).toUpperCase() || "?";
+  return (
+    <span
+      className={`shrink-0 w-9 h-9 rounded-full ${bg} flex items-center justify-center text-white text-sm font-semibold`}
+      aria-hidden="true"
+    >
+      {initial}
+    </span>
   );
 }
 
