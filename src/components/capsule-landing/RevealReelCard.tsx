@@ -25,13 +25,11 @@ export function RevealReelCard({
   childId,
   initialMode,
   curatedSlideCount,
-  songName,
 }: {
   vaultId: string;
   childId: string;
   initialMode: Mode;
   curatedSlideCount: number;
-  songName: string | null;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(initialMode);
@@ -105,12 +103,6 @@ export function RevealReelCard({
             ? `${curatedSlideCount}/5 · Edit`
             : "Customize"}
         </Link>
-      )}
-
-      {songName && (
-        <p className="text-[11px] text-ink-light italic text-right max-w-[160px] truncate">
-          Music: {songName}
-        </p>
       )}
 
       {error && (
