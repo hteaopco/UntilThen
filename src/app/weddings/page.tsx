@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Heart, Mail, Sparkles } from "lucide-react";
+import { ArrowRight, Heart, Mail, Sparkles } from "lucide-react";
 
 import { ExpandableFlyer } from "@/components/landing/ExpandableFlyer";
 import { Footer } from "@/components/landing/Footer";
@@ -28,14 +28,23 @@ export const runtime = "nodejs";
 export default async function WeddingsPage() {
   return (
     <>
-      <TopNav />
+      <TopNav hideEnterprisePill />
       <main className="pt-10 sm:pt-14 pb-20 bg-cream min-h-screen">
         <section className="mx-auto max-w-[1080px] px-5 lg:px-14">
           <div className="max-w-[720px]">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-tint border border-amber/30 text-amber-dark text-[11px] font-bold uppercase tracking-[0.14em]">
-              <Sparkles size={12} strokeWidth={2.25} />
-              untilThen Weddings
-            </span>
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-tint border border-amber/30 text-amber-dark text-[11px] font-bold uppercase tracking-[0.14em]">
+                <Sparkles size={12} strokeWidth={2.25} />
+                untilThen Weddings
+              </span>
+              <Link
+                href="/weddings/dashboard"
+                className="inline-flex items-center gap-1.5 text-[12px] font-bold text-amber-dark hover:text-amber-dark/80 transition-colors"
+              >
+                Login to Weddings
+                <ArrowRight size={12} strokeWidth={2.25} aria-hidden="true" />
+              </Link>
+            </div>
             <h1 className="mt-5 font-brush text-[44px] sm:text-[64px] lg:text-[76px] leading-[0.95] text-navy">
               A wedding gift
               <br />

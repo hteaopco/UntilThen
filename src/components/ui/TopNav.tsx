@@ -27,7 +27,15 @@ import { r2IsConfigured, signGetUrl } from "@/lib/r2";
  * component. HomeBackNav and Avatar still handle their own
  * client-only bits (router.back(), dropdown state).
  */
-export async function TopNav() {
+export async function TopNav({
+  hideEnterprisePill = false,
+}: {
+  /** Suppress the "Enterprise" pill in the top-right cluster.
+   *  Used on /business + /weddings landings, which surface a
+   *  product-specific login link inline with their hero eyebrow
+   *  instead of leaning on the global pill. */
+  hideEnterprisePill?: boolean;
+} = {}) {
   const { userId } = auth();
   const homeHref = userId ? "/home" : "/";
 
@@ -46,14 +54,16 @@ export async function TopNav() {
     } catch (err) {
       console.warn("[TopNav] avatar lookup failed:", err);
     }
-    // Render the Enterprise pill when the viewer belongs to an
-    // org. Cheap query — same lookup the /enterprise layout uses
-    // and the result lives behind the same Postgres index.
-    try {
-      const ctx = await getOrgContextByClerkId(userId);
-      if (ctx) orgName = ctx.organizationName;
-    } catch {
-      /* */
+    if (!hideEnterprisePill) {
+      // Render the Enterprise pill when the viewer belongs to an
+      // org. Cheap query — same lookup the /enterprise layout uses
+      // and the result lives behind the same Postgres index.
+      try {
+        const ctx = await getOrgContextByClerkId(userId);
+        if (ctx) orgName = ctx.organizationName;
+      } catch {
+        /* */
+      }
     }
   }
 
