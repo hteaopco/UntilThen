@@ -1753,7 +1753,7 @@ function WeddingGuestSharePanel({ guestToken }: { guestToken: string }) {
   return (
     <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10">
       <div className="rounded-2xl border border-amber/25 bg-white px-6 py-6 grid sm:grid-cols-[1fr_auto] gap-6 items-center shadow-[0_4px_18px_rgba(196,122,58,0.08)]">
-        <div>
+        <div className="min-w-0">
           <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber inline-flex items-center gap-1.5">
             <QrCode size={12} strokeWidth={2.25} aria-hidden="true" />
             Share with your guests
@@ -1762,8 +1762,8 @@ function WeddingGuestSharePanel({ guestToken }: { guestToken: string }) {
             Print this QR on your easel sign and table cards. Anyone who scans
             can leave a memory &mdash; no app, no signup.
           </p>
-          <div className="mt-3 flex items-center gap-2">
-            <code className="flex-1 truncate text-[12px] font-mono text-ink-mid bg-warm-surface/60 px-3 py-2 rounded-lg border border-navy/[0.06]">
+          <div className="mt-3 flex items-center gap-2 min-w-0">
+            <code className="flex-1 min-w-0 truncate text-[12px] font-mono text-ink-mid bg-warm-surface/60 px-3 py-2 rounded-lg border border-navy/[0.06]">
               {guestUrl}
             </code>
             <button
