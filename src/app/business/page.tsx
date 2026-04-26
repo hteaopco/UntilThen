@@ -50,7 +50,7 @@ export default async function BusinessPage() {
             <div className="mt-8">
               <a
                 href="mailto:hello@untilthenapp.io?subject=untilThen%20Enterprise"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-navy text-white text-[14px] font-bold hover:bg-navy/90 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-amber-tint border border-amber/40 text-amber-dark text-[14px] font-bold hover:bg-amber/15 hover:border-amber/60 transition-colors"
               >
                 <Mail size={16} strokeWidth={2} />
                 Contact sales
