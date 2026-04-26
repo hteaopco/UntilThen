@@ -1,12 +1,12 @@
 "use client";
 
-import { BarChart3, Users } from "lucide-react";
+import { BarChart3, Home, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 /**
- * Two-column shell for /enterprise/*. Left rail = nav (Roster +
- * Stat Board, ADMIN+ only). Right column = page children.
+ * Two-column shell for /enterprise/*. Left rail = nav (Home +
+ * Roster + Stat Board, ADMIN+ only). Right column = page children.
  *
  * MEMBERs (role = MEMBER) don't see the left rail at all — they
  * only get the center "Create a Gift Capsule" CTA on the
@@ -14,6 +14,7 @@ import { usePathname } from "next/navigation";
  * roster or view org-wide stats.
  */
 const ADMIN_NAV: Array<{ href: string; label: string; icon: typeof Users }> = [
+  { href: "/home", label: "Home", icon: Home },
   { href: "/enterprise/roster", label: "Roster", icon: Users },
   { href: "/enterprise/stats", label: "Stat Board", icon: BarChart3 },
 ];

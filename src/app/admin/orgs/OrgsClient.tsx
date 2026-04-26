@@ -86,8 +86,9 @@ export function OrgsClient() {
         <p className="text-sm text-ink-mid max-w-[640px]">
           Phase 1 enterprise channel — provision orgs here. The OWNER must
           already have an untilThen account. Once created they&rsquo;ll see an
-          &ldquo;Enterprise&rdquo; tab in their TopNav and can manage their
-          roster from <code className="text-[12px]">/enterprise</code>.
+          &ldquo;Enterprise&rdquo; pill on their <code className="text-[12px]">/home</code>
+          screen and can manage their roster from{" "}
+          <code className="text-[12px]">/enterprise</code>.
         </p>
       </section>
 

@@ -1,11 +1,9 @@
 import { auth } from "@clerk/nextjs/server";
-import { Building2 } from "lucide-react";
 import Link from "next/link";
 
 import { Avatar } from "@/components/ui/Avatar";
 import { HomeBackNav } from "@/components/ui/HomeBackNav";
 import { LogoSvg } from "@/components/ui/LogoSvg";
-import { getOrgContextByClerkId } from "@/lib/orgs";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
 /**
@@ -27,20 +25,11 @@ import { r2IsConfigured, signGetUrl } from "@/lib/r2";
  * component. HomeBackNav and Avatar still handle their own
  * client-only bits (router.back(), dropdown state).
  */
-export async function TopNav({
-  hideEnterprisePill = false,
-}: {
-  /** Suppress the "Enterprise" pill in the top-right cluster.
-   *  Used on /business + /weddings landings, which surface a
-   *  product-specific login link inline with their hero eyebrow
-   *  instead of leaning on the global pill. */
-  hideEnterprisePill?: boolean;
-} = {}) {
+export async function TopNav() {
   const { userId } = auth();
   const homeHref = userId ? "/home" : "/";
 
   let avatarViewUrl: string | null = null;
-  let orgName: string | null = null;
   if (userId && process.env.DATABASE_URL) {
     try {
       const { prisma } = await import("@/lib/prisma");
@@ -53,17 +42,6 @@ export async function TopNav({
       }
     } catch (err) {
       console.warn("[TopNav] avatar lookup failed:", err);
-    }
-    if (!hideEnterprisePill) {
-      // Render the Enterprise pill when the viewer belongs to an
-      // org. Cheap query — same lookup the /enterprise layout uses
-      // and the result lives behind the same Postgres index.
-      try {
-        const ctx = await getOrgContextByClerkId(userId);
-        if (ctx) orgName = ctx.organizationName;
-      } catch {
-        /* */
-      }
     }
   }
 
@@ -81,16 +59,6 @@ export async function TopNav({
           </Link>
         </div>
         <div className="flex items-center gap-2">
-          {orgName && (
-            <Link
-              href="/enterprise"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-tint border border-amber/30 text-amber-dark text-[12px] font-bold hover:bg-amber/15 transition-colors whitespace-nowrap"
-              title={`Open ${orgName} dashboard`}
-            >
-              <Building2 size={12} strokeWidth={2.25} aria-hidden="true" />
-              <span className="hidden sm:inline">Enterprise</span>
-            </Link>
-          )}
           {userId && (
             <div className="[&>div>button]:w-9 [&>div>button]:h-9">
               <Avatar avatarUrl={avatarViewUrl} />
