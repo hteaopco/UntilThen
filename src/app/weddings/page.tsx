@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Heart, Mail, Sparkles } from "lucide-react";
 
+import { ExpandableFlyer } from "@/components/landing/ExpandableFlyer";
 import { Footer } from "@/components/landing/Footer";
 import { TopNav } from "@/components/ui/TopNav";
 
@@ -10,6 +11,10 @@ import { TopNav } from "@/components/ui/TopNav";
  * skips the gift-capsule pricing intro and pre-selects WEDDING +
  * couple in the creation flow. Signed-out visitors get bounced
  * through sign-up first via Clerk's redirect_url chain.
+ *
+ * Layout = hero + marketing flyer below. The flyer (uploaded by
+ * the team) carries the detailed feature breakdown — no need to
+ * duplicate it in HTML sections that drift out of sync.
  */
 export const metadata = {
   title: "Weddings — untilThen",
@@ -80,42 +85,15 @@ export default async function WeddingsPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1080px] px-5 lg:px-14 mt-20 lg:mt-28">
-          <h2 className="text-[22px] sm:text-[28px] font-extrabold text-navy tracking-[-0.5px] text-center">
-            How it works
-          </h2>
-          <div className="mt-10 grid md:grid-cols-3 gap-6">
-            <Step
-              n="1"
-              title="Order your capsule"
-              body="Pick your wedding date. We send a printable easel sign and table cards with your private QR code."
-            />
-            <Step
-              n="2"
-              title="Guests contribute"
-              body="At the reception, guests scan and leave a letter, voice note, or photo. No app, no signup."
-            />
-            <Step
-              n="3"
-              title="Reveal at one year"
-              body="On your first anniversary, your inbox lights up with everything your people wanted you to remember."
-            />
-          </div>
+        <section className="mx-auto max-w-[1080px] px-5 lg:px-14 mt-16 lg:mt-24">
+          <ExpandableFlyer
+            src="/5D19BB1E-261A-4CB8-BDA9-ED01F5E6BEE8.png"
+            alt="untilThen for weddings — full marketing flyer"
+            caption="Tap to expand"
+          />
         </section>
       </main>
       <Footer />
     </>
-  );
-}
-
-function Step({ n, title, body }: { n: string; title: string; body: string }) {
-  return (
-    <div className="rounded-2xl bg-white border border-navy/[0.06] p-6 shadow-[0_4px_16px_-6px_rgba(15,31,61,0.06)]">
-      <div className="w-9 h-9 rounded-full bg-amber-tint border border-amber/25 flex items-center justify-center text-amber-dark text-[14px] font-extrabold">
-        {n}
-      </div>
-      <h3 className="mt-4 text-[16px] font-extrabold text-navy">{title}</h3>
-      <p className="mt-2 text-[14px] text-navy/70 leading-[1.5]">{body}</p>
-    </div>
   );
 }
