@@ -147,6 +147,24 @@ export function RosterClient({
     await load();
   }
 
+  async function cancelInvite(inviteId: string, email: string) {
+    if (
+      !window.confirm(
+        `Cancel the invite to ${email}? The magic-link they were emailed stops working immediately. Re-invite them later if you change your mind.`,
+      )
+    )
+      return;
+    const res = await fetch(`/api/orgs/${orgId}/invites/${inviteId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      window.alert(data.error ?? "Couldn't cancel invite.");
+      return;
+    }
+    await load();
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -305,7 +323,15 @@ export function RosterClient({
                       day: "numeric",
                     })}
                   </td>
-                  <td className="px-3 py-2.5"></td>
+                  <td className="px-3 py-2.5 text-right">
+                    <button
+                      type="button"
+                      onClick={() => cancelInvite(i.inviteId, i.email)}
+                      className="text-[11px] font-semibold text-red-600 hover:text-red-700 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </td>
                 </tr>
               ))}
               {filteredMembers.length === 0 && invites.length === 0 && (
