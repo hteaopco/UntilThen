@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Heart, Mail, Sparkles } from "lucide-react";
 
 import { Footer } from "@/components/landing/Footer";
-import { Nav } from "@/components/landing/Nav";
+import { TopNav } from "@/components/ui/TopNav";
 
 /**
  * Public marketing landing for the wedding-capsule product.
@@ -18,11 +18,14 @@ export const metadata = {
     "A wedding capsule that opens on your first anniversary. Guests leave letters, voice notes, and photos at the wedding — sealed and revealed on your one-year.",
 };
 
-export default function WeddingsPage() {
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+export default async function WeddingsPage() {
   return (
     <>
-      <Nav />
-      <main className="pt-24 sm:pt-28 pb-20 bg-cream min-h-screen">
+      <TopNav />
+      <main className="pt-10 sm:pt-14 pb-20 bg-cream min-h-screen">
         <section className="mx-auto max-w-[1080px] px-5 lg:px-14">
           <div className="grid lg:grid-cols-[1.1fr_1fr] gap-10 lg:gap-16 items-center">
             <div>

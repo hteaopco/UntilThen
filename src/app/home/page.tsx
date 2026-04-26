@@ -8,6 +8,7 @@ import { LogoSvg } from "@/components/ui/LogoSvg";
 import { getOrgContextByClerkId } from "@/lib/orgs";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
+import { HomeBubble } from "./HomeBubble";
 import { HomeCard } from "./HomeCard";
 
 /**
@@ -181,35 +182,5 @@ function Sparkle({ className, size }: { className?: string; size: number }) {
       strokeWidth={1.5}
       className={`pointer-events-none ${className ?? ""}`}
     />
-  );
-}
-
-function HomeBubble({
-  href,
-  icon,
-  label,
-}: {
-  href: string;
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group flex flex-col items-center gap-2 select-none"
-    >
-      <div
-        className="w-[68px] h-[68px] sm:w-[76px] sm:h-[76px] rounded-full bg-gradient-to-br from-amber-tint via-white to-amber/25 border border-amber/25 flex items-center justify-center transition-transform group-hover:-translate-y-0.5 group-active:scale-[0.97]"
-        style={{
-          boxShadow:
-            "0 10px 24px -8px rgba(196,122,58,0.30), inset 0 1px 2px rgba(255,255,255,0.7)",
-        }}
-      >
-        {icon}
-      </div>
-      <span className="text-[12px] sm:text-[13px] font-bold text-navy tracking-[-0.2px]">
-        {label}
-      </span>
-    </Link>
   );
 }

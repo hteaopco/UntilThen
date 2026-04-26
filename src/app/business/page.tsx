@@ -2,7 +2,7 @@ import Link from "next/link";
 import { BarChart3, Building2, Mail, Sparkles, Users } from "lucide-react";
 
 import { Footer } from "@/components/landing/Footer";
-import { Nav } from "@/components/landing/Nav";
+import { TopNav } from "@/components/ui/TopNav";
 
 /**
  * Public marketing landing for the enterprise / "untilThen for
@@ -17,11 +17,14 @@ export const metadata = {
     "Give your team meaningful, lasting gifts. Milestone capsules, retirements, sendoffs — sent and tracked from a single roster.",
 };
 
-export default function BusinessPage() {
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
+export default async function BusinessPage() {
   return (
     <>
-      <Nav />
-      <main className="pt-24 sm:pt-28 pb-20 bg-cream min-h-screen">
+      <TopNav />
+      <main className="pt-10 sm:pt-14 pb-20 bg-cream min-h-screen">
         <section className="mx-auto max-w-[1080px] px-5 lg:px-14">
           <div className="grid lg:grid-cols-[1.1fr_1fr] gap-10 lg:gap-16 items-center">
             <div>
