@@ -57,15 +57,6 @@ The full recipient reveal runs through `RevealExperience` everywhere
 (`/reveal/[token]`, organiser preview, vault preview, contributor
 preview, admin mock). Remaining work is hands-on device QA.
 
-### Gate + Entry
-- [ ] **Gate screen** — "Tap to begin" pulses amber dot, cream bokeh
-  background, tap unlocks music + advances to Entry
-- [ ] **Entry fade choreography** — heart → headline → rule → date stagger
-  in over ~1500ms, Begin button slides up at 1400ms and lands at 2000ms.
-  No hard flashes
-- [ ] **Music** — starts at volume 0.25 on gate tap, plays through Entry
-  / Stories / Transition without restarting at phase boundaries
-
 ### Stories
 - [ ] **Progress bar** fills as cards advance; tap-right advances, tap-left
   goes back, middle dead zone
