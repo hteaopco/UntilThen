@@ -5,6 +5,7 @@ import {
   Check,
   ChevronDown,
   Copy,
+  Download,
   Lock,
   Mail,
   Paperclip,
@@ -269,7 +270,9 @@ export function CapsuleOverview({
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.14em] uppercase text-amber">
             <Sparkles size={14} strokeWidth={1.75} aria-hidden="true" />
-            Gift Capsule · {OCCASION_LABELS[capsule.occasionType]}
+            {capsule.occasionType === "WEDDING"
+              ? "Wedding Capsule"
+              : `Gift Capsule · ${OCCASION_LABELS[capsule.occasionType]}`}
           </span>
           {isDraft && (
             // Non-blocking pill. Click jumps the page down to the
@@ -298,9 +301,11 @@ export function CapsuleOverview({
               </span>
               .
             </p>
-            <p className="mt-1.5 text-[13px] italic text-ink-light">
-              {subjectCapitalized} won&rsquo;t expect this.
-            </p>
+            {capsule.occasionType !== "WEDDING" && (
+              <p className="mt-1.5 text-[13px] italic text-ink-light">
+                {subjectCapitalized} won&rsquo;t expect this.
+              </p>
+            )}
           </>
         ) : (
           <p className="mt-2 text-[15px] text-ink-mid">
@@ -330,74 +335,82 @@ export function CapsuleOverview({
       </section>
 
       {/* Your message — the first thing the organiser does.
-          Inline editor (collapsed) preview card after writing. */}
-      <section
-        id="your-message"
-        className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8"
-      >
-        <OwnContribution
-          capsuleId={capsule.id}
-          recipientDisplayName={recipientDisplayName}
-          possessivePronoun={possessivePronoun}
-          isCouple={isCouple}
-          firstName1={firstName1}
-          firstName2={firstName2}
-          tone={capsule.tone}
-          contribution={ownContribution ?? null}
-          initialAttachments={ownAttachments}
-        />
-      </section>
+          Inline editor (collapsed) preview card after writing.
+          Hidden for weddings: guests freely write through the QR
+          link, so the organiser doesn't seed a "first message". */}
+      {capsule.occasionType !== "WEDDING" && (
+        <section
+          id="your-message"
+          className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8"
+        >
+          <OwnContribution
+            capsuleId={capsule.id}
+            recipientDisplayName={recipientDisplayName}
+            possessivePronoun={possessivePronoun}
+            isCouple={isCouple}
+            firstName1={firstName1}
+            firstName2={firstName2}
+            tone={capsule.tone}
+            contribution={ownContribution ?? null}
+            initialAttachments={ownAttachments}
+          />
+        </section>
+      )}
 
       {/* Invite people — collapsed by default so a brand-new
           capsule doesn't open as a wall of empty form fields.
           Tap the header to expand; auto-opens when there are
-          already invites to display. */}
-      <section
-        id="invite-people"
-        className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8"
-      >
-        <button
-          type="button"
-          onClick={() => setInviteOpen((v) => !v)}
-          aria-expanded={inviteOpen}
-          aria-controls="invite-people-panel"
-          className="w-full flex items-center justify-between gap-3 mb-3 text-left group"
+          already invites to display.
+          Hidden for weddings: there are no named contributors.
+          Guests write freely through the post-activation QR. */}
+      {capsule.occasionType !== "WEDDING" && (
+        <section
+          id="invite-people"
+          className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8"
         >
-          <h2 className="text-[17px] font-bold text-navy tracking-[-0.2px]">
-            Add contributors (optional)
-            {invites.length > 0 && (
-              <span className="ml-2 text-[13px] font-semibold text-ink-light">
-                · {invites.length}
-              </span>
-            )}
-          </h2>
-          <span
-            aria-hidden="true"
-            className="shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-full border border-navy/10 text-ink-mid group-hover:text-navy group-hover:border-navy/30 transition-colors"
+          <button
+            type="button"
+            onClick={() => setInviteOpen((v) => !v)}
+            aria-expanded={inviteOpen}
+            aria-controls="invite-people-panel"
+            className="w-full flex items-center justify-between gap-3 mb-3 text-left group"
           >
-            <ChevronDown
-              size={16}
-              strokeWidth={2}
-              className={`transition-transform ${inviteOpen ? "rotate-180" : ""}`}
-            />
-          </span>
-        </button>
+            <h2 className="text-[17px] font-bold text-navy tracking-[-0.2px]">
+              Add contributors (optional)
+              {invites.length > 0 && (
+                <span className="ml-2 text-[13px] font-semibold text-ink-light">
+                  · {invites.length}
+                </span>
+              )}
+            </h2>
+            <span
+              aria-hidden="true"
+              className="shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-full border border-navy/10 text-ink-mid group-hover:text-navy group-hover:border-navy/30 transition-colors"
+            >
+              <ChevronDown
+                size={16}
+                strokeWidth={2}
+                className={`transition-transform ${inviteOpen ? "rotate-180" : ""}`}
+              />
+            </span>
+          </button>
 
-        {inviteOpen && (
-          <div id="invite-people-panel">
-            <ContributorsPanel
-              capsuleId={capsule.id}
-              recipientName={capsule.recipientName}
-              recipientDisplayName={recipientDisplayName}
-              isCouple={isCouple}
-              invites={invites}
-              isDraft={isDraft}
-              busyId={busy}
-              onRemove={removeInvite}
-            />
-          </div>
-        )}
-      </section>
+          {inviteOpen && (
+            <div id="invite-people-panel">
+              <ContributorsPanel
+                capsuleId={capsule.id}
+                recipientName={capsule.recipientName}
+                recipientDisplayName={recipientDisplayName}
+                isCouple={isCouple}
+                invites={invites}
+                isDraft={isDraft}
+                busyId={busy}
+                onRemove={removeInvite}
+              />
+            </div>
+          )}
+        </section>
+      )}
 
       {pending.length > 0 && (
         <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8">
@@ -466,18 +479,29 @@ export function CapsuleOverview({
         <div className="rounded-2xl border border-amber/25 bg-amber-tint/40 px-6 py-6 space-y-3">
           <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] text-balance break-words">
             {isDraft
-              ? `Invite everyone who loves ${pronoun}`
+              ? capsule.occasionType === "WEDDING"
+                ? "Activate your Wedding Capsule"
+                : `Invite everyone who loves ${pronoun}`
               : isSealed
                 ? `${recipientDisplayName}\u2019s capsule is sealed`
                 : `${recipientDisplayName}\u2019s capsule is live`}
           </h2>
           <p className="text-sm text-ink-mid leading-[1.6]">
             {isDraft ? (
-              <>
-                Each contributor adds something &mdash; a message, a memory, a
-                voice note &mdash; and {subjectPronoun}&rsquo;ll open it all at
-                once.
-              </>
+              capsule.occasionType === "WEDDING" ? (
+                <>
+                  Activate now to unlock the QR code your guests will scan on
+                  the day to leave messages, photos, and voice notes &mdash;
+                  no app, no signup. Everything seals together and opens on
+                  your one-year anniversary.
+                </>
+              ) : (
+                <>
+                  Each contributor adds something &mdash; a message, a memory, a
+                  voice note &mdash; and {subjectPronoun}&rsquo;ll open it all at
+                  once.
+                </>
+              )
             ) : isSealed ? (
               <>
                 Locked from edits. Contributors who follow their invite link
@@ -499,7 +523,8 @@ export function CapsuleOverview({
                 onClick={() => setActivateOpen(true)}
                 className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
               >
-                Send invites &mdash; {formatCapsulePrice(capsule.occasionType)}
+                {capsule.occasionType === "WEDDING" ? "Activate Capsule" : "Send invites"}{" "}
+                &mdash; {formatCapsulePrice(capsule.occasionType)}
               </button>
             ) : isSealed ? (
               <>
@@ -1678,10 +1703,16 @@ function ActivationModal({
  */
 function WeddingGuestSharePanel({ guestToken }: { guestToken: string }) {
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
   const origin =
     typeof window !== "undefined" ? window.location.origin : "https://untilthenapp.io";
   const guestUrl = `${origin}/wedding/${guestToken}`;
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(
+    guestUrl,
+  )}`;
+  // Higher-res variant for the download — 1024px renders cleanly
+  // when scaled into a print-ready easel sign or table card.
+  const qrPrintSrc = `https://api.qrserver.com/v1/create-qr-code/?size=1024x1024&margin=24&format=png&data=${encodeURIComponent(
     guestUrl,
   )}`;
 
@@ -1692,6 +1723,30 @@ function WeddingGuestSharePanel({ guestToken }: { guestToken: string }) {
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
       /* clipboard failed — degrade silently */
+    }
+  }
+
+  async function downloadQr() {
+    if (downloading) return;
+    setDownloading(true);
+    try {
+      const res = await fetch(qrPrintSrc);
+      if (!res.ok) throw new Error("Couldn't fetch QR");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `wedding-qr-${guestToken}.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      // Revoke after the click handler resolves so Safari can
+      // actually fetch the blob URL before we tear it down.
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      /* download failed — degrade silently; user can right-click save */
+    } finally {
+      setDownloading(false);
     }
   }
 
@@ -1729,9 +1784,17 @@ function WeddingGuestSharePanel({ guestToken }: { guestToken: string }) {
               )}
             </button>
           </div>
-          <p className="mt-2 text-[11px] italic text-ink-light">
-            Print-ready easel + table cards coming soon.
-          </p>
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={downloadQr}
+              disabled={downloading}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors disabled:opacity-50"
+            >
+              <Download size={12} strokeWidth={2.25} aria-hidden="true" />
+              {downloading ? "Preparing…" : "Download QR (PNG)"}
+            </button>
+          </div>
         </div>
         <div className="shrink-0 rounded-xl border border-navy/10 p-2 bg-white">
           {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -51,7 +51,12 @@ export async function loadDashboard2Data({
       orderBy: { createdAt: "asc" },
     }),
     prisma.memoryCapsule.findMany({
-      where: { organiserId: userId },
+      // Wedding capsules live on a dedicated /weddings/dashboard
+      // surface and are intentionally excluded from the Gift
+      // Capsule list — the two products have different copy,
+      // pricing, and contributor model, so co-listing them
+      // confused the empty state and the price chip.
+      where: { organiserId: userId, occasionType: { not: "WEDDING" } },
       include: {
         invites: {
           orderBy: { createdAt: "asc" },

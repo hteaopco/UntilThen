@@ -96,6 +96,25 @@ function detectTimezone(): string {
   }
 }
 
+// Add one year to a yyyy-mm-dd string in UTC. Used by the wedding
+// flow to derive the actual reveal date (wedding + 1 year) without
+// the local-timezone off-by-one that bites if you parse the ISO as
+// local midnight on Jan 1 in a UTC- zone.
+function addOneYearIsoUtc(iso: string): string {
+  const d = new Date(`${iso}T12:00:00Z`);
+  d.setUTCFullYear(d.getUTCFullYear() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+function formatIsoLong(iso: string): string {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 const pillActive = "bg-amber text-white border-amber";
 const pillInactive =
   "bg-white border-navy/15 text-ink-mid hover:border-amber/40 hover:text-navy";
@@ -113,8 +132,14 @@ export function CapsuleCreationFlow({
   const { isLoaded: authLoaded, isSignedIn } = useAuth();
 
   const isWedding = initialOccasion === "WEDDING";
+  // Wedding flow skips Step 0 (tone — locked to LOVE) entirely.
+  // The user picked WEDDING from the /weddings landing, so the
+  // tone interstitial is just friction. Counter + back button
+  // both clamp to firstStep below.
+  const firstStep = isWedding ? 1 : 0;
+  const visibleStepCount = TOTAL_STEPS - firstStep;
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(firstStep);
   const [error, setError] = useState<string | null>(null);
   const [stepError, setStepError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -237,7 +262,7 @@ export function CapsuleCreationFlow({
 
   function goBack() {
     setStepError(null);
-    if (step > 0) setStep(step - 1);
+    if (step > firstStep) setStep(step - 1);
   }
 
   async function submit() {
@@ -277,7 +302,13 @@ export function CapsuleCreationFlow({
             : null,
           occasionType: occasionType ?? "OTHER",
           tone: tone ?? "CELEBRATION",
-          revealDate,
+          // Wedding flow: the date input collects the wedding day,
+          // and the capsule sends one year later. Add the year here
+          // (UTC-safe) so backend always receives the actual reveal
+          // date regardless of the picker's local timezone.
+          revealDate: isWedding && revealDate
+            ? addOneYearIsoUtc(revealDate)
+            : revealDate,
           deliveryTime,
           timezone,
           requiresApproval: false,
@@ -296,7 +327,8 @@ export function CapsuleCreationFlow({
     }
   }
 
-  const progress = ((step + 1) / TOTAL_STEPS) * 100;
+  const progress =
+    ((step - firstStep + 1) / visibleStepCount) * 100;
 
   return (
     <main className="min-h-screen bg-cream">
@@ -322,7 +354,7 @@ export function CapsuleCreationFlow({
       <div className="mx-auto max-w-[560px] px-6 lg:px-10 pt-6">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[10px] font-bold tracking-[0.12em] uppercase text-ink-light">
-            Step {step + 1} of {TOTAL_STEPS}
+            Step {step - firstStep + 1} of {visibleStepCount}
           </span>
           <span className="text-[10px] font-bold tracking-[0.12em] uppercase text-amber">
             {Math.round(progress)}%
@@ -391,9 +423,20 @@ export function CapsuleCreationFlow({
                 A one-time gift they&rsquo;ll open on a day that matters.
               </p>
 
-              <Field label="What are you celebrating?" hint="This is what people will see when they're invited.">
-                <input type="text" value={title} onChange={(e) => { setTitle(e.target.value); setStepError(null); }}
-                  placeholder="Mom's 60th Birthday" className="account-input" />
+              <Field
+                label={isWedding ? "Whose wedding?" : "What are you celebrating?"}
+                hint={isWedding ? undefined : "This is what people will see when they're invited."}
+              >
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    setStepError(null);
+                  }}
+                  placeholder={isWedding ? "The Miller's Wedding" : "Mom's 60th Birthday"}
+                  className="account-input"
+                />
               </Field>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -407,23 +450,25 @@ export function CapsuleCreationFlow({
                 </Field>
               </div>
 
-              <div>
-                <Label>Recipient gender</Label>
-                <div className="flex flex-wrap gap-2">
-                  {([
-                    { value: "female" as Gender, label: "Female" },
-                    { value: "male" as Gender, label: "Male" },
-                    { value: "couple" as Gender, label: "Couple" },
-                  ]).map((g) => (
-                    <button key={g.value} type="button" onClick={() => setRecipientGender(g.value)}
-                      className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
-                        recipientGender === g.value ? pillActive : pillInactive
-                      }`}>
-                      {g.label}
-                    </button>
-                  ))}
+              {!isWedding && (
+                <div>
+                  <Label>Recipient gender</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {([
+                      { value: "female" as Gender, label: "Female" },
+                      { value: "male" as Gender, label: "Male" },
+                      { value: "couple" as Gender, label: "Couple" },
+                    ]).map((g) => (
+                      <button key={g.value} type="button" onClick={() => setRecipientGender(g.value)}
+                        className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
+                          recipientGender === g.value ? pillActive : pillInactive
+                        }`}>
+                        {g.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {isCouple && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -444,35 +489,39 @@ export function CapsuleCreationFlow({
           {step === 2 && (
             <div className="space-y-5">
               <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
-                What&rsquo;s the occasion?
+                {isWedding ? "Wedding Day" : "What’s the occasion?"}
               </h1>
-              <p className="text-[15px] text-ink-mid leading-[1.6]">
-                Pick the occasion and the day they&rsquo;ll open everything.
-              </p>
+              {!isWedding && (
+                <p className="text-[15px] text-ink-mid leading-[1.6]">
+                  Pick the occasion and the day they&rsquo;ll open everything.
+                </p>
+              )}
 
-              <div>
-                <Label>Occasion &mdash; select one</Label>
-                <div className="flex flex-wrap gap-2">
-                  {OCCASIONS.map((o) => (
-                    <button key={o.value} type="button" onClick={() => { setOccasionType(o.value); setStepError(null); }}
-                      className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
-                        occasionType === o.value ? pillActive : pillInactive
-                      }`}>
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-                {occasionType === "OTHER" && (
-                  <div className="mt-3">
-                    <input type="text" value={otherOccasion} onChange={(e) => setOtherOccasion(e.target.value)}
-                      placeholder="Describe the occasion..." className="account-input" />
+              {!isWedding && (
+                <div>
+                  <Label>Occasion &mdash; select one</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {OCCASIONS.map((o) => (
+                      <button key={o.value} type="button" onClick={() => { setOccasionType(o.value); setStepError(null); }}
+                        className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
+                          occasionType === o.value ? pillActive : pillInactive
+                        }`}>
+                        {o.label}
+                      </button>
+                    ))}
                   </div>
-                )}
-              </div>
+                  {occasionType === "OTHER" && (
+                    <div className="mt-3">
+                      <input type="text" value={otherOccasion} onChange={(e) => setOtherOccasion(e.target.value)}
+                        placeholder="Describe the occasion..." className="account-input" />
+                    </div>
+                  )}
+                </div>
+              )}
 
               {occasionType && (
                 <div>
-                  <Label>Reveal date</Label>
+                  <Label>{isWedding ? "Wedding Date" : "Reveal date"}</Label>
                   <input
                     type="date"
                     value={revealDate}
@@ -497,7 +546,9 @@ export function CapsuleCreationFlow({
                   )}
                   <p className="mt-2 text-xs italic text-ink-light">
                     {occasionType === "WEDDING"
-                      ? "Most couples reveal on their 1-Year Anniversary — your wedding date next year."
+                      ? revealDate
+                        ? `Capsule will send on ${formatIsoLong(addOneYearIsoUtc(revealDate))} (1 year from the wedding date).`
+                        : "Capsule will send 1 year from the wedding date."
                       : "They’ll open everything at once on this day."}
                   </p>
                 </div>
@@ -573,7 +624,8 @@ export function CapsuleCreationFlow({
                 {isCouple
                   ? "both recipients"
                   : recipientFirstName.trim() || "the recipient"}{" "}
-                a link to open the capsule.
+                a link to open the capsule. We&rsquo;ll only use this on the reveal
+                date. Nothing is sent now.
               </p>
 
               <Field
@@ -582,7 +634,6 @@ export function CapsuleCreationFlow({
                     ? `${recipientFirstName.trim() || "First recipient"}'s email`
                     : "Recipient email"
                 }
-                hint="We'll only use this on the reveal date. Nothing is sent now."
               >
                 <input
                   type="email"
@@ -630,7 +681,9 @@ export function CapsuleCreationFlow({
               </p>
 
               <div className="rounded-2xl border border-amber/20 bg-white px-5 py-5 space-y-3">
-                <ReviewRow label="Tone" value={TONE_LABELS[tone ?? "CELEBRATION"]} />
+                {!isWedding && (
+                  <ReviewRow label="Tone" value={TONE_LABELS[tone ?? "CELEBRATION"]} />
+                )}
                 <ReviewRow label="Title" value={title} />
                 <ReviewRow label="For" value={recipientName} />
                 <ReviewRow
@@ -643,8 +696,19 @@ export function CapsuleCreationFlow({
                       : recipientEmail.trim() || "—"
                   }
                 />
-                <ReviewRow label="Occasion" value={OCCASIONS.find((o) => o.value === occasionType)?.label ?? "Other"} />
-                <ReviewRow label="Reveal date" value={revealDate ? new Date(revealDate + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "—"} />
+                {!isWedding && (
+                  <ReviewRow label="Occasion" value={OCCASIONS.find((o) => o.value === occasionType)?.label ?? "Other"} />
+                )}
+                <ReviewRow
+                  label={isWedding ? "Wedding date" : "Reveal date"}
+                  value={revealDate ? formatIsoLong(revealDate) : "—"}
+                />
+                {isWedding && (
+                  <ReviewRow
+                    label="Capsule sends on"
+                    value={revealDate ? formatIsoLong(addOneYearIsoUtc(revealDate)) : "—"}
+                  />
+                )}
                 <ReviewRow label="Delivery time" value={deliveryTime ?? "—"} />
                 <ReviewRow label="Timezone" value={COMMON_TIMEZONES.find((tz) => tz.value === timezone)?.label ?? timezone} />
               </div>
