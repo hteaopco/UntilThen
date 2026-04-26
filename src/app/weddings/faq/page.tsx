@@ -25,7 +25,7 @@ const SECTIONS: AccordionSection[] = [
       {
         question: "What is a wedding capsule?",
         answer:
-          "A private time capsule for a wedding day. Guests scan a QR on the easel sign or table cards and leave a letter, voice note, or photo for the couple. Everything is sealed and quietly delivered on the first anniversary — a love letter from the day, when they need it most.",
+          "A private time capsule for the couple's wedding day. Guests scan a QR on an easel sign or table cards and leave a letter, voice note, or photo for them. Everything is sealed and quietly delivered to the bride and groom both on their first anniversary — a love letter from the day, when they need it most.",
       },
       {
         question: "Who sets one up?",
