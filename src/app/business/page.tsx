@@ -72,7 +72,7 @@ export default async function BusinessPage() {
               strengthen relationships, recognize milestones, and create
               meaningful moments that leave a lasting impact.
             </p>
-            <div className="mt-8">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <a
                 href="mailto:hello@untilthenapp.io?subject=untilThen%20Enterprise"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-amber-tint border border-amber/40 text-amber-dark text-[14px] font-bold hover:bg-amber/15 hover:border-amber/60 transition-colors"
@@ -80,13 +80,11 @@ export default async function BusinessPage() {
                 <Mail size={16} strokeWidth={2} />
                 Contact sales
               </a>
-            </div>
-            <div className="mt-3">
               <Link
                 href="/business/faq"
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-navy/10 text-navy/70 text-[12px] font-bold hover:border-amber/40 hover:text-navy transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-navy/10 text-navy/70 text-[14px] font-bold hover:border-amber/40 hover:text-navy transition-colors"
               >
-                <HelpCircle size={12} strokeWidth={2} aria-hidden="true" />
+                <HelpCircle size={16} strokeWidth={2} aria-hidden="true" />
                 FAQ
               </Link>
             </div>

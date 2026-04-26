@@ -58,7 +58,7 @@ export default async function WeddingsPage() {
               sealed and quietly revealed on your first anniversary &mdash; a
               love letter from the day, delivered when you need it most.
             </p>
-            <div className="mt-8">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <a
                 href="mailto:hello@untilthenapp.io?subject=Wedding%20capsule%20question"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-amber-tint border border-amber/40 text-amber-dark text-[14px] font-bold hover:bg-amber/15 hover:border-amber/60 transition-colors"
@@ -66,13 +66,11 @@ export default async function WeddingsPage() {
                 <Mail size={16} strokeWidth={2} />
                 Talk to us
               </a>
-            </div>
-            <div className="mt-3">
               <Link
                 href="/weddings/faq"
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-navy/10 text-navy/70 text-[12px] font-bold hover:border-amber/40 hover:text-navy transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-navy/10 text-navy/70 text-[14px] font-bold hover:border-amber/40 hover:text-navy transition-colors"
               >
-                <HelpCircle size={12} strokeWidth={2} aria-hidden="true" />
+                <HelpCircle size={16} strokeWidth={2} aria-hidden="true" />
                 FAQ
               </Link>
             </div>
