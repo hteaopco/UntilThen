@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Heart, HelpCircle, Mail, Sparkles } from "lucide-react";
+import { ArrowRight, HelpCircle, Mail, Sparkles } from "lucide-react";
 
 import { ExpandableFlyer } from "@/components/landing/ExpandableFlyer";
 import { Footer } from "@/components/landing/Footer";
@@ -58,17 +58,10 @@ export default async function WeddingsPage() {
               sealed and quietly revealed on your first anniversary &mdash; a
               love letter from the day, delivered when you need it most.
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center">
-              <Link
-                href="/sign-up?redirect_url=%2Fcapsules%2Fnew%3Foccasion%3DWEDDING"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-amber-tint border border-amber/40 text-amber-dark text-[14px] font-bold hover:bg-amber/15 hover:border-amber/60 transition-colors"
-              >
-                <Heart size={16} strokeWidth={2} fill="currentColor" />
-                Start your wedding capsule
-              </Link>
+            <div className="mt-8">
               <a
                 href="mailto:hello@untilthenapp.io?subject=Wedding%20capsule%20question"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white border border-navy/15 text-navy text-[14px] font-bold hover:border-amber/40 transition-colors"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-amber-tint border border-amber/40 text-amber-dark text-[14px] font-bold hover:bg-amber/15 hover:border-amber/60 transition-colors"
               >
                 <Mail size={16} strokeWidth={2} />
                 Talk to us
@@ -76,7 +69,7 @@ export default async function WeddingsPage() {
             </div>
             <div className="mt-3">
               <Link
-                href="/faq"
+                href="/weddings/faq"
                 className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-navy/10 text-navy/70 text-[12px] font-bold hover:border-amber/40 hover:text-navy transition-colors"
               >
                 <HelpCircle size={12} strokeWidth={2} aria-hidden="true" />

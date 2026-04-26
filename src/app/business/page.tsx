@@ -83,7 +83,7 @@ export default async function BusinessPage() {
             </div>
             <div className="mt-3">
               <Link
-                href="/faq"
+                href="/business/faq"
                 className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-navy/10 text-navy/70 text-[12px] font-bold hover:border-amber/40 hover:text-navy transition-colors"
               >
                 <HelpCircle size={12} strokeWidth={2} aria-hidden="true" />
