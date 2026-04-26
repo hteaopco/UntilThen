@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Mail, Sparkles } from "lucide-react";
 
 import { ExpandableFlyer } from "@/components/landing/ExpandableFlyer";
@@ -48,25 +47,15 @@ export default async function BusinessPage() {
               strengthen relationships, recognize milestones, and create
               meaningful moments that leave a lasting impact.
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center">
+            <div className="mt-8">
               <a
-                href="mailto:hello@untilthenapp.io?subject=untilThen%20Enterprise%20demo"
+                href="mailto:hello@untilthenapp.io?subject=untilThen%20Enterprise"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-navy text-white text-[14px] font-bold hover:bg-navy/90 transition-colors"
               >
                 <Mail size={16} strokeWidth={2} />
-                Book a demo
+                Contact sales
               </a>
-              <Link
-                href="/sign-up"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white border border-navy/15 text-navy text-[14px] font-bold hover:border-amber/40 transition-colors"
-              >
-                Start free
-              </Link>
             </div>
-            <p className="mt-4 text-[12px] text-navy/50">
-              $299/year &middot; Unlimited capsules &middot; Centralized
-              billing &amp; SSO
-            </p>
           </div>
         </section>
 
