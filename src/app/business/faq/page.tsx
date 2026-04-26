@@ -25,42 +25,37 @@ const SECTIONS: AccordionSection[] = [
       {
         question: "What is untilThen Enterprise?",
         answer:
-          "A private time-capsule platform for organisations — a single roster, centralised billing, and one dashboard for sending milestone capsules to your team. Retirements, decade anniversaries, sendoffs, weddings — anything that deserves more than a card.",
+          "untilThen is a private time capsule platform where meaningful messages, photos, and voice notes are sealed and delivered at exactly the right moment.\n\nThe Enterprise Solution gives organizations a single dashboard to create, manage, and send milestone capsules across their team — retirements, work anniversaries, sendoffs, promotions — anything that deserves more than a card.",
       },
       {
-        question: "How is this different from individual capsules?",
+        question: "What does untilThen Enterprise cost?",
         answer:
-          "Same capsule product underneath, with org-level scaffolding around it. You add team members to an org, assign roles (Owner, Admin, Member), and every capsule a member creates is attributed to your org. One bill, one dashboard, no shared logins.",
+          "Plans start at $299/year for small teams (up to 250 employees), $599/year for growing organizations (251–500 employees), and $999/year for larger companies (500+ employees). All plans include unlimited capsules, scheduled delivery, and priority support.",
       },
       {
         question: "How is billing handled?",
         answer:
-          "Centralised. Organizations pay a one time annual fee for unlimited use by their team. The goal is to remove friction and make it easy for your team to make an impact on others around them.",
+          "Once you select a plan, we'll send you an invoice. Upon payment, your dashboard will be set up and delivered to you within 7 days, ready to use.",
       },
       {
-        question: "Who can create capsules in our org?",
+        question: "Who can create capsules?",
         answer:
-          "Any active member can create a capsule. Owners and Admins additionally manage the roster — invite new members, change roles, transfer capsules when someone leaves. Members can't see other members' personal capsules; the org link is purely back-office attribution.",
+          "Anyone on your organization's roster. Once you upload your team to the dashboard, any member can create and send capsules to anyone else in the organization.",
       },
       {
-        question: "What happens to capsules when an employee leaves?",
+        question: "What happens when an employee leaves?",
         answer:
-          "Owners can transfer capsules from a departing member to another teammate before offboarding. The capsule and its contributions move with the assignment; the recipient flow doesn't change. We don't auto-delete on offboarding — capsules stay on the user's personal account if not transferred.",
+          "Recipients keep their capsules — they can store and access them anytime through their personal untilThen profile. If the employee who created an open capsule leaves or is terminated, an admin or owner can transfer ownership of that capsule to another team member.",
       },
       {
-        question: "Is there SSO?",
+        question: "What kind of moments does this work for?",
         answer:
-          "SSO via Clerk is available on the enterprise tier. We can also accommodate SCIM for larger rollouts. Get in touch and we'll scope it with you.",
-      },
-      {
-        question: "What kinds of moments does this work for?",
-        answer:
-          "Retirements (40-year career, 40 voices on it), 10-year work anniversaries, going-away gifts, sendoffs after acquisitions, founder exits, wedding gifts from teammates. Anything that deserves to land at exactly the right moment.",
+          "Retirements, work anniversaries, sendoffs, going-away gifts, acquisition transitions, founder exits, wedding gifts from teammates, recognition moments, gratitude, graduations — anything that deserves to land at exactly the right moment.",
       },
       {
         question: "How do we get started?",
         answer:
-          "Email hello@untilthenapp.io and tell us roughly how many seats and which moments you're planning to cover. We'll provision your org, set up centralised billing, and walk a designated admin through inviting the team.",
+          "Email us at hello@untilthenapp.io and we'll take it from there.",
       },
     ],
   },
