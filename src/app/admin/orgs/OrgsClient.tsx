@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 
-type OrgRow = {
+type OrgInfo = {
   id: string;
   name: string;
   billingContactEmail: string | null;
@@ -15,7 +15,7 @@ type OrgRow = {
 };
 
 export function OrgsClient() {
-  const [orgs, setOrgs] = useState<OrgRow[]>([]);
+  const [orgs, setOrgs] = useState<OrgInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +32,7 @@ export function OrgsClient() {
     try {
       const res = await fetch("/api/admin/orgs");
       if (!res.ok) throw new Error("Failed to load orgs.");
-      const data = (await res.json()) as { orgs: OrgRow[] };
+      const data = (await res.json()) as { orgs: OrgInfo[] };
       setOrgs(data.orgs);
     } catch (e) {
       setError((e as Error).message);
@@ -160,51 +160,7 @@ export function OrgsClient() {
         ) : (
           <ul className="space-y-2">
             {orgs.map((o) => (
-              <li
-                key={o.id}
-                className="rounded-xl border border-navy/[0.08] bg-white px-4 py-3"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-sm font-bold text-navy">{o.name}</div>
-                    <div className="text-xs text-ink-light mt-0.5">
-                      Owner: {o.ownerName}{" "}
-                      {o.ownerEmail && (
-                        <span className="text-ink-light/70">
-                          ({o.ownerEmail})
-                        </span>
-                      )}
-                    </div>
-                    {o.billingContactEmail && (
-                      <div className="text-xs text-ink-light mt-0.5">
-                        Billing: {o.billingContactEmail}
-                      </div>
-                    )}
-                    {o.notes && (
-                      <div className="text-xs text-ink-light/80 mt-1.5 italic">
-                        {o.notes}
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0 text-[11px] text-ink-light">
-                    <div>
-                      {o.memberCount}{" "}
-                      {o.memberCount === 1 ? "member" : "members"}
-                    </div>
-                    <div>
-                      {o.capsuleCount}{" "}
-                      {o.capsuleCount === 1 ? "capsule" : "capsules"}
-                    </div>
-                    <div className="mt-1 text-[10px]">
-                      {new Date(o.createdAt).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </li>
+              <OrgRow key={o.id} org={o} onChanged={load} />
             ))}
           </ul>
         )}
@@ -227,5 +183,197 @@ function Field({
       </span>
       {children}
     </label>
+  );
+}
+
+function OrgRow({
+  org,
+  onChanged,
+}: {
+  org: OrgInfo;
+  onChanged: () => void | Promise<void>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(org.name);
+  const [billingEmail, setBillingEmail] = useState(
+    org.billingContactEmail ?? "",
+  );
+  const [notes, setNotes] = useState(org.notes ?? "");
+  const [saving, setSaving] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  function reset() {
+    setName(org.name);
+    setBillingEmail(org.billingContactEmail ?? "");
+    setNotes(org.notes ?? "");
+    setErr(null);
+  }
+
+  async function save() {
+    if (saving) return;
+    setSaving(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/admin/orgs/${org.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: name.trim(),
+          billingContactEmail: billingEmail.trim() || null,
+          notes: notes.trim() || null,
+        }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? "Couldn't save.");
+      }
+      setEditing(false);
+      onChanged();
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function remove() {
+    if (
+      !window.confirm(
+        `Delete "${org.name}"? Members + invites are removed; capsules they made stay on personal accounts but lose the org link. This can't be undone.`,
+      )
+    )
+      return;
+    setSaving(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/admin/orgs/${org.id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(data.error ?? "Couldn't delete.");
+      }
+      onChanged();
+    } catch (e) {
+      setErr((e as Error).message);
+      setSaving(false);
+    }
+  }
+
+  if (editing) {
+    return (
+      <li className="rounded-xl border border-amber/40 bg-amber-tint/30 px-4 py-3 space-y-3">
+        <Field label="Organization name">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="account-input"
+          />
+        </Field>
+        <Field label="Billing contact email">
+          <input
+            type="email"
+            value={billingEmail}
+            onChange={(e) => setBillingEmail(e.target.value)}
+            placeholder="ap@acme.com (optional)"
+            className="account-input"
+          />
+        </Field>
+        <Field label="Internal notes">
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            placeholder="Renewal date, contract terms, etc."
+            rows={3}
+            className="account-input"
+          />
+        </Field>
+        {err && (
+          <p className="text-sm text-red-600" role="alert">
+            {err}
+          </p>
+        )}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={save}
+            disabled={saving}
+            className="bg-navy text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-navy/90 transition-colors disabled:opacity-60"
+          >
+            {saving ? "Saving…" : "Save"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              reset();
+              setEditing(false);
+            }}
+            disabled={saving}
+            className="text-xs font-semibold text-ink-mid hover:text-navy transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <div className="flex-1" />
+          <button
+            type="button"
+            onClick={remove}
+            disabled={saving}
+            className="text-xs font-semibold text-red-600 hover:text-red-700 transition-colors disabled:opacity-50"
+          >
+            Delete org
+          </button>
+        </div>
+      </li>
+    );
+  }
+
+  return (
+    <li className="rounded-xl border border-navy/[0.08] bg-white px-4 py-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-sm font-bold text-navy">{org.name}</div>
+          <div className="text-xs text-ink-light mt-0.5">
+            Owner: {org.ownerName}{" "}
+            {org.ownerEmail && (
+              <span className="text-ink-light/70">({org.ownerEmail})</span>
+            )}
+          </div>
+          {org.billingContactEmail && (
+            <div className="text-xs text-ink-light mt-0.5">
+              Billing: {org.billingContactEmail}
+            </div>
+          )}
+          {org.notes && (
+            <div className="text-xs text-ink-light/80 mt-1.5 italic">
+              {org.notes}
+            </div>
+          )}
+        </div>
+        <div className="text-right shrink-0 text-[11px] text-ink-light">
+          <div>
+            {org.memberCount} {org.memberCount === 1 ? "member" : "members"}
+          </div>
+          <div>
+            {org.capsuleCount}{" "}
+            {org.capsuleCount === 1 ? "capsule" : "capsules"}
+          </div>
+          <div className="mt-1 text-[10px]">
+            {new Date(org.createdAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })}
+          </div>
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="mt-2 text-[11px] font-semibold text-amber hover:text-amber-dark transition-colors"
+          >
+            Edit
+          </button>
+        </div>
+      </div>
+    </li>
   );
 }
