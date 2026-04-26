@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Sparkles, Users } from "lucide-react";
+import { BarChart3, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -12,9 +12,6 @@ import { usePathname } from "next/navigation";
  * only get the center "Create a Gift Capsule" CTA on the
  * /enterprise landing because they aren't allowed to manage the
  * roster or view org-wide stats.
- *
- * The "Create a Gift Capsule" CTA is in the shell so it's
- * reachable from every enterprise page (not just the landing).
  */
 const ADMIN_NAV: Array<{ href: string; label: string; icon: typeof Users }> = [
   { href: "/enterprise/roster", label: "Roster", icon: Users },
@@ -37,22 +34,13 @@ export function EnterpriseShell({
 
   return (
     <div className="mx-auto max-w-[1200px] px-5 sm:px-6 lg:px-10 pt-6 pb-12">
-      <header className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
-            Enterprise
-          </p>
-          <h1 className="text-[26px] sm:text-[30px] font-extrabold text-navy tracking-[-0.5px]">
-            {orgName}
-          </h1>
-        </div>
-        <Link
-          href="/capsules/new"
-          className="inline-flex items-center gap-2 bg-amber text-white px-4 py-2.5 rounded-lg text-[13px] sm:text-sm font-bold hover:bg-amber-dark transition-colors shadow-[0_4px_12px_rgba(196,122,58,0.18)]"
-        >
-          <Sparkles size={14} strokeWidth={2} aria-hidden="true" />
-          Create a Gift Capsule
-        </Link>
+      <header className="mb-6">
+        <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
+          Enterprise
+        </p>
+        <h1 className="text-[26px] sm:text-[30px] font-extrabold text-navy tracking-[-0.5px]">
+          {orgName}
+        </h1>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-[200px_1fr] gap-6 lg:gap-8">
