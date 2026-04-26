@@ -72,20 +72,30 @@ async function send(opts: {
   to: string;
   subject: string;
   html: string;
-}): Promise<void> {
-  if (!process.env.RESEND_API_KEY) return;
+  /** Forwarded as Resend tags. The webhook reads `capsuleId` back
+   *  out of the event payload to link the EmailEvent row to a
+   *  MemoryCapsule. */
+  tags?: Record<string, string>;
+}): Promise<string | null> {
+  if (!process.env.RESEND_API_KEY) return null;
   try {
     const { Resend } = await import("resend");
     const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({
+    const tagList = opts.tags
+      ? Object.entries(opts.tags).map(([name, value]) => ({ name, value }))
+      : undefined;
+    const result = await resend.emails.send({
       from: FROM,
       replyTo: REPLY_TO,
       to: opts.to,
       subject: opts.subject,
       html: opts.html,
+      ...(tagList ? { tags: tagList } : {}),
     });
+    return result.data?.id ?? null;
   } catch (err) {
     console.error("[capsule-emails] send failed:", err);
+    return null;
   }
 }
 
@@ -229,6 +239,7 @@ export async function sendCapsuleRevealDay(params: {
       ${body("There are messages waiting for you &mdash; written in the past, meant for right now.")}
       ${cta(url, "Open your capsule")}
     `),
+    tags: { capsuleId: params.capsuleId },
   });
 }
 
@@ -249,6 +260,7 @@ export async function sendCapsuleNewLink(params: {
       ${body("We&rsquo;ve generated a new link for you. Whenever you&rsquo;re ready, everything is waiting.")}
       ${cta(url, "Open your capsule")}
     `),
+    tags: { capsuleId: params.capsuleId },
   });
 }
 

@@ -18,28 +18,46 @@ function baseUrl(): string {
   return process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
 }
 
+/**
+ * Send via Resend. Best-effort: if Resend is not configured or
+ * the call throws we log and return. Returns the Resend message
+ * id when available so callers can persist it for downstream
+ * webhook correlation; null if the send was skipped or failed.
+ *
+ * `tags` are forwarded as Resend tags and round-trip through the
+ * webhook payload — that's how /api/webhooks/resend recovers the
+ * `capsuleId` link when an event lands.
+ */
 async function send({
   to,
   subject,
   html,
+  tags,
 }: {
   to: string;
   subject: string;
   html: string;
-}): Promise<void> {
-  if (!process.env.RESEND_API_KEY) return;
+  tags?: Record<string, string>;
+}): Promise<string | null> {
+  if (!process.env.RESEND_API_KEY) return null;
   try {
     const { Resend } = await import("resend");
     const resend = new Resend(process.env.RESEND_API_KEY);
-    await resend.emails.send({
+    const tagList = tags
+      ? Object.entries(tags).map(([name, value]) => ({ name, value }))
+      : undefined;
+    const result = await resend.emails.send({
       from: FROM,
       replyTo: REPLY_TO,
       to,
       subject,
       html,
+      ...(tagList ? { tags: tagList } : {}),
     });
+    return result.data?.id ?? null;
   } catch (err) {
     console.error("[emails] send failed:", err);
+    return null;
   }
 }
 
@@ -327,22 +345,22 @@ export async function sendOrgInviteNew(params: {
 }): Promise<void> {
   await send({
     to: params.to,
-    subject: `${params.organizationName} just added you to untilThen.`,
+    subject: `Your untilThen access from ${params.organizationName}`,
     html: wrapper(`
       <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
-        ${escapeHtml(params.organizationName)} just added you to untilThen.
+        ${escapeHtml(params.organizationName)} has added you to their untilThen team.
       </h1>
       <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
-        ${escapeHtml(params.inviterName)} added you as a contributor on
-        ${escapeHtml(params.organizationName)}&rsquo;s untilThen account, which
-        means you get untilThen for free as part of your benefits.
+        As part of your company&rsquo;s untilThen plan, you can create Gift
+        Capsules for colleagues, clients, or anyone worth celebrating &mdash;
+        sealed with letters, photos, and voice notes, opened on a date that
+        matters.
       </p>
       <p style="font-size:15px;color:#4a5568;line-height:1.6;margin:0 0 12px;">
-        untilThen lets you write letters, record voice notes, and seal
-        memories in a Gift Capsule for someone you love &mdash; opened on a
-        future date you choose.
+        Use it for retirements, work anniversaries, farewells, or any
+        moment worth remembering.
       </p>
-      ${cta(params.acceptUrl, "Set up your account")}
+      ${cta(params.acceptUrl, "Get started →")}
       <p style="font-size:13px;color:#8896a5;line-height:1.6;margin:0;">
         This invite is unique to you. If you didn&rsquo;t expect it, just
         ignore the email &mdash; nothing happens until you click the link.
@@ -365,22 +383,22 @@ export async function sendOrgInviteExisting(params: {
 }): Promise<void> {
   await send({
     to: params.to,
-    subject: `${params.organizationName} just added you as an enterprise contributor.`,
+    subject: `Your untilThen access from ${params.organizationName}`,
     html: wrapper(`
       <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
-        ${escapeHtml(params.organizationName)} just added you to untilThen.
+        ${escapeHtml(params.organizationName)} has added you to their untilThen team.
       </h1>
       <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
-        ${escapeHtml(params.inviterName)} added you as a contributor on
-        ${escapeHtml(params.organizationName)}&rsquo;s untilThen account.
-        Your existing capsules and account are unchanged &mdash; this just
-        means untilThen is covered by your company going forward.
+        As part of your company&rsquo;s untilThen plan, you can create Gift
+        Capsules for colleagues, clients, or anyone worth celebrating &mdash;
+        sealed with letters, photos, and voice notes, opened on a date that
+        matters.
       </p>
       <p style="font-size:15px;color:#4a5568;line-height:1.6;margin:0 0 12px;">
-        Sign in like usual and you&rsquo;ll see an &ldquo;Enterprise&rdquo;
-        tab in the top navigation where you can build new Gift Capsules.
+        Use it for retirements, work anniversaries, farewells, or any
+        moment worth remembering.
       </p>
-      ${cta(params.dashboardUrl, "Open untilThen")}
+      ${cta(params.dashboardUrl, "Get started →")}
       <p style="font-size:13px;color:#8896a5;line-height:1.6;margin:0;">
         Questions? Reply to this email and we&rsquo;ll help.
       </p>

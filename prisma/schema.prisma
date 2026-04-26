@@ -699,3 +699,35 @@ model OrganizationInvite {
   @@index([inviteToken])
   @@index([email])
 }
+
+// ── Email delivery tracking ───────────────────────────────
+//
+// Resend webhook events land here. We rely on these rows to
+// surface deliverability problems (bounces, spam complaints) in
+// the admin dashboard without anyone having to log into Resend.
+//
+// `messageId` is the Resend email id (uuid) returned at send
+// time. `capsuleId` is populated when the outgoing email carried
+// a `capsuleId` Resend tag — invites and ops emails leave it
+// null. We don't model a foreign key to MemoryCapsule because
+// the capsule may be deleted while the event log lives on.
+
+enum EmailEventType {
+  DELIVERED
+  BOUNCED
+  COMPLAINED
+}
+
+model EmailEvent {
+  id        String         @id @default(cuid())
+  messageId String
+  event     EmailEventType
+  recipient String
+  capsuleId String?
+  createdAt DateTime       @default(now())
+
+  @@index([messageId])
+  @@index([recipient])
+  @@index([capsuleId])
+  @@index([createdAt])
+}

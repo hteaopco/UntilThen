@@ -235,8 +235,8 @@ const TEMPLATES: EmailTemplate[] = [
   {
     id: "org-invite-new",
     name: "#23 Org Invite (new user)",
-    subject: "Acme Co. just added you to untilThen.",
-    bodyPreview: "Sent when a company adds an employee whose email isn't on untilThen yet. Carries the magic-link accept URL with the inviteToken — clicking starts sign-up + auto-joins the org.",
+    subject: "Your untilThen access from Acme Co.",
+    bodyPreview: "Sent when a company adds an employee whose email isn't on untilThen yet. Carries the magic-link accept URL with the inviteToken — clicking starts sign-up + auto-joins the org. Pitches Gift Capsules for colleagues/clients only, not the full personal product.",
     trigger: "Admin invites a new email via /enterprise",
     frequency: "On event",
     funnel: "Acquisition",
@@ -244,8 +244,8 @@ const TEMPLATES: EmailTemplate[] = [
   {
     id: "org-invite-existing",
     name: "#24 Org Invite (existing user)",
-    subject: "Acme Co. just added you as an enterprise contributor.",
-    bodyPreview: "Sent when a company adds someone who already has an untilThen account (matched by any verified email). Heads-up only — no accept token, they're auto-joined and the Enterprise tab appears on next sign-in.",
+    subject: "Your untilThen access from Acme Co.",
+    bodyPreview: "Sent when a company adds someone who already has an untilThen account (matched by any verified email). Heads-up only — no accept token, they're auto-joined and the Enterprise tab appears on next sign-in. Pitches Gift Capsules for colleagues/clients only, not the full personal product.",
     trigger: "Admin invites an email that matches an existing User",
     frequency: "On event",
     funnel: "Acquisition",
