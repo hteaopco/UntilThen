@@ -45,12 +45,12 @@ export default async function WeddingsPage() {
                 <ArrowRight size={12} strokeWidth={2.25} aria-hidden="true" />
               </Link>
             </div>
-            <h1 className="mt-5 font-brush text-[44px] sm:text-[64px] lg:text-[76px] leading-[0.95] text-navy">
+            <h1 className="mt-5 font-extrabold text-navy text-[40px] sm:text-[56px] lg:text-[68px] leading-[1.02] tracking-[-1px]">
               A wedding gift
               <br />
-              that opens
+              <span className="text-amber italic">that opens</span>
               <br />
-              <span className="text-amber">one year later.</span>
+              one year later.
             </h1>
             <p className="mt-6 text-[16px] sm:text-[18px] text-navy/70 max-w-[520px] leading-[1.55]">
               Set a card on every table. Guests scan a QR code and leave a
