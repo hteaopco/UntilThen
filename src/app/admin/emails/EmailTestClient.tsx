@@ -232,6 +232,33 @@ const TEMPLATES: EmailTemplate[] = [
     frequency: "On event",
     funnel: "Retention",
   },
+  {
+    id: "org-invite-new",
+    name: "#23 Org Invite (new user)",
+    subject: "Acme Co. just added you to untilThen.",
+    bodyPreview: "Sent when a company adds an employee whose email isn't on untilThen yet. Carries the magic-link accept URL with the inviteToken — clicking starts sign-up + auto-joins the org.",
+    trigger: "Admin invites a new email via /enterprise",
+    frequency: "On event",
+    funnel: "Acquisition",
+  },
+  {
+    id: "org-invite-existing",
+    name: "#24 Org Invite (existing user)",
+    subject: "Acme Co. just added you as an enterprise contributor.",
+    bodyPreview: "Sent when a company adds someone who already has an untilThen account (matched by any verified email). Heads-up only — no accept token, they're auto-joined and the Enterprise tab appears on next sign-in.",
+    trigger: "Admin invites an email that matches an existing User",
+    frequency: "On event",
+    funnel: "Acquisition",
+  },
+  {
+    id: "org-capsule-transferred",
+    name: "#25 Org Capsule Transferred",
+    subject: "A Gift Capsule was transferred to you.",
+    bodyPreview: "Sent to the new organiser when an OWNER transfers an org-attributed capsule from a leaving member, typically during offboarding.",
+    trigger: "OWNER transfers a capsule via the offboarding flow",
+    frequency: "On event",
+    funnel: "Engagement",
+  },
 ];
 
 const FUNNEL_COLORS: Record<string, string> = {

@@ -94,11 +94,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return created;
   });
 
-  await logAdminAction(req, "org.create", "organization", {
-    organizationId: org.id,
-    name: org.name,
-    ownerEmail,
-  });
+  await logAdminAction(
+    req,
+    "org.create",
+    { type: "organization", id: org.id },
+    { name: org.name, ownerEmail },
+  );
 
   return NextResponse.json({ success: true, organizationId: org.id });
 }

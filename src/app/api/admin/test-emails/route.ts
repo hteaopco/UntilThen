@@ -57,6 +57,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     sendAccountRecoveryConfirmation,
     sendPinReset,
     sendCronHealthAlert,
+    sendOrgInviteNew,
+    sendOrgInviteExisting,
+    sendOrgCapsuleTransferred,
   } = await import("@/lib/emails");
 
   // #1 — Invite Contributor
@@ -300,6 +303,37 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       staleThresholdSec: 30 * 60,
       lastRunAt: new Date(Date.now() - 45 * 60 * 1000),
       ageSec: 45 * 60,
+    }),
+  );
+
+  // #23 — Org invite (new user).
+  await fire("org-invite-new", "#23 Org Invite (new user)", () =>
+    sendOrgInviteNew({
+      to,
+      organizationName: "Acme Co.",
+      inviterName: "Jett",
+      acceptUrl: "https://untilthenapp.io/enterprise/invite/sample-token",
+    }),
+  );
+
+  // #24 — Org invite (existing user).
+  await fire("org-invite-existing", "#24 Org Invite (existing user)", () =>
+    sendOrgInviteExisting({
+      to,
+      organizationName: "Acme Co.",
+      inviterName: "Jett",
+      dashboardUrl: "https://untilthenapp.io/home",
+    }),
+  );
+
+  // #25 — Org capsule transferred.
+  await fire("org-capsule-transferred", "#25 Org Capsule Transferred", () =>
+    sendOrgCapsuleTransferred({
+      to,
+      newOrganiserName: "Sarah",
+      capsuleTitle: "Margaret's 60th Birthday",
+      organizationName: "Acme Co.",
+      capsuleUrl: "https://untilthenapp.io/capsules/sample-capsule",
     }),
   );
 

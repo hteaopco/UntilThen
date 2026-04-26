@@ -310,3 +310,115 @@ function formatDuration(seconds: number): string {
   if (seconds < 86400) return `${Math.round(seconds / 3600)}h`;
   return `${Math.round(seconds / 86400)}d`;
 }
+
+// ── Enterprise (Phase 1) ───────────────────────────────────
+
+/**
+ * Sent when a company adds someone who DOESN'T already have an
+ * untilThen account. Contains the magic-link accept URL with the
+ * inviteToken. Once they click + sign up, the accept-flow joins
+ * them to the org automatically.
+ */
+export async function sendOrgInviteNew(params: {
+  to: string;
+  organizationName: string;
+  inviterName: string;
+  acceptUrl: string;
+}): Promise<void> {
+  await send({
+    to: params.to,
+    subject: `${params.organizationName} just added you to untilThen.`,
+    html: wrapper(`
+      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
+        ${escapeHtml(params.organizationName)} just added you to untilThen.
+      </h1>
+      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+        ${escapeHtml(params.inviterName)} added you as a contributor on
+        ${escapeHtml(params.organizationName)}&rsquo;s untilThen account, which
+        means you get untilThen for free as part of your benefits.
+      </p>
+      <p style="font-size:15px;color:#4a5568;line-height:1.6;margin:0 0 12px;">
+        untilThen lets you write letters, record voice notes, and seal
+        memories in a Gift Capsule for someone you love &mdash; opened on a
+        future date you choose.
+      </p>
+      ${cta(params.acceptUrl, "Set up your account")}
+      <p style="font-size:13px;color:#8896a5;line-height:1.6;margin:0;">
+        This invite is unique to you. If you didn&rsquo;t expect it, just
+        ignore the email &mdash; nothing happens until you click the link.
+      </p>
+    `),
+  });
+}
+
+/**
+ * Sent when a company adds someone who ALREADY has an untilThen
+ * account (matched by primary or any verified email). No accept
+ * flow needed — they're auto-joined; this is just a heads-up so
+ * they know untilThen is now company-funded.
+ */
+export async function sendOrgInviteExisting(params: {
+  to: string;
+  organizationName: string;
+  inviterName: string;
+  dashboardUrl: string;
+}): Promise<void> {
+  await send({
+    to: params.to,
+    subject: `${params.organizationName} just added you as an enterprise contributor.`,
+    html: wrapper(`
+      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
+        ${escapeHtml(params.organizationName)} just added you to untilThen.
+      </h1>
+      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+        ${escapeHtml(params.inviterName)} added you as a contributor on
+        ${escapeHtml(params.organizationName)}&rsquo;s untilThen account.
+        Your existing capsules and account are unchanged &mdash; this just
+        means untilThen is covered by your company going forward.
+      </p>
+      <p style="font-size:15px;color:#4a5568;line-height:1.6;margin:0 0 12px;">
+        Sign in like usual and you&rsquo;ll see an &ldquo;Enterprise&rdquo;
+        tab in the top navigation where you can build new Gift Capsules.
+      </p>
+      ${cta(params.dashboardUrl, "Open untilThen")}
+      <p style="font-size:13px;color:#8896a5;line-height:1.6;margin:0;">
+        Questions? Reply to this email and we&rsquo;ll help.
+      </p>
+    `),
+  });
+}
+
+/**
+ * Sent when an OWNER transfers an org-attributed capsule from
+ * one member to another (typically during offboarding). Goes to
+ * the new owner so they know they're now responsible for it.
+ */
+export async function sendOrgCapsuleTransferred(params: {
+  to: string;
+  newOrganiserName: string;
+  capsuleTitle: string;
+  organizationName: string;
+  capsuleUrl: string;
+}): Promise<void> {
+  await send({
+    to: params.to,
+    subject: `A Gift Capsule was transferred to you.`,
+    html: wrapper(`
+      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
+        Hi ${escapeHtml(params.newOrganiserName)} &mdash; a capsule&rsquo;s yours now.
+      </h1>
+      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+        <strong>${escapeHtml(params.capsuleTitle)}</strong> was just
+        transferred to your account by your team at
+        ${escapeHtml(params.organizationName)}. You&rsquo;ll see it in your
+        capsule list with all its existing contributors and reveal date
+        intact.
+      </p>
+      ${cta(params.capsuleUrl, "Open the capsule")}
+      <p style="font-size:13px;color:#8896a5;line-height:1.6;margin:0;">
+        Anything that needs explaining, just ask the person who
+        transferred it.
+      </p>
+    `),
+  });
+}
