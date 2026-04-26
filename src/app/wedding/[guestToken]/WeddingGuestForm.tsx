@@ -205,23 +205,18 @@ export function WeddingGuestForm({
   }
 
   // ── Phase 2: Roses + invitation card ──────────────────
-  // Logo top, Roses.png centered, Card.png below with the
-  // invitation copy overlaid in the writable area, CTA below.
+  // Logo top, Card.png with the invitation copy overlaid in
+  // its writable area, then a smaller Roses.png decoration
+  // tucked below, CTA at the bottom. Card sits first because
+  // that's where the eye lands on a wedding invitation.
   if (phase === "card") {
     return (
       <main className="relative min-h-screen bg-cream overflow-hidden flex flex-col items-center px-6 py-10">
         <div className="flex justify-center pt-2 pb-8">
           <LogoSvg variant="dark" width={110} height={22} />
         </div>
-        <div className="relative z-10 w-full max-w-[460px] mx-auto flex flex-col items-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/Roses.png"
-            alt=""
-            aria-hidden="true"
-            className="w-[200px] sm:w-[240px] h-auto select-none"
-          />
-          <div className="relative mt-2 w-full">
+        <div className="relative z-10 w-full max-w-[440px] mx-auto flex flex-col items-center">
+          <div className="relative w-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/Card.png"
@@ -229,25 +224,44 @@ export function WeddingGuestForm({
               aria-hidden="true"
               className="w-full h-auto block select-none"
             />
-            <div className="absolute inset-0 flex items-center justify-center px-10 sm:px-14 py-10 sm:py-14">
-              <p className="text-center text-[12px] sm:text-[13px] leading-[1.55] text-navy">
+            {/* The card art has decorative ribbon corners; the copy
+                lives in the inner writable area. Padding is set
+                generously so the text never touches the ribbons. */}
+            <div className="absolute inset-0 flex items-center justify-center px-[18%] py-[20%]">
+              <p className="text-center font-serif italic text-[14px] sm:text-[15px] leading-[1.55] text-navy">
                 You&rsquo;ve been invited to contribute to a wedding capsule
                 for{" "}
-                <span className="font-bold">{couple.coupleNames}</span>. Write
-                them a letter, record a voice note, or share a photo &mdash;
-                something they&rsquo;ll open together exactly one year from
-                their wedding date. Tell them what their love means to you,
-                share a memory, or offer a piece of advice for the road
-                ahead. It only takes a few minutes, but what you leave behind
-                will last a lifetime. Tap below to add your message before the
-                capsule is sealed.
+                <span className="font-bold not-italic">
+                  {couple.coupleNames}
+                </span>
+                . Write them a letter, record a voice note, or share a photo
+                &mdash; something they&rsquo;ll open together exactly one
+                year from their wedding date. Tell them what their love
+                means to you, share a memory, or offer a piece of advice
+                for the road ahead. It only takes a few minutes, but what
+                you leave behind will last a lifetime. Tap below to add
+                your message before the capsule is sealed.
               </p>
             </div>
+          </div>
+          {/* Roses pulled close to the card with a negative margin
+              so the empty cream space inside the rose PNG's
+              bounding box doesn't add vertical air. Smaller width
+              also reduces how much of that empty space is
+              visible. */}
+          <div className="-mt-6 sm:-mt-10 h-[110px] sm:h-[140px] w-[160px] sm:w-[200px] overflow-hidden flex items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/Roses.png"
+              alt=""
+              aria-hidden="true"
+              className="w-full h-auto select-none"
+            />
           </div>
           <button
             type="button"
             onClick={() => setPhase("editor")}
-            className="mt-8 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-amber text-white text-[14px] font-bold shadow-[0_8px_22px_-8px_rgba(196,122,58,0.6)] hover:bg-amber-dark transition-colors"
+            className="mt-2 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-amber text-white text-[14px] font-bold shadow-[0_8px_22px_-8px_rgba(196,122,58,0.6)] hover:bg-amber-dark transition-colors"
           >
             <Pencil size={14} strokeWidth={2} aria-hidden="true" />
             Leave your message
