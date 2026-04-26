@@ -239,29 +239,19 @@ export function StoryCards({
         )}
       </button>
 
-      {/* Footer: counter + advance arrow. */}
+      {/* Footer: just the counter, centered. The mid-screen
+          ChevronLeft / ChevronRight buttons handle navigation —
+          the previous bottom-right advance arrow was redundant. */}
       <div
-        className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-between px-4 pb-3"
+        className="absolute bottom-0 left-0 right-0 z-30 flex items-center justify-center px-4 pb-3"
         style={{ paddingBottom: "max(env(safe-area-inset-bottom), 12px)" }}
       >
-        <span aria-hidden="true" className="text-ink-mid text-[12px] font-semibold tracking-[0.14em] uppercase">
-          {/* spacer to balance the right-side arrow */}
-          &nbsp;
-        </span>
         <span
           aria-live="polite"
           className="text-ink-mid text-[13px] font-semibold tabular-nums tracking-[0.04em] bg-white/70 backdrop-blur px-3 py-1 rounded-full shadow-[0_2px_8px_rgba(15,31,61,0.08)]"
         >
           {index + 1} / {total}
         </span>
-        <button
-          type="button"
-          onClick={advance}
-          aria-label={index === total - 1 ? "Continue" : "Next card"}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-amber bg-white text-amber hover:bg-amber hover:text-white transition-colors shadow-[0_4px_12px_rgba(196,122,58,0.18)]"
-        >
-          <ChevronRight size={22} strokeWidth={2} />
-        </button>
       </div>
     </main>
   );

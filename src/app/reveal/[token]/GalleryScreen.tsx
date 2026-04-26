@@ -245,7 +245,7 @@ export function GalleryScreen({
                   capture("reveal_replay_clicked");
                   onReplay();
                 }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber text-white text-[12px] font-bold hover:bg-amber-dark transition-colors shadow-[0_2px_8px_rgba(196,122,58,0.18)]"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-navy/15 text-[12px] font-bold text-navy hover:border-navy/40 hover:bg-cream transition-colors"
               >
                 <RotateCcw size={12} strokeWidth={2.25} aria-hidden="true" />
                 Relive the reveal
