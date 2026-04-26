@@ -66,16 +66,21 @@ export function RevealReelCard({
   const countLabel = `${curatedSlideCount}/5 · Edit`;
 
   return (
-    <div className="flex flex-col items-end gap-2 shrink-0">
-      {/* Curator edit link sits ABOVE the mode pill so it stays in
-          a fixed position. Always rendered (no layout shift on
-          toggle) — greyed out on Random, amber-bold + clickable
+    <div className="relative flex flex-col items-end gap-2 shrink-0">
+      {/* Curator edit link is absolute-positioned above the mode
+          pill so it doesn't add to the column height. That keeps
+          the parent's items-center alignment landing the
+          "Olivia's Collections" headline visually between the
+          Random/Build pill and the Preview button (instead of
+          getting nudged up to align with Random/Build because
+          the edit pill made the column taller). Always
+          rendered — greyed out on Random, amber-bold + clickable
           on Build. */}
       {isBuild ? (
         <Link
           href={`/vault/${childId}/reveal/curator`}
           prefetch={false}
-          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-bold text-amber hover:text-amber-dark transition-colors whitespace-nowrap"
+          className="absolute -top-7 right-0 inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-bold text-amber hover:text-amber-dark transition-colors whitespace-nowrap"
         >
           <Settings2 size={11} strokeWidth={2} aria-hidden="true" />
           {countLabel}
@@ -83,7 +88,7 @@ export function RevealReelCard({
       ) : (
         <span
           aria-hidden="true"
-          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold text-ink-light/60 whitespace-nowrap cursor-default"
+          className="absolute -top-7 right-0 inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-semibold text-ink-light/60 whitespace-nowrap cursor-default"
         >
           <Settings2 size={11} strokeWidth={2} aria-hidden="true" />
           {countLabel}
