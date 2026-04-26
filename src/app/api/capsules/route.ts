@@ -185,6 +185,15 @@ export async function POST(req: Request) {
     if (!user)
       return NextResponse.json({ error: "User not found." }, { status: 404 });
 
+    // Org attribution — when the creator is an Organization
+    // member, stamp the capsule with organizationId so it shows
+    // up in the org's Stat Board + the offboarding transfer
+    // flow. Per spec the capsule still belongs to the user's
+    // personal account; the org link is purely backend metadata
+    // and never user-visible.
+    const { getOrgContextByUserId } = await import("@/lib/orgs");
+    const orgCtx = await getOrgContextByUserId(user.id);
+
     const capsule = await prisma.memoryCapsule.create({
       data: {
         organiserId: user.id,
@@ -201,6 +210,7 @@ export async function POST(req: Request) {
         requiresApproval,
         ...(deliveryTime ? { deliveryTime } : {}),
         ...(timezone ? { timezone } : {}),
+        ...(orgCtx ? { organizationId: orgCtx.organizationId } : {}),
       },
     });
 
