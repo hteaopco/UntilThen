@@ -35,7 +35,7 @@ const SECTIONS: AccordionSection[] = [
       {
         question: "How is billing handled?",
         answer:
-          "Centralised. Capsules created by anyone in your org are charged to a single card on file — no expense reports, no individual reimbursements. Volume pricing is available for larger rollouts; reach out to sales for a quote.",
+          "Centralised. Organizations pay a one time annual fee for unlimited use by their team. The goal is to remove friction and make it easy for your team to make an impact on others around them.",
       },
       {
         question: "Who can create capsules in our org?",
