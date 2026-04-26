@@ -486,36 +486,41 @@ export function CapsuleOverview({
                 ? `${recipientDisplayName}\u2019s capsule is sealed`
                 : `${recipientDisplayName}\u2019s capsule is live`}
           </h2>
-          <p className="text-sm text-ink-mid leading-[1.6]">
-            {isDraft ? (
-              capsule.occasionType === "WEDDING" ? (
+          {/* Active-state body copy. Hidden for weddings — there
+              are no contributors to invite, and the QR share
+              panel below carries the next action on its own. */}
+          {(isDraft || isSealed || capsule.occasionType !== "WEDDING") && (
+            <p className="text-sm text-ink-mid leading-[1.6]">
+              {isDraft ? (
+                capsule.occasionType === "WEDDING" ? (
+                  <>
+                    Activate now to unlock the QR code your guests will scan on
+                    the day to leave messages, photos, and voice notes &mdash;
+                    no app, no signup. Everything seals together and opens on
+                    your one-year anniversary.
+                  </>
+                ) : (
+                  <>
+                    Each contributor adds something &mdash; a message, a memory,
+                    a voice note &mdash; and {subjectPronoun}&rsquo;ll open it
+                    all at once.
+                  </>
+                )
+              ) : isSealed ? (
                 <>
-                  Activate now to unlock the QR code your guests will scan on
-                  the day to leave messages, photos, and voice notes &mdash;
-                  no app, no signup. Everything seals together and opens on
-                  your one-year anniversary.
+                  Locked from edits. Contributors who follow their invite link
+                  will see a friendly &ldquo;contact the organiser&rdquo;
+                  screen. The capsule will still deliver to{" "}
+                  {recipientDisplayName} on the reveal date.
                 </>
               ) : (
                 <>
-                  Each contributor adds something &mdash; a message, a memory, a
-                  voice note &mdash; and {subjectPronoun}&rsquo;ll open it all at
-                  once.
+                  Invites are out. You can still add more contributors above
+                  &mdash; they&rsquo;ll get their invite right away.
                 </>
-              )
-            ) : isSealed ? (
-              <>
-                Locked from edits. Contributors who follow their invite link
-                will see a friendly &ldquo;contact the organiser&rdquo; screen.
-                The capsule will still deliver to {recipientDisplayName} on the
-                reveal date.
-              </>
-            ) : (
-              <>
-                Invites are out. You can still add more contributors above
-                &mdash; they&rsquo;ll get their invite right away.
-              </>
-            )}
-          </p>
+              )}
+            </p>
+          )}
           <div className="flex flex-wrap items-center gap-2">
             {isDraft ? (
               <button
@@ -544,7 +549,7 @@ export function CapsuleOverview({
             ) : (
               <>
                 <span className="inline-flex items-center gap-2 bg-navy/10 text-ink-light px-5 py-2.5 rounded-lg text-sm font-bold cursor-default">
-                  Invites sent
+                  {capsule.occasionType === "WEDDING" ? "Capsule Activated" : "Invites sent"}
                 </span>
                 <button
                   type="button"
