@@ -25,17 +25,22 @@ const SECTIONS: AccordionSection[] = [
       {
         question: "What is a wedding capsule?",
         answer:
-          "A private time capsule for your wedding day. Guests scan a QR on your easel sign or table cards and leave a letter, voice note, or photo for you. Everything is sealed and quietly delivered to you both on your first anniversary — a love letter from the day, when you need it most.",
+          "A private time capsule for a wedding day. Guests scan a QR on the easel sign or table cards and leave a letter, voice note, or photo for the couple. Everything is sealed and quietly delivered on the first anniversary — a love letter from the day, when they need it most.",
+      },
+      {
+        question: "Who sets one up?",
+        answer:
+          "Anyone can. The couple themselves, a parent, the maid of honor or best man, a sibling, a wedding planner, or a friend organising the surprise. Whoever creates the capsule manages the dashboard and the printable QR; the couple is just the recipient on reveal day.",
       },
       {
         question: "How does it work for guests?",
         answer:
-          "Guests scan the QR code on your easel or table cards, type their name, and leave a message — text, photo, or voice. No app to install, no account to create. Most guests finish in under two minutes and never see what anyone else wrote.",
+          "Guests scan the QR code on the easel or table cards, type their name, and leave a message — text, photo, or voice. No app to install, no account to create. Most guests finish in under two minutes and never see what anyone else wrote.",
       },
       {
-        question: "When do we receive the capsule?",
+        question: "When does the couple receive the capsule?",
         answer:
-          "By default, the capsule reveals on your one-year anniversary — your wedding date next year. You can pick a different reveal date during setup if you'd rather (within roughly 600 days of creation), but most couples stick with the anniversary because the timing carries the emotional weight.",
+          "By default, the capsule reveals on the couple's first anniversary — the wedding date one year on. The organiser can pick a different reveal date during setup (within roughly 600 days of creation), but most stick with the anniversary because the timing carries the emotional weight.",
       },
       {
         question: "How much does it cost?",
@@ -48,19 +53,19 @@ const SECTIONS: AccordionSection[] = [
           "Yes. Each guest can attach a photo from the day, record a quick voice memo on their phone, or both — alongside their written message.",
       },
       {
-        question: "Can we preview what guests have submitted before the reveal?",
+        question: "Can the organiser preview what guests have submitted?",
         answer:
-          "Yes. From your wedding dashboard you can see every contribution as it comes in. You won't see them on reveal day for the first time — but the experience of watching them roll in is part of the fun.",
+          "Yes. The dashboard shows every contribution as it comes in, so whoever set the capsule up can keep an eye on things. If you're setting this up as a surprise, just don't share the dashboard with the couple — they only see everything on reveal day.",
       },
       {
         question: "Can a guest's message be moderated or removed?",
         answer:
-          "Every contribution runs through automated moderation on submission. Anything flagged is held for a manual review before it can reach you. You can also remove individual contributions from your dashboard at any time before reveal day.",
+          "Every contribution runs through automated moderation on submission. Anything flagged is held for a manual review before it can reach the couple. The organiser can also remove individual contributions from the dashboard at any time before reveal day.",
       },
       {
-        question: "What happens if our wedding date changes?",
+        question: "What if the wedding date changes?",
         answer:
-          "Edit the reveal date in your wedding capsule's settings — the dashboard accepts any new date up to roughly 600 days from when you first created the capsule. Guests' QR-code link stays the same.",
+          "The organiser can edit the reveal date in the capsule's settings — the dashboard accepts any new date up to roughly 600 days from when the capsule was first created. Guests' QR-code link stays the same.",
       },
     ],
   },
