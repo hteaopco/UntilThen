@@ -109,7 +109,7 @@ export default function WeddingFaqPage() {
         </section>
 
         <section className="mx-auto max-w-[820px] px-5 lg:px-10 mt-10">
-          <Accordion sections={SECTIONS} />
+          <Accordion sections={SECTIONS} showExpandAll />
         </section>
       </main>
       <Footer />

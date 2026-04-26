@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import { useState } from "react";
 
 export type AccordionItem = {
@@ -15,31 +15,82 @@ export type AccordionSection = {
 
 interface Props {
   sections: AccordionSection[];
+  /** When true, renders an "Expand all / Collapse all" toggle
+   *  above the sections. Off by default so the global /faq keeps
+   *  its current behaviour; the product-scoped FAQs (wedding +
+   *  enterprise) opt in. */
+  showExpandAll?: boolean;
 }
 
 // Grouped accordion: each section has a small sky-blue eyebrow label
 // above its questions. Clicking a question opens it and closes any
 // other open question across every section (only one open at a time).
-export function Accordion({ sections }: Props) {
+// When `showExpandAll` is on, an "Expand all" toggle overrides that
+// single-open behavior and opens every row at once.
+export function Accordion({ sections, showExpandAll = false }: Props) {
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const [allOpen, setAllOpen] = useState(false);
 
   return (
     <div>
+      {showExpandAll && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={() => {
+              setAllOpen((v) => !v);
+              setOpenKey(null);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-navy/10 text-navy/70 text-[12px] font-bold hover:border-amber/40 hover:text-navy transition-colors"
+          >
+            {allOpen ? (
+              <>
+                <ChevronsDownUp
+                  size={12}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+                Collapse all
+              </>
+            ) : (
+              <>
+                <ChevronsUpDown
+                  size={12}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+                Expand all
+              </>
+            )}
+          </button>
+        </div>
+      )}
       {sections.map((section, si) => (
-        <div key={section.label} className={si === 0 ? "mt-10" : "mt-14"}>
+        <div key={section.label} className={si === 0 ? "mt-6" : "mt-14"}>
           <h2 className="text-[11px] font-bold tracking-[0.16em] uppercase text-amber mb-2">
             {section.label}
           </h2>
           <div>
             {section.items.map((item, ii) => {
               const key = `${si}-${ii}`;
-              const isOpen = openKey === key;
+              const isOpen = allOpen || openKey === key;
               return (
                 <AccordionRow
                   key={key}
                   item={item}
                   isOpen={isOpen}
-                  onToggle={() => setOpenKey(isOpen ? null : key)}
+                  onToggle={() => {
+                    if (allOpen) {
+                      // Leaving "expand all" mode by tapping any
+                      // single row. Pin that row open, collapse
+                      // everything else — feels less jarring than
+                      // collapsing the row the user just clicked.
+                      setAllOpen(false);
+                      setOpenKey(key);
+                      return;
+                    }
+                    setOpenKey(isOpen ? null : key);
+                  }}
                 />
               );
             })}
