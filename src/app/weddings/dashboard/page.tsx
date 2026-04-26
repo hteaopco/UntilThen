@@ -57,7 +57,7 @@ export default async function WeddingDashboardPage() {
 
   return (
     <>
-      <TopNav hideEnterprisePill />
+      <TopNav />
       <main className="pt-10 sm:pt-14 pb-20 bg-cream min-h-screen">
         <section className="mx-auto max-w-[960px] px-5 lg:px-10">
           <div className="flex items-start justify-between gap-4 flex-wrap">

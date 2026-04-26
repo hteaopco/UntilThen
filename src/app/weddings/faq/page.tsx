@@ -80,7 +80,7 @@ const SECTIONS: AccordionSection[] = [
 export default function WeddingFaqPage() {
   return (
     <>
-      <TopNav hideEnterprisePill />
+      <TopNav />
       <main className="bg-cream min-h-screen pt-10 sm:pt-14 pb-20">
         <section className="mx-auto max-w-[820px] px-5 lg:px-10">
           <Link

@@ -28,7 +28,7 @@ export const runtime = "nodejs";
 export default async function WeddingsPage() {
   return (
     <>
-      <TopNav hideEnterprisePill />
+      <TopNav />
       <main className="pt-10 sm:pt-14 pb-20 bg-cream min-h-screen">
         <section className="mx-auto max-w-[1080px] px-5 lg:px-14">
           <div className="max-w-[720px]">
