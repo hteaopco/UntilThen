@@ -1,10 +1,11 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Gift, Lock, Settings, Sparkles } from "lucide-react";
+import { Building2, Gift, Lock, Settings, Sparkles } from "lucide-react";
 
 import { Avatar } from "@/components/ui/Avatar";
 import { LogoSvg } from "@/components/ui/LogoSvg";
+import { getOrgContextByClerkId } from "@/lib/orgs";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
 import { HomeCard } from "./HomeCard";
@@ -64,6 +65,12 @@ export default async function HomePage() {
     }
   }
 
+  // Enterprise pill — same lookup as TopNav. When the viewer is
+  // in an org the pill replaces the Settings cog on /home so the
+  // entry to /enterprise is reachable from the very first
+  // signed-in screen.
+  const orgCtx = await getOrgContextByClerkId(userId);
+
   return (
     <main className="min-h-dvh bg-cream flex flex-col">
       <header className="px-5 sm:px-8 py-3 flex items-center justify-between">
@@ -75,7 +82,19 @@ export default async function HomePage() {
           <Settings size={16} strokeWidth={1.5} className="text-navy" />
         </Link>
         <LogoSvg variant="dark" width={100} height={20} />
-        <Avatar avatarUrl={avatarViewUrl} />
+        <div className="flex items-center gap-2">
+          {orgCtx && (
+            <Link
+              href="/enterprise"
+              title={`Open ${orgCtx.organizationName}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-tint border border-amber/30 text-amber-dark text-[12px] font-bold hover:bg-amber/15 transition-colors whitespace-nowrap"
+            >
+              <Building2 size={12} strokeWidth={2.25} aria-hidden="true" />
+              <span className="hidden sm:inline">Enterprise</span>
+            </Link>
+          )}
+          <Avatar avatarUrl={avatarViewUrl} />
+        </div>
       </header>
 
       <section className="px-6 pt-3 sm:pt-5 pb-7 sm:pb-9 text-center">
