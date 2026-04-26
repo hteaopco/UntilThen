@@ -137,6 +137,7 @@ model User {
   memoryCapsules          MemoryCapsule[]
   notificationPreferences NotificationPreferences?
   subscription            Subscription?
+  organizationMemberships OrganizationMember[]
 }
 
 model Child {
@@ -370,16 +371,23 @@ model MemoryCapsule {
   timezone            String        @default("America/Chicago")
   firstOpenedAt       DateTime?
   recipientCompletedAt DateTime?
+  /// Optional org attribution. Set when a capsule is created
+  /// by a user who's a member of an Organization (loss-leader
+  /// enterprise channel) — drives org usage reporting + the
+  /// transfer flow on offboarding. Null for personal capsules.
+  organizationId      String?
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 
   organiser     User                  @relation(fields: [organiserId], references: [id])
+  organization  Organization?         @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   contributions CapsuleContribution[]
   invites       CapsuleInvite[]
 
   @@index([organiserId])
   @@index([accessToken])
   @@index([status])
+  @@index([organizationId])
 }
 
 model CapsuleContribution {
@@ -585,4 +593,102 @@ model AdminAuditLog {
   @@index([createdAt])
   @@index([action])
   @@index([targetType, targetId])
+}
+
+// ── Enterprise organizations ──────────────────────────────
+//
+// Loss-leader B2B channel: companies pay $99/yr (or $0.50/EE,
+// whichever is greater) for the right to invite their employees
+// as "enterprise contributors" who get untilThen for free. All
+// capsules a member creates still belong to their personal
+// account; the Org link on MemoryCapsule.organizationId is purely
+// for usage reporting + the offboarding transfer flow.
+//
+// Roles:
+//   OWNER  — single per org. Billing seat. Only role that can
+//            transfer capsules between members. Created at org
+//            provisioning time (admin endpoint).
+//   ADMIN  — can edit roster (invite/revoke/promote/demote),
+//            view all org-attributed capsules read-only, create
+//            their own capsules.
+//   MEMBER — can create capsules only. Can't see other members.
+
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum OrganizationInviteStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+}
+
+model Organization {
+  id                  String   @id @default(cuid())
+  name                String
+  /// Internal-only contact for invoicing. Sales team manually
+  /// emails this address; no automated billing in Phase 1.
+  billingContactEmail String?
+  /// Free-text notes for the sales/admin team (industry,
+  /// renewal dates, contract terms, etc.). Never user-visible.
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  members  OrganizationMember[]
+  invites  OrganizationInvite[]
+  capsules MemoryCapsule[]
+}
+
+model OrganizationMember {
+  id             String           @id @default(cuid())
+  organizationId String
+  userId         String
+  role           OrganizationRole @default(MEMBER)
+  joinedAt       DateTime         @default(now())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // A user can only hold one role per org (no duplicate
+  // memberships). They can belong to multiple orgs total.
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@index([organizationId])
+}
+
+model OrganizationInvite {
+  id             String                   @id @default(cuid())
+  organizationId String
+  /// Lowercased + trimmed at write time so the accept-flow
+  /// lookup is case-insensitive. Matched against ALL verified
+  /// emails on a User row at accept time, not just the primary,
+  /// so personal-vs-work-email collisions just work.
+  email          String
+  /// Optional metadata captured at CSV import. Phone is stored
+  /// as company metadata only — no SMS verification.
+  firstName      String?
+  lastName       String?
+  phone          String?
+  role           OrganizationRole         @default(MEMBER)
+  /// Unique random token for the magic-link accept URL.
+  /// Existing-user invites bypass this and auto-join, but a
+  /// token is still issued in case we ever need to re-send.
+  inviteToken    String                   @unique @default(cuid())
+  status         OrganizationInviteStatus @default(PENDING)
+  invitedAt      DateTime                 @default(now())
+  acceptedAt     DateTime?
+  acceptedUserId String?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Prevent duplicate PENDING invites to the same email.
+  // Revoked/accepted rows can co-exist with a new pending one.
+  @@unique([organizationId, email])
+  @@index([inviteToken])
+  @@index([email])
 }

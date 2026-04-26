@@ -65,6 +65,33 @@ Gift Capsules are **NOT** part of the Vault. They have their own
 status machine (DRAFT → ACTIVE → SEALED → REVEALED) and their
 own organiser dashboard.
 
+### Organization (Enterprise)
+
+A company that pays untilThen to give its employees access as a
+benefit / loss-leader marketing channel. Pricing is $99/year flat
+or $0.50/employee/year (whichever is greater).
+
+Three roles within an Organization:
+
+- **OWNER** — single per org, the billing seat. Only OWNER can
+  transfer capsules between members during offboarding.
+- **ADMIN** — can edit roster (invite, revoke, promote, demote),
+  view all org-attributed capsules read-only, and create their
+  own capsules.
+- **MEMBER** — can create capsules only. Doesn't see other
+  members or the dashboard's Roster / Stat Board surfaces.
+
+Capsules created by an org member still belong to their personal
+account. The link to the Organization is stored on
+`MemoryCapsule.organizationId` purely for usage reporting + the
+offboarding transfer flow. The recipient never sees any company
+branding or attribution — Gift Capsules read identically whether
+they came through a personal account or an org seat.
+
+Phase 1 entry point is `/enterprise`. Provisioning is admin-only
+(no self-serve org sign-up); sales manually creates an
+Organization + assigns the OWNER from `/admin/orgs`.
+
 ---
 
 ## Things we don't say anymore

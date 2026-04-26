@@ -8,6 +8,7 @@ import { SignOutButton } from "@/app/admin/SignOutButton";
 const TABS: Array<{ href: string; label: string }> = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/users", label: "Users" },
+  { href: "/admin/orgs", label: "Orgs" },
   { href: "/admin/moderation", label: "Moderation" },
   { href: "/admin/emails", label: "Emails" },
   { href: "/admin/previews", label: "Previews" },
