@@ -20,8 +20,8 @@ type FontSize = (typeof FONT_SIZES)[number];
  *              signature.
  *   expanded → slides up to a full-screen reading view with
  *              ✕ (collapses back to preview, does NOT exit the
- *              reveal), Aa (cycles font size 15→17→20→15), ⋯
- *              (reserved). Body becomes scrollable.
+ *              reveal) and Aa (cycles font size 15→17→20→15).
+ *              Body becomes scrollable.
  *
  * The expanded ✕ collapses the letter rather than closing the
  * reveal, so the recipient stays in the same story slot.
@@ -167,23 +167,14 @@ function ExpandedLetter({
         >
           <X size={18} strokeWidth={1.75} />
         </button>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onCycleFont}
-            aria-label="Change font size"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-ink-mid hover:text-navy hover:bg-amber-tint/40 transition-colors"
-          >
-            <span className="text-[15px] font-semibold tracking-tight">Aa</span>
-          </button>
-          <button
-            type="button"
-            aria-label="More"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-ink-mid hover:text-navy hover:bg-amber-tint/40 transition-colors"
-          >
-            <span aria-hidden="true" className="text-[18px] leading-none -mt-1">···</span>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onCycleFont}
+          aria-label="Change font size"
+          className="flex h-10 w-10 items-center justify-center rounded-full text-ink-mid hover:text-navy hover:bg-amber-tint/40 transition-colors"
+        >
+          <span className="text-[15px] font-semibold tracking-tight">Aa</span>
+        </button>
       </header>
 
       <div
