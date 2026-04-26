@@ -25,7 +25,7 @@ const SECTIONS: AccordionSection[] = [
       {
         question: "What is a wedding capsule?",
         answer:
-          "A private time capsule for the couple's wedding day. Guests scan a QR on an easel sign or table cards and leave a letter, voice note, or photo for them. Everything is sealed and quietly delivered to the bride and groom both on their first anniversary — a love letter from the day, when they need it most.",
+          "untilThen is a private time capsule platform where meaningful messages, photos, and voice notes are sealed and delivered at exactly the right moment.\n\nA Wedding Capsule is a private time capsule for the couple's wedding day. Guests scan a QR code on an easel sign or table cards and leave a letter, voice note, or photo. Everything is sealed and quietly delivered to both the bride and groom on their first anniversary — a love letter from the day, when they need it most.",
       },
       {
         question: "Who sets one up?",
@@ -40,7 +40,7 @@ const SECTIONS: AccordionSection[] = [
       {
         question: "When does the couple receive the capsule?",
         answer:
-          "By default, the capsule reveals on the couple's first anniversary — the wedding date one year on. The organiser can pick a different reveal date during setup (within roughly 600 days of creation), but most stick with the anniversary because the timing carries the emotional weight.",
+          "By default, the capsule reveals on the couple's first anniversary — the wedding date one year on.",
       },
       {
         question: "How much does it cost?",
