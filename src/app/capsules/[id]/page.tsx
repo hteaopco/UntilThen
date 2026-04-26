@@ -152,6 +152,7 @@ export default async function CapsulePage({
         requiresApproval: capsule.requiresApproval,
         contributionsClosed: capsule.contributionsClosed,
         accessToken: capsule.accessToken,
+        guestToken: capsule.guestToken,
       }}
       currentUserClerkId={userId}
       requiresPayment={requiresPayment}

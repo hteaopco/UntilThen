@@ -4,10 +4,12 @@ import {
   AlertTriangle,
   Check,
   ChevronDown,
+  Copy,
   Lock,
   Mail,
   Paperclip,
   Pencil,
+  QrCode,
   Sparkles,
   Trash2,
   UserPlus,
@@ -25,7 +27,11 @@ import {
 import { TiptapEditor } from "@/components/editor/TiptapEditor";
 import { ContributorAvatar } from "@/components/ui/ContributorAvatar";
 import { formatLong } from "@/lib/dateFormatters";
-import { OCCASION_LABELS, recipientPronounOf } from "@/lib/capsules";
+import {
+  OCCASION_LABELS,
+  formatCapsulePrice,
+  recipientPronounOf,
+} from "@/lib/capsules";
 import { TONE_EDITOR_HINT, type CapsuleTone } from "@/lib/tone";
 
 type CapsuleSummary = {
@@ -48,6 +54,9 @@ type CapsuleSummary = {
    *  capsule. Reversible via the Seal/Unseal control. */
   contributionsClosed: boolean;
   accessToken: string;
+  /** Open guest-contribution token, only set when occasionType
+   *  is WEDDING. Drives the QR/print panel on this page. */
+  guestToken: string | null;
 };
 
 type ContributionRow = {
@@ -490,7 +499,7 @@ export function CapsuleOverview({
                 onClick={() => setActivateOpen(true)}
                 className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
               >
-                Send invites &mdash; $9.99
+                Send invites &mdash; {formatCapsulePrice(capsule.occasionType)}
               </button>
             ) : isSealed ? (
               <>
@@ -540,6 +549,10 @@ export function CapsuleOverview({
           </div>
         </div>
       </section>
+
+      {capsule.occasionType === "WEDDING" && capsule.guestToken && !isDraft && (
+        <WeddingGuestSharePanel guestToken={capsule.guestToken} />
+      )}
 
       {/* Live capsule summary (post-activation): contributions
           land here. Replaces the activate panel once isPaid. */}
@@ -1554,10 +1567,14 @@ function ActivationModal({
             <div className="rounded-xl border border-navy/[0.08] bg-warm-surface/60 px-5 py-4 space-y-2">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="text-[11px] uppercase tracking-[0.1em] font-bold text-ink-light">
-                  Gift Capsule
+                  {capsule.occasionType === "WEDDING"
+                    ? "Wedding Capsule"
+                    : "Gift Capsule"}
                 </span>
                 <span className="text-sm font-semibold text-navy">
-                  {requiresPayment ? "$9.99" : "No charge"}
+                  {requiresPayment
+                    ? formatCapsulePrice(capsule.occasionType)
+                    : "No charge"}
                 </span>
               </div>
               <p className="text-xs italic text-ink-light">
@@ -1632,6 +1649,7 @@ function ActivationModal({
           <div className="p-6">
             <GiftCapsuleCheckout
               capsuleTitle={capsuleTitle}
+              priceLabel={formatCapsulePrice(capsule.occasionType)}
               applicationId={squareAppId}
               locationId={squareLocationId}
               onTokenized={handleTokenized}
@@ -1643,5 +1661,86 @@ function ActivationModal({
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * Wedding-only panel: shows the guest contribution URL +
+ * scannable QR for the easel/table cards. Rendered between the
+ * activate panel and contributions list, only when the capsule
+ * is ACTIVE (DRAFT capsules' guest URL would 403 — no point
+ * sharing). QR is rendered through api.qrserver.com so we don't
+ * need a runtime QR dependency; it's a placeholder until the
+ * print-ready easel/table-card flow ships.
+ */
+function WeddingGuestSharePanel({ guestToken }: { guestToken: string }) {
+  const [copied, setCopied] = useState(false);
+  const origin =
+    typeof window !== "undefined" ? window.location.origin : "https://untilthenapp.io";
+  const guestUrl = `${origin}/wedding/${guestToken}`;
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(
+    guestUrl,
+  )}`;
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(guestUrl);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* clipboard failed — degrade silently */
+    }
+  }
+
+  return (
+    <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10">
+      <div className="rounded-2xl border border-amber/25 bg-white px-6 py-6 grid sm:grid-cols-[1fr_auto] gap-6 items-center shadow-[0_4px_18px_rgba(196,122,58,0.08)]">
+        <div>
+          <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber inline-flex items-center gap-1.5">
+            <QrCode size={12} strokeWidth={2.25} aria-hidden="true" />
+            Share with your guests
+          </h2>
+          <p className="mt-2 text-[15px] text-navy leading-[1.5]">
+            Print this QR on your easel sign and table cards. Anyone who scans
+            can leave a memory &mdash; no app, no signup.
+          </p>
+          <div className="mt-3 flex items-center gap-2">
+            <code className="flex-1 truncate text-[12px] font-mono text-ink-mid bg-warm-surface/60 px-3 py-2 rounded-lg border border-navy/[0.06]">
+              {guestUrl}
+            </code>
+            <button
+              type="button"
+              onClick={copy}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold border border-navy/15 text-navy hover:border-amber/40 transition-colors"
+            >
+              {copied ? (
+                <>
+                  <Check size={12} strokeWidth={2.25} aria-hidden="true" />
+                  Copied
+                </>
+              ) : (
+                <>
+                  <Copy size={12} strokeWidth={2} aria-hidden="true" />
+                  Copy
+                </>
+              )}
+            </button>
+          </div>
+          <p className="mt-2 text-[11px] italic text-ink-light">
+            Print-ready easel + table cards coming soon.
+          </p>
+        </div>
+        <div className="shrink-0 rounded-xl border border-navy/10 p-2 bg-white">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={qrSrc}
+            alt={`QR code linking to ${guestUrl}`}
+            width={120}
+            height={120}
+            className="block rounded-md"
+          />
+        </div>
+      </div>
+    </section>
   );
 }

@@ -22,6 +22,7 @@ import {
  */
 export function GiftCapsuleCheckout({
   capsuleTitle,
+  priceLabel,
   applicationId,
   locationId,
   onTokenized,
@@ -30,6 +31,9 @@ export function GiftCapsuleCheckout({
   serverError,
 }: {
   capsuleTitle: string;
+  /** Price string the parent computes per-occasion. e.g. "$9.99"
+   *  for standard gift capsules, "$99.99" for wedding capsules. */
+  priceLabel: string;
   applicationId: string;
   locationId: string;
   /** Called once card details successfully tokenize. The parent
@@ -122,7 +126,7 @@ export function GiftCapsuleCheckout({
         <h2 className="text-[18px] font-extrabold text-navy tracking-[-0.3px] truncate">
           {capsuleTitle}
         </h2>
-        <p className="text-[13px] text-ink-mid mt-0.5">One-time · $9.99</p>
+        <p className="text-[13px] text-ink-mid mt-0.5">One-time · {priceLabel}</p>
       </div>
 
       <div
@@ -155,7 +159,7 @@ export function GiftCapsuleCheckout({
           disabled={!canSubmit}
           className="flex-1 bg-amber text-white py-3 rounded-lg text-[14px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
         >
-          {tokenizing || isBusy ? "Processing…" : "Pay $9.99"}
+          {tokenizing || isBusy ? "Processing…" : `Pay ${priceLabel}`}
         </button>
         <button
           type="button"

@@ -14,10 +14,21 @@ export const runtime = "nodejs";
 // intro card first. Clicking "Create Gift Capsule" swaps the
 // intro for the existing CapsuleCreationFlow wizard client-side,
 // so the URL stays /capsules/new throughout.
-export default function NewCapsulePage() {
+//
+// /weddings forwards visitors here with ?occasion=WEDDING; we
+// read that and skip the gift-capsule pricing intro (irrelevant
+// for weddings) and pre-select WEDDING inside the flow.
+export default async function NewCapsulePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ occasion?: string }>;
+}) {
+  const sp = await searchParams;
+  const initialOccasion = sp.occasion === "WEDDING" ? "WEDDING" : undefined;
+
   return (
     <>
-      <CapsuleIntroGate />
+      <CapsuleIntroGate initialOccasion={initialOccasion} />
       <Footer />
     </>
   );

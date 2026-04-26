@@ -14,11 +14,19 @@ export function PublicMediaAttachments({
   token,
   ensureContribution,
   onChange,
+  uploadEndpoint,
 }: {
   token: string;
   ensureContribution: () => Promise<string | null>;
   onChange: (keys: string[], types: string[]) => void;
+  /** Override the upload endpoint base. Defaults to the
+   *  invite-token contribute path; the wedding-guest flow
+   *  passes "/api/wedding/contribute" so uploads route to the
+   *  guest-token endpoint instead. The full URL becomes
+   *  `${uploadEndpoint}/${token}/upload`. */
+  uploadEndpoint?: string;
 }) {
+  const endpointBase = uploadEndpoint ?? "/api/contribute/capsule";
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [uploading, setUploading] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -39,7 +47,7 @@ export function PublicMediaAttachments({
         return;
       }
 
-      const signRes = await fetch(`/api/contribute/capsule/${token}/upload`, {
+      const signRes = await fetch(`${endpointBase}/${token}/upload`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

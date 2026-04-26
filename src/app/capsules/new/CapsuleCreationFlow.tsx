@@ -7,7 +7,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { LogoSvg } from "@/components/ui/LogoSvg";
-import { CAPSULE_MAX_HORIZON_MS } from "@/lib/capsules";
+import {
+  CAPSULE_MAX_HORIZON_MS,
+  WEDDING_MAX_HORIZON_MS,
+} from "@/lib/capsules";
 import {
   TONE_LABELS,
   TONE_DESCRIPTIONS,
@@ -97,23 +100,39 @@ const pillActive = "bg-amber text-white border-amber";
 const pillInactive =
   "bg-white border-navy/15 text-ink-mid hover:border-amber/40 hover:text-navy";
 
-export function CapsuleCreationFlow() {
+export function CapsuleCreationFlow({
+  initialOccasion,
+}: {
+  /** Pre-select an occasion when the flow is reached from a
+   *  product-specific landing (e.g. /weddings → ?occasion=WEDDING).
+   *  Couple gender is pre-selected for WEDDING since wedding
+   *  capsules are always for the couple. */
+  initialOccasion?: OccasionType;
+} = {}) {
   const router = useRouter();
   const { isLoaded: authLoaded, isSignedIn } = useAuth();
+
+  const isWedding = initialOccasion === "WEDDING";
 
   const [step, setStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [stepError, setStepError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const [tone, setTone] = useState<CapsuleTone | null>(null);
+  const [tone, setTone] = useState<CapsuleTone | null>(
+    isWedding ? "LOVE" : null,
+  );
   const [title, setTitle] = useState("");
   const [recipientFirstName, setRecipientFirstName] = useState("");
   const [recipientLastName, setRecipientLastName] = useState("");
   const [recipient2FirstName, setRecipient2FirstName] = useState("");
   const [recipient2LastName, setRecipient2LastName] = useState("");
-  const [recipientGender, setRecipientGender] = useState<Gender>("female");
-  const [occasionType, setOccasionType] = useState<OccasionType | null>(null);
+  const [recipientGender, setRecipientGender] = useState<Gender>(
+    isWedding ? "couple" : "female",
+  );
+  const [occasionType, setOccasionType] = useState<OccasionType | null>(
+    initialOccasion ?? null,
+  );
   const [otherOccasion, setOtherOccasion] = useState("");
   const [revealDate, setRevealDate] = useState("");
   const [deliveryTime, setDeliveryTime] = useState<string | null>(null);
@@ -123,7 +142,14 @@ export function CapsuleCreationFlow() {
   const [recipientEmail, setRecipientEmail] = useState("");
   const [recipient2Email, setRecipient2Email] = useState("");
 
-  const maxDateIso = yyyymmdd(new Date(Date.now() + CAPSULE_MAX_HORIZON_MS));
+  // Wedding capsules get the long horizon (600 days) so the
+  // default 1-year-anniversary reveal works even when the
+  // capsule is purchased months before the wedding.
+  const horizonMs =
+    occasionType === "WEDDING"
+      ? WEDDING_MAX_HORIZON_MS
+      : CAPSULE_MAX_HORIZON_MS;
+  const maxDateIso = yyyymmdd(new Date(Date.now() + horizonMs));
   const minDateIso = yyyymmdd(new Date(Date.now() + 86400000));
 
   const isCouple = recipientGender === "couple";
@@ -155,7 +181,7 @@ export function CapsuleCreationFlow() {
   function handleRevealDate(iso: string) {
     if (!iso) { setRevealDate(""); setDateAlert(false); return; }
     const picked = new Date(iso + "T00:00:00");
-    if (picked > new Date(Date.now() + CAPSULE_MAX_HORIZON_MS)) {
+    if (picked > new Date(Date.now() + horizonMs)) {
       setDateAlert(true);
       setRevealDate("");
       return;
@@ -313,7 +339,7 @@ export function CapsuleCreationFlow() {
       <section className="mx-auto max-w-[560px] px-6 lg:px-10 pt-8 pb-24 overflow-hidden">
         <div className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.14em] uppercase text-amber mb-4">
           <Sparkles size={14} strokeWidth={1.75} aria-hidden="true" />
-          Gift Capsule
+          {occasionType === "WEDDING" ? "Wedding Capsule" : "Gift Capsule"}
         </div>
 
         <div>
@@ -457,12 +483,22 @@ export function CapsuleCreationFlow() {
                   />
                   {dateAlert && (
                     <div className="mt-2 rounded-lg bg-amber-tint border border-amber/30 px-3 py-2">
-                      <p className="text-xs text-navy font-semibold">Gift Capsules must open within 60 days.</p>
-                      <p className="text-xs text-ink-mid mt-0.5">Please check back closer to the reveal date.</p>
+                      <p className="text-xs text-navy font-semibold">
+                        {occasionType === "WEDDING"
+                          ? "Wedding Capsules reveal within 600 days."
+                          : "Gift Capsules must open within 60 days."}
+                      </p>
+                      <p className="text-xs text-ink-mid mt-0.5">
+                        {occasionType === "WEDDING"
+                          ? "Most couples set this to their first anniversary."
+                          : "Please check back closer to the reveal date."}
+                      </p>
                     </div>
                   )}
                   <p className="mt-2 text-xs italic text-ink-light">
-                    They&rsquo;ll open everything at once on this day.
+                    {occasionType === "WEDDING"
+                      ? "Most couples reveal on their 1-Year Anniversary — your wedding date next year."
+                      : "They’ll open everything at once on this day."}
                   </p>
                 </div>
               )}

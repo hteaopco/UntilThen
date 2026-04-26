@@ -6,11 +6,10 @@ import { TopNav } from "@/components/ui/TopNav";
 
 /**
  * Public marketing landing for the wedding-capsule product.
- * Skeleton page — copy + CTA in place; the actual signup flow
- * is wired up in the wedding-feature build. Until then the CTA
- * routes to /capsules/new (existing gift-capsule path) so the
- * page is functional, with a "Coming soon" badge clarifying that
- * the wedding-specific flow isn't live yet.
+ * Primary CTA forwards to /capsules/new?occasion=WEDDING which
+ * skips the gift-capsule pricing intro and pre-selects WEDDING +
+ * couple in the creation flow. Signed-out visitors get bounced
+ * through sign-up first via Clerk's redirect_url chain.
  */
 export const metadata = {
   title: "Weddings — untilThen",
@@ -31,7 +30,7 @@ export default async function WeddingsPage() {
             <div>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-tint border border-amber/30 text-amber-dark text-[11px] font-bold uppercase tracking-[0.14em]">
                 <Sparkles size={12} strokeWidth={2.25} />
-                Coming soon
+                Wedding capsules &mdash; new
               </span>
               <h1 className="mt-5 font-brush text-[44px] sm:text-[64px] lg:text-[76px] leading-[0.95] text-navy">
                 A wedding gift
@@ -48,14 +47,14 @@ export default async function WeddingsPage() {
               </p>
               <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:items-center">
                 <Link
-                  href="/sign-up"
+                  href="/sign-up?redirect_url=%2Fcapsules%2Fnew%3Foccasion%3DWEDDING"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-navy text-white text-[14px] font-bold hover:bg-navy/90 transition-colors"
                 >
                   <Heart size={16} strokeWidth={2} fill="currentColor" />
-                  Get on the list
+                  Start your wedding capsule
                 </Link>
                 <a
-                  href="mailto:hello@untilthenapp.io?subject=Wedding%20capsule%20interest"
+                  href="mailto:hello@untilthenapp.io?subject=Wedding%20capsule%20question"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white border border-navy/15 text-navy text-[14px] font-bold hover:border-amber/40 transition-colors"
                 >
                   <Mail size={16} strokeWidth={2} />

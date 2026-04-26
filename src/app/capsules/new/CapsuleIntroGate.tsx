@@ -21,12 +21,23 @@ import { CapsuleCreationFlow } from "./CapsuleCreationFlow";
  * Splitting the phase into client state keeps the URL stable at
  * /capsules/new and lets visitors see the pitch + price before
  * committing to the form.
+ *
+ * Wedding visitors (initialOccasion="WEDDING") skip the intro
+ * entirely — they came from /weddings which already shows the
+ * pitch and the $99.99 price; dropping them straight into the
+ * flow with WEDDING pre-selected is the right move.
  */
-export function CapsuleIntroGate() {
-  const [phase, setPhase] = useState<"intro" | "flow">("intro");
+export function CapsuleIntroGate({
+  initialOccasion,
+}: {
+  initialOccasion?: "WEDDING";
+}) {
+  const [phase, setPhase] = useState<"intro" | "flow">(
+    initialOccasion ? "flow" : "intro",
+  );
 
   if (phase === "flow") {
-    return <CapsuleCreationFlow />;
+    return <CapsuleCreationFlow initialOccasion={initialOccasion} />;
   }
 
   return (
