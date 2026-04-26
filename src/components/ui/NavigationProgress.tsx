@@ -114,14 +114,20 @@ export function NavigationProgress() {
     }
 
     // Only listen to `click`, not `pointerdown`. iOS Safari
-    // suppresses click when the user scrolls during a touch — that
-    // suppression is exactly what we want here, so progress doesn't
-    // light up when someone drags the dashboard carousel. The
-    // earlier pointerdown listener defeated that suppression and
-    // flashed the bar on every scroll touch.
-    document.addEventListener("click", tryActivate);
+    // suppresses click when the user scrolls during a touch —
+    // that suppression is exactly what we want here, so progress
+    // doesn't light up when someone drags the dashboard
+    // carousel. The earlier pointerdown listener defeated that
+    // suppression and flashed the bar on every scroll touch.
+    //
+    // Use capture phase so we run BEFORE Next.js's <Link>
+    // handler — the bubble-phase Link handler calls
+    // preventDefault() to take over the navigation, which would
+    // otherwise make our `e.defaultPrevented` check above bail
+    // and the bar would never activate on Link clicks.
+    document.addEventListener("click", tryActivate, true);
     return () => {
-      document.removeEventListener("click", tryActivate);
+      document.removeEventListener("click", tryActivate, true);
     };
   }, []);
 
