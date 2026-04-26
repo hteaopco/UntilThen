@@ -95,7 +95,7 @@ export default async function BusinessPage() {
 
         <section className="mx-auto max-w-[1080px] px-5 lg:px-14 mt-16 lg:mt-24">
           <ExpandableFlyer
-            src="/EnterpriseFlyer.png"
+            src="/EnterpriseFlyer.png?v=1"
             alt="untilThen Enterprise — full marketing flyer"
             caption="Tap to expand"
           />

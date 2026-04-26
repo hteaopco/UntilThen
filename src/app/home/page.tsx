@@ -17,8 +17,8 @@ import { HomeCard } from "./HomeCard";
  * product do you want to use right now?" entry.
  *
  * Two big illustrated cards stacked vertically:
- *   VaultEnter.png   → /dashboard       (personal, private memories)
- *   GiftEnter.png    → /capsules/new    (shared, one-off)
+ *   VaultEnter2.png → /dashboard       (personal, private memories)
+ *   auto_crop#…png  → /capsules/new    (shared, one-off gift capsule)
  *
  * Text lives on the LEFT half of each card so the illustration on
  * the right of the image stays the visual anchor. This page is NOT

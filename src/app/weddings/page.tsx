@@ -81,7 +81,7 @@ export default async function WeddingsPage() {
 
         <section className="mx-auto max-w-[1080px] px-5 lg:px-14 mt-16 lg:mt-24">
           <ExpandableFlyer
-            src="/WeddingFlyer.png"
+            src="/WeddingFlyer.png?v=1"
             alt="untilThen for weddings — full marketing flyer"
             caption="Tap to expand"
           />
