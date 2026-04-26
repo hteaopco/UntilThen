@@ -90,6 +90,14 @@ export const SQUARE_ORDER_TEMPLATE_IDS = {
 export const GIFT_CAPSULE_PRICE_CENTS = 999;
 
 /**
+ * One-time Wedding Capsule charge. Premium tier — covers the
+ * larger guest contribution surface (open QR), longer horizon
+ * (12-month-anniversary reveal default), and printed easel/table
+ * card assets we send.
+ */
+export const WEDDING_CAPSULE_PRICE_CENTS = 9999;
+
+/**
  * Create a fresh addon order template in Square.
  *
  * Square enforces a hard "one order template per ACTIVE

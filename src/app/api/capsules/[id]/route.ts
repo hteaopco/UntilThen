@@ -4,8 +4,9 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import {
   CAPSULE_MAX_HORIZON_DAYS,
-  CAPSULE_MAX_HORIZON_MS,
+  WEDDING_MAX_HORIZON_DAYS,
   findOwnedCapsule,
+  maxHorizonMsForOccasion,
 } from "@/lib/capsules";
 
 export const runtime = "nodejs";
@@ -129,13 +130,23 @@ export async function PATCH(
       );
     // Measure from the capsule's original createdAt — not from
     // `now` — so an organiser can't slide the reveal out by
-    // editing later.
+    // editing later. Wedding capsules use the 600-day horizon.
+    const nextOccasion =
+      (data.occasionType as OccasionType | undefined) ??
+      owned.capsule.occasionType;
     const ceiling =
-      owned.capsule.createdAt.getTime() + CAPSULE_MAX_HORIZON_MS;
+      owned.capsule.createdAt.getTime() +
+      maxHorizonMsForOccasion(nextOccasion);
     if (parsed.getTime() > ceiling) {
+      const days =
+        nextOccasion === "WEDDING"
+          ? WEDDING_MAX_HORIZON_DAYS
+          : CAPSULE_MAX_HORIZON_DAYS;
+      const label =
+        nextOccasion === "WEDDING" ? "Wedding Capsules" : "Gift Capsules";
       return NextResponse.json(
         {
-          error: `Gift Capsules reveal within ${CAPSULE_MAX_HORIZON_DAYS} days of creation.`,
+          error: `${label} reveal within ${days} days of creation.`,
         },
         { status: 400 },
       );

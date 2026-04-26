@@ -4,7 +4,8 @@ import { NextResponse } from "next/server";
 
 import {
   CAPSULE_MAX_HORIZON_DAYS,
-  CAPSULE_MAX_HORIZON_MS,
+  WEDDING_MAX_HORIZON_DAYS,
+  maxHorizonMsForOccasion,
 } from "@/lib/capsules";
 import { sendCapsuleDraftSaved } from "@/lib/capsule-emails";
 import { captureServerEvent } from "@/lib/posthog-server";
@@ -31,6 +32,18 @@ const VALID_TONES: CapsuleTone[] = [
 ];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Wedding guest tokens — short, URL-friendly, hard to guess.
+ * Not cryptographic. 22 chars of base36 randomness ≈ 113 bits of
+ * entropy, plenty for a guest-contribution QR that's printed on
+ * a public table card.
+ */
+function randomGuestToken(): string {
+  const a = Math.random().toString(36).slice(2);
+  const b = Math.random().toString(36).slice(2);
+  return (a + b).slice(0, 22);
+}
 
 interface CreateBody {
   title?: string;
@@ -156,12 +169,21 @@ export async function POST(req: Request) {
       { error: "Reveal date must be in the future." },
       { status: 400 },
     );
-  // Hard cap: capsules are short-horizon occasion products. Anything
-  // past the window belongs in the child Vault.
-  if (revealDate.getTime() - Date.now() > CAPSULE_MAX_HORIZON_MS) {
+  // Hard cap: per-occasion ceiling. Standard Gift Capsules are
+  // short-horizon (60 days); wedding capsules get a 600-day
+  // window so the default 1-year-anniversary reveal works even
+  // when the capsule is purchased months before the wedding.
+  const horizonMs = maxHorizonMsForOccasion(occasionType);
+  if (revealDate.getTime() - Date.now() > horizonMs) {
+    const horizonDays =
+      occasionType === "WEDDING"
+        ? WEDDING_MAX_HORIZON_DAYS
+        : CAPSULE_MAX_HORIZON_DAYS;
+    const productLabel =
+      occasionType === "WEDDING" ? "Wedding Capsules" : "Gift Capsules";
     return NextResponse.json(
       {
-        error: `Gift Capsules reveal within ${CAPSULE_MAX_HORIZON_DAYS} days. For longer timeframes, write into a child Vault instead.`,
+        error: `${productLabel} reveal within ${horizonDays} days. For longer timeframes, write into a child Vault instead.`,
       },
       { status: 400 },
     );
@@ -194,6 +216,13 @@ export async function POST(req: Request) {
     const { getOrgContextByUserId } = await import("@/lib/orgs");
     const orgCtx = await getOrgContextByUserId(user.id);
 
+    // Wedding capsules get an open guest token at creation time
+    // so the organiser can print easel/table-card QR codes
+    // immediately. Other occasions leave it null and rely on
+    // per-contributor invites.
+    const guestToken =
+      occasionType === "WEDDING" ? randomGuestToken() : null;
+
     const capsule = await prisma.memoryCapsule.create({
       data: {
         organiserId: user.id,
@@ -208,6 +237,7 @@ export async function POST(req: Request) {
         revealDate,
         contributorDeadline,
         requiresApproval,
+        ...(guestToken ? { guestToken } : {}),
         ...(deliveryTime ? { deliveryTime } : {}),
         ...(timezone ? { timezone } : {}),
         ...(orgCtx ? { organizationId: orgCtx.organizationId } : {}),

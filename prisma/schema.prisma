@@ -366,6 +366,13 @@ model MemoryCapsule {
   paidAt              DateTime?
   accessToken         String        @unique @default(cuid())
   tokenExpiresAt      DateTime?
+  /// Open contribution token for WEDDING capsules — printed on
+  /// the easel/table cards as a QR code so guests can scan and
+  /// leave a memory without a per-guest invite. Generated only
+  /// when occasionType = WEDDING; null for every other occasion.
+  /// Distinct from accessToken (recipient's reveal magic link)
+  /// so leaking the QR doesn't leak the reveal.
+  guestToken          String?       @unique
   recipientClerkId    String?
   deliveryTime        String        @default("09:00")
   timezone            String        @default("America/Chicago")

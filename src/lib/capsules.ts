@@ -2,7 +2,12 @@
 // ownership checks, token resolution, and status-transition
 // logic in one place so every route applies the same rules.
 
-import type { CapsuleStatus, MemoryCapsule } from "@prisma/client";
+import type { CapsuleStatus, MemoryCapsule, OccasionType } from "@prisma/client";
+
+import {
+  GIFT_CAPSULE_PRICE_CENTS,
+  WEDDING_CAPSULE_PRICE_CENTS,
+} from "@/lib/square";
 
 /** How long a DRAFT capsule is preserved before auto-delete. */
 export const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -11,14 +16,60 @@ export const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 export const RECIPIENT_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
 /**
- * Maximum lead time between capsule creation and reveal. Capped
- * at 60 days so the capsule product stays a short-horizon
- * occasion tool — long-horizon writing (years, 18th birthdays,
- * etc.) stays the child Vault's territory. Enforced server-side
- * in POST /api/capsules + PATCH /api/capsules/[id].
+ * Maximum lead time between capsule creation and reveal for the
+ * standard Gift Capsule. Capped at 60 days so the product stays
+ * a short-horizon occasion tool — long-horizon writing (years,
+ * 18th birthdays, etc.) stays the child Vault's territory.
+ * Enforced server-side in POST /api/capsules + PATCH
+ * /api/capsules/[id].
  */
 export const CAPSULE_MAX_HORIZON_MS = 60 * 24 * 60 * 60 * 1000;
 export const CAPSULE_MAX_HORIZON_DAYS = 60;
+
+/**
+ * Wedding capsules need a much longer horizon because the
+ * default reveal is the couple's first anniversary — typically
+ * 12 months out, sometimes 18 if the wedding is itself months
+ * away when the capsule is purchased. 600 days covers
+ * "engagement-window purchase + 1-year-anniversary reveal".
+ */
+export const WEDDING_MAX_HORIZON_MS = 600 * 24 * 60 * 60 * 1000;
+export const WEDDING_MAX_HORIZON_DAYS = 600;
+
+/**
+ * Per-occasion ceiling on revealDate. WEDDING gets the long
+ * horizon; everything else stays on the 60-day default.
+ */
+export function maxHorizonMsForOccasion(
+  occasionType: OccasionType | null | undefined,
+): number {
+  return occasionType === "WEDDING"
+    ? WEDDING_MAX_HORIZON_MS
+    : CAPSULE_MAX_HORIZON_MS;
+}
+
+/**
+ * Per-occasion one-time charge. WEDDING is the premium tier;
+ * everything else uses the standard $9.99 Gift Capsule price.
+ * Server-side authoritative — the activate route reads this and
+ * the client display mirrors it.
+ */
+export function priceCentsForOccasion(
+  occasionType: OccasionType | null | undefined,
+): number {
+  return occasionType === "WEDDING"
+    ? WEDDING_CAPSULE_PRICE_CENTS
+    : GIFT_CAPSULE_PRICE_CENTS;
+}
+
+/** "$9.99" / "$99.99" — display helper used in checkout copy. */
+export function formatCapsulePrice(
+  occasionType: OccasionType | null | undefined,
+): string {
+  const cents = priceCentsForOccasion(occasionType);
+  const dollars = (cents / 100).toFixed(2);
+  return `$${dollars}`;
+}
 
 export type OwnedCapsuleResult =
   | { ok: true; user: { id: string }; capsule: MemoryCapsule }

@@ -1,7 +1,11 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { findOwnedCapsule, RECIPIENT_TOKEN_TTL_MS } from "@/lib/capsules";
+import {
+  findOwnedCapsule,
+  priceCentsForOccasion,
+  RECIPIENT_TOKEN_TTL_MS,
+} from "@/lib/capsules";
 import {
   sendCapsuleActivated,
   sendCapsuleInvite,
@@ -9,7 +13,6 @@ import {
 import { userHasGiftAccess } from "@/lib/paywall";
 import { captureServerEvent } from "@/lib/posthog-server";
 import {
-  GIFT_CAPSULE_PRICE_CENTS,
   SQUARE_LOCATION_ID,
   getSquareClient,
   squareIsConfigured,
@@ -126,10 +129,18 @@ export async function POST(
       }
       try {
         const client = getSquareClient();
+        // Per-occasion authoritative price. WEDDING = $99.99,
+        // everything else = $9.99. Server is the source of truth;
+        // the client just sends sourceId.
+        const priceCents = priceCentsForOccasion(capsule.occasionType);
+        const productLabel =
+          capsule.occasionType === "WEDDING"
+            ? "Wedding Capsule"
+            : "Gift Capsule";
         // "gc-{capsuleId}" — stable per capsule so refreshes
-        // don't double-charge the $9.99. Reuse-retry covers
-        // the case where a prior failed attempt cached the key
-        // against a different sourceId / note.
+        // don't double-charge. Reuse-retry covers the case where
+        // a prior failed attempt cached the key against a
+        // different sourceId / note.
         const response = await retryOnIdempotencyReuse(
           `gc-${id}`,
           (idempotencyKey) =>
@@ -137,11 +148,11 @@ export async function POST(
               idempotencyKey,
               sourceId,
               amountMoney: {
-                amount: BigInt(GIFT_CAPSULE_PRICE_CENTS),
+                amount: BigInt(priceCents),
                 currency: "USD",
               },
               locationId: SQUARE_LOCATION_ID || undefined,
-              note: `untilThen Gift Capsule · ${capsule.title}`.slice(0, 500),
+              note: `untilThen ${productLabel} · ${capsule.title}`.slice(0, 500),
               referenceId: id,
             }),
         );
