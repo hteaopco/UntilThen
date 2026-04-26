@@ -204,42 +204,53 @@ export function WeddingGuestForm({
     return <IntroSplash onComplete={() => setPhase("card")} />;
   }
 
-  // ── Phase 2: Flower + ribbon card ─────────────────────
+  // ── Phase 2: Roses + invitation card ──────────────────
+  // Logo top, Roses.png centered, Card.png below with the
+  // invitation copy overlaid in the writable area, CTA below.
   if (phase === "card") {
     return (
-      <main className="relative min-h-screen bg-cream overflow-hidden flex flex-col items-center justify-center px-6 py-12">
-        <div className="fixed top-8 left-0 right-0 flex justify-center z-10">
-          <LogoSvg variant="dark" width={100} height={20} />
+      <main className="relative min-h-screen bg-cream overflow-hidden flex flex-col items-center px-6 py-10">
+        <div className="flex justify-center pt-2 pb-8">
+          <LogoSvg variant="dark" width={110} height={22} />
         </div>
-        <FlowerCorner />
-        <div className="relative z-10 max-w-[460px] w-full text-center">
-          <p className="text-[10px] sm:text-[11px] font-bold tracking-[0.22em] uppercase text-amber">
-            {couple.possessivePrefix}&rsquo;S WEDDING CAPSULE
-          </p>
-          <h1 className="mt-4 font-brush text-[44px] sm:text-[60px] text-navy leading-[0.95]">
-            A memory for
-            <br />
-            <span className="text-amber">{couple.coupleNames}</span>
-          </h1>
-          <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-amber/25 text-[12px] font-bold text-navy">
-            <Sparkles size={12} strokeWidth={2.25} className="text-amber" />
-            Reveals on {formatLong(capsule.revealDate)}{" "}
-            <span className="text-ink-light font-semibold">
-              · 1-Year Anniversary
-            </span>
+        <div className="relative z-10 w-full max-w-[460px] mx-auto flex flex-col items-center">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/Roses.png"
+            alt=""
+            aria-hidden="true"
+            className="w-[200px] sm:w-[240px] h-auto select-none"
+          />
+          <div className="relative mt-2 w-full">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/Card.png"
+              alt=""
+              aria-hidden="true"
+              className="w-full h-auto block select-none"
+            />
+            <div className="absolute inset-0 flex items-center justify-center px-10 sm:px-14 py-10 sm:py-14">
+              <p className="text-center text-[12px] sm:text-[13px] leading-[1.55] text-navy">
+                You&rsquo;ve been invited to contribute to a wedding capsule
+                for{" "}
+                <span className="font-bold">{couple.coupleNames}</span>. Write
+                them a letter, record a voice note, or share a photo &mdash;
+                something they&rsquo;ll open together exactly one year from
+                their wedding date. Tell them what their love means to you,
+                share a memory, or offer a piece of advice for the road
+                ahead. It only takes a few minutes, but what you leave behind
+                will last a lifetime. Tap below to add your message before the
+                capsule is sealed.
+              </p>
+            </div>
           </div>
-          <p className="mt-7 text-[15px] text-navy/70 leading-[1.55] max-w-[400px] mx-auto">
-            Leave them a letter, a voice note, or a photo from today. We&rsquo;ll
-            seal it and quietly deliver everything to {couple.coupleNames} on
-            their first anniversary.
-          </p>
           <button
             type="button"
             onClick={() => setPhase("editor")}
-            className="mt-7 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-amber text-white text-[14px] font-bold shadow-[0_8px_22px_-8px_rgba(196,122,58,0.6)] hover:bg-amber-dark transition-colors"
+            className="mt-8 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-amber text-white text-[14px] font-bold shadow-[0_8px_22px_-8px_rgba(196,122,58,0.6)] hover:bg-amber-dark transition-colors"
           >
             <Pencil size={14} strokeWidth={2} aria-hidden="true" />
-            Write your message
+            Leave your message
           </button>
         </div>
       </main>
@@ -350,11 +361,14 @@ export function WeddingGuestForm({
                 </span>
                 <div>
                   <p className="text-[13px] font-bold text-navy leading-snug">
-                    Write something they&rsquo;ll love a year from now.
+                    Write something meaningful.
                   </p>
-                  <p className="mt-0.5 text-[12px] text-ink-mid leading-[1.4]">
-                    A wish, a memory from the day, a piece of advice. Anything
-                    that&rsquo;ll make them smile.
+                  <p className="mt-1 text-[12px] italic text-amber-dark leading-[1.4]">
+                    &ldquo;Say the thing you&rsquo;d say at the toast.&rdquo;
+                  </p>
+                  <p className="mt-1 text-[12px] text-ink-mid leading-[1.4]">
+                    A memory, a wish, or just what you want them to know going
+                    into this next chapter.
                   </p>
                 </div>
               </div>

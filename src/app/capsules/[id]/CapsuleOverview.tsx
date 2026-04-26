@@ -1784,7 +1784,7 @@ function WeddingGuestSharePanel({ guestToken }: { guestToken: string }) {
               )}
             </button>
           </div>
-          <div className="mt-3">
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
             <button
               type="button"
               onClick={downloadQr}
@@ -1794,6 +1794,14 @@ function WeddingGuestSharePanel({ guestToken }: { guestToken: string }) {
               <Download size={12} strokeWidth={2.25} aria-hidden="true" />
               {downloading ? "Preparing…" : "Download QR (PNG)"}
             </button>
+            <a
+              href={guestUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
+            >
+              Preview as guest
+            </a>
           </div>
         </div>
         <div className="shrink-0 rounded-xl border border-navy/10 p-2 bg-white">

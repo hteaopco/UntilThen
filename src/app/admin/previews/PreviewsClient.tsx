@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { IntroSplash } from "@/components/landing/IntroSplash";
 import { CapsuleContributeForm } from "@/app/contribute/capsule/[token]/CapsuleContributeForm";
+import { WeddingGuestForm } from "@/app/wedding/[guestToken]/WeddingGuestForm";
 import {
   TONE_LABELS,
   TONE_EMOJI,
@@ -19,6 +20,7 @@ type Preview =
   | "splash"
   | "contributor-single"
   | "contributor-couple"
+  | "wedding-contributor"
   | "pin"
   | "mock-reveal-vault"
   | "mock-reveal-capsule";
@@ -37,6 +39,20 @@ const MOCK_COUPLE_CAPSULE = {
   occasionType: "ANNIVERSARY" as const,
   revealDate: new Date(Date.now() + 30 * 86400000).toISOString(),
   contributorDeadline: null,
+};
+
+// Wedding contributor flow mock — exercises the splash → roses
+// + invitation card → editor → thank-you sequence with the
+// couple-aware copy. Submit hits the real API with a sentinel
+// guestToken so persistence harmlessly 4xx's; admins are checking
+// the UI, not the storage path.
+const MOCK_WEDDING_CAPSULE = {
+  title: "The Miller's Wedding",
+  recipientName: "Alex Miller & Jordan Miller",
+  revealDate: new Date(Date.now() + 365 * 86400000).toISOString(),
+  contributorDeadline: null,
+  isOpenForContributions: true,
+  closedReason: null,
 };
 
 function ExitButton({ onClick }: { onClick: () => void }) {
@@ -115,6 +131,18 @@ export function PreviewsClient({
           token="preview-mode"
           capsule={{ ...MOCK_COUPLE_CAPSULE, tone: previewTone }}
           invite={{ name: "Sarah" }}
+        />
+      </div>
+    );
+  }
+
+  if (active === "wedding-contributor") {
+    return (
+      <div className="relative">
+        <ExitButton onClick={() => setActive(null)} />
+        <WeddingGuestForm
+          guestToken="preview-mode"
+          capsule={MOCK_WEDDING_CAPSULE}
         />
       </div>
     );
@@ -199,6 +227,11 @@ export function PreviewsClient({
             title="Contributor Flow (Couple)"
             description={`${TONE_EMOJI[previewTone]} ${TONE_LABELS[previewTone]} tone. Same flow with couple pronouns.`}
             onClick={() => setActive("contributor-couple")}
+          />
+          <PreviewCard
+            title="Wedding Contributor Flow"
+            description="Splash → Roses + invitation card → editor → thank-you. Hardcoded copy and dedicated layout — tone selector doesn't apply."
+            onClick={() => setActive("wedding-contributor")}
           />
           <PreviewCard
             title="PIN Screen"
