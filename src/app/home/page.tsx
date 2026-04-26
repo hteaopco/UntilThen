@@ -1,7 +1,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Building2, Gift, Lock, Settings, Sparkles } from "lucide-react";
+import { Building2, Gift, Heart, Lock, Settings, Sparkles } from "lucide-react";
 
 import { Avatar } from "@/components/ui/Avatar";
 import { LogoSvg } from "@/components/ui/LogoSvg";
@@ -140,6 +140,21 @@ export default async function HomePage() {
         />
       </section>
 
+      <section className="px-6 sm:px-8 pt-2 pb-4 max-w-[576px] w-full mx-auto">
+        <div className="flex items-start justify-center gap-10 sm:gap-14">
+          <HomeBubble
+            href="/business"
+            icon={<Building2 size={26} strokeWidth={1.75} className="text-amber-dark" />}
+            label="Enterprise"
+          />
+          <HomeBubble
+            href="/weddings"
+            icon={<Heart size={26} strokeWidth={1.75} className="text-amber-dark" fill="currentColor" />}
+            label="Weddings"
+          />
+        </div>
+      </section>
+
       <footer className="px-6 py-3 text-center">
         <p className="inline-flex items-center gap-1.5 text-[11px] text-navy/50">
           <span className="text-amber" aria-hidden="true">
@@ -166,5 +181,35 @@ function Sparkle({ className, size }: { className?: string; size: number }) {
       strokeWidth={1.5}
       className={`pointer-events-none ${className ?? ""}`}
     />
+  );
+}
+
+function HomeBubble({
+  href,
+  icon,
+  label,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex flex-col items-center gap-2 select-none"
+    >
+      <div
+        className="w-[68px] h-[68px] sm:w-[76px] sm:h-[76px] rounded-full bg-gradient-to-br from-amber-tint via-white to-amber/25 border border-amber/25 flex items-center justify-center transition-transform group-hover:-translate-y-0.5 group-active:scale-[0.97]"
+        style={{
+          boxShadow:
+            "0 10px 24px -8px rgba(196,122,58,0.30), inset 0 1px 2px rgba(255,255,255,0.7)",
+        }}
+      >
+        {icon}
+      </div>
+      <span className="text-[12px] sm:text-[13px] font-bold text-navy tracking-[-0.2px]">
+        {label}
+      </span>
+    </Link>
   );
 }
