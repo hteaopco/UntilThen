@@ -129,7 +129,7 @@ export async function POST(
       }
       try {
         const client = getSquareClient();
-        // Per-occasion authoritative price. WEDDING = $99.99,
+        // Per-occasion authoritative price. WEDDING = $99.00,
         // everything else = $9.99. Server is the source of truth;
         // the client just sends sourceId.
         const priceCents = priceCentsForOccasion(capsule.occasionType);

@@ -45,7 +45,7 @@ const SECTIONS: AccordionSection[] = [
       {
         question: "How much does it cost?",
         answer:
-          "$99.99, one-time. That covers unlimited guest contributions, the QR-driven contribution flow, and reveal-day delivery. No subscription, no per-guest fee.",
+          "$99.00, one-time. That covers unlimited guest contributions, the QR-driven contribution flow, and reveal-day delivery. No subscription, no per-guest fee.",
       },
       {
         question: "Can guests add photos or voice notes?",
@@ -74,7 +74,7 @@ const SECTIONS: AccordionSection[] = [
 /**
  * Wedding-specific FAQ. Short and scoped — the global FAQ at
  * /faq covers the product as a whole; this one focuses on the
- * questions wedding visitors actually have on the way to a $99.99
+ * questions wedding visitors actually have on the way to a $99.00
  * decision.
  */
 export default function WeddingFaqPage() {

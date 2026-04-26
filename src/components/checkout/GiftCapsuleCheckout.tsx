@@ -32,7 +32,7 @@ export function GiftCapsuleCheckout({
 }: {
   capsuleTitle: string;
   /** Price string the parent computes per-occasion. e.g. "$9.99"
-   *  for standard gift capsules, "$99.99" for wedding capsules. */
+   *  for standard gift capsules, "$99.00" for wedding capsules. */
   priceLabel: string;
   applicationId: string;
   locationId: string;

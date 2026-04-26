@@ -62,7 +62,7 @@ export function priceCentsForOccasion(
     : GIFT_CAPSULE_PRICE_CENTS;
 }
 
-/** "$9.99" / "$99.99" — display helper used in checkout copy. */
+/** "$9.99" / "$99.00" — display helper used in checkout copy. */
 export function formatCapsulePrice(
   occasionType: OccasionType | null | undefined,
 ): string {

@@ -95,7 +95,7 @@ export const GIFT_CAPSULE_PRICE_CENTS = 999;
  * (12-month-anniversary reveal default), and printed easel/table
  * card assets we send.
  */
-export const WEDDING_CAPSULE_PRICE_CENTS = 9999;
+export const WEDDING_CAPSULE_PRICE_CENTS = 9900;
 
 /**
  * Create a fresh addon order template in Square.

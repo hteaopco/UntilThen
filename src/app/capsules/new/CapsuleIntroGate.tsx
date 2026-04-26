@@ -24,7 +24,7 @@ import { CapsuleCreationFlow } from "./CapsuleCreationFlow";
  *
  * Wedding visitors (initialOccasion="WEDDING") skip the intro
  * entirely — they came from /weddings which already shows the
- * pitch and the $99.99 price; dropping them straight into the
+ * pitch and the $99.00 price; dropping them straight into the
  * flow with WEDDING pre-selected is the right move.
  */
 export function CapsuleIntroGate({
