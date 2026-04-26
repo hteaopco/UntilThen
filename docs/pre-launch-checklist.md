@@ -22,8 +22,6 @@ volume.)*
   applied via `prisma migrate deploy` in `railway.json:startCommand`)
 - [ ] **Terms of Service + Privacy Policy legal review** — minors' data,
   long-term storage, data export on request
-- [ ] **Build-mode reveal QA** — curator flow + admin-uploaded music
-  end-to-end on iPhone
 - [ ] **Billing regression sweep** — exercise subscribe → addon →
   remove-addon → update-card → switch → cancel-switch → cancel → resume
   on prod, verify vault-lock reconciliation and webhook promotion at
