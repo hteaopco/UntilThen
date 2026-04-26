@@ -626,6 +626,7 @@ export function CapsuleOverview({
         <ActivationModal
           capsuleId={capsule.id}
           capsuleTitle={capsule.title}
+          occasionType={capsule.occasionType}
           recipientDisplayName={recipientDisplayName}
           recipientPronoun={pronoun}
           invitesStaged={invites.filter((i) => i.status === "STAGED").length}
@@ -1451,6 +1452,7 @@ function ConfirmDelete({
 function ActivationModal({
   capsuleId,
   capsuleTitle,
+  occasionType,
   recipientDisplayName,
   recipientPronoun,
   invitesStaged,
@@ -1461,6 +1463,7 @@ function ActivationModal({
 }: {
   capsuleId: string;
   capsuleTitle: string;
+  occasionType: keyof typeof OCCASION_LABELS;
   recipientDisplayName: string;
   recipientPronoun: "her" | "him" | "them";
   invitesStaged: number;
@@ -1567,13 +1570,13 @@ function ActivationModal({
             <div className="rounded-xl border border-navy/[0.08] bg-warm-surface/60 px-5 py-4 space-y-2">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="text-[11px] uppercase tracking-[0.1em] font-bold text-ink-light">
-                  {capsule.occasionType === "WEDDING"
+                  {occasionType === "WEDDING"
                     ? "Wedding Capsule"
                     : "Gift Capsule"}
                 </span>
                 <span className="text-sm font-semibold text-navy">
                   {requiresPayment
-                    ? formatCapsulePrice(capsule.occasionType)
+                    ? formatCapsulePrice(occasionType)
                     : "No charge"}
                 </span>
               </div>
@@ -1649,7 +1652,7 @@ function ActivationModal({
           <div className="p-6">
             <GiftCapsuleCheckout
               capsuleTitle={capsuleTitle}
-              priceLabel={formatCapsulePrice(capsule.occasionType)}
+              priceLabel={formatCapsulePrice(occasionType)}
               applicationId={squareAppId}
               locationId={squareLocationId}
               onTokenized={handleTokenized}
