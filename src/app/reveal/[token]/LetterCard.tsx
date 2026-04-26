@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { useRevealAnalytics } from "./analytics";
@@ -28,8 +28,18 @@ type FontSize = (typeof FONT_SIZES)[number];
  */
 export function LetterCard({
   contribution,
+  onAdvance,
+  onBack,
+  canBack = false,
 }: {
   contribution: RevealContribution;
+  /** Optional story navigation. When provided, ExpandedLetter
+   *  renders mid-screen chevron buttons so the reader can move
+   *  to the next/previous slide without collapsing the letter
+   *  first. Falls back to the X-only header when omitted. */
+  onAdvance?: () => void;
+  onBack?: () => void;
+  canBack?: boolean;
 }) {
   const { capture } = useRevealAnalytics();
   const [expanded, setExpanded] = useState(false);
@@ -67,6 +77,25 @@ export function LetterCard({
           })
         }
         onCollapse={() => setExpanded(false)}
+        // When a parent slide navigator is around, advancing or
+        // going back also collapses the letter so the next slide
+        // mounts fresh in its preview state.
+        onAdvance={
+          onAdvance
+            ? () => {
+                setExpanded(false);
+                onAdvance();
+              }
+            : undefined
+        }
+        onBack={
+          onBack && canBack
+            ? () => {
+                setExpanded(false);
+                onBack();
+              }
+            : undefined
+        }
       />
     );
   }
@@ -135,6 +164,8 @@ function ExpandedLetter({
   fontSize,
   onCycleFont,
   onCollapse,
+  onAdvance,
+  onBack,
 }: {
   greeting: string;
   bodyHtml: string;
@@ -142,6 +173,8 @@ function ExpandedLetter({
   fontSize: FontSize;
   onCycleFont: () => void;
   onCollapse: () => void;
+  onAdvance?: () => void;
+  onBack?: () => void;
 }) {
   return (
     <div
@@ -176,6 +209,32 @@ function ExpandedLetter({
           <span className="text-[15px] font-semibold tracking-tight">Aa</span>
         </button>
       </header>
+
+      {/* Mid-screen story-nav chevrons — let the reader move to
+          the next/previous slide without collapsing the letter
+          first. Only render when StoryCards has handed us
+          handlers; in standalone uses (e.g. opened from the
+          gallery) the X is the only exit. */}
+      {onBack && (
+        <button
+          type="button"
+          aria-label="Previous card"
+          onClick={onBack}
+          className="absolute left-3 top-1/2 -translate-y-1/2 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-white/80 backdrop-blur text-navy shadow-[0_2px_8px_rgba(15,31,61,0.12)] hover:bg-white transition-colors"
+        >
+          <ChevronLeft size={20} strokeWidth={2} />
+        </button>
+      )}
+      {onAdvance && (
+        <button
+          type="button"
+          aria-label="Next card"
+          onClick={onAdvance}
+          className="absolute right-3 top-1/2 -translate-y-1/2 z-30 flex h-11 w-11 items-center justify-center rounded-full bg-white/80 backdrop-blur text-navy shadow-[0_2px_8px_rgba(15,31,61,0.12)] hover:bg-white transition-colors"
+        >
+          <ChevronRight size={20} strokeWidth={2} />
+        </button>
+      )}
 
       <div
         className="flex-1 overflow-y-auto px-7 pt-7 pb-24"

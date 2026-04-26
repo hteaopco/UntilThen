@@ -169,7 +169,12 @@ export function StoryCards({
             autoPlay
           />
         ) : (
-          <LetterCard contribution={current.contribution} />
+          <LetterCard
+            contribution={current.contribution}
+            onAdvance={advance}
+            onBack={back}
+            canBack={index > 0}
+          />
         )}
       </div>
 
