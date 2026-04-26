@@ -79,20 +79,8 @@ export async function PATCH(
           { status: 400 },
         );
       }
-      // Validate: every entryId must be a sealed entry on this vault.
-      const ids = body.curatedSlides.map((s) => s.entryId);
-      const okEntries = await prisma.entry.findMany({
-        where: { id: { in: ids }, vaultId, isSealed: true },
-        select: { id: true },
-      });
-      const okSet = new Set(okEntries.map((e) => e.id));
+      // View must always be one of the four allowed strings.
       for (const slide of body.curatedSlides) {
-        if (!okSet.has(slide.entryId)) {
-          return NextResponse.json(
-            { error: "One or more curated entries don't belong to this capsule." },
-            { status: 400 },
-          );
-        }
         if (!VALID_VIEWS.has(slide.view)) {
           return NextResponse.json(
             { error: `Invalid view: ${slide.view}` },
@@ -100,7 +88,23 @@ export async function PATCH(
           );
         }
       }
-      data.curatedSlides = body.curatedSlides;
+      // Drop slides whose entryId doesn't resolve to a sealed
+      // entry on this vault. Vault history can leave stale ids
+      // in the curatedSlides JSON (entry deleted, moved, etc.)
+      // — those would block every subsequent save (e.g. just
+      // changing the reveal song) if we rejected the whole
+      // request. Filtering keeps the user's other intent
+      // (song change, mode flip) intact and the next save
+      // persists a cleaned-up slide list.
+      const ids = body.curatedSlides.map((s) => s.entryId);
+      const okEntries = await prisma.entry.findMany({
+        where: { id: { in: ids }, vaultId, isSealed: true },
+        select: { id: true },
+      });
+      const okSet = new Set(okEntries.map((e) => e.id));
+      data.curatedSlides = body.curatedSlides.filter((s) =>
+        okSet.has(s.entryId),
+      );
     } else {
       return NextResponse.json(
         { error: "curatedSlides must be an array or null." },
