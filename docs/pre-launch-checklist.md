@@ -58,10 +58,6 @@ The full recipient reveal runs through `RevealExperience` everywhere
 preview, admin mock). Remaining work is hands-on device QA.
 
 ### Stories
-- [ ] **Progress bar** fills as cards advance; tap-right advances, tap-left
-  goes back, middle dead zone
-- [ ] **✕ close** exits to gallery; **mute toggle** silences music + voice
-  together (shared state)
 - [ ] **PhotoCard** — full-bleed media, bottom gradient + caption readable,
   sender attribution amber, amber-initial fallback renders on load failure
 - [ ] **LetterCard preview** — 5-line clamp + fade, brush sig,
