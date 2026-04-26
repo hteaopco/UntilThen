@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { ArrowRight, Mail, Sparkles } from "lucide-react";
+import { ArrowRight, HelpCircle, Mail, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 import { ExpandableFlyer } from "@/components/landing/ExpandableFlyer";
@@ -80,6 +80,15 @@ export default async function BusinessPage() {
                 <Mail size={16} strokeWidth={2} />
                 Contact sales
               </a>
+            </div>
+            <div className="mt-3">
+              <Link
+                href="/faq"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-navy/10 text-navy/70 text-[12px] font-bold hover:border-amber/40 hover:text-navy transition-colors"
+              >
+                <HelpCircle size={12} strokeWidth={2} aria-hidden="true" />
+                FAQ
+              </Link>
             </div>
           </div>
         </section>

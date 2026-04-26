@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Heart, Mail, Sparkles } from "lucide-react";
+import { ArrowRight, Heart, HelpCircle, Mail, Sparkles } from "lucide-react";
 
 import { ExpandableFlyer } from "@/components/landing/ExpandableFlyer";
 import { Footer } from "@/components/landing/Footer";
@@ -73,6 +73,15 @@ export default async function WeddingsPage() {
                 <Mail size={16} strokeWidth={2} />
                 Talk to us
               </a>
+            </div>
+            <div className="mt-3">
+              <Link
+                href="/faq"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-navy/10 text-navy/70 text-[12px] font-bold hover:border-amber/40 hover:text-navy transition-colors"
+              >
+                <HelpCircle size={12} strokeWidth={2} aria-hidden="true" />
+                FAQ
+              </Link>
             </div>
           </div>
         </section>
