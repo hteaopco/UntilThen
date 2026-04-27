@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, X } from "lucide-react";
+import { Filter, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 export type PickedEmployee = {
@@ -59,6 +59,14 @@ export function EmployeePickerModal({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Department / sub-team filter pills. Empty sets = no filter on
+  // that dimension. Multi-select within each dimension; the two
+  // dimensions intersect when both are populated, so "Yukon" +
+  // "Sales" surfaces only the Yukon-Sales subset (and not the
+  // entire Yukon department or the entire Sales sub-team).
+  const [deptFilter, setDeptFilter] = useState<Set<string>>(new Set());
+  const [subTeamFilter, setSubTeamFilter] = useState<Set<string>>(new Set());
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     const t = window.setTimeout(() => setDebouncedQ(q), 200);
@@ -125,14 +133,74 @@ export function EmployeePickerModal({
     onConfirm(picks);
   }
 
+  function toggleDept(name: string) {
+    setDeptFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  }
+
+  function toggleSubTeam(name: string) {
+    setSubTeamFilter((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  }
+
+  function clearFilters() {
+    setDeptFilter(new Set());
+    setSubTeamFilter(new Set());
+  }
+
+  // Apply pill filters. Empty set on a dimension = no filter on
+  // that dimension. When both dimensions are populated they
+  // intersect (AND), not union — that matches "I want Yukon AND
+  // Sales people" rather than "I want everyone in Yukon OR Sales".
+  const filteredRows = useMemo(() => {
+    if (deptFilter.size === 0 && subTeamFilter.size === 0) return rows;
+    return rows.filter((r) => {
+      const deptOk =
+        deptFilter.size === 0 || (r.department && deptFilter.has(r.department));
+      const subOk =
+        subTeamFilter.size === 0 ||
+        (r.subTeam && subTeamFilter.has(r.subTeam));
+      return deptOk && subOk;
+    });
+  }, [rows, deptFilter, subTeamFilter]);
+
+  function checkAllVisible() {
+    if (mode === "single") return;
+    const visibleIds = filteredRows.map((r) => r.id);
+    const allChecked = visibleIds.every((id) => selected.has(id));
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (allChecked) {
+        for (const id of visibleIds) next.delete(id);
+      } else {
+        for (const id of visibleIds) next.add(id);
+      }
+      return next;
+    });
+  }
+
+  const allVisibleChecked =
+    filteredRows.length > 0 &&
+    filteredRows.every((r) => selected.has(r.id));
+
+  const filterCount = deptFilter.size + subTeamFilter.size;
+
   // Group rows by the chosen key. For "none" the group is a
   // single bucket and rendered as a flat list.
   const grouped = useMemo(() => {
     if (groupBy === "none") {
-      return [{ key: "All", rows }];
+      return [{ key: "All", rows: filteredRows }];
     }
     const buckets = new Map<string, PickedEmployee[]>();
-    for (const r of rows) {
+    for (const r of filteredRows) {
       const key =
         (groupBy === "department" ? r.department : r.subTeam) ?? "—";
       if (!buckets.has(key)) buckets.set(key, []);
@@ -141,7 +209,7 @@ export function EmployeePickerModal({
     return Array.from(buckets.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([key, rows]) => ({ key, rows }));
-  }, [rows, groupBy]);
+  }, [filteredRows, groupBy]);
 
   return (
     <div
@@ -214,7 +282,71 @@ export function EmployeePickerModal({
               },
             ]}
           />
+          {(departments.length > 0 || subTeams.length > 0) && (
+            <button
+              type="button"
+              onClick={() => setFiltersOpen((v) => !v)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold transition-colors ${
+                filterCount > 0
+                  ? "bg-amber text-white border border-amber"
+                  : "bg-white text-navy border border-navy/15 hover:border-navy/30"
+              }`}
+              aria-expanded={filtersOpen}
+            >
+              <Filter size={12} strokeWidth={2.25} aria-hidden="true" />
+              Filter
+              {filterCount > 0 && (
+                <span className="ml-0.5">· {filterCount}</span>
+              )}
+            </button>
+          )}
         </div>
+
+        {filtersOpen && (departments.length > 0 || subTeams.length > 0) && (
+          <div className="px-6 pb-3 space-y-2.5">
+            {departments.length > 0 && (
+              <FilterPillRow
+                label="Departments"
+                values={departments}
+                selected={deptFilter}
+                onToggle={toggleDept}
+              />
+            )}
+            {subTeams.length > 0 && (
+              <FilterPillRow
+                label="Sub teams"
+                values={subTeams}
+                selected={subTeamFilter}
+                onToggle={toggleSubTeam}
+              />
+            )}
+            {filterCount > 0 && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-[11px] font-bold text-amber-dark hover:text-amber underline"
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+        )}
+
+        {mode === "multi" && filteredRows.length > 0 && (
+          <div className="px-6 pb-2 flex items-center justify-between">
+            <span className="text-[11px] text-ink-light">
+              Showing {filteredRows.length}
+              {filteredRows.length !== rows.length ? ` of ${rows.length}` : ""}
+            </span>
+            <button
+              type="button"
+              onClick={checkAllVisible}
+              className="text-[11px] font-bold text-amber-dark hover:text-amber underline"
+            >
+              {allVisibleChecked ? "Uncheck all" : "Check all"}
+            </button>
+          </div>
+        )}
 
         {/* List */}
         <div className="flex-1 overflow-y-auto px-6">
@@ -226,11 +358,13 @@ export function EmployeePickerModal({
             <p className="py-10 text-center text-[13px] text-red-600">
               {error}
             </p>
-          ) : rows.length === 0 ? (
+          ) : filteredRows.length === 0 ? (
             <p className="py-10 text-center text-[13px] text-ink-mid">
               {q
                 ? "No matches."
-                : "No employees in the database yet. Admins can import a roster from /enterprise/roster."}
+                : filterCount > 0
+                  ? "No employees match those filters."
+                  : "No employees in the database yet. Admins can import a roster from /enterprise/roster."}
             </p>
           ) : (
             grouped.map((g) => (
@@ -321,6 +455,45 @@ export function EmployeePickerModal({
             </button>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function FilterPillRow({
+  label,
+  values,
+  selected,
+  onToggle,
+}: {
+  label: string;
+  values: string[];
+  selected: Set<string>;
+  onToggle: (v: string) => void;
+}) {
+  return (
+    <div>
+      <p className="text-[10px] uppercase tracking-[0.12em] font-bold text-ink-mid mb-1.5">
+        {label}
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {values.map((v) => {
+          const active = selected.has(v);
+          return (
+            <button
+              key={v}
+              type="button"
+              onClick={() => onToggle(v)}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${
+                active
+                  ? "bg-navy text-white border-navy"
+                  : "bg-white text-navy border-navy/15 hover:border-navy/30"
+              }`}
+            >
+              {v}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
