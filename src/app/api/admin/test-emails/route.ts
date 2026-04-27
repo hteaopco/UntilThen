@@ -312,7 +312,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       to,
       organizationName: "Acme Co.",
       inviterName: "Jett",
-      acceptUrl: "https://untilthenapp.io/enterprise/invite/sample-token",
+      acceptUrl: "https://untilthenapp.io/business?invite=sample-token",
     }),
   );
 
@@ -322,7 +322,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       to,
       organizationName: "Acme Co.",
       inviterName: "Jett",
-      dashboardUrl: "https://untilthenapp.io/home",
+      dashboardUrl: "https://untilthenapp.io/business",
     }),
   );
 

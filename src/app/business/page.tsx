@@ -27,7 +27,11 @@ export const metadata = {
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-export default async function BusinessPage() {
+export default async function BusinessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ invite?: string }>;
+}) {
   // Public-facing sales page. The Login CTA shows in two cases:
   //   - Signed-out viewer → Login routes to /sign-up so they can
   //     create an account; their org admin will invite them after.
@@ -36,12 +40,23 @@ export default async function BusinessPage() {
   // A signed-in user without org membership has no enterprise to
   // log into, so we hide the CTA for them rather than dump them
   // on a redirect loop.
+  //
+  // ?invite=<inviteToken> arrives via the new-user org invite
+  // email — we forward the token through Clerk's redirect_url so
+  // the existing /enterprise/invite/<token> claim flow runs after
+  // signup and the new account auto-joins the inviting org.
+  const sp = await searchParams;
+  const inviteToken =
+    typeof sp.invite === "string" && sp.invite.trim() ? sp.invite.trim() : null;
   const { userId } = auth();
   const orgCtx = userId ? await getOrgContextByClerkId(userId) : null;
   const showEnterpriseLogin = !userId || Boolean(orgCtx);
+  const postSignupPath = inviteToken
+    ? `/enterprise/invite/${encodeURIComponent(inviteToken)}`
+    : "/enterprise";
   const loginHref = orgCtx
-    ? "/enterprise"
-    : "/sign-up?redirect_url=%2Fenterprise";
+    ? postSignupPath
+    : `/sign-up?redirect_url=${encodeURIComponent(postSignupPath)}`;
 
   return (
     <>

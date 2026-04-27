@@ -175,7 +175,7 @@ export async function POST(
             to: i.email,
             organizationName: org.name,
             inviterName,
-            dashboardUrl: `${origin}/home`,
+            dashboardUrl: `${origin}/business`,
           });
           sentEmails++;
         } catch (err) {
@@ -215,7 +215,12 @@ export async function POST(
             to: i.email,
             organizationName: org.name,
             inviterName,
-            acceptUrl: `${origin}/enterprise/invite/${invite.inviteToken}`,
+            // Land on the public /business sales page first; the
+            // ?invite=<token> survives the marketing read and is
+            // forwarded into /sign-up's redirect_url so the
+            // /enterprise/invite/<token> claim flow still runs
+            // immediately after the new user finishes Clerk signup.
+            acceptUrl: `${origin}/business?invite=${invite.inviteToken}`,
           });
           sentEmails++;
         } catch (err) {
