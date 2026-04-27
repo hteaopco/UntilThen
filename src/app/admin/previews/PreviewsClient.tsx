@@ -144,6 +144,7 @@ export function PreviewsClient({
           guestToken="preview-mode"
           capsule={MOCK_WEDDING_CAPSULE}
           assetVersions={{ card: "preview", roses: "preview" }}
+          editInitial={null}
         />
       </div>
     );

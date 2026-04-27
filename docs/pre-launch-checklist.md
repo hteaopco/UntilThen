@@ -1,5 +1,5 @@
 # untilThen — Pre-Launch Checklist
-*Updated April 25, 2026*
+*Updated April 27, 2026*
 
 > Only outstanding items. Everything completed has been pruned —
 > see git history (`docs/pre-launch-checklist.md`) for the archive.
@@ -20,6 +20,12 @@ volume.)*
   Railway deploy, confirm `\d "MemoryCapsule"` shows the new
   `recipient2Email TEXT` column (migration `20260425_recipient2_email`,
   applied via `prisma migrate deploy` in `railway.json:startCommand`)
+- [ ] **Verify `editToken` migration on prod** — confirm
+  `\d "CapsuleContribution"` shows the new `editToken TEXT` column
+  with the `CapsuleContribution_editToken_key` unique index
+  (migration `20260427_contribution_edit_token`). Required for the
+  wedding editable-card flow; POST will throw on `editToken` until
+  the column exists.
 - [ ] **Terms of Service + Privacy Policy legal review** — minors' data,
   long-term storage, data export on request
 - [ ] **Billing regression sweep** — exercise subscribe → addon →
@@ -57,34 +63,14 @@ The full recipient reveal runs through `RevealExperience` everywhere
 (`/reveal/[token]`, organiser preview, vault preview, contributor
 preview, admin mock). Remaining work is hands-on device QA.
 
-### Stories
-- [ ] **PhotoCard** — full-bleed media, bottom gradient + caption readable,
-  sender attribution amber, amber-initial fallback renders on load failure
-- [ ] **LetterCard preview** — 5-line clamp + fade, brush sig,
-  "Tap to read more" reveals expanded view
-- [ ] **LetterCard expanded** — ✕ collapses back to preview (doesn't exit
-  reveal), Aa cycles 15→17→20px, body scrolls, ✕ accessible above preview
-  top bar during organiser/vault preview
-- [ ] **VoiceCard** — play button works, timestamps update, pause/resume
-  cleanly, **music ducks to 0.05** while voice plays, restores on pause/end
+### Stories + Transition + Gallery
 
-### Transition + Gallery
-- [ ] **TransitionScreen** — "{N} more memories · {X} contributors" copy
-  correct, ghost CTA advances to gallery; entire screen skipped when
-  contributions ≤ 5
-- [ ] **Music fade-out** into gallery — 25 × 120ms ticks, stair-stepped
-- [ ] **GalleryScreen** — Alex Brush header, subhead variant-aware (vault:
-  "N memories from Dad"; capsule: "N memories from Y people who love you")
-- [ ] **Search bar** — filters across author, title, body, date, collection;
-  clears cleanly
-- [ ] **Primary type pills** — all four (Letters, Audio, Photos, Videos)
-  always visible; "All" chip doesn't jam against left edge during
-  horizontal scroll
-- [ ] **Clear all** link appears when any filter is active
-- [ ] **Grid ⇄ List toggle** — grid shows uniform 240px tiles; list shows
-  type badge + title + from + date rows
-- [ ] **GalleryCard tap** → full-screen card view, ✕ + Esc close, ✕
-  accessible above preview top bar
+*All Story/Transition/Gallery card behaviours verified Apr 27, 2026.
+PhotoCard, LetterCard (preview + expanded), VoiceCard (with music
+ducking), TransitionScreen, music fade-out, GalleryScreen, search,
+type pills, clear-all, grid/list toggle, and GalleryCard
+full-screen tap all confirmed working. Pruned per the doc
+convention; see git history if you need the prior list.*
 
 ### Preview surfaces
 - [ ] **Organiser preview** (`/capsules/[id]/preview`) — This-capsule /
@@ -114,6 +100,115 @@ preview, admin mock). Remaining work is hands-on device QA.
   autoplays after gate tap
 - [ ] **Tone** — the new flow doesn't branch on tone (no confetti/fireworks
   variants). Re-decide whether to port or leave minimalist
+
+---
+
+## 🟠 Session Apr 27 — New Surfaces QA
+
+Hands-on verification for everything shipped this session. Group
+by feature so each can be checked off independently as you walk
+through the device tests.
+
+### Wedding contributor flow
+- [ ] **"Preview my message" CTA** appears on the thank-you screen
+  alongside "Make one for someone you love" (commit `0a704b1` /
+  `cbde6ae`)
+- [ ] **Full-reveal preview** — tapping "Preview my message" launches
+  the same RevealExperience pipeline the recipient sees: gate
+  (tap-to-begin) → entry → story cards → gallery, with background
+  music. Single-message contribution array — only the previewer's
+  own message appears.
+- [ ] **Gate banner copy** reads exactly: *"This is a preview of your
+  own message. On reveal day, {names} will see yours alongside
+  every other guest's."*
+- [ ] **Explainer modal** auto-opens the moment the gallery loads:
+  *"{names} will be able to filter through every message left for
+  them in this gallery..."* with **Exit preview** (→ /weddings)
+  and **Keep looking** (dismiss) buttons.
+- [ ] **Roses corner** (not the gift-box FlowerCorner) renders on the
+  closed-capsule and thank-you screens.
+- [ ] **Post-seal email prompt** ("One more thing — Want to be able to
+  edit this later?") fires *before* the "Sealed for {names}"
+  typewriter, not after.
+  - [ ] **Yes** path → email field → Send → confirmation → Continue
+    → typewriter
+  - [ ] **No thanks** path → typewriter
+  - [ ] **Skip** mid-form path → typewriter
+  - [ ] Bad-format email shows inline error; doesn't proceed.
+- [ ] **Editable-card email** delivers (subject *"Edit your message
+  for {names}"*); link is `/wedding/<guestToken>?edit=<editToken>`.
+- [ ] **Edit-mode bootstrap** — opening that link drops the user
+  straight into the editor pre-populated with their original
+  authorName, body text, and media. No splash, no card phase.
+- [ ] **Edit submit** PATCHes (doesn't POST), skips the email prompt
+  the second time around, lands in the typewriter.
+- [ ] **Edit window closes when capsule SEALED** — past the contributor
+  deadline (or organiser-triggered seal), the edit URL returns the
+  "contributions closed" screen rather than re-opening the editor.
+
+### Public marketing surfaces
+- [ ] **`/weddings` accessible signed-out** — sales pitch + flyer load
+  without bouncing to /sign-in.
+- [ ] **`/business` accessible signed-out** — same.
+- [ ] **`/weddings/faq` and `/business/faq` accessible signed-out**.
+- [ ] **`/wedding/<guestToken>` (guest contributor) accessible
+  signed-out** — QR-scanned guests don't get bounced to sign-in.
+- [ ] **TopNav (signed-out)** — only Home button visible (back +
+  account-settings buttons hidden, avatar slot hidden). Home
+  button routes to `/`.
+- [ ] **Login CTAs route correctly:**
+  - `/weddings` signed-out → `/sign-up?redirect_url=/weddings/dashboard`
+  - `/weddings` signed-in → `/weddings/dashboard`
+  - `/business` signed-out → `/sign-up?redirect_url=/enterprise`
+  - `/business` org-member → `/enterprise`
+  - `/business` signed-in non-org → CTA hidden entirely
+
+### Enterprise email routing
+- [ ] **#23 Org Invite (new user) email** routes to
+  `/business?invite=<token>`. Visitor reads pitch → clicks Login
+  → lands on `/sign-up?redirect_url=/enterprise/invite/<token>`.
+  After signup, Clerk forwards to the invite page and the row
+  is auto-claimed (verify `OrganizationMember` is created and
+  invite status flips to ACCEPTED).
+- [ ] **#24 Org Invite (existing user) email** routes to `/business`
+  (no token needed — they're already auto-joined).
+
+### Stat Board
+- [ ] **No wedding leakage** — every count (capsules, recipients,
+  contributions, status breakdown) excludes `occasionType: WEDDING`.
+  Same scope on `/api/orgs/[id]/stats`.
+- [ ] **Recipients section** lists every gift sent under the org
+  (excludes DRAFT). Each row shows recipient name + email,
+  capsule title, contribution count, status badge ("Live" /
+  "Sealed" / "Opened"), and "Sent {date}" / "Scheduled for {date}"
+  hint that flips based on whether revealDate has passed. Tapping
+  a row deep-links to `/capsules/[id]`.
+- [ ] **Empty state** ("No gifts have gone out yet") renders when
+  no non-draft capsules exist.
+
+### Disclosures + FAQ
+- [ ] **`/privacy` section 7.2** reads accurately — infrastructure-
+  level encryption (Railway Postgres + Cloudflare R2), signed URLs,
+  scrypt PINs, audit-logged admin access, plus the explicit
+  disclosure that letter content isn't application-level encrypted
+  yet.
+- [ ] **FAQ Q1 ("What is untilThen?")** renders the new full-product
+  copy (Time Capsules / Gift Capsules / Wedding Capsules / Teams).
+- [ ] **FAQ "Who can see my entries?"** matches `/privacy` 7.2 — no
+  contradictions for a regulator to point at.
+- [ ] **FAQ "Why We Built untilThen" banner** appears above the
+  accordion in an amber-tint card; both scripture references
+  (Proverbs 18:21, Matthew 12:34 paraphrase) italicised.
+
+### Misc
+- [ ] **`/home` top-right enterprise pill removed** — confirm signed-in
+  org members and signed-in non-org users both see only the
+  avatar (no Building2 pill). Bottom Enterprise bubble still
+  routes to `/business`.
+- [ ] **Admin Emails tab #26 Wedding Edit Link** appears in
+  `/admin/emails`; the test-fire endpoint sends a sample correctly.
+- [ ] **Admin Emails tab #23 / #24 preview copy** matches the new
+  /business routing (per CLAUDE.md sync rule).
 
 ---
 
