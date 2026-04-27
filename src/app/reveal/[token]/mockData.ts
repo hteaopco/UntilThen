@@ -76,7 +76,12 @@ export function mockRevealCapsule(overrides: Partial<RevealCapsule> = {}): Revea
     revealDate: new Date("2056-09-15T09:00:00Z").toISOString(),
     isFirstOpen: true,
     hasCompleted: false,
-    isSaved: false,
+    // Admin /admin/previews and other surfaces that consume this
+    // mock are inspecting the experience as the organiser, not as
+    // a real recipient — there's no claim flow to drive, so flag
+    // it as saved to bypass the SavePromptScreen between the
+    // highlight reel and the gallery.
+    isSaved: true,
     ...overrides,
   };
 }
