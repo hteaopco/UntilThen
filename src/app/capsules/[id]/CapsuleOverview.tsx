@@ -443,11 +443,7 @@ export function CapsuleOverview({
                 busyId={busy}
                 onRemove={removeInvite}
                 onActivate={() => setActivateOpen(true)}
-                previewUrl={
-                  capsule.occasionType !== "WEDDING"
-                    ? `/capsules/${capsule.id}/preview`
-                    : null
-                }
+                previewUrl={`/capsules/${capsule.id}/preview`}
               />
             </div>
           )}
