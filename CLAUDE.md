@@ -1,3 +1,14 @@
+# Session setup — install deps first
+
+Run `npm install` at the start of every session, before making any
+code changes. Without `node_modules` you can't typecheck (`npx tsc
+--noEmit`) or lint locally, which means TypeScript errors only
+surface once Railway rebuilds — slow, painful, and avoidable.
+
+After dependencies are installed, run `npx tsc --noEmit` before
+pushing any commit. Railway's build does the same check; catching
+errors locally saves the round-trip.
+
 # Git workflow
 
 Always commit and push directly to `main`. Do not create feature branches.
