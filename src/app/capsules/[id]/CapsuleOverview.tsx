@@ -2085,12 +2085,26 @@ function WeddingGuestSharePanel({
             >
               Preview as guest
             </a>
-            <Link
-              href={`/capsules/${capsuleId}/share-card`}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
+            {/* Two ready-to-print card variants. Plain `download`
+                attribute on the <a> hits the static asset in /public
+                directly so we don't need a server round-trip; the
+                browser saves the PNG with the suggested filename. */}
+            <a
+              href="/wedding-card-white.png"
+              download="wedding-card-white.png"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold bg-white border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
             >
-              Print card
-            </Link>
+              <Download size={12} strokeWidth={2.25} aria-hidden="true" />
+              Download Card &mdash; White
+            </a>
+            <a
+              href="/wedding-card-cream.png"
+              download="wedding-card-cream.png"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold bg-white border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
+            >
+              <Download size={12} strokeWidth={2.25} aria-hidden="true" />
+              Download Card &mdash; Cream
+            </a>
           </div>
         </div>
         <div className="shrink-0 rounded-xl border border-navy/10 p-2 bg-white">
