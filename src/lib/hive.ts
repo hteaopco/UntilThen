@@ -125,6 +125,23 @@ async function callHive(
 ): Promise<Array<{ class: string; score: number }>> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), HIVE_TIMEOUT_MS);
+  // Diagnostic fingerprint for the API key so we can confirm
+  // which env var ended up in the request without leaking the
+  // secret to logs. Format: first 4 chars + length.
+  const keyFingerprint = `${apiKey.slice(0, 4)}…(len=${apiKey.length})`;
+  // FormData fields can't be enumerated by fetch, so capture
+  // them up-front for the diagnostic log.
+  const bodyKeys =
+    body instanceof FormData
+      ? Array.from(body.keys())
+      : ["<string-body>"];
+  console.info("[hive] request", {
+    url: HIVE_SYNC_URL,
+    method: "POST",
+    authHeader: `token ${keyFingerprint}`,
+    extraHeaders: Object.keys(headers),
+    bodyFields: bodyKeys,
+  });
   try {
     const res = await fetch(HIVE_SYNC_URL, {
       method: "POST",
@@ -136,6 +153,22 @@ async function callHive(
       signal: controller.signal,
     });
     if (!res.ok) {
+      // Read the body so we can see whether the 403 came from
+      // Hive itself (JSON error envelope) or from a CDN/edge in
+      // front (HTML error page, Cloudflare ray ID, etc.).
+      const responseText = await res.text().catch(() => "<unreadable>");
+      const cfRay = res.headers.get("cf-ray");
+      const server = res.headers.get("server");
+      const contentType = res.headers.get("content-type");
+      console.error("[hive] non-2xx response", {
+        url: HIVE_SYNC_URL,
+        status: res.status,
+        statusText: res.statusText,
+        cfRay,
+        server,
+        contentType,
+        bodyPreview: responseText.slice(0, 500),
+      });
       throw new Error(`Hive ${res.status} ${res.statusText}`);
     }
     const payload = (await res.json()) as unknown;
