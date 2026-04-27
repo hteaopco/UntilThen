@@ -1,5 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
-import { ArrowRight, HelpCircle, Mail, Sparkles } from "lucide-react";
+import { HelpCircle, LogIn, Mail, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 import { ExpandableFlyer } from "@/components/landing/ExpandableFlyer";
@@ -28,9 +28,9 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function BusinessPage() {
-  // Show the inline "Login to Enterprise" link only when the
-  // viewer is signed in AND active in an org. Anyone else sees
-  // a clean landing — they have no dashboard to log into.
+  // Show the "Login" CTA pill only when the viewer is signed
+  // in AND active in an org. Anyone else sees a clean landing
+  // — they have no dashboard to log into.
   const { userId } = auth();
   const orgCtx = userId ? await getOrgContextByClerkId(userId) : null;
   const showEnterpriseLogin = Boolean(orgCtx);
@@ -41,25 +41,10 @@ export default async function BusinessPage() {
       <main className="pt-10 sm:pt-14 pb-20 bg-cream min-h-screen">
         <section className="mx-auto max-w-[1080px] px-5 lg:px-14">
           <div className="max-w-[720px]">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-tint border border-amber/30 text-amber-dark text-[11px] font-bold uppercase tracking-[0.14em]">
-                <Sparkles size={12} strokeWidth={2.25} />
-                untilThen Enterprise
-              </span>
-              {showEnterpriseLogin && (
-                <Link
-                  href="/enterprise"
-                  className="inline-flex items-center gap-1.5 text-[12px] font-bold text-amber-dark hover:text-amber-dark/80 transition-colors"
-                >
-                  Login to Enterprise
-                  <ArrowRight
-                    size={12}
-                    strokeWidth={2.25}
-                    aria-hidden="true"
-                  />
-                </Link>
-              )}
-            </div>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-tint border border-amber/30 text-amber-dark text-[11px] font-bold uppercase tracking-[0.14em]">
+              <Sparkles size={12} strokeWidth={2.25} />
+              untilThen Enterprise
+            </span>
             <h1 className="mt-5 font-extrabold text-navy text-[40px] sm:text-[56px] lg:text-[68px] leading-[1.02] tracking-[-1px]">
               Capture today.
               <br />
@@ -78,7 +63,7 @@ export default async function BusinessPage() {
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-amber-tint border border-amber/40 text-amber-dark text-[14px] font-bold hover:bg-amber/15 hover:border-amber/60 transition-colors"
               >
                 <Mail size={16} strokeWidth={2} />
-                Contact sales
+                Email Us
               </a>
               <Link
                 href="/business/faq"
@@ -87,6 +72,15 @@ export default async function BusinessPage() {
                 <HelpCircle size={16} strokeWidth={2} aria-hidden="true" />
                 FAQ
               </Link>
+              {showEnterpriseLogin && (
+                <Link
+                  href="/enterprise"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-navy/10 text-navy/70 text-[14px] font-bold hover:border-amber/40 hover:text-navy transition-colors"
+                >
+                  <LogIn size={16} strokeWidth={2} aria-hidden="true" />
+                  Login
+                </Link>
+              )}
             </div>
           </div>
         </section>
