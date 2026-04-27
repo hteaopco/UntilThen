@@ -111,7 +111,7 @@ function EmptyHeroCard({ isAdmin }: { isAdmin: boolean }) {
           : "Your company has covered the cost — go ahead."}
       </p>
       <Link
-        href="/capsules/new"
+        href="/capsules/new?source=enterprise"
         className="inline-flex items-center gap-2 bg-amber text-white px-6 py-3 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors shadow-[0_4px_14px_rgba(196,122,58,0.25)]"
       >
         <Sparkles size={16} strokeWidth={2} aria-hidden="true" />
@@ -137,7 +137,7 @@ function ManageCard({ capsules }: { capsules: EnterpriseCapsuleRow[] }) {
           </p>
         </div>
         <Link
-          href="/capsules/new"
+          href="/capsules/new?source=enterprise"
           className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber text-white text-[13px] font-bold hover:bg-amber-dark transition-colors shadow-[0_4px_14px_rgba(196,122,58,0.25)] whitespace-nowrap shrink-0"
         >
           <Plus size={14} strokeWidth={2.25} aria-hidden="true" />

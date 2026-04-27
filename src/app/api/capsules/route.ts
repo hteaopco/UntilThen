@@ -63,6 +63,15 @@ interface CreateBody {
   requiresApproval?: boolean;
   deliveryTime?: string | null;
   timezone?: string | null;
+  /** "personal" (default) → no organizationId stamped, even if
+   *  the creator belongs to an org. "enterprise" → organizationId
+   *  stamped (must match the creator's actual org). The signal
+   *  comes from the create-flow entry point: visiting
+   *  /capsules/new directly is always personal; coming through
+   *  the /enterprise dashboard CTA passes attribution=enterprise.
+   *  Never trust the client blindly — we still verify org
+   *  membership before stamping. */
+  attribution?: "personal" | "enterprise";
 }
 
 /**
@@ -206,14 +215,31 @@ export async function POST(req: Request) {
     if (!user)
       return NextResponse.json({ error: "User not found." }, { status: 404 });
 
-    // Org attribution — when the creator is an Organization
-    // member, stamp the capsule with organizationId so it shows
-    // up in the org's Stat Board + the offboarding transfer
-    // flow. Per spec the capsule still belongs to the user's
-    // personal account; the org link is purely backend metadata
-    // and never user-visible.
-    const { getOrgContextByUserId } = await import("@/lib/orgs");
-    const orgCtx = await getOrgContextByUserId(user.id);
+    // Org attribution — only stamp organizationId when the
+    // create flow explicitly says enterprise AND the creator
+    // actually belongs to an org. Visiting /capsules/new
+    // directly (consumer flow) always produces a personally-
+    // attributed capsule, even for org members — so org members'
+    // personal gifts don't leak into the org Stat Board /
+    // offboarding transfer flow.
+    //
+    // The attribution signal lives in the URL: /capsules/new
+    // (no source) → personal; /capsules/new?source=enterprise
+    // (linked from the /enterprise dashboard CTA) → enterprise.
+    // Threaded through page.tsx → CapsuleIntroGate →
+    // CapsuleCreationFlow → POST body.
+    //
+    // We still verify membership here so a malicious client
+    // can't claim enterprise attribution against someone else's
+    // org by hand-crafting the request body.
+    const wantsEnterprise = body.attribution === "enterprise";
+    let orgCtx: Awaited<
+      ReturnType<typeof import("@/lib/orgs").getOrgContextByUserId>
+    > = null;
+    if (wantsEnterprise) {
+      const { getOrgContextByUserId } = await import("@/lib/orgs");
+      orgCtx = await getOrgContextByUserId(user.id);
+    }
 
     // Wedding capsules get an open guest token at creation time
     // so the organiser can print easel/table-card QR codes

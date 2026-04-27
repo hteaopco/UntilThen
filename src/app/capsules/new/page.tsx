@@ -1,7 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
-
 import { Footer } from "@/components/landing/Footer";
-import { getOrgContextByClerkId } from "@/lib/orgs";
 
 import { CapsuleIntroGate } from "./CapsuleIntroGate";
 
@@ -18,32 +15,39 @@ export const runtime = "nodejs";
 // intro for the existing CapsuleCreationFlow wizard client-side,
 // so the URL stays /capsules/new throughout.
 //
-// /weddings forwards visitors here with ?occasion=WEDDING; we
-// read that and skip the gift-capsule pricing intro (irrelevant
-// for weddings) and pre-select WEDDING inside the flow.
+// Two query params drive flow / attribution:
 //
-// Org members (enterprise channel) also skip the intro because
-// the price card pitches $9.99 — wrong for them since their
-// organisation covers the cost. They land straight in the
-// wizard and the resulting capsule is auto-stamped with
-// organizationId server-side in /api/capsules.
+//   ?occasion=WEDDING — visitor came from /weddings; skip the
+//     gift-capsule $9.99 intro (irrelevant for weddings) and
+//     pre-select WEDDING inside the flow.
+//
+//   ?source=enterprise — visitor came from the /enterprise
+//     dashboard's "Create a Gift Capsule" CTA; skip the $9.99
+//     intro (their org covers the cost) AND attribute the
+//     resulting capsule to the org. The API stamps organizationId
+//     ONLY when source=enterprise, so org members visiting
+//     /capsules/new directly (consumer flow) still get the price
+//     card and produce a personally-attributed capsule.
+//
+// Without source=enterprise, every capsule is treated as personal
+// regardless of the creator's org membership. This prevents
+// org members' personal gifts from leaking into the org's Stat
+// Board.
 export default async function NewCapsulePage({
   searchParams,
 }: {
-  searchParams: Promise<{ occasion?: string }>;
+  searchParams: Promise<{ occasion?: string; source?: string }>;
 }) {
   const sp = await searchParams;
   const initialOccasion = sp.occasion === "WEDDING" ? "WEDDING" : undefined;
-
-  const { userId } = auth();
-  const orgCtx = userId ? await getOrgContextByClerkId(userId) : null;
-  const skipIntro = Boolean(orgCtx);
+  const attribution: "personal" | "enterprise" =
+    sp.source === "enterprise" ? "enterprise" : "personal";
 
   return (
     <>
       <CapsuleIntroGate
         initialOccasion={initialOccasion}
-        skipIntro={skipIntro}
+        attribution={attribution}
       />
       <Footer />
     </>

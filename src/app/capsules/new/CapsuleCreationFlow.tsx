@@ -121,12 +121,20 @@ const pillInactive =
 
 export function CapsuleCreationFlow({
   initialOccasion,
+  attribution = "personal",
 }: {
   /** Pre-select an occasion when the flow is reached from a
    *  product-specific landing (e.g. /weddings → ?occasion=WEDDING).
    *  Couple gender is pre-selected for WEDDING since wedding
    *  capsules are always for the couple. */
   initialOccasion?: OccasionType;
+  /** Drives whether the API stamps organizationId on the new
+   *  capsule. Defaults to "personal" — only set to "enterprise"
+   *  when the user came through the /enterprise dashboard CTA
+   *  (/capsules/new?source=enterprise). Org members visiting
+   *  /capsules/new directly produce personal capsules even
+   *  though they belong to an org. */
+  attribution?: "personal" | "enterprise";
 } = {}) {
   const router = useRouter();
   const { isLoaded: authLoaded, isSignedIn } = useAuth();
@@ -312,6 +320,7 @@ export function CapsuleCreationFlow({
           deliveryTime,
           timezone,
           requiresApproval: false,
+          attribution,
         }),
       });
       if (!res.ok) {
