@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { getOrgContextByClerkId } from "@/lib/orgs";
 
-import { RosterClient } from "./RosterClient";
+import { RosterTabs } from "./RosterTabs";
 
 export const metadata = {
   title: "Roster — Enterprise — untilThen",
@@ -25,5 +25,10 @@ export default async function RosterPage() {
     redirect("/enterprise");
   }
 
-  return <RosterClient orgId={ctx!.organizationId} viewerRole={ctx!.role} />;
+  return (
+    <RosterTabs
+      orgId={ctx!.organizationId}
+      viewerRole={ctx!.role as "OWNER" | "ADMIN"}
+    />
+  );
 }

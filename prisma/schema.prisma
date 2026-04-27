@@ -742,9 +742,10 @@ model Organization {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  members  OrganizationMember[]
-  invites  OrganizationInvite[]
-  capsules MemoryCapsule[]
+  members   OrganizationMember[]
+  invites   OrganizationInvite[]
+  capsules  MemoryCapsule[]
+  employees OrganizationEmployee[]
 }
 
 model OrganizationMember {
@@ -828,4 +829,61 @@ model EmailEvent {
   @@index([recipient])
   @@index([capsuleId])
   @@index([createdAt])
+}
+
+// ── Organization Employee Roster ───────────────────────────
+//
+// Lightweight people-database scoped to an org. Distinct from
+// OrganizationMember (Clerk-authed users who can log in and create
+// capsules) — Employees are just *records* of people the org may
+// want to gift to / collect contributions from. They don't need
+// untilThen accounts; the org admin maintains the list as a
+// convenience datastore.
+//
+// Surfaced in two places:
+//   - /enterprise/roster (Employees tab) — full management view
+//     for OWNER + ADMIN. Sort, search, edit, bulk-edit, import.
+//   - Capsule contributor / recipient pickers — read-only modal
+//     filtered + grouped by department / sub team.
+//
+// Lifecycle (status enum):
+//   ACTIVE   — currently in the org
+//   ARCHIVED — admin manually removed (e.g. employee left)
+//   DELETED  — removed via a CSV overwrite import
+// Both inactive states are restorable; tabs at the top of the
+// Employees view filter between them.
+
+enum EmployeeStatus {
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+model OrganizationEmployee {
+  id             String         @id @default(cuid())
+  organizationId String
+  firstName      String
+  lastName       String
+  /// Lowercased + trimmed at write time so duplicate detection
+  /// during CSV import is case-insensitive. The unique
+  /// constraint is scoped per-org so the same person can exist
+  /// in multiple orgs as separate rows.
+  email          String
+  phone          String?
+  department     String?
+  subTeam        String?
+  status         EmployeeStatus @default(ACTIVE)
+  /// Stamped when status flips from ACTIVE → ARCHIVED/DELETED.
+  /// Null while the row is ACTIVE.
+  inactivatedAt  DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, email])
+  @@index([organizationId, status])
+  @@index([organizationId, department])
+  @@index([organizationId, subTeam])
+  @@index([organizationId, lastName])
 }
