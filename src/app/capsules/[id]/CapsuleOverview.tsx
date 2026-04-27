@@ -58,6 +58,12 @@ type CapsuleSummary = {
   /** Open guest-contribution token, only set when occasionType
    *  is WEDDING. Drives the QR/print panel on this page. */
   guestToken: string | null;
+  /** Wedding bride/groom hand-off — when true the organiser
+   *  asked us to redact contribution bodies on their dashboard
+   *  until revealDate. Server already scrubs the contributions
+   *  array before send; this flag drives the UI banner + the
+   *  toggle's selected state. */
+  hideUntilReveal: boolean;
 };
 
 type ContributionRow = {
@@ -103,6 +109,8 @@ export function CapsuleOverview({
   ownAttachments,
   invites,
   requiresPayment,
+  redactContributions,
+  contributionCount,
 }: {
   capsule: CapsuleSummary;
   currentUserClerkId: string;
@@ -117,6 +125,13 @@ export function CapsuleOverview({
    * thumbnails without an extra round-trip on mount. */
   ownAttachments: Attachment[];
   invites: InviteRow[];
+  /** Wedding bride/groom hand-off — server scrubs the
+   *  contributions array when this is true. We render a
+   *  count-only placeholder in its place. */
+  redactContributions: boolean;
+  /** Pre-redaction count, so the placeholder can still surface
+   *  "{N} messages waiting" even with `contributions = []`. */
+  contributionCount: number;
 }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -594,14 +609,46 @@ export function CapsuleOverview({
         <WeddingGuestSharePanel guestToken={capsule.guestToken} />
       )}
 
+      {/* Wedding bride/groom hand-off — only the organiser of an
+          activated wedding capsule sees this. Lets them either
+          hide messages on their own dashboard until reveal day,
+          or transfer the capsule to a planner / MOH / parent who
+          will manage it through reveal day on their behalf. */}
+      {capsule.occasionType === "WEDDING" && !isDraft && (
+        <BrideGroomPanel
+          capsuleId={capsule.id}
+          revealDate={capsule.revealDate}
+          hideUntilReveal={capsule.hideUntilReveal}
+        />
+      )}
+
       {/* Live capsule summary (post-activation): contributions
           land here. Replaces the activate panel once isPaid. */}
       {!isDraft && (
         <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10 pb-6">
           <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-mid mb-3">
-            Contributions · {live.length}
+            Contributions ·{" "}
+            {redactContributions ? contributionCount : live.length}
           </h2>
-          {live.length === 0 ? (
+          {redactContributions ? (
+            <div className="rounded-xl border border-amber/25 bg-amber-tint/40 px-5 py-6 text-center">
+              <p className="text-sm font-bold text-navy">
+                Hidden until reveal day.
+              </p>
+              <p className="mt-1.5 text-[13px] text-ink-mid leading-[1.55]">
+                You asked us to keep messages a surprise.{" "}
+                <span className="font-semibold text-navy">
+                  {contributionCount}
+                </span>{" "}
+                {contributionCount === 1 ? "message is" : "messages are"}{" "}
+                waiting and will unlock on{" "}
+                <span className="font-semibold text-navy">
+                  {formatLong(capsule.revealDate)}
+                </span>
+                .
+              </p>
+            </div>
+          ) : live.length === 0 ? (
             <div className="rounded-xl border border-dashed border-navy/10 bg-warm-surface/60 px-4 py-8 text-center text-sm text-ink-mid">
               Nothing in the capsule yet. As contributors submit,
               you&rsquo;ll see their messages here.
@@ -1847,6 +1894,314 @@ function WeddingGuestSharePanel({ guestToken }: { guestToken: string }) {
             className="block rounded-md"
           />
         </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Bride/Groom hand-off panel — only rendered for activated
+ * wedding capsules where the organiser is the bride or groom
+ * themselves and doesn't want to see messages until reveal day.
+ *
+ * Two outcomes:
+ *
+ *   Hide     — flip MemoryCapsule.hideUntilReveal so the
+ *              dashboard redacts contribution bodies until
+ *              revealDate. Reversible. Server-side scrub keeps
+ *              the bodies out of the page payload entirely.
+ *   Transfer — nominate a planner / MOH / parent to take over.
+ *              Sends a magic-link email; on accept the new
+ *              person becomes the organiser and the bride/groom
+ *              loses access. Form-validated client-side then
+ *              POSTed to /api/capsules/[id]/transfer.
+ */
+function BrideGroomPanel({
+  capsuleId,
+  revealDate,
+  hideUntilReveal,
+}: {
+  capsuleId: string;
+  revealDate: string;
+  hideUntilReveal: boolean;
+}) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // UI mode: gate (Yes/No) → choose (Hide/Transfer) → transfer (form) → done.
+  // No persistence — state only exists between answering "Yes" and
+  // committing one of the actions.
+  const [mode, setMode] = useState<
+    "gate" | "choose" | "transfer" | "transferred"
+  >("gate");
+
+  const [tFirstName, setTFirstName] = useState("");
+  const [tLastName, setTLastName] = useState("");
+  const [tEmail, setTEmail] = useState("");
+  const [tPhone, setTPhone] = useState("");
+
+  async function setHide(hide: boolean) {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/capsules/${capsuleId}/hide-until-reveal`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ hide }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(data.error ?? "Couldn't update.");
+      }
+      router.refresh();
+    } catch (err) {
+      setError((err as Error).message);
+      setBusy(false);
+    }
+  }
+
+  async function submitTransfer() {
+    if (busy) return;
+    if (!tFirstName.trim() || !tLastName.trim() || !tEmail.trim()) {
+      setError("First name, last name, and email are required.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/capsules/${capsuleId}/transfer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: tFirstName.trim(),
+          lastName: tLastName.trim(),
+          email: tEmail.trim(),
+          phone: tPhone.trim() || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(data.error ?? "Couldn't send the transfer.");
+      }
+      setMode("transferred");
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Already hidden — show the status + unhide.
+  if (hideUntilReveal) {
+    return (
+      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-6">
+        <div className="rounded-2xl border border-amber/25 bg-white px-6 py-5">
+          <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
+            Hidden mode
+          </p>
+          <h3 className="mt-1.5 text-[17px] font-bold text-navy tracking-[-0.2px]">
+            Messages are sealed until reveal day.
+          </h3>
+          <p className="mt-2 text-sm text-ink-mid leading-[1.55]">
+            Your dashboard hides every message until{" "}
+            <span className="font-semibold text-navy">
+              {formatLong(revealDate)}
+            </span>
+            . You&rsquo;ll still see the count tick up as guests contribute.
+          </p>
+          {error && (
+            <p className="mt-3 text-sm text-red-600" role="alert">
+              {error}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={() => setHide(false)}
+            disabled={busy}
+            className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold border border-navy/15 text-ink-mid hover:text-navy hover:border-navy/30 transition-colors disabled:opacity-50"
+          >
+            {busy ? "Updating…" : "Unhide messages"}
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-6">
+      <div className="rounded-2xl border border-amber/25 bg-white px-6 py-5">
+        {mode === "gate" && (
+          <>
+            <h3 className="text-[17px] font-bold text-navy tracking-[-0.2px]">
+              Are you the Bride or Groom?
+            </h3>
+            <p className="mt-1.5 text-sm text-ink-mid leading-[1.55]">
+              If you bought this capsule yourself, you might want to keep the
+              messages a surprise.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setMode("choose")}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors"
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  /* No-op: the panel hides nothing. User can come back to it. */
+                }}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold border border-navy/15 text-navy hover:border-navy/30 transition-colors"
+              >
+                No
+              </button>
+            </div>
+          </>
+        )}
+
+        {mode === "choose" && (
+          <>
+            <h3 className="text-[17px] font-bold text-navy tracking-[-0.2px]">
+              Would you like to transfer this capsule to someone to manage, or
+              hide everything until reveal day?
+            </h3>
+            <p className="mt-1.5 text-sm text-ink-mid leading-[1.55]">
+              <strong className="text-navy">Hide</strong> keeps the capsule on
+              your account but redacts every message on your dashboard until
+              the reveal.{" "}
+              <strong className="text-navy">Transfer</strong> hands management
+              to someone else (a planner, MOH, parent) — they take over until
+              reveal day.
+            </p>
+            {error && (
+              <p className="mt-3 text-sm text-red-600" role="alert">
+                {error}
+              </p>
+            )}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setHide(true)}
+                disabled={busy}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors disabled:opacity-50"
+              >
+                {busy ? "Hiding…" : "Hide it"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setError(null);
+                  setMode("transfer");
+                }}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
+              >
+                Transfer
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("gate")}
+                className="inline-flex items-center text-[12px] font-semibold text-ink-light hover:text-navy transition-colors px-2"
+              >
+                Back
+              </button>
+            </div>
+          </>
+        )}
+
+        {mode === "transfer" && (
+          <>
+            <h3 className="text-[17px] font-bold text-navy tracking-[-0.2px]">
+              Enter their information below:
+            </h3>
+            <p className="mt-1.5 text-sm text-ink-mid leading-[1.55]">
+              We&rsquo;ll email them a link to take over. Once they accept, you
+              won&rsquo;t be able to manage the capsule anymore — they will,
+              through reveal day.
+            </p>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                type="text"
+                value={tFirstName}
+                onChange={(e) => setTFirstName(e.target.value)}
+                placeholder="First name"
+                className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+              />
+              <input
+                type="text"
+                value={tLastName}
+                onChange={(e) => setTLastName(e.target.value)}
+                placeholder="Last name"
+                className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+              />
+              <input
+                type="email"
+                inputMode="email"
+                autoComplete="email"
+                value={tEmail}
+                onChange={(e) => setTEmail(e.target.value)}
+                placeholder="Email"
+                className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+              />
+              <input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                value={tPhone}
+                onChange={(e) => setTPhone(e.target.value)}
+                placeholder="Phone (optional)"
+                className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+              />
+            </div>
+            {error && (
+              <p className="mt-3 text-sm text-red-600" role="alert">
+                {error}
+              </p>
+            )}
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={submitTransfer}
+                disabled={busy}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors disabled:opacity-50"
+              >
+                {busy ? "Sending…" : "Transfer"}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setError(null);
+                  setMode("choose");
+                }}
+                className="inline-flex items-center text-[12px] font-semibold text-ink-light hover:text-navy transition-colors px-2"
+              >
+                Back
+              </button>
+            </div>
+          </>
+        )}
+
+        {mode === "transferred" && (
+          <>
+            <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
+              Transfer pending
+            </p>
+            <h3 className="mt-1.5 text-[17px] font-bold text-navy tracking-[-0.2px]">
+              We sent {tFirstName.trim() || "them"} a link.
+            </h3>
+            <p className="mt-2 text-sm text-ink-mid leading-[1.55]">
+              They&rsquo;ll need to sign in with{" "}
+              <span className="font-mono text-[12px] text-navy">{tEmail.trim()}</span>
+              {" "}and click the accept button. Once they do, the capsule moves
+              to their account and yours becomes read-only.
+            </p>
+          </>
+        )}
       </div>
     </section>
   );

@@ -345,3 +345,29 @@ export async function sendContributorRejected(params: {
     `),
   });
 }
+
+// #26 — Capsule Transfer Request (wedding hand-off)
+//
+// Sent to the bride/groom's chosen manager when the bride/groom
+// transfers ownership of their wedding capsule. The accept link
+// is single-use; clicking it (after sign-in/sign-up with this
+// email) flips MemoryCapsule.organiserId to the recipient.
+export async function sendCapsuleTransferRequest(params: {
+  to: string;
+  toFirstName: string;
+  fromName: string;
+  capsuleTitle: string;
+  acceptUrl: string;
+}): Promise<void> {
+  await send({
+    to: params.to,
+    subject: `${params.fromName} wants you to manage their wedding capsule.`,
+    html: wrap(`
+      ${heading(`${escapeHtml(params.fromName)} is asking you to manage their wedding capsule.`)}
+      ${body(`Hi ${escapeHtml(params.toFirstName)} &mdash; ${escapeHtml(params.fromName)} has set up <strong>${escapeHtml(params.capsuleTitle)}</strong> on untilThen and wants you to manage it through reveal day so they don&rsquo;t see any messages early.`)}
+      ${body("If you accept, you take over the capsule. You&rsquo;ll be able to see contributions as they come in, share the QR with guests, and seal the capsule before the reveal. The original purchaser will no longer be able to manage it.")}
+      ${cta(params.acceptUrl, "Accept &amp; manage")}
+      ${muted("This invite is unique to you. If you didn&rsquo;t expect it, just ignore the email &mdash; nothing happens until you click the link.")}
+    `),
+  });
+}

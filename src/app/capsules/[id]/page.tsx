@@ -54,6 +54,14 @@ export default async function CapsulePage({
 
   const status = effectiveStatus(capsule);
 
+  // Wedding bride/groom hand-off: when the organiser opted to
+  // hide messages until reveal day, scrub every contribution
+  // body, title, author, and media count server-side before the
+  // payload leaves the request. Only the total count survives.
+  // Auto-expires the moment revealDate passes — no cron needed.
+  const redactContributions =
+    capsule.hideUntilReveal && capsule.revealDate.getTime() > Date.now();
+
   // Hydrate the organiser's own contribution attachments with
   // signed GET urls so MediaAttachments can render thumbnails
   // for what's already saved.
@@ -153,23 +161,30 @@ export default async function CapsulePage({
         contributionsClosed: capsule.contributionsClosed,
         accessToken: capsule.accessToken,
         guestToken: capsule.guestToken,
+        hideUntilReveal: capsule.hideUntilReveal,
       }}
       currentUserClerkId={userId}
       requiresPayment={requiresPayment}
-      contributions={capsule.contributions.map((c) => ({
-        id: c.id,
-        authorName: c.authorName,
-        authorAvatarUrl: c.clerkUserId
-          ? avatarUrlByClerkId.get(c.clerkUserId) ?? null
-          : null,
-        clerkUserId: c.clerkUserId,
-        type: c.type,
-        title: c.title,
-        body: c.body,
-        attachmentCount: c.mediaUrls.length,
-        approvalStatus: c.approvalStatus,
-        createdAt: c.createdAt.toISOString(),
-      }))}
+      redactContributions={redactContributions}
+      contributionCount={capsule.contributions.length}
+      contributions={
+        redactContributions
+          ? []
+          : capsule.contributions.map((c) => ({
+              id: c.id,
+              authorName: c.authorName,
+              authorAvatarUrl: c.clerkUserId
+                ? avatarUrlByClerkId.get(c.clerkUserId) ?? null
+                : null,
+              clerkUserId: c.clerkUserId,
+              type: c.type,
+              title: c.title,
+              body: c.body,
+              attachmentCount: c.mediaUrls.length,
+              approvalStatus: c.approvalStatus,
+              createdAt: c.createdAt.toISOString(),
+            }))
+      }
       ownAttachments={ownAttachments}
       invites={capsule.invites.map((i) => ({
         id: i.id,

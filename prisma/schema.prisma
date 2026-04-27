@@ -383,6 +383,13 @@ model MemoryCapsule {
   /// enterprise channel) — drives org usage reporting + the
   /// transfer flow on offboarding. Null for personal capsules.
   organizationId      String?
+  /// Wedding-specific: when the bride/groom buys the capsule
+  /// themselves but doesn't want to read messages early. With
+  /// this true, the organiser's own dashboard redacts every
+  /// contribution body until revealDate — only the count is
+  /// visible. Reverts automatically once revealDate passes;
+  /// guests / contributions list /api routes are unaffected.
+  hideUntilReveal     Boolean       @default(false)
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 
@@ -390,11 +397,60 @@ model MemoryCapsule {
   organization  Organization?         @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   contributions CapsuleContribution[]
   invites       CapsuleInvite[]
+  transfers     CapsuleTransfer[]
 
   @@index([organiserId])
   @@index([accessToken])
   @@index([status])
   @@index([organizationId])
+}
+
+// ── Capsule transfer (bride/groom hand-off) ───────────────
+//
+// Wedding flow: the bride/groom buys the capsule but wants
+// someone else (planner, MOH, parent) to manage it through
+// reveal day so they don't accidentally see messages early.
+// This row tracks the pending hand-off; the recipient clicks
+// the magic link, signs in (or signs up) with the matching
+// email, and on accept we flip MemoryCapsule.organiserId.
+//
+// Once accepted, the original purchaser still has a row in
+// the contributions table (their "From" message) but is no
+// longer the organiser, so /capsules/[id] redirects them.
+
+enum CapsuleTransferStatus {
+  PENDING
+  ACCEPTED
+  CANCELED
+}
+
+model CapsuleTransfer {
+  id          String                @id @default(cuid())
+  capsuleId   String
+  /// User.id of the person initiating the transfer (current
+  /// organiser at request time). Held even after accept so we
+  /// can audit who handed off to whom.
+  fromUserId  String
+  toEmail     String
+  toFirstName String
+  toLastName  String
+  toPhone     String?
+  /// Magic-link token. Single-use, swapped for an organiserId
+  /// flip on accept.
+  token       String                @unique @default(cuid())
+  status      CapsuleTransferStatus @default(PENDING)
+  invitedAt   DateTime              @default(now())
+  acceptedAt  DateTime?
+  /// User.id of the accepting user once the magic link is
+  /// followed. Same value gets written to MemoryCapsule.organiserId
+  /// in the same transaction.
+  acceptedUserId String?
+
+  capsule MemoryCapsule @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
+
+  @@index([capsuleId])
+  @@index([toEmail])
+  @@index([status])
 }
 
 model CapsuleContribution {
