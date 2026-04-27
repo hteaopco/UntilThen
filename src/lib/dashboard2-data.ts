@@ -56,7 +56,18 @@ export async function loadDashboard2Data({
       // Capsule list — the two products have different copy,
       // pricing, and contributor model, so co-listing them
       // confused the empty state and the price chip.
-      where: { organiserId: userId, occasionType: { not: "WEDDING" } },
+      //
+      // Org-attributed (enterprise) capsules are also excluded
+      // — those live on /enterprise where they're tracked
+      // against the organisation's seat. Showing them in the
+      // user's personal Gift Capsule list would double-count
+      // them and let users "see" their org capsules as if they
+      // were personal purchases.
+      where: {
+        organiserId: userId,
+        occasionType: { not: "WEDDING" },
+        organizationId: null,
+      },
       include: {
         invites: {
           orderBy: { createdAt: "asc" },

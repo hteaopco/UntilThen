@@ -109,6 +109,7 @@ export function CapsuleOverview({
   ownAttachments,
   invites,
   requiresPayment,
+  isOrgAttributed,
   redactContributions,
   contributionCount,
 }: {
@@ -119,6 +120,11 @@ export function CapsuleOverview({
    *  User.freeGiftAccess. When false, the activation modal
    *  skips the card-entry step. */
   requiresPayment: boolean;
+  /** True when the capsule was created against an Organization
+   *  (enterprise loss-leader channel). Drives the CTA copy
+   *  swap from "Send invites — $9.99" → "Invite Contributors"
+   *  since the user never sees a price. */
+  isOrgAttributed: boolean;
   contributions: ContributionRow[];
   /** Pre-signed view URLs for the organiser's own contribution
    * media. Server-rendered so MediaAttachments can hydrate the
@@ -541,8 +547,11 @@ export function CapsuleOverview({
                 onClick={() => setActivateOpen(true)}
                 className="inline-flex items-center gap-2 bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
               >
-                {capsule.occasionType === "WEDDING" ? "Activate Capsule" : "Send invites"}{" "}
-                &mdash; {formatCapsulePrice(capsule.occasionType)}
+                {capsule.occasionType === "WEDDING"
+                  ? `Activate Capsule — ${formatCapsulePrice(capsule.occasionType)}`
+                  : isOrgAttributed
+                    ? "Invite Contributors"
+                    : `Send invites — ${formatCapsulePrice(capsule.occasionType)}`}
               </button>
             ) : isSealed ? (
               <>
@@ -719,6 +728,7 @@ export function CapsuleOverview({
           invitesStaged={invites.filter((i) => i.status === "STAGED").length}
           stagedInvites={invites.filter((i) => i.status === "STAGED")}
           requiresPayment={requiresPayment}
+          isOrgAttributed={isOrgAttributed}
           onClose={() => setActivateOpen(false)}
           onDone={() => {
             setActivateOpen(false);
@@ -1545,6 +1555,7 @@ function ActivationModal({
   invitesStaged,
   stagedInvites,
   requiresPayment,
+  isOrgAttributed,
   onClose,
   onDone,
 }: {
@@ -1556,6 +1567,7 @@ function ActivationModal({
   invitesStaged: number;
   stagedInvites: InviteRow[];
   requiresPayment: boolean;
+  isOrgAttributed: boolean;
   onClose: () => void;
   onDone: () => void;
 }) {
@@ -1744,7 +1756,9 @@ function ActivationModal({
                   ? "Continue to payment"
                   : occasionType === "WEDDING"
                     ? "Activate Capsule"
-                    : "Send contributor invites"}
+                    : isOrgAttributed
+                      ? "Invite Contributors"
+                      : "Send contributor invites"}
             </button>
             {occasionType !== "WEDDING" && (
               <p className="text-sm font-semibold text-navy text-center">

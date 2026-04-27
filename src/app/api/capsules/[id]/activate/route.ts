@@ -99,10 +99,12 @@ export async function POST(
 
     // Resolve payment requirement before any DB writes — we'd
     // rather reject a free-activation attempt than walk back a
-    // status flip.
+    // status flip. Org-attributed capsules (enterprise loss-
+    // leader channel) are billed to the organisation upstream;
+    // the user never goes through Square here.
     const dbUser = owned.user;
     const hasFree = await userHasGiftAccess(dbUser.id);
-    const paymentRequired = !hasFree;
+    const paymentRequired = !hasFree && !capsule.organizationId;
 
     // Charge via Square when payment is required. Idempotency
     // key is stable per capsule+user so a client retry won't

@@ -14,7 +14,7 @@ import { usePathname } from "next/navigation";
  * roster or view org-wide stats.
  */
 const ADMIN_NAV: Array<{ href: string; label: string; icon: typeof Users }> = [
-  { href: "/home", label: "Home", icon: Home },
+  { href: "/enterprise", label: "Home", icon: Home },
   { href: "/enterprise/roster", label: "Roster", icon: Users },
   { href: "/enterprise/stats", label: "Stat Board", icon: BarChart3 },
 ];
@@ -52,9 +52,15 @@ export function EnterpriseShell({
           >
             <ul className="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible">
               {ADMIN_NAV.map((item) => {
+                // Home (/enterprise) is the dashboard root and
+                // every other nav item starts with that prefix,
+                // so the prefix-match below would always
+                // highlight Home — exact-match it instead.
                 const active =
-                  pathname === item.href ||
-                  pathname.startsWith(item.href + "/");
+                  item.href === "/enterprise"
+                    ? pathname === "/enterprise"
+                    : pathname === item.href ||
+                      pathname.startsWith(item.href + "/");
                 const Icon = item.icon;
                 return (
                   <li key={item.href}>

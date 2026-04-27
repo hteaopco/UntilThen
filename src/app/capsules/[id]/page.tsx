@@ -32,8 +32,9 @@ export default async function CapsulePage({
   // Resolve paywall state once here + thread to the client. The
   // activation modal uses this to decide whether to show the
   // card-entry step or let the organiser skip straight through.
+  // Org-attributed capsules (enterprise) always skip payment
+  // because the organisation is the buyer, not the user.
   const giftAccessFree = await userHasGiftAccess(owned.user.id);
-  const requiresPayment = !giftAccessFree;
 
   const { prisma } = await import("@/lib/prisma");
   const capsule = await prisma.memoryCapsule.findUnique({
@@ -53,6 +54,11 @@ export default async function CapsulePage({
   if (!capsule) redirect("/dashboard");
 
   const status = effectiveStatus(capsule);
+  // Org-attributed capsules are paid for by the organisation
+  // (loss-leader B2B channel) — the user never sees a Square
+  // checkout. Same gate is mirrored in /api/.../activate.
+  const isOrgAttributed = Boolean(capsule.organizationId);
+  const requiresPayment = !giftAccessFree && !isOrgAttributed;
 
   // Wedding bride/groom hand-off: when the organiser opted to
   // hide messages until reveal day, scrub every contribution
@@ -165,6 +171,7 @@ export default async function CapsulePage({
       }}
       currentUserClerkId={userId}
       requiresPayment={requiresPayment}
+      isOrgAttributed={isOrgAttributed}
       redactContributions={redactContributions}
       contributionCount={capsule.contributions.length}
       contributions={
