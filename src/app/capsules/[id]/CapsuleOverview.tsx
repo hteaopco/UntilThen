@@ -1185,7 +1185,11 @@ function blankRow(): DraftRow {
     key: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     name: "",
     email: "",
-    requiresApproval: false,
+    // Default to review-on. The reveal is the entire point of a
+    // capsule, so the safe default is "organiser sees everything
+    // before the recipient does"; uncheck per-row (or via the
+    // bulk toggle) for trusted contributors.
+    requiresApproval: true,
   };
 }
 
@@ -1257,7 +1261,7 @@ function ContributorsPanel({
           key: `pick-${p.id}-${Date.now()}`,
           name: `${p.firstName} ${p.lastName}`.trim(),
           email: p.email,
-          requiresApproval: false,
+          requiresApproval: true,
         }));
       return startsEmpty ? fresh : [...prev, ...fresh];
     });
@@ -1285,6 +1289,19 @@ function ContributorsPanel({
   function addRow() {
     setRows((prev) => [...prev, blankRow()]);
   }
+
+  // Bulk toggle for the per-row "Review before X sees" checkbox.
+  // If every row is already checked, uncheck them all; otherwise
+  // check them all. Mirrors the picker's check-all/uncheck-all
+  // pattern so the two surfaces feel consistent.
+  function toggleAllReview() {
+    setRows((prev) => {
+      const allOn = prev.every((r) => r.requiresApproval);
+      return prev.map((r) => ({ ...r, requiresApproval: !allOn }));
+    });
+  }
+  const allReviewChecked =
+    rows.length > 0 && rows.every((r) => r.requiresApproval);
 
   async function save(e?: FormEvent): Promise<boolean> {
     if (e) e.preventDefault();
@@ -1434,6 +1451,20 @@ function ContributorsPanel({
             </div>
           </div>
         ))}
+
+        {rows.length > 1 && (
+          <div className="flex justify-end pt-1">
+            <button
+              type="button"
+              onClick={toggleAllReview}
+              className="text-[12px] font-bold text-amber-dark hover:text-amber underline"
+            >
+              {allReviewChecked
+                ? `Uncheck all "Review before ${recipientDisplayName} ${isCouple ? "see" : "sees"}"`
+                : `Check all "Review before ${recipientDisplayName} ${isCouple ? "see" : "sees"}"`}
+            </button>
+          </div>
+        )}
 
         {/* CTA row. Mobile-first: each button is full-width on
             narrow screens (basis-full) and reflows to auto-width
