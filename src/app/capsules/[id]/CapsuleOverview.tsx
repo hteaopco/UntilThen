@@ -149,7 +149,7 @@ export function CapsuleOverview({
   // Add-contributors panel collapsed by default so a brand-new
   // capsule doesn't open as a wall of empty form fields. Auto-
   // opens when there's an existing invite list to surface.
-  const [inviteOpen, setInviteOpen] = useState(invites.length > 0);
+  const [inviteOpen, setInviteOpen] = useState(true);
 
   const isDraft = capsule.rawStatus === "DRAFT";
   const isSealed = capsule.contributionsClosed;
@@ -378,10 +378,10 @@ export function CapsuleOverview({
         </section>
       )}
 
-      {/* Invite people — collapsed by default so a brand-new
-          capsule doesn't open as a wall of empty form fields.
-          Tap the header to expand; auto-opens when there are
-          already invites to display.
+      {/* Invite people — expanded by default so a brand-new
+          organiser sees the form fields without an extra tap.
+          Header is still a toggle: tapping the chevron collapses
+          the panel for organisers who'd rather scroll past.
           Hidden for weddings: there are no named contributors.
           Guests write freely through the post-activation QR. */}
       {capsule.occasionType !== "WEDDING" && (
