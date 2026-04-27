@@ -290,7 +290,10 @@ export function CapsuleOverview({
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Couldn't delete capsule.");
-      router.push("/dashboard");
+      // Org-attributed capsules belong to the enterprise surface,
+      // so deletes return there. Personal capsules go back to the
+      // consumer dashboard as before.
+      router.push(isOrgAttributed ? "/enterprise" : "/dashboard");
       router.refresh();
     } catch (err) {
       setError((err as Error).message);

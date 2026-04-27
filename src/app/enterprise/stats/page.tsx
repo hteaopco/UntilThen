@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowRight, Mail } from "lucide-react";
@@ -56,7 +56,8 @@ export default async function StatBoardPage() {
       // Recipient roster — every gift sent under this org. Drafts
       // are excluded because nothing has been "sent" yet; everything
       // else (ACTIVE / SEALED / REVEALED) shows up so the admin can
-      // see who got what and when.
+      // see who got what and when. recipient2Email is selected so
+      // we can filter couple capsules destined for the viewer below.
       prisma.memoryCapsule.findMany({
         where: {
           ...enterpriseScope,
@@ -67,6 +68,7 @@ export default async function StatBoardPage() {
           title: true,
           recipientName: true,
           recipientEmail: true,
+          recipient2Email: true,
           revealDate: true,
           status: true,
           contributionsClosed: true,
@@ -77,6 +79,41 @@ export default async function StatBoardPage() {
         orderBy: { revealDate: "desc" },
       }),
     ]);
+
+  // Look up the viewer's email so we can hide any capsule destined
+  // for the viewer themselves — surfacing "you've got a gift coming"
+  // on the stat board would dampen the moment when it actually
+  // arrives. Aggregate org-wide counters above stay unfiltered so
+  // admins still see the real total volume.
+  let viewerEmail: string | null = null;
+  try {
+    const clerk = await clerkClient();
+    const u = await clerk.users.getUser(userId);
+    viewerEmail =
+      u.primaryEmailAddress?.emailAddress?.toLowerCase() ??
+      u.emailAddresses[0]?.emailAddress?.toLowerCase() ??
+      null;
+  } catch {
+    // Treat as no-match — show everything rather than fail the page.
+  }
+  const visibleRecipientCapsules = viewerEmail
+    ? recipientCapsules.filter(
+        (c) =>
+          c.recipientEmail?.toLowerCase() !== viewerEmail &&
+          c.recipient2Email?.toLowerCase() !== viewerEmail,
+      )
+    : recipientCapsules;
+
+  // Active = scheduled (revealDate still in the future). Sent = the
+  // reveal date has passed (the cron's emailed it / will email it
+  // imminently). Matches the per-row "Sent / Scheduled for" label.
+  const nowMs = Date.now();
+  const activeCount = visibleRecipientCapsules.filter(
+    (c) => c.revealDate.getTime() > nowMs,
+  ).length;
+  const sentCount = visibleRecipientCapsules.filter(
+    (c) => c.revealDate.getTime() <= nowMs,
+  ).length;
   const capsuleIds = capsuleIdRows.map((r) => r.id);
   const contributionsByType: Record<string, number> = {
     TEXT: 0,
@@ -153,11 +190,12 @@ export default async function StatBoardPage() {
             Recipients
           </h3>
           <span className="text-[11px] text-ink-light">
-            {recipientCapsules.length}{" "}
-            {recipientCapsules.length === 1 ? "gift" : "gifts"} sent
+            {activeCount} {activeCount === 1 ? "gift" : "gifts"} active
+            {" | "}
+            {sentCount} {sentCount === 1 ? "gift" : "gifts"} sent
           </span>
         </div>
-        {recipientCapsules.length === 0 ? (
+        {visibleRecipientCapsules.length === 0 ? (
           <div className="rounded-xl border border-navy/[0.06] bg-navy/[0.02] px-4 py-6 text-center">
             <p className="text-[13px] text-ink-mid">
               No gifts have gone out yet. Recipients land here once a capsule
@@ -166,7 +204,7 @@ export default async function StatBoardPage() {
           </div>
         ) : (
           <ul className="space-y-2">
-            {recipientCapsules.map((c) => {
+            {visibleRecipientCapsules.map((c) => {
               const status = effectiveStatus(c);
               const reveal = new Date(c.revealDate);
               const sentLabel =
