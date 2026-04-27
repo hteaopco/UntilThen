@@ -1,7 +1,8 @@
 import { AdminHeader } from "@/app/admin/AdminHeader";
 import { PreviewsClient } from "@/app/admin/previews/PreviewsClient";
-import { r2KeyForStockVoice } from "@/lib/elevenlabs";
-import { r2IsConfigured, signGetUrl } from "@/lib/r2";
+import { signStockVoiceUrls } from "@/lib/elevenlabs";
+
+export type { StockVoiceUrls } from "@/lib/elevenlabs";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -16,22 +17,6 @@ export type RecentCapsule = {
   isPaid: boolean;
   contributionCount: number;
 };
-
-export type StockVoiceUrls = {
-  vaultMom: string | null;
-  capsuleBirthday: string | null;
-};
-
-async function signStockVoiceUrls(): Promise<StockVoiceUrls> {
-  if (!r2IsConfigured()) {
-    return { vaultMom: null, capsuleBirthday: null };
-  }
-  const [vaultMom, capsuleBirthday] = await Promise.all([
-    signGetUrl(r2KeyForStockVoice("vault-mom")).catch(() => null),
-    signGetUrl(r2KeyForStockVoice("capsule-birthday")).catch(() => null),
-  ]);
-  return { vaultMom, capsuleBirthday };
-}
 
 export default async function AdminPreviewsPage() {
   let capsules: RecentCapsule[] = [];

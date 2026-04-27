@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import {
-  MOCK_CONTRIBUTIONS,
+  buildMockContributions,
   mockRevealCapsule,
 } from "@/app/reveal/[token]/mockData";
 import {
@@ -14,6 +14,7 @@ import {
   type RevealContribution,
   type RevealCuratedSlide,
 } from "@/app/reveal/[token]/RevealExperience";
+import type { StockVoiceUrls } from "@/lib/elevenlabs";
 
 type Mode = "real" | "demo";
 
@@ -37,6 +38,7 @@ export function VaultPreviewClient({
   childId,
   curatedSlides,
   musicUrl,
+  stockVoices,
 }: {
   realCapsule: RevealCapsule;
   realContributions: RevealContribution[];
@@ -47,6 +49,10 @@ export function VaultPreviewClient({
   /** Per-vault background music URL. When unset RevealExperience
    *  falls back to the global env music or runs silent. */
   musicUrl?: string | null;
+  /** Signed URLs for the admin-uploaded stock voice clips. The
+   *  Full demo's voice card uses vaultMom; falls back to the W3C
+   *  horse only if R2 isn't configured / nothing uploaded. */
+  stockVoices: StockVoiceUrls;
 }) {
   const hasRealContent = realContributions.length > 0;
   const [mode, setMode] = useState<Mode>(hasRealContent ? "real" : "demo");
@@ -57,9 +63,15 @@ export function VaultPreviewClient({
     revealDate: realCapsule.revealDate,
     title: realCapsule.title,
   });
+  // Inject the uploaded stock-voice URL into the mock voice card.
+  // Without this, the static MOCK_CONTRIBUTIONS export plays the
+  // W3C horse fallback baked into the template.
+  const demoContributions = buildMockContributions({
+    vaultMom: stockVoices.vaultMom,
+  });
 
   const capsule = mode === "real" ? realCapsule : demoCapsule;
-  const contributions = mode === "real" ? realContributions : MOCK_CONTRIBUTIONS;
+  const contributions = mode === "real" ? realContributions : demoContributions;
 
   // Top of the gate — Back link only.
   const gateHeader = (

@@ -6,6 +6,7 @@ import type {
   RevealContribution,
   RevealMedia,
 } from "@/app/reveal/[token]/RevealExperience";
+import { signStockVoiceUrls } from "@/lib/elevenlabs";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
 import { VaultPreviewClient } from "./PreviewClient";
@@ -154,6 +155,11 @@ export default async function VaultPreviewPage({
     }
   }
 
+  // Sign the stock-voice URLs so the "Full demo" voice card plays
+  // the admin-uploaded vault-mom MP3 instead of the W3C horse
+  // fallback baked into the static MOCK_CONTRIBUTIONS export.
+  const stockVoices = await signStockVoiceUrls();
+
   return (
     <VaultPreviewClient
       realCapsule={capsule}
@@ -161,6 +167,7 @@ export default async function VaultPreviewPage({
       childId={child.id}
       curatedSlides={curatedSlides}
       musicUrl={musicUrl}
+      stockVoices={stockVoices}
     />
   );
 }

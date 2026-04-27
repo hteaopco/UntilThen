@@ -7,6 +7,7 @@ import type {
   RevealMedia,
 } from "@/app/reveal/[token]/RevealExperience";
 import { findOwnedCapsule } from "@/lib/capsules";
+import { signStockVoiceUrls } from "@/lib/elevenlabs";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
 import { PreviewClient } from "./PreviewClient";
@@ -134,11 +135,18 @@ export default async function CapsulePreviewPage({
     hasCompleted: false,
   };
 
+  // Sign the stock-voice URLs so the "Full demo" toggle plays the
+  // admin-uploaded MP3 (gift capsule = capsule-birthday slot)
+  // instead of the W3C horse fallback baked into the static
+  // mockData arrays.
+  const stockVoices = await signStockVoiceUrls();
+
   return (
     <PreviewClient
       realCapsule={realCapsule}
       realContributions={realContributions}
       capsuleId={capsule.id}
+      stockVoices={stockVoices}
     />
   );
 }

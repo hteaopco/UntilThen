@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import {
-  MOCK_CAPSULE_CONTRIBUTIONS,
+  buildMockCapsuleContributions,
   mockRevealCapsuleBirthday,
 } from "@/app/reveal/[token]/mockData";
 import {
@@ -13,6 +13,7 @@ import {
   type RevealCapsule,
   type RevealContribution,
 } from "@/app/reveal/[token]/RevealExperience";
+import type { StockVoiceUrls } from "@/lib/elevenlabs";
 
 type Mode = "real" | "demo";
 
@@ -40,10 +41,16 @@ export function PreviewClient({
   realCapsule,
   realContributions,
   capsuleId,
+  stockVoices,
 }: {
   realCapsule: RevealCapsule;
   realContributions: RevealContribution[];
   capsuleId: string;
+  /** Signed URLs for the admin-uploaded stock voice clips. The
+   *  Full demo voice card uses capsuleBirthday; falls back to the
+   *  W3C horse placeholder only if R2 isn't configured / the file
+   *  hasn't been uploaded. */
+  stockVoices: StockVoiceUrls;
 }) {
   const hasRealContent = realContributions.length > 0;
   // Default to demo when there's nothing real to show — otherwise
@@ -59,10 +66,16 @@ export function PreviewClient({
     revealDate: realCapsule.revealDate,
     title: realCapsule.title,
   });
+  // Build mock contributions with the uploaded stock-voice URL
+  // injected into the voice card. Without this, the static
+  // MOCK_CAPSULE_CONTRIBUTIONS export plays the W3C horse fallback.
+  const demoContributions = buildMockCapsuleContributions({
+    capsuleBirthday: stockVoices.capsuleBirthday,
+  });
 
   const capsule = mode === "real" ? realCapsule : demoCapsule;
   const contributions =
-    mode === "real" ? realContributions : MOCK_CAPSULE_CONTRIBUTIONS;
+    mode === "real" ? realContributions : demoContributions;
 
   return (
     <div className="relative">

@@ -70,6 +70,30 @@ export function r2KeyForStockVoice(key: StockVoiceKey): string {
   return `stock-voices/${key}.mp3`;
 }
 
+/** Signed view URLs for the stock voice clips, or null when the
+ *  R2 bucket isn't configured / the file isn't uploaded yet.
+ *  Threaded into the mock reveal builders so the demo voice
+ *  cards play the admin-uploaded MP3 instead of the W3C horse
+ *  fallback. Used by /admin/previews, /capsules/[id]/preview's
+ *  Full demo, and /vault/[childId]/preview's Full demo — every
+ *  surface that renders mock reveal contributions. */
+export type StockVoiceUrls = {
+  vaultMom: string | null;
+  capsuleBirthday: string | null;
+};
+
+export async function signStockVoiceUrls(): Promise<StockVoiceUrls> {
+  const { r2IsConfigured, signGetUrl } = await import("@/lib/r2");
+  if (!r2IsConfigured()) {
+    return { vaultMom: null, capsuleBirthday: null };
+  }
+  const [vaultMom, capsuleBirthday] = await Promise.all([
+    signGetUrl(r2KeyForStockVoice("vault-mom")).catch(() => null),
+    signGetUrl(r2KeyForStockVoice("capsule-birthday")).catch(() => null),
+  ]);
+  return { vaultMom, capsuleBirthday };
+}
+
 export async function synthesizeToElevenLabs(opts: {
   apiKey: string;
   voiceId: string;
