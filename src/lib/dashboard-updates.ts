@@ -1,36 +1,29 @@
 import { prisma } from "@/lib/prisma";
 
 /**
- * Count items surfaced under the dashboard "Updates" chip. Today this
- * is the sum of:
- *  - capsule contributions awaiting the organiser's approval
- *  - recent contributions the organiser likely hasn't seen yet
+ * Count items the dashboard "Updates" chip badge should advertise.
+ * Must match the list rendered at /dashboard/updates exactly so
+ * tapping the badge never lands on an empty inbox.
  *
- * We don't track a per-contribution "seen" flag yet, so "recent" is a
- * 7-day rolling window over AUTO_APPROVED contributions. Good enough
- * for a v1 badge; tighten with a seenAt column if the count feels
- * noisy once real usage lands.
+ * Same query shape as the list:
+ *  - approvalStatus PENDING_REVIEW only — items the organiser has
+ *    to approve / reject. AUTO_APPROVED contributions don't need
+ *    action and don't belong in a notification badge.
+ *  - moderationState NOT in [SCANNING, FLAGGED] — SCANNING is in
+ *    flight (resolves in seconds), FLAGGED is in /admin/moderation
+ *    awaiting human review. Neither is something the organiser
+ *    can act on yet.
+ *  - capsule organiserId === user — only the user's own capsules.
+ *    Wedding + enterprise capsules they own are included; both
+ *    surfaces also flow into /dashboard/updates so the count and
+ *    list stay aligned for them too.
  */
 export async function countDashboardUpdates(userId: string): Promise<number> {
-  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000);
-
-  const [pendingReview, recentAuto] = await Promise.all([
-    prisma.capsuleContribution.count({
-      where: {
-        approvalStatus: "PENDING_REVIEW",
-        capsule: { organiserId: userId },
-      },
-    }),
-    prisma.capsuleContribution.count({
-      where: {
-        approvalStatus: "AUTO_APPROVED",
-        createdAt: { gte: sevenDaysAgo },
-        capsule: { organiserId: userId },
-        // Organiser's own contributions shouldn't count as updates.
-        clerkUserId: null,
-      },
-    }),
-  ]);
-
-  return pendingReview + recentAuto;
+  return prisma.capsuleContribution.count({
+    where: {
+      approvalStatus: "PENDING_REVIEW",
+      moderationState: { notIn: ["FLAGGED", "SCANNING"] },
+      capsule: { organiserId: userId },
+    },
+  });
 }

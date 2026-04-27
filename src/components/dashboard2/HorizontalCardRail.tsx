@@ -109,10 +109,13 @@ export function HorizontalCardRail({
         ref={scrollerRef}
         // Real padding (not scroll-padding) on each side so the
         // first/last card can scroll to the rail's horizontal
-        // centre. (50vw - card half-width) is the exact offset
-        // needed for the edge cards to snap-center; 91px is half
-        // of the 182px max card width.
-        className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 pl-[calc(50vw-91px)] pr-[calc(50vw-91px)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        // centre. (50% - card half-width) where 50% is half the
+        // rail's parent (= the rail's own width); 91px is half
+        // of the 182px max card width. Using % instead of vw is
+        // critical on desktop — the dashboard sits inside a
+        // narrower max-width container, so 50vw would overshoot
+        // and push every card off the right edge of the rail.
+        className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 pl-[calc(50%-91px)] pr-[calc(50%-91px)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {childArray.map((child, i) => {
           const isActive = i === activeIdx;
