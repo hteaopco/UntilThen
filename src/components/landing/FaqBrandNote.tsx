@@ -33,8 +33,7 @@ export function FaqBrandNote() {
             saying &mdash; shape the people we love more than we realize.
           </p>
           <p>
-            Jesus said that out of the overflow of the heart, the mouth speaks.
-            We built{" "}
+            Out of the overflow of the heart, the mouth speaks. We built{" "}
             <Link
               href="/"
               className="text-amber-dark font-bold hover:underline"
