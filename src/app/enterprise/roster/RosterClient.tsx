@@ -311,7 +311,7 @@ export function RosterClient({
                     )}
                   </td>
                   <td className="px-3 py-2.5">
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-[0.1em] font-bold text-amber bg-amber-tint border border-amber/30">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-[0.1em] font-bold text-ink-mid bg-[#f1f5f9] border border-navy/[0.08]">
                       Invited
                     </span>
                   </td>
@@ -395,12 +395,14 @@ function Th({
 }
 
 function RolePill({ role }: { role: Role }) {
+  // OWNER + ADMIN both read as amber — they're the two
+  // privileged roles, and the surrounding UI doesn't need a
+  // colour distinction (the label itself already says which).
+  // MEMBER stays neutral grey.
   const cls =
-    role === "OWNER"
+    role === "OWNER" || role === "ADMIN"
       ? "text-amber-dark bg-amber-tint border-amber/30"
-      : role === "ADMIN"
-        ? "text-navy bg-navy/[0.06] border-navy/15"
-        : "text-ink-mid bg-[#f1f5f9] border-navy/[0.08]";
+      : "text-ink-mid bg-[#f1f5f9] border-navy/[0.08]";
   return (
     <span
       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-[0.1em] font-bold border ${cls}`}
