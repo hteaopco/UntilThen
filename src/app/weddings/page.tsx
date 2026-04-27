@@ -49,26 +49,26 @@ export default async function WeddingsPage() {
               sealed and quietly revealed on your first anniversary &mdash; a
               love letter from the day, delivered when you need it most.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <div className="mt-8 flex items-center gap-2 sm:gap-3">
               <a
                 href="mailto:hello@untilthenapp.io?subject=Wedding%20capsule%20question"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-amber-tint border border-amber/40 text-amber-dark text-[14px] font-bold hover:bg-amber/15 hover:border-amber/60 transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-amber-tint border border-amber/40 text-amber-dark text-[13px] sm:text-[14px] font-bold whitespace-nowrap hover:bg-amber/15 hover:border-amber/60 transition-colors"
               >
-                <Mail size={16} strokeWidth={2} />
+                <Mail size={14} strokeWidth={2} />
                 Email Us
               </a>
               <Link
                 href="/weddings/faq"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-navy/10 text-navy/70 text-[14px] font-bold hover:border-amber/40 hover:text-navy transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-full border border-navy/10 text-navy/70 text-[13px] sm:text-[14px] font-bold whitespace-nowrap hover:border-amber/40 hover:text-navy transition-colors"
               >
-                <HelpCircle size={16} strokeWidth={2} aria-hidden="true" />
+                <HelpCircle size={14} strokeWidth={2} aria-hidden="true" />
                 FAQ
               </Link>
               <Link
                 href="/weddings/dashboard"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full border border-navy/10 text-navy/70 text-[14px] font-bold hover:border-amber/40 hover:text-navy transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-full border border-navy/10 text-navy/70 text-[13px] sm:text-[14px] font-bold whitespace-nowrap hover:border-amber/40 hover:text-navy transition-colors"
               >
-                <LogIn size={16} strokeWidth={2} aria-hidden="true" />
+                <LogIn size={14} strokeWidth={2} aria-hidden="true" />
                 Login
               </Link>
             </div>
