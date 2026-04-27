@@ -6,6 +6,42 @@ would pull it forward into the active backlog.
 
 ---
 
+## v2 — Hive content moderation (re-enable)
+
+**Status:** Parked for v2. Hive integration is wired in
+`src/lib/hive.ts` but the API keys we hold currently 403 against
+the V2 sync endpoint (diagnosed as V3 playground keys hitting a
+V2 path). Code is in place and fail-open, so contributions still
+flow at launch — just unscanned.
+
+**Why deferred:** Resolving the auth path either needs (a) a V2
+production key issued from the same Hive project as the playground
+key, or (b) updating `lib/hive.ts` to call the V3 endpoint and
+parse the V3 response shape (different field names than V2's
+`output[].classes[]`). Both require live Hive docs / dashboard
+access; neither is a launch-day blocker.
+
+**Pull-forward triggers:**
+
+1. First flagged-content incident on production (a contribution
+   that should have been blocked goes through unscanned).
+2. Hive issues a V2-compatible production key for our project —
+   then it's a 5-minute env-var update, no code change.
+3. Volume of guest contributions reaches the point where manual
+   abuse review can't keep up.
+
+**On-ramp:** Keep the diagnostic logging in `callHive` (added this
+session) so the next time Hive is wired we get actionable Sentry
+output, not a generic 403.
+
+**Don't:** Speculate at the V3 endpoint URL or auth scheme without
+the docs in front of us — the previous round of guessing at
+"Basic auth + base64(ID:SECRET)" turned out to be wrong, and the
+V3 endpoints aren't reachable through WebFetch (Hive's docs site
+is JS-rendered).
+
+---
+
 ## v3 — Per-account envelope encryption of user content
 
 **Status:** Deferred to v3. The privacy page (`src/app/privacy/page.tsx`

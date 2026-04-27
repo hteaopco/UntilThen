@@ -40,18 +40,25 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { prisma } = await import("@/lib/prisma");
+  // Scope every count to enterprise (gift) capsules — wedding
+  // capsules a member happens to build under their account belong
+  // to the consumer wedding product, not the org's stat board.
+  const enterpriseScope = {
+    organizationId,
+    occasionType: { not: "WEDDING" as const },
+  };
   const [byStatus, capsuleIdRows, distinctRecipients] = await Promise.all([
     prisma.memoryCapsule.groupBy({
       by: ["status"],
-      where: { organizationId },
+      where: enterpriseScope,
       _count: { _all: true },
     }),
     prisma.memoryCapsule.findMany({
-      where: { organizationId },
+      where: enterpriseScope,
       select: { id: true },
     }),
     prisma.memoryCapsule.findMany({
-      where: { organizationId, recipientEmail: { not: null } },
+      where: { ...enterpriseScope, recipientEmail: { not: null } },
       distinct: ["recipientEmail"],
       select: { id: true },
     }),
