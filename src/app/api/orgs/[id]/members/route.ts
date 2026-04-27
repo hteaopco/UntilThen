@@ -58,7 +58,11 @@ export async function GET(
   ]);
 
   // Per-member capsule counts (org-attributed only) for the
-  // roster table's right-side metric.
+  // roster table's right-side metric. Mirrors the filter that
+  // drives the enterprise dashboard's manage card
+  // (loadEnterpriseCapsules in /enterprise/page.tsx) — non-WEDDING
+  // org-attributed capsules. Including weddings here would inflate
+  // the count past what the dashboard actually surfaces.
   const userIds = members.map((m) => m.user.id);
   const capsuleCounts =
     userIds.length === 0
@@ -68,6 +72,7 @@ export async function GET(
           where: {
             organizationId,
             organiserId: { in: userIds },
+            occasionType: { not: "WEDDING" },
           },
           _count: { _all: true },
         });
