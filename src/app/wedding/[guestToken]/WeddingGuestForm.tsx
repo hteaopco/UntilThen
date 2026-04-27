@@ -71,6 +71,7 @@ export function WeddingGuestForm({
   const [contributionId, setContributionId] = useState<string | null>(null);
   const [showCta, setShowCta] = useState(false);
   const [extraHeight, setExtraHeight] = useState(0);
+  const [saveForLaterOpen, setSaveForLaterOpen] = useState(false);
   const mediaKeysRef = useRef<string[]>([]);
   const mediaTypesRef = useRef<string[]>([]);
   const stateRef = useRef({ name, body, contributionId });
@@ -219,7 +220,7 @@ export function WeddingGuestForm({
           <div className="relative w-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/Card.png"
+              src="/Card.png?v=3"
               alt=""
               aria-hidden="true"
               className="w-full h-auto block select-none"
@@ -258,15 +259,31 @@ export function WeddingGuestForm({
               className="w-full h-auto select-none"
             />
           </div>
-          <button
-            type="button"
-            onClick={() => setPhase("editor")}
-            className="mt-2 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-amber text-white text-[14px] font-bold shadow-[0_8px_22px_-8px_rgba(196,122,58,0.6)] hover:bg-amber-dark transition-colors"
-          >
-            <Pencil size={14} strokeWidth={2} aria-hidden="true" />
-            Leave your message
-          </button>
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => setPhase("editor")}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-amber text-white text-[14px] font-bold shadow-[0_8px_22px_-8px_rgba(196,122,58,0.6)] hover:bg-amber-dark transition-colors"
+            >
+              <Pencil size={14} strokeWidth={2} aria-hidden="true" />
+              Leave Message Now
+            </button>
+            <button
+              type="button"
+              onClick={() => setSaveForLaterOpen(true)}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full border border-amber/50 text-amber-dark bg-white text-[14px] font-bold hover:bg-amber/10 transition-colors"
+            >
+              Save For Later
+            </button>
+          </div>
         </div>
+        {saveForLaterOpen && (
+          <SaveForLaterModal
+            guestToken={guestToken}
+            coupleNames={couple.coupleNames}
+            onClose={() => setSaveForLaterOpen(false)}
+          />
+        )}
       </main>
     );
   }
@@ -505,6 +522,153 @@ function FlowerCorner() {
         alt=""
         className="w-full h-auto select-none"
       />
+    </div>
+  );
+}
+
+/**
+ * "Save For Later" modal — collects first / last / phone so we
+ * can text the guest a reminder link to the same /wedding/[token]
+ * URL. Persists to WeddingSaveForLater on submit; the actual
+ * SMS dispatch is a follow-up (Twilio not wired yet), so this
+ * is currently a polite IOU plus a stored lead row.
+ */
+function SaveForLaterModal({
+  guestToken,
+  coupleNames,
+  onClose,
+}: {
+  guestToken: string;
+  coupleNames: string;
+  onClose: () => void;
+}) {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+
+  async function submit() {
+    if (busy) return;
+    if (!firstName.trim() || !lastName.trim() || !phone.trim()) {
+      setError("Please fill in all three fields.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/wedding/save-for-later/${guestToken}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          phone: phone.trim(),
+        }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(data.error ?? "Couldn't save.");
+      }
+      setDone(true);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-navy/40 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      onClick={() => {
+        if (!busy) onClose();
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-2xl shadow-[0_24px_48px_-8px_rgba(15,31,61,0.4)] w-full max-w-[420px] px-6 py-6"
+      >
+        {done ? (
+          <>
+            <h2 className="text-[18px] font-extrabold text-navy tracking-[-0.2px]">
+              We&rsquo;ll text you a reminder.
+            </h2>
+            <p className="mt-2 text-[14px] text-ink-mid leading-[1.55]">
+              When you&rsquo;re ready, tap the link in our text and pick up
+              right where you left off. Thanks for sharing in {coupleNames}
+              &rsquo;s moment.
+            </p>
+            <button
+              type="button"
+              onClick={onClose}
+              className="mt-5 w-full bg-amber text-white py-2.5 rounded-lg text-[14px] font-bold hover:bg-amber-dark transition-colors"
+            >
+              Close
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="text-[15px] text-navy leading-[1.55]">
+              Thank you for wanting to share in this moment, we&rsquo;ll
+              send you a text alert with a link so you don&rsquo;t forget!
+            </p>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="First Name"
+                className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+              />
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Last Name"
+                className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+              />
+              <input
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Phone Number"
+                className="w-full sm:col-span-2 px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+              />
+            </div>
+            {error && (
+              <p className="mt-3 text-sm text-red-600" role="alert">
+                {error}
+              </p>
+            )}
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                onClick={submit}
+                disabled={busy}
+                className="flex-1 bg-amber text-white py-2.5 rounded-lg text-[14px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
+              >
+                {busy ? "Saving…" : "Save For Later"}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={busy}
+                className="px-4 py-2.5 rounded-lg text-[13px] font-semibold border border-navy/15 text-ink-mid hover:text-navy hover:border-navy/30 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }

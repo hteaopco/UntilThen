@@ -398,6 +398,7 @@ model MemoryCapsule {
   contributions CapsuleContribution[]
   invites       CapsuleInvite[]
   transfers     CapsuleTransfer[]
+  saveForLaters WeddingSaveForLater[]
 
   @@index([organiserId])
   @@index([accessToken])
@@ -422,6 +423,39 @@ enum CapsuleTransferStatus {
   PENDING
   ACCEPTED
   CANCELED
+}
+
+// ── Wedding "Save For Later" leads ────────────────────────
+//
+// Captured from the guest contributor flow when a guest taps
+// "Save For Later" on the invitation card. We store first/last
+// + phone with the originating guestToken so an SMS reminder
+// (Twilio integration TBD) can later fire a one-tap link back
+// to the same /wedding/[token] URL.
+//
+// One row per submission — no dedup on (capsuleId, phone)
+// because a guest may opt in twice and we'd rather over-remind
+// than silently swallow.
+model WeddingSaveForLater {
+  id          String   @id @default(cuid())
+  capsuleId   String
+  guestToken  String
+  firstName   String
+  lastName    String
+  phone       String
+  /// True once the SMS reminder has fired. Stays false until
+  /// we wire Twilio; the cron that eventually dispatches will
+  /// flip this in the same write that records the message id.
+  reminderSent Boolean @default(false)
+  reminderSentAt DateTime?
+  createdAt   DateTime @default(now())
+
+  capsule MemoryCapsule @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
+
+  @@index([capsuleId])
+  @@index([guestToken])
+  @@index([reminderSent])
+  @@index([createdAt])
 }
 
 model CapsuleTransfer {
