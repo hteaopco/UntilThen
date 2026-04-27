@@ -17,6 +17,8 @@ import { Typewriter } from "@/components/ui/Typewriter";
 import { PublicMediaAttachments } from "@/app/contribute/capsule/[token]/PublicMediaAttachments";
 import { formatLong } from "@/lib/dateFormatters";
 
+import { WeddingPreviewExperience } from "./WeddingPreviewExperience";
+
 type Capsule = {
   title: string;
   /** "Alex & Jordan Smith" — populated by the organiser as the
@@ -76,7 +78,6 @@ export function WeddingGuestForm({
   const [showCta, setShowCta] = useState(false);
   const [extraHeight, setExtraHeight] = useState(0);
   const [saveForLaterOpen, setSaveForLaterOpen] = useState(false);
-  const [previewModalOpen, setPreviewModalOpen] = useState(false);
   // Fade the card-phase CTAs in after a short pause so they
   // don't pop into view before the Card.png finishes painting.
   // Resets each time the phase re-enters "card".
@@ -175,6 +176,10 @@ export function WeddingGuestForm({
           };
           throw new Error(data.error ?? "Couldn't submit.");
         }
+        // Capture the new contribution id so the post-submit
+        // "Preview my message" path has something to fetch.
+        const data = (await res.json().catch(() => ({}))) as { id?: string };
+        if (data.id) setContributionId(data.id);
       }
       setPhase("thankyou-typing");
     } catch (err) {
@@ -348,71 +353,19 @@ export function WeddingGuestForm({
   }
 
   // ── Phase 5: Preview the contributor's own message ─────
-  // Mirrors what the recipient will see on reveal day, but
-  // restricted to the contributor's own entry. Tapping
-  // "View all messages" surfaces the explainer modal that
-  // makes the limitation explicit and offers an exit back
-  // to /weddings.
-  if (phase === "preview") {
-    const plainBody = body
-      .replace(/<[^>]+>/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
+  // Hands off to the same RevealExperience the recipient sees on
+  // reveal day (gate → entry → story cards → gallery, with music)
+  // but with a single-item contribution array — only the
+  // contributor's own entry. Banner on the gate sets the
+  // expectation; an explainer modal auto-opens once they reach
+  // the gallery and offers an exit to /weddings.
+  if (phase === "preview" && contributionId) {
     return (
-      <main className="relative min-h-screen bg-cream overflow-hidden pb-20">
-        <RosesCorner version={assetVersions.roses} />
-        <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
-          <div className="px-6 py-4 flex items-center justify-between max-w-[720px] mx-auto">
-            <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
-              <Sparkles size={14} strokeWidth={1.75} aria-hidden="true" />
-              Preview
-            </span>
-            <LogoSvg variant="dark" width={110} height={22} />
-          </div>
-        </header>
-        <section className="relative z-10 mx-auto max-w-[640px] px-6 pt-6">
-          <p className="text-[10px] sm:text-[11px] font-bold tracking-[0.22em] uppercase text-amber">
-            Messages for {couple.coupleNames}
-          </p>
-          <h1 className="mt-2 font-brush text-[36px] sm:text-[44px] text-navy leading-[0.95]">
-            A memory for
-            <br />
-            <span className="text-amber">{couple.coupleNames}</span>
-          </h1>
-          <ul className="mt-6 space-y-3">
-            <li className="rounded-2xl border border-amber/30 bg-white px-5 py-4 shadow-[0_4px_18px_rgba(196,122,58,0.06)]">
-              <div className="text-[11px] uppercase tracking-[0.12em] font-bold text-amber-dark">
-                From {name.trim() || "you"}
-              </div>
-              {plainBody && (
-                <p className="mt-2 text-[15px] text-navy leading-[1.6] whitespace-pre-line">
-                  {plainBody}
-                </p>
-              )}
-              {!plainBody && (
-                <p className="mt-2 text-[13px] text-ink-light italic">
-                  (No text — your media will appear here on reveal day.)
-                </p>
-              )}
-            </li>
-          </ul>
-          <div className="mt-8 flex justify-center">
-            <button
-              type="button"
-              onClick={() => setPreviewModalOpen(true)}
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-[15px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors"
-            >
-              View all messages
-            </button>
-          </div>
-        </section>
-        {previewModalOpen && (
-          <PreviewExitModal
-            coupleNames={couple.coupleNames}
-            onClose={() => setPreviewModalOpen(false)}
-          />
-        )}
-      </main>
+      <WeddingPreviewExperience
+        guestToken={guestToken}
+        contributionId={contributionId}
+        coupleNames={couple.coupleNames}
+      />
     );
   }
 
@@ -583,60 +536,6 @@ function RosesCorner({ version }: { version: string }) {
         alt=""
         className="w-full h-auto select-none"
       />
-    </div>
-  );
-}
-
-/**
- * Modal that fires when the contributor taps "View all messages"
- * inside the preview phase. Makes it explicit that only their
- * own message is visible right now and that the couple will see
- * everyone's contributions on reveal day. The "Exit preview" CTA
- * routes them back to /weddings.
- */
-function PreviewExitModal({
-  coupleNames,
-  onClose,
-}: {
-  coupleNames: string;
-  onClose: () => void;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-navy/40 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl shadow-[0_24px_48px_-8px_rgba(15,31,61,0.4)] w-full max-w-[440px] px-6 py-6"
-      >
-        <h2 className="text-[18px] font-extrabold text-navy tracking-[-0.2px]">
-          Just a preview
-        </h2>
-        <p className="mt-2 text-[14px] text-ink-mid leading-[1.55]">
-          {coupleNames} will be able to filter through all messages left for
-          them in this section. Right now only yours shows, but when the
-          reveal is sent to them, they&rsquo;ll have access to everyone&rsquo;s.
-          Thank you for contributing.
-        </p>
-        <div className="mt-5 flex gap-2">
-          <Link
-            href="/weddings"
-            className="flex-1 inline-flex items-center justify-center bg-amber text-white py-2.5 rounded-lg text-[14px] font-bold hover:bg-amber-dark transition-colors"
-          >
-            Exit preview
-          </Link>
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2.5 rounded-lg text-[13px] font-semibold border border-navy/15 text-ink-mid hover:text-navy hover:border-navy/30 transition-colors"
-          >
-            Back
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
