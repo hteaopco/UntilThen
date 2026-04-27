@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { assetVersion } from "@/lib/asset-version";
 import { effectiveStatus } from "@/lib/capsules";
 
 import { WeddingGuestForm } from "./WeddingGuestForm";
@@ -54,9 +55,18 @@ export default async function WeddingGuestPage({
 
   const status = effectiveStatus(capsule);
 
+  // Cache-bust queries — keyed off the file's mtime so any
+  // re-upload of /public/Card.png or /public/Roses.png busts
+  // the browser cache automatically on next deploy.
+  const assetVersions = {
+    card: assetVersion("Card.png"),
+    roses: assetVersion("Roses.png"),
+  };
+
   return (
     <WeddingGuestForm
       guestToken={guestToken}
+      assetVersions={assetVersions}
       capsule={{
         title: capsule.title,
         recipientName: capsule.recipientName,

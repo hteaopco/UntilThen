@@ -143,6 +143,7 @@ export function PreviewsClient({
         <WeddingGuestForm
           guestToken="preview-mode"
           capsule={MOCK_WEDDING_CAPSULE}
+          assetVersions={{ card: "preview", roses: "preview" }}
         />
       </div>
     );

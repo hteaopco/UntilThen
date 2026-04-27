@@ -49,9 +49,14 @@ function deriveCouple(recipientName: string) {
 export function WeddingGuestForm({
   guestToken,
   capsule,
+  assetVersions,
 }: {
   guestToken: string;
   capsule: Capsule;
+  /** Server-computed mtime stamps for /Card.png and /Roses.png.
+   *  Appended as ?v=… so any re-upload busts the browser cache
+   *  automatically on next deploy — see src/lib/asset-version.ts. */
+  assetVersions: { card: string; roses: string };
 }) {
   const couple = deriveCouple(capsule.recipientName);
   const [phase, setPhase] = useState<Phase>(
@@ -212,7 +217,7 @@ export function WeddingGuestForm({
         <div className="relative z-10 w-full max-w-[440px] mx-auto flex flex-col items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/Card.png?v=5"
+            src={`/Card.png?v=${assetVersions.card}`}
             alt=""
             aria-hidden="true"
             className="w-full h-auto block select-none"
@@ -304,7 +309,7 @@ export function WeddingGuestForm({
 
   return (
     <main className="relative min-h-screen bg-cream overflow-hidden">
-      <RosesCorner />
+      <RosesCorner version={assetVersions.roses} />
       <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
         <div className="px-6 py-4 flex items-center justify-between max-w-[720px] mx-auto">
           <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
@@ -453,7 +458,7 @@ export function WeddingGuestForm({
  * the heading instead of clinging while the user is in the
  * editor body.
  */
-function RosesCorner() {
+function RosesCorner({ version }: { version: string }) {
   return (
     <div
       aria-hidden="true"
@@ -462,7 +467,7 @@ function RosesCorner() {
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/Roses.png?v=2"
+        src={`/Roses.png?v=${version}`}
         alt=""
         className="w-full h-auto select-none"
       />
