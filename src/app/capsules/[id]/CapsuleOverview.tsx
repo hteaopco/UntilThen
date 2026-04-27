@@ -602,24 +602,24 @@ export function CapsuleOverview({
               </Link>
             </div>
           )}
+
+          {/* Wedding bride/groom hand-off, inlined into the
+              activate panel card so it sits directly under the
+              Seal capsule + Preview Moment row instead of as a
+              separate section below. Only renders for activated
+              wedding capsules. */}
+          {capsule.occasionType === "WEDDING" && !isDraft && (
+            <BrideGroomPanel
+              capsuleId={capsule.id}
+              revealDate={capsule.revealDate}
+              hideUntilReveal={capsule.hideUntilReveal}
+            />
+          )}
         </div>
       </section>
 
       {capsule.occasionType === "WEDDING" && capsule.guestToken && !isDraft && (
         <WeddingGuestSharePanel guestToken={capsule.guestToken} />
-      )}
-
-      {/* Wedding bride/groom hand-off — only the organiser of an
-          activated wedding capsule sees this. Lets them either
-          hide messages on their own dashboard until reveal day,
-          or transfer the capsule to a planner / MOH / parent who
-          will manage it through reveal day on their behalf. */}
-      {capsule.occasionType === "WEDDING" && !isDraft && (
-        <BrideGroomPanel
-          capsuleId={capsule.id}
-          revealDate={capsule.revealDate}
-          hideUntilReveal={capsule.hideUntilReveal}
-        />
       )}
 
       {/* Live capsule summary (post-activation): contributions
@@ -1928,11 +1928,18 @@ function BrideGroomPanel({
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // UI mode: gate (Yes/No) → choose (Hide/Transfer) → transfer (form) → done.
-  // No persistence — state only exists between answering "Yes" and
-  // committing one of the actions.
+  // UI mode lifecycle:
+  //   gate        — Yes/No question (initial)
+  //   dismissed   — they answered No; show ✓ and stop bothering them
+  //   choose      — they answered Yes; pick Hide vs Transfer
+  //   transfer    — Transfer form
+  //   transferred — transfer email sent; show ✓ + pending state
+  //
+  // No persistence — refresh resets to gate. Hide persists in DB
+  // (hideUntilReveal flag) so on refresh we land on the hidden
+  // status branch below regardless of mode.
   const [mode, setMode] = useState<
-    "gate" | "choose" | "transfer" | "transferred"
+    "gate" | "dismissed" | "choose" | "transfer" | "transferred"
   >("gate");
 
   const [tFirstName, setTFirstName] = useState("");
@@ -1996,213 +2003,218 @@ function BrideGroomPanel({
     }
   }
 
-  // Already hidden — show the status + unhide.
+  // Already hidden — show check + brief status + unhide control.
   if (hideUntilReveal) {
     return (
-      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-6">
-        <div className="rounded-2xl border border-amber/25 bg-white px-6 py-5">
-          <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
-            Hidden mode
-          </p>
-          <h3 className="mt-1.5 text-[17px] font-bold text-navy tracking-[-0.2px]">
-            Messages are sealed until reveal day.
-          </h3>
-          <p className="mt-2 text-sm text-ink-mid leading-[1.55]">
-            Your dashboard hides every message until{" "}
-            <span className="font-semibold text-navy">
-              {formatLong(revealDate)}
-            </span>
-            . You&rsquo;ll still see the count tick up as guests contribute.
-          </p>
-          {error && (
-            <p className="mt-3 text-sm text-red-600" role="alert">
-              {error}
+      <div className="pt-4 mt-2 border-t border-amber/20">
+        <div className="flex items-start gap-2.5">
+          <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber/15 text-amber-dark shrink-0">
+            <Check size={14} strokeWidth={2.5} aria-hidden="true" />
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[14px] font-bold text-navy">
+              Hidden until {formatLong(revealDate)}.
             </p>
-          )}
-          <button
-            type="button"
-            onClick={() => setHide(false)}
-            disabled={busy}
-            className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold border border-navy/15 text-ink-mid hover:text-navy hover:border-navy/30 transition-colors disabled:opacity-50"
-          >
-            {busy ? "Updating…" : "Unhide messages"}
-          </button>
+            <p className="mt-0.5 text-[12px] text-ink-mid leading-[1.5]">
+              Your dashboard redacts every message until reveal day. You&rsquo;ll
+              still see the count tick up.
+            </p>
+            {error && (
+              <p className="mt-2 text-sm text-red-600" role="alert">
+                {error}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => setHide(false)}
+              disabled={busy}
+              className="mt-2 inline-flex items-center text-[12px] font-semibold text-ink-light hover:text-navy transition-colors px-1 disabled:opacity-50"
+            >
+              {busy ? "Updating…" : "Unhide messages"}
+            </button>
+          </div>
         </div>
-      </section>
+      </div>
     );
   }
 
   return (
-    <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-6">
-      <div className="rounded-2xl border border-amber/25 bg-white px-6 py-5">
-        {mode === "gate" && (
-          <>
-            <h3 className="text-[17px] font-bold text-navy tracking-[-0.2px]">
-              Are you the Bride or Groom?
-            </h3>
-            <p className="mt-1.5 text-sm text-ink-mid leading-[1.55]">
-              If you bought this capsule yourself, you might want to keep the
-              messages a surprise.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setMode("choose")}
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors"
-              >
-                Yes
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  /* No-op: the panel hides nothing. User can come back to it. */
-                }}
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold border border-navy/15 text-navy hover:border-navy/30 transition-colors"
-              >
-                No
-              </button>
-            </div>
-          </>
-        )}
+    <div className="pt-4 mt-2 border-t border-amber/20">
+      {mode === "gate" && (
+        <>
+          <h3 className="text-[15px] font-bold text-navy tracking-[-0.2px]">
+            Are you the Bride or Groom?
+          </h3>
+          <p className="mt-1 text-[12px] text-ink-mid leading-[1.5]">
+            If you bought this capsule yourself, you might want to keep the
+            messages a surprise.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setMode("choose")}
+              className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold border border-navy/15 bg-white text-navy hover:border-navy/30 transition-colors"
+            >
+              Yes
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("dismissed")}
+              className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold border border-navy/15 bg-white text-navy hover:border-navy/30 transition-colors"
+            >
+              No
+            </button>
+          </div>
+        </>
+      )}
 
-        {mode === "choose" && (
-          <>
-            <h3 className="text-[17px] font-bold text-navy tracking-[-0.2px]">
-              Would you like to transfer this capsule to someone to manage, or
-              hide everything until reveal day?
-            </h3>
-            <p className="mt-1.5 text-sm text-ink-mid leading-[1.55]">
-              <strong className="text-navy">Hide</strong> keeps the capsule on
-              your account but redacts every message on your dashboard until
-              the reveal.{" "}
-              <strong className="text-navy">Transfer</strong> hands management
-              to someone else (a planner, MOH, parent) — they take over until
-              reveal day.
-            </p>
-            {error && (
-              <p className="mt-3 text-sm text-red-600" role="alert">
-                {error}
-              </p>
-            )}
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setHide(true)}
-                disabled={busy}
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors disabled:opacity-50"
-              >
-                {busy ? "Hiding…" : "Hide it"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setError(null);
-                  setMode("transfer");
-                }}
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
-              >
-                Transfer
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("gate")}
-                className="inline-flex items-center text-[12px] font-semibold text-ink-light hover:text-navy transition-colors px-2"
-              >
-                Back
-              </button>
-            </div>
-          </>
-        )}
+      {mode === "dismissed" && (
+        <div className="flex items-center gap-2.5">
+          <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber/15 text-amber-dark shrink-0">
+            <Check size={14} strokeWidth={2.5} aria-hidden="true" />
+          </span>
+          <p className="text-[13px] text-ink-mid">Got it — carry on.</p>
+        </div>
+      )}
 
-        {mode === "transfer" && (
-          <>
-            <h3 className="text-[17px] font-bold text-navy tracking-[-0.2px]">
-              Enter their information below:
-            </h3>
-            <p className="mt-1.5 text-sm text-ink-mid leading-[1.55]">
-              We&rsquo;ll email them a link to take over. Once they accept, you
-              won&rsquo;t be able to manage the capsule anymore — they will,
-              through reveal day.
+      {mode === "choose" && (
+        <>
+          <h3 className="text-[15px] font-bold text-navy tracking-[-0.2px]">
+            Hide messages or transfer the capsule?
+          </h3>
+          <p className="mt-1 text-[12px] text-ink-mid leading-[1.5]">
+            <strong className="text-navy">Hide</strong> keeps the capsule on
+            your account but redacts every message on your dashboard until the
+            reveal.{" "}
+            <strong className="text-navy">Transfer</strong> hands management
+            to someone else (a planner, MOH, parent) — they take over until
+            reveal day.
+          </p>
+          {error && (
+            <p className="mt-2 text-sm text-red-600" role="alert">
+              {error}
             </p>
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <input
-                type="text"
-                value={tFirstName}
-                onChange={(e) => setTFirstName(e.target.value)}
-                placeholder="First name"
-                className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
-              />
-              <input
-                type="text"
-                value={tLastName}
-                onChange={(e) => setTLastName(e.target.value)}
-                placeholder="Last name"
-                className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
-              />
-              <input
-                type="email"
-                inputMode="email"
-                autoComplete="email"
-                value={tEmail}
-                onChange={(e) => setTEmail(e.target.value)}
-                placeholder="Email"
-                className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
-              />
-              <input
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                value={tPhone}
-                onChange={(e) => setTPhone(e.target.value)}
-                placeholder="Phone (optional)"
-                className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
-              />
-            </div>
-            {error && (
-              <p className="mt-3 text-sm text-red-600" role="alert">
-                {error}
-              </p>
-            )}
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={submitTransfer}
-                disabled={busy}
-                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors disabled:opacity-50"
-              >
-                {busy ? "Sending…" : "Transfer"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setError(null);
-                  setMode("choose");
-                }}
-                className="inline-flex items-center text-[12px] font-semibold text-ink-light hover:text-navy transition-colors px-2"
-              >
-                Back
-              </button>
-            </div>
-          </>
-        )}
+          )}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setHide(true)}
+              disabled={busy}
+              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors disabled:opacity-50"
+            >
+              {busy ? "Hiding…" : "Hide it"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setMode("transfer");
+              }}
+              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
+            >
+              Transfer
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("gate")}
+              className="inline-flex items-center text-[12px] font-semibold text-ink-light hover:text-navy transition-colors px-2"
+            >
+              Back
+            </button>
+          </div>
+        </>
+      )}
 
-        {mode === "transferred" && (
-          <>
-            <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
-              Transfer pending
+      {mode === "transfer" && (
+        <>
+          <h3 className="text-[15px] font-bold text-navy tracking-[-0.2px]">
+            Enter their information below:
+          </h3>
+          <p className="mt-1 text-[12px] text-ink-mid leading-[1.5]">
+            We&rsquo;ll email them a link to take over. Once they accept, you
+            won&rsquo;t be able to manage the capsule anymore — they will,
+            through reveal day.
+          </p>
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input
+              type="text"
+              value={tFirstName}
+              onChange={(e) => setTFirstName(e.target.value)}
+              placeholder="First name"
+              className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+            />
+            <input
+              type="text"
+              value={tLastName}
+              onChange={(e) => setTLastName(e.target.value)}
+              placeholder="Last name"
+              className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+            />
+            <input
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              value={tEmail}
+              onChange={(e) => setTEmail(e.target.value)}
+              placeholder="Email"
+              className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+            />
+            <input
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              value={tPhone}
+              onChange={(e) => setTPhone(e.target.value)}
+              placeholder="Phone (optional)"
+              className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+            />
+          </div>
+          {error && (
+            <p className="mt-2 text-sm text-red-600" role="alert">
+              {error}
             </p>
-            <h3 className="mt-1.5 text-[17px] font-bold text-navy tracking-[-0.2px]">
+          )}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={submitTransfer}
+              disabled={busy}
+              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors disabled:opacity-50"
+            >
+              {busy ? "Sending…" : "Transfer"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setMode("choose");
+              }}
+              className="inline-flex items-center text-[12px] font-semibold text-ink-light hover:text-navy transition-colors px-2"
+            >
+              Back
+            </button>
+          </div>
+        </>
+      )}
+
+      {mode === "transferred" && (
+        <div className="flex items-start gap-2.5">
+          <span className="mt-0.5 inline-flex h-6 w-6 items-center justify-center rounded-full bg-amber/15 text-amber-dark shrink-0">
+            <Check size={14} strokeWidth={2.5} aria-hidden="true" />
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[14px] font-bold text-navy">
               We sent {tFirstName.trim() || "them"} a link.
-            </h3>
-            <p className="mt-2 text-sm text-ink-mid leading-[1.55]">
-              They&rsquo;ll need to sign in with{" "}
-              <span className="font-mono text-[12px] text-navy">{tEmail.trim()}</span>
-              {" "}and click the accept button. Once they do, the capsule moves
-              to their account and yours becomes read-only.
             </p>
-          </>
-        )}
-      </div>
-    </section>
+            <p className="mt-0.5 text-[12px] text-ink-mid leading-[1.5]">
+              They&rsquo;ll need to sign in with{" "}
+              <span className="font-mono text-[11px] text-navy">{tEmail.trim()}</span>
+              {" "}and click accept. Once they do, the capsule moves to their
+              account and yours becomes read-only.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

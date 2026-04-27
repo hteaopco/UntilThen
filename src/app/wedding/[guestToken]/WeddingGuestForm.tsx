@@ -43,14 +43,7 @@ function deriveCouple(recipientName: string) {
   const coupleNames = isCouple && firstName2
     ? `${firstName1} & ${firstName2}`
     : firstName1 || recipientName;
-  // "Alex & Jordan's wedding capsule" reads better than the
-  // possessive variant when both names are present, so use the
-  // first-only possessive when the couple shares a last name and
-  // the joint phrasing otherwise.
-  const possessivePrefix = isCouple
-    ? `${firstName1.toUpperCase()} & ${firstName2.toUpperCase()}`
-    : firstName1.toUpperCase();
-  return { isCouple, coupleNames, possessivePrefix };
+  return { isCouple, coupleNames };
 }
 
 export function WeddingGuestForm({
@@ -323,9 +316,6 @@ export function WeddingGuestForm({
       </header>
 
       <section className="relative z-10 mx-auto max-w-[720px] px-6 pt-4 pb-20">
-        <p className="text-[10px] sm:text-[11px] font-bold tracking-[0.22em] uppercase text-amber">
-          {couple.possessivePrefix}&rsquo;S WEDDING CAPSULE
-        </p>
         <h1 className="mt-2 font-brush text-[36px] sm:text-[44px] text-navy leading-[0.95]">
           A memory for
           <br />
@@ -467,7 +457,7 @@ function RosesCorner() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute top-0 right-0 z-0 w-[280px] sm:w-[360px] lg:w-[440px]"
+      className="pointer-events-none absolute top-0 right-0 z-0 w-[240px] sm:w-[305px] lg:w-[375px]"
       style={{ transform: "translate(20%, -18%)" }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
