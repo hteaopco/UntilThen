@@ -168,6 +168,7 @@ export default async function CapsulePage({
         accessToken: capsule.accessToken,
         guestToken: capsule.guestToken,
         hideUntilReveal: capsule.hideUntilReveal,
+        organizationId: capsule.organizationId,
       }}
       currentUserClerkId={userId}
       requiresPayment={requiresPayment}

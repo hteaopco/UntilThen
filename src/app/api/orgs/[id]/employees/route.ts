@@ -33,7 +33,12 @@ export async function GET(
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
 
   const { id: organizationId } = await ctx.params;
-  const orgCtx = await requireOrgRole(clerkId, organizationId, "ADMIN");
+  // GET allows any org member because the picker (used by every
+  // org member when adding contributors / recipients) hits this
+  // endpoint. Mutations on the other employees routes stay
+  // ADMIN+. The /enterprise/roster Employees management UI is
+  // separately admin-gated at the page level.
+  const orgCtx = await requireOrgRole(clerkId, organizationId, "MEMBER");
   if (!orgCtx)
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 

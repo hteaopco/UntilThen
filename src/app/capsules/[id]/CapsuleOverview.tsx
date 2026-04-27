@@ -22,6 +22,10 @@ import { useCallback, useRef, useState, type FormEvent } from "react";
 
 import { GiftCapsuleCheckout } from "@/components/checkout/GiftCapsuleCheckout";
 import {
+  EmployeePickerModal,
+  type PickedEmployee,
+} from "@/components/enterprise/EmployeePickerModal";
+import {
   MediaAttachments,
   type Attachment,
 } from "@/components/editor/MediaAttachments";
@@ -64,6 +68,12 @@ type CapsuleSummary = {
    *  array before send; this flag drives the UI banner + the
    *  toggle's selected state. */
   hideUntilReveal: boolean;
+  /** Set when the capsule was created against an organization
+   *  (enterprise channel). Drives the "Add from database" entry
+   *  point on the contributor invite panel — when set, the
+   *  picker pulls from this org's Employees database. Null on
+   *  non-org capsules; the picker is hidden then. */
+  organizationId: string | null;
 };
 
 type ContributionRow = {
@@ -420,6 +430,7 @@ export function CapsuleOverview({
             <div id="invite-people-panel">
               <ContributorsPanel
                 capsuleId={capsule.id}
+                organizationId={capsule.organizationId}
                 recipientName={capsule.recipientName}
                 recipientDisplayName={recipientDisplayName}
                 isCouple={isCouple}
@@ -1162,6 +1173,7 @@ function blankRow(): DraftRow {
 
 function ContributorsPanel({
   capsuleId,
+  organizationId,
   recipientName,
   recipientDisplayName,
   isCouple,
@@ -1171,6 +1183,10 @@ function ContributorsPanel({
   onRemove,
 }: {
   capsuleId: string;
+  /** Set on org-attributed capsules. When non-null, the
+   *  "Add from database" button shows up alongside Add multiple,
+   *  opening the EmployeePickerModal scoped to this org. */
+  organizationId: string | null;
   recipientName: string;
   recipientDisplayName: string;
   isCouple: boolean;
@@ -1182,6 +1198,35 @@ function ContributorsPanel({
   const router = useRouter();
   const [rows, setRows] = useState<DraftRow[]>([blankRow()]);
   const [saving, setSaving] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  /** Append picked employees as fresh draft rows. If the form
+   *  currently has a single empty row, replace it so the picker
+   *  doesn't leave a blank trailing line. Skips picks whose email
+   *  already appears in the draft list (the user shouldn't see
+   *  the same row twice from a single confirm). */
+  function addFromDatabase(picks: PickedEmployee[]) {
+    setPickerOpen(false);
+    if (picks.length === 0) return;
+    setRows((prev) => {
+      const startsEmpty =
+        prev.length === 1 && !prev[0].name.trim() && !prev[0].email.trim();
+      const seenEmails = new Set(
+        prev
+          .map((r) => r.email.trim().toLowerCase())
+          .filter((e) => e.length > 0),
+      );
+      const fresh = picks
+        .filter((p) => !seenEmails.has(p.email))
+        .map((p) => ({
+          key: `pick-${p.id}-${Date.now()}`,
+          name: `${p.firstName} ${p.lastName}`.trim(),
+          email: p.email,
+          requiresApproval: false,
+        }));
+      return startsEmpty ? fresh : [...prev, ...fresh];
+    });
+  }
   const [error, setError] = useState<string | null>(null);
   // Inline confirmation that shows briefly after a successful
   // add — reassures the organiser the row landed and that invites
@@ -1354,6 +1399,15 @@ function ContributorsPanel({
             <UserPlus size={14} strokeWidth={1.75} aria-hidden="true" />
             Add multiple
           </button>
+          {organizationId && (
+            <button
+              type="button"
+              onClick={() => setPickerOpen(true)}
+              className="inline-flex items-center gap-1.5 bg-amber-tint/40 border border-amber/40 text-amber-dark px-4 py-2 rounded-lg text-sm font-semibold hover:bg-amber-tint transition-colors"
+            >
+              Add from database
+            </button>
+          )}
           <button
             type="submit"
             disabled={saving}
@@ -1425,6 +1479,15 @@ function ContributorsPanel({
             ))}
           </ul>
         </>
+      )}
+
+      {pickerOpen && organizationId && (
+        <EmployeePickerModal
+          orgId={organizationId}
+          mode="multi"
+          onClose={() => setPickerOpen(false)}
+          onConfirm={addFromDatabase}
+        />
       )}
     </div>
   );
