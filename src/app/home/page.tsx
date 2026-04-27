@@ -41,9 +41,24 @@ export default async function HomePage() {
   const { prisma } = await import("@/lib/prisma");
   const user = await prisma.user.findUnique({
     where: { clerkId: userId },
-    select: { id: true, firstName: true, avatarUrl: true },
+    select: { id: true, firstName: true, email: true, avatarUrl: true },
   });
   if (!user) redirect("/onboarding");
+
+  // Lazy backfill for users who signed up before
+  // claimPendingOrgInvitesForUser was wired into /api/onboarding,
+  // or who signed up via the standard flow without clicking the
+  // magic-link invite. Runs once per visit; idempotent — no-op if
+  // there are no PENDING invites for this email. Best-effort: any
+  // failure logs and we render the page anyway.
+  if (user.email) {
+    try {
+      const { claimPendingOrgInvitesForUser } = await import("@/lib/orgs");
+      await claimPendingOrgInvitesForUser(user.id, user.email);
+    } catch (err) {
+      console.warn("[home] auto-claim org invites failed:", err);
+    }
+  }
 
   let firstName = user.firstName?.trim() ?? "";
   if (!firstName) {

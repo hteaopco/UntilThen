@@ -87,3 +87,68 @@ export async function requireOrgRole(
   if (ROLE_RANK[ctx.role] < ROLE_RANK[minimumRole]) return null;
   return ctx;
 }
+
+/**
+ * Auto-claim every PENDING OrganizationInvite that targets this
+ * user's email. Mirrors what /api/orgs/invites/[token]/accept does
+ * for the magic-link flow but runs without a token — the user just
+ * needs to be signed in with the email the admin invited.
+ *
+ * Without this, a user who signs up via the standard flow (skipping
+ * the invite link) ends up with a User row but no OrganizationMember
+ * row, and the invite stays PENDING forever. Calling this helper
+ * after onboarding + on signed-in landing pages closes that gap so
+ * the org admin sees the new member promoted from INVITED to active
+ * the next time the new user touches the app.
+ *
+ * Idempotent: each invite is wrapped in its own try/catch and
+ * skipped if the OrganizationMember row already exists. Returns
+ * the count of invites newly accepted.
+ */
+export async function claimPendingOrgInvitesForUser(
+  userId: string,
+  email: string | null,
+): Promise<number> {
+  if (!email) return 0;
+  const inviteEmail = email.toLowerCase();
+  const pending = await prisma.organizationInvite.findMany({
+    where: { email: inviteEmail, status: "PENDING" },
+  });
+  if (pending.length === 0) return 0;
+
+  let claimed = 0;
+  const now = new Date();
+  for (const invite of pending) {
+    try {
+      const existing = await prisma.organizationMember.findUnique({
+        where: {
+          organizationId_userId: {
+            organizationId: invite.organizationId,
+            userId,
+          },
+        },
+      });
+      if (!existing) {
+        await prisma.organizationMember.create({
+          data: {
+            organizationId: invite.organizationId,
+            userId,
+            role: invite.role,
+          },
+        });
+      }
+      await prisma.organizationInvite.update({
+        where: { id: invite.id },
+        data: {
+          status: "ACCEPTED",
+          acceptedAt: now,
+          acceptedUserId: userId,
+        },
+      });
+      claimed++;
+    } catch (err) {
+      console.warn("[orgs] auto-claim invite failed:", err);
+    }
+  }
+  return claimed;
+}

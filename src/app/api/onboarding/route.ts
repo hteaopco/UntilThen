@@ -159,6 +159,20 @@ export async function POST(req: Request) {
       },
     });
 
+    // Auto-claim any PENDING org invites targeting this user's
+    // email. Best-effort: handles the common case where someone
+    // signs up via the standard flow instead of clicking the
+    // magic-link invite, so the org admin's roster reflects them
+    // as an active member instead of a stuck INVITED row.
+    if (clerkEmail) {
+      try {
+        const { claimPendingOrgInvitesForUser } = await import("@/lib/orgs");
+        await claimPendingOrgInvitesForUser(user.id, clerkEmail);
+      } catch (err) {
+        console.warn("[onboarding] auto-claim org invites failed:", err);
+      }
+    }
+
     // Notification preferences live in their own row with a unique
     // userId. Best-effort — the user can always open settings and
     // the row will be created on first save.
