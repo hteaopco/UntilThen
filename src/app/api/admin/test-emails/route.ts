@@ -60,6 +60,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     sendOrgInviteNew,
     sendOrgInviteExisting,
     sendOrgCapsuleTransferred,
+    sendWeddingEditLink,
   } = await import("@/lib/emails");
 
   // #1 — Invite Contributor
@@ -334,6 +335,17 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       capsuleTitle: "Margaret's 60th Birthday",
       organizationName: "Acme Co.",
       capsuleUrl: "https://untilthenapp.io/capsules/sample-capsule",
+    }),
+  );
+
+  // #26 — Wedding edit-link (guest opt-in to "edit later").
+  await fire("wedding-edit-link", "#26 Wedding Edit Link", () =>
+    sendWeddingEditLink({
+      to,
+      authorName: "Avery",
+      coupleNames: "Alex & Jordan",
+      editUrl:
+        "https://untilthenapp.io/wedding/sample-guest-token?edit=sample-edit-token",
     }),
   );
 

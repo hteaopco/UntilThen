@@ -1,3 +1,5 @@
+import { randomBytes } from "node:crypto";
+
 import { EntryType, Prisma } from "@prisma/client";
 import { NextResponse, type NextRequest } from "next/server";
 
@@ -41,15 +43,36 @@ interface CapsuleSummary {
   isPaid: boolean;
 }
 
+interface ContributionEditPayload {
+  id: string;
+  authorName: string;
+  authorEmail: string | null;
+  body: string | null;
+  mediaUrls: string[];
+  mediaTypes: string[];
+}
+
 /**
  * GET — fetches the capsule info a guest needs to render the
  * wedding-themed editor (couple names, reveal date, etc.). No
  * auth — any phone with the QR can read.
+ *
+ * When ?edit=<editToken> is present, also returns the matching
+ * contribution so the form can re-render in edit mode pre-filled
+ * with the original text + media. The editToken is the auth: only
+ * the guest who originally submitted (and asked for an editable
+ * link) holds the token. Non-matching tokens return the bare
+ * capsule shape, no contribution leak.
  */
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   ctx: { params: Promise<{ guestToken: string }> },
-): Promise<NextResponse<{ capsule: CapsuleSummary } | { error: string }>> {
+): Promise<
+  NextResponse<
+    | { capsule: CapsuleSummary; contribution?: ContributionEditPayload }
+    | { error: string }
+  >
+> {
   const { guestToken } = await ctx.params;
   const capsule = await resolveByGuestToken(guestToken);
   if (!capsule)
@@ -80,6 +103,25 @@ export async function GET(
       { status: 410 },
     );
 
+  const editToken = req.nextUrl.searchParams.get("edit");
+  let contribution: ContributionEditPayload | undefined;
+  if (editToken) {
+    const { prisma } = await import("@/lib/prisma");
+    const row = await prisma.capsuleContribution.findUnique({
+      where: { editToken },
+    });
+    if (row && row.capsuleId === capsule.id) {
+      contribution = {
+        id: row.id,
+        authorName: row.authorName,
+        authorEmail: row.authorEmail,
+        body: row.body,
+        mediaUrls: row.mediaUrls,
+        mediaTypes: row.mediaTypes,
+      };
+    }
+  }
+
   return NextResponse.json({
     capsule: {
       id: capsule.id,
@@ -90,6 +132,7 @@ export async function GET(
       contributorDeadline: capsule.contributorDeadline?.toISOString() ?? null,
       isPaid: capsule.isPaid,
     },
+    ...(contribution ? { contribution } : {}),
   });
 }
 
@@ -165,11 +208,16 @@ export async function POST(
   try {
     const { prisma } = await import("@/lib/prisma");
     const needsReview = capsule.requiresApproval;
+    // Mint an unguessable per-row edit token. 24 random bytes
+    // (~192 bits) base64url-encoded — not in PII, not in the URL
+    // unless the guest opted into the editable-card email.
+    const editToken = randomBytes(24).toString("base64url");
     const contribution = await prisma.capsuleContribution.create({
       data: {
         capsuleId: capsule.id,
         authorName,
         authorEmail,
+        editToken,
         type,
         title:
           typeof body.title === "string" && body.title.trim()
@@ -200,7 +248,11 @@ export async function POST(
       mediaTypes,
     });
 
-    return NextResponse.json({ success: true, id: contribution.id });
+    return NextResponse.json({
+      success: true,
+      id: contribution.id,
+      editToken,
+    });
   } catch (err) {
     console.error("[wedding contribute POST] error:", err);
     return NextResponse.json(

@@ -497,6 +497,14 @@ model CapsuleContribution {
   /// delete their own post-creation without needing a token.
   /// Null for public-facing contributions (contributor invites).
   clerkUserId    String?
+  /// Per-contribution opaque token granting edit access via
+  /// /wedding/<guestToken>?edit=<editToken>. Wedding guests who
+  /// opt to "save my email so I can edit later" receive this in
+  /// the editable-card email. Stays null for non-wedding rows
+  /// and for guests who skipped the email prompt. Editable while
+  /// the capsule is ACTIVE; once SEALED, the link returns a
+  /// "too late" screen.
+  editToken      String?        @unique
   type           EntryType      @default(TEXT)
   title          String?
   body           String?

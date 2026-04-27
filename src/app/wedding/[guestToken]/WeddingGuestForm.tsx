@@ -37,9 +37,18 @@ type Phase =
   | "splash"
   | "card"
   | "editor"
+  | "email-prompt"
   | "thankyou-typing"
   | "thankyou"
   | "preview";
+
+interface EditInitial {
+  contributionId: string;
+  authorName: string;
+  body: string | null;
+  mediaUrls: string[];
+  mediaTypes: string[];
+}
 
 function deriveCouple(recipientName: string) {
   const isCouple = recipientName.includes("&");
@@ -58,6 +67,7 @@ export function WeddingGuestForm({
   guestToken,
   capsule,
   assetVersions,
+  editInitial,
 }: {
   guestToken: string;
   capsule: Capsule;
@@ -65,16 +75,26 @@ export function WeddingGuestForm({
    *  Appended as ?v=… so any re-upload busts the browser cache
    *  automatically on next deploy — see src/lib/asset-version.ts. */
   assetVersions: { card: string; roses: string };
+  /** Set when the page resolves a valid ?edit=<editToken> on load.
+   *  Drops the form straight into the editor pre-populated with
+   *  the original text, name, and media — no splash, no card. */
+  editInitial: EditInitial | null;
 }) {
   const couple = deriveCouple(capsule.recipientName);
   const [phase, setPhase] = useState<Phase>(
-    capsule.isOpenForContributions ? "splash" : "editor",
+    editInitial
+      ? "editor"
+      : capsule.isOpenForContributions
+        ? "splash"
+        : "editor",
   );
-  const [name, setName] = useState("");
-  const [body, setBody] = useState("");
+  const [name, setName] = useState(editInitial?.authorName ?? "");
+  const [body, setBody] = useState(editInitial?.body ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [contributionId, setContributionId] = useState<string | null>(null);
+  const [contributionId, setContributionId] = useState<string | null>(
+    editInitial?.contributionId ?? null,
+  );
   const [showCta, setShowCta] = useState(false);
   const [extraHeight, setExtraHeight] = useState(0);
   const [saveForLaterOpen, setSaveForLaterOpen] = useState(false);
@@ -88,8 +108,8 @@ export function WeddingGuestForm({
     const t = window.setTimeout(() => setCardCtasVisible(true), 1500);
     return () => window.clearTimeout(t);
   }, [phase]);
-  const mediaKeysRef = useRef<string[]>([]);
-  const mediaTypesRef = useRef<string[]>([]);
+  const mediaKeysRef = useRef<string[]>(editInitial?.mediaUrls ?? []);
+  const mediaTypesRef = useRef<string[]>(editInitial?.mediaTypes ?? []);
   const stateRef = useRef({ name, body, contributionId });
   stateRef.current = { name, body, contributionId };
 
@@ -142,6 +162,8 @@ export function WeddingGuestForm({
     try {
       const id = stateRef.current.contributionId;
       if (id) {
+        // Edit-mode submit (PATCH). Skip the email prompt — they
+        // already opted in once; nothing new to ask.
         const res = await fetch(`/api/wedding/contribute/${guestToken}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -158,6 +180,7 @@ export function WeddingGuestForm({
           };
           throw new Error(data.error ?? "Couldn't update.");
         }
+        setPhase("thankyou-typing");
       } else {
         const res = await fetch(`/api/wedding/contribute/${guestToken}`, {
           method: "POST",
@@ -176,12 +199,16 @@ export function WeddingGuestForm({
           };
           throw new Error(data.error ?? "Couldn't submit.");
         }
-        // Capture the new contribution id so the post-submit
-        // "Preview my message" path has something to fetch.
+        // Capture the new contribution id so the email-prompt
+        // and "Preview my message" paths have something to use.
         const data = (await res.json().catch(() => ({}))) as { id?: string };
         if (data.id) setContributionId(data.id);
+        // Fresh submission goes through the email-prompt before
+        // the cinematic "Sealed for {names}" typewriter — that
+        // way we get the operational ask out of the way first
+        // and the seal moment lands as closure.
+        setPhase("email-prompt");
       }
-      setPhase("thankyou-typing");
     } catch (err) {
       setError((err as Error).message);
       setSaving(false);
@@ -289,6 +316,24 @@ export function WeddingGuestForm({
           />
         )}
       </main>
+    );
+  }
+
+  // ── Phase 3.5: Email prompt ───────────────────────────
+  // Fires the moment a fresh POST returns successfully and
+  // before the "Sealed for {names}" typewriter. Two steps in
+  // one screen — "Want to be able to edit this later?" yes/no,
+  // then if yes, an email field and a Send button. Skip or
+  // send-success both fall through to the typewriter so the
+  // seal moment lands as closure either way.
+  if (phase === "email-prompt") {
+    return (
+      <EmailPromptScreen
+        guestToken={guestToken}
+        contributionId={contributionId}
+        coupleNames={couple.coupleNames}
+        onContinue={() => setPhase("thankyou-typing")}
+      />
     );
   }
 
@@ -510,6 +555,186 @@ export function WeddingGuestForm({
           </div>
         </form>
       </section>
+    </main>
+  );
+}
+
+/**
+ * Sits between the editor's "Seal my message" submit and the
+ * cinematic typewriter. Asks once whether the guest wants the
+ * editable-card email; on Yes they enter an email and the link
+ * gets sent server-side. On No, or after a successful send, the
+ * screen calls onContinue() to advance to the typewriter.
+ *
+ * Stateless w.r.t. the parent's contribution data — it only
+ * needs the contributionId to identify the row server-side, and
+ * the coupleNames purely for copy.
+ */
+function EmailPromptScreen({
+  guestToken,
+  contributionId,
+  coupleNames,
+  onContinue,
+}: {
+  guestToken: string;
+  contributionId: string | null;
+  coupleNames: string;
+  onContinue: () => void;
+}) {
+  const [step, setStep] = useState<"ask" | "form" | "sent">("ask");
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  // Defensive: if the parent never captured a contributionId
+  // (network race after POST), the email-link endpoint will 404.
+  // Fall through with a friendly skip — the seal still happened.
+  if (!contributionId) {
+    return (
+      <main className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 text-center">
+        <button
+          type="button"
+          onClick={onContinue}
+          className="bg-amber text-white px-6 py-3 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors"
+        >
+          Continue
+        </button>
+      </main>
+    );
+  }
+
+  async function send() {
+    if (busy) return;
+    const trimmed = email.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trimmed)) {
+      setErr("That email doesn't look right.");
+      return;
+    }
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch(
+        `/api/wedding/contribute/${guestToken}/email-link`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contributionId,
+            email: trimmed,
+          }),
+        },
+      );
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+        };
+        throw new Error(data.error ?? "Couldn't send the email.");
+      }
+      setStep("sent");
+    } catch (e) {
+      setErr((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <main className="min-h-screen bg-cream flex flex-col items-center justify-center px-6">
+      <div className="w-full max-w-[440px]">
+        {step === "ask" && (
+          <>
+            <h2 className="text-[22px] sm:text-[24px] font-extrabold text-navy tracking-[-0.4px] mb-3 text-center">
+              One more thing.
+            </h2>
+            <p className="text-[15px] text-ink-mid leading-[1.6] text-center mb-6">
+              Want to be able to edit this later? Drop your email and
+              we&rsquo;ll send you a private link &mdash; you can come back
+              and tweak your message until {coupleNames}&rsquo;s capsule is
+              sealed for delivery.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <button
+                type="button"
+                onClick={() => setStep("form")}
+                className="flex-1 bg-amber text-white py-3 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors shadow-[0_2px_8px_rgba(196,122,58,0.25)]"
+              >
+                Yes, send me the link
+              </button>
+              <button
+                type="button"
+                onClick={onContinue}
+                className="flex-1 bg-white text-navy border border-navy/15 py-3 rounded-lg text-[15px] font-bold hover:border-navy/30 transition-colors"
+              >
+                No thanks
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === "form" && (
+          <>
+            <h2 className="text-[22px] sm:text-[24px] font-extrabold text-navy tracking-[-0.4px] mb-3 text-center">
+              Where should we send it?
+            </h2>
+            <p className="text-[14px] text-ink-mid leading-[1.6] text-center mb-5">
+              We&rsquo;ll only use this for the editable link &mdash; no
+              marketing, no list, no follow-ups.
+            </p>
+            <input
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="w-full mb-3 px-4 py-3 rounded-lg border border-navy/15 bg-white text-[15px] text-navy placeholder-ink-light/50 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+            />
+            {err && (
+              <p className="mb-3 text-[13px] text-red-600 text-center" role="alert">
+                {err}
+              </p>
+            )}
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                onClick={send}
+                disabled={busy}
+                className="flex-1 bg-amber text-white py-3 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
+              >
+                {busy ? "Sending…" : "Send the link"}
+              </button>
+              <button
+                type="button"
+                onClick={onContinue}
+                disabled={busy}
+                className="px-5 py-3 rounded-lg text-[14px] font-semibold border border-navy/15 text-ink-mid hover:text-navy hover:border-navy/30 transition-colors disabled:opacity-50"
+              >
+                Skip
+              </button>
+            </div>
+          </>
+        )}
+
+        {step === "sent" && (
+          <>
+            <h2 className="text-[22px] sm:text-[24px] font-extrabold text-navy tracking-[-0.4px] mb-3 text-center">
+              Check your inbox.
+            </h2>
+            <p className="text-[14px] text-ink-mid leading-[1.6] text-center mb-6">
+              Sent to <span className="font-bold text-navy">{email}</span>.
+              Hold onto that email &mdash; the link is unique to your
+              message.
+            </p>
+            <button
+              type="button"
+              onClick={onContinue}
+              className="w-full bg-amber text-white py-3 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors"
+            >
+              Continue
+            </button>
+          </>
+        )}
+      </div>
     </main>
   );
 }

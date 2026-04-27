@@ -259,6 +259,15 @@ const TEMPLATES: EmailTemplate[] = [
     frequency: "On event",
     funnel: "Engagement",
   },
+  {
+    id: "wedding-edit-link",
+    name: "#26 Wedding Edit Link",
+    subject: "Edit your message for {couple}",
+    bodyPreview: "Sent to a wedding guest who opts in to 'save my email so I can edit later' on the post-submit prompt. Carries a /wedding/<guestToken>?edit=<editToken> deep-link that drops them back into their own contribution pre-filled with text + media. Editable while the capsule is ACTIVE; once it goes SEALED the link returns a 'too late' screen.",
+    trigger: "Guest opts in to the email-prompt phase after sealing a wedding contribution",
+    frequency: "On event",
+    funnel: "Retention",
+  },
 ];
 
 const FUNNEL_COLORS: Record<string, string> = {

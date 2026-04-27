@@ -440,3 +440,45 @@ export async function sendOrgCapsuleTransferred(params: {
     `),
   });
 }
+
+/**
+ * Sent when a wedding guest opts in to "save my email so I can
+ * edit later" after sealing their contribution. Carries a
+ * deep-link to /wedding/<guestToken>?edit=<editToken> that drops
+ * the guest back into the editor pre-filled with their original
+ * text and media. Editable while the capsule is ACTIVE; once
+ * sealed (past the contributor deadline) the link returns a
+ * gentle "too late" screen.
+ */
+export async function sendWeddingEditLink(params: {
+  to: string;
+  authorName: string;
+  coupleNames: string;
+  editUrl: string;
+}): Promise<void> {
+  await send({
+    to: params.to,
+    subject: `Edit your message for ${params.coupleNames}`,
+    html: wrapper(`
+      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
+        Hi ${escapeHtml(params.authorName)} &mdash; your message is sealed.
+      </h1>
+      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
+        Your message for ${escapeHtml(params.coupleNames)} is in. If you
+        ever want to swap a word, add a photo, or change the voice note,
+        the link below drops you back into your message exactly as you
+        left it.
+      </p>
+      <p style="font-size:15px;color:#4a5568;line-height:1.6;margin:0 0 12px;">
+        Edits stay open until the couple&rsquo;s capsule is sealed for
+        delivery. After that, your message is locked &mdash; the way it
+        should be.
+      </p>
+      ${cta(params.editUrl, "Edit my message")}
+      <p style="font-size:13px;color:#8896a5;line-height:1.6;margin:0;">
+        Keep this email. The link is unique to your message and we
+        can&rsquo;t recover it if it&rsquo;s lost.
+      </p>
+    `),
+  });
+}
