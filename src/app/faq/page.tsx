@@ -163,8 +163,7 @@ export default function FAQPage() {
                 saying &mdash; shape the people we love more than we realize.
               </p>
               <p>
-                Jesus said that{" "}
-                <em>out of the overflow of the heart, the mouth speaks</em>.
+                <em>Out of the overflow of the heart, the mouth speaks</em>.
                 We built untilThen because most of us have a full heart and
                 an empty page. We mean to say the thing. We plan to write the
                 letter. And then life moves fast and the moment passes.
