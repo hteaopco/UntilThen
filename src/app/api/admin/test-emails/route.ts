@@ -37,7 +37,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     sendCapsuleInvite,
     sendCapsuleDraftSaved,
     sendCapsuleDraftExpiring,
-    sendCapsuleActivated,
     sendCapsuleContributionSubmitted,
     sendCapsuleContributorReminder,
     sendCapsuleRevealDay,
@@ -95,20 +94,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   );
 
-  // #4 — Capsule Activated
-  await fire("capsule-activated", "#4 Capsule Activated", () =>
-    sendCapsuleActivated({
-      to,
-      title: "Mom's 60th Birthday",
-      recipientName: "Margaret Smith",
-      revealDate: new Date(Date.now() + 30 * 86400000),
-      contributorCount: 5,
-      dashboardUrl: `${origin}/capsules/test-id`,
-    }),
-  );
-
-  // #5 — Contribution Submitted
-  await fire("contribution-submitted", "#5 Contribution Submitted", () =>
+  // #4 — Contribution Submitted
+  await fire("contribution-submitted", "#4 Contribution Submitted", () =>
     sendCapsuleContributionSubmitted({
       to,
       contributorName: "Sarah",
@@ -117,8 +104,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   );
 
-  // #6 — Contributor Reminder
-  await fire("contributor-reminder", "#6 Contributor Reminder", () =>
+  // #5 — Contributor Reminder
+  await fire("contributor-reminder", "#5 Contributor Reminder", () =>
     sendCapsuleContributorReminder({
       to,
       contributorName: "Sarah",
@@ -128,8 +115,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   );
 
-  // #7 — Reveal Day
-  await fire("reveal-day", "#7 Reveal Day", () =>
+  // #6 — Reveal Day
+  await fire("reveal-day", "#6 Reveal Day", () =>
     sendCapsuleRevealDay({
       to,
       recipientName: "Margaret",
@@ -139,8 +126,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   );
 
-  // #8 — New Link
-  await fire("new-link", "#8 New Link", () =>
+  // #7 — New Link
+  await fire("new-link", "#7 New Link", () =>
     sendCapsuleNewLink({
       to,
       recipientName: "Margaret",
@@ -150,8 +137,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   );
 
-  // #9 — Capsule Saved
-  await fire("capsule-saved", "#9 Capsule Saved", () =>
+  // #8 — Capsule Saved
+  await fire("capsule-saved", "#8 Capsule Saved", () =>
     sendCapsuleSaved({
       to,
       recipientName: "Margaret",
@@ -159,8 +146,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   );
 
-  // #10 — Contributor Confirmation
-  await fire("contributor-confirmation", "#10 Contributor Confirmation", () =>
+  // #9 — Contributor Confirmation
+  await fire("contributor-confirmation", "#9 Contributor Confirmation", () =>
     sendContributorConfirmation({
       to,
       contributorName: "Sarah",
@@ -171,8 +158,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   );
 
-  // #11 — Contributor Approved
-  await fire("contributor-approved", "#11 Contributor Approved", () =>
+  // #10 — Contributor Approved
+  await fire("contributor-approved", "#10 Contributor Approved", () =>
     sendContributorApproved({
       to,
       contributorName: "Sarah",
@@ -182,8 +169,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   );
 
-  // #12 — Contributor Rejected
-  await fire("contributor-rejected", "#12 Contributor Rejected", () =>
+  // #11 — Contributor Rejected
+  await fire("contributor-rejected", "#11 Contributor Rejected", () =>
     sendContributorRejected({
       to,
       contributorName: "Sarah",

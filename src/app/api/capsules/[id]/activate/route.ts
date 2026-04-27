@@ -6,10 +6,7 @@ import {
   priceCentsForOccasion,
   RECIPIENT_TOKEN_TTL_MS,
 } from "@/lib/capsules";
-import {
-  sendCapsuleActivated,
-  sendCapsuleInvite,
-} from "@/lib/capsule-emails";
+import { sendCapsuleInvite } from "@/lib/capsule-emails";
 import { userHasGiftAccess } from "@/lib/paywall";
 import { captureServerEvent } from "@/lib/posthog-server";
 import {
@@ -213,18 +210,17 @@ export async function POST(
       invitesDispatched: stagedInvites.length,
     });
 
-    // Now dispatch the invite emails for every freshly-promoted
-    // STAGED row + the organiser's "you're live" confirmation.
-    // Failures here are best-effort — the rows are already PENDING
-    // so a resend can pick them up later.
+    // Dispatch invite emails for every freshly-promoted STAGED
+    // row. The organiser's "you're live" confirmation was removed
+    // — the dashboard already reflects the live state the moment
+    // activation completes, so the email was redundant noise.
+    // Failures here are best-effort — the invite rows are already
+    // PENDING so a manual resend can pick them up later.
     try {
       const { clerkClient } = await import("@clerk/nextjs/server");
       const clerk = await clerkClient();
       const clerkUser = await clerk.users.getUser(userId!);
       const organiserName = clerkUser.firstName ?? "Someone";
-      const organiserEmail =
-        clerkUser.primaryEmailAddress?.emailAddress ??
-        clerkUser.emailAddresses[0]?.emailAddress;
 
       for (const invite of stagedInvites) {
         await sendCapsuleInvite({
@@ -235,19 +231,6 @@ export async function POST(
           recipientName: capsule.recipientName,
           revealDate: capsule.revealDate,
           inviteToken: invite.inviteToken,
-        });
-      }
-
-      if (organiserEmail) {
-        const origin =
-          process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
-        await sendCapsuleActivated({
-          to: organiserEmail,
-          title: capsule.title,
-          recipientName: capsule.recipientName,
-          revealDate: capsule.revealDate,
-          contributorCount: stagedInvites.length,
-          dashboardUrl: `${origin}/capsules/${id}`,
         });
       }
     } catch (err) {

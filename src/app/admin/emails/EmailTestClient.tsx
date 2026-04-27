@@ -53,17 +53,8 @@ const TEMPLATES: EmailTemplate[] = [
     funnel: "Completion",
   },
   {
-    id: "capsule-activated",
-    name: "#4 Capsule Activated",
-    subject: "It's happening.",
-    bodyPreview: "Your capsule is live. Invites are going out. People are about to start writing.",
-    trigger: "Organiser activates / pays",
-    frequency: "On event",
-    funnel: "Completion",
-  },
-  {
     id: "contribution-submitted",
-    name: "#5 Contribution Submitted",
+    name: "#4 Contribution Submitted",
     subject: "Someone just added something for Margaret",
     bodyPreview: "A new memory was added to your capsule. You can review it, edit it, or approve it before it's sealed.",
     trigger: "Contributor submits → sent to organiser",
@@ -72,7 +63,7 @@ const TEMPLATES: EmailTemplate[] = [
   },
   {
     id: "contributor-reminder",
-    name: "#6 Contributor Reminder",
+    name: "#5 Contributor Reminder",
     subject: "Don't miss this.",
     bodyPreview: "You were invited to leave a message for Margaret. Take a minute to write something they'll keep forever.",
     trigger: "48hr before contributor deadline",
@@ -81,7 +72,7 @@ const TEMPLATES: EmailTemplate[] = [
   },
   {
     id: "reveal-day",
-    name: "#7 Reveal Day",
+    name: "#6 Reveal Day",
     subject: (t) => TONE_HERO[t],
     bodyPreview: (t) => `${TONE_UNLOCK_LINE[t]} ${toneClosingLine(t)}`,
     trigger: "Reveal date arrives",
@@ -90,7 +81,7 @@ const TEMPLATES: EmailTemplate[] = [
   },
   {
     id: "new-link",
-    name: "#8 New Link",
+    name: "#7 New Link",
     subject: "Here's your new link",
     bodyPreview: "Your messages are waiting. We've generated a new link for you. Whenever you're ready, everything is waiting.",
     trigger: "Recipient requests fresh magic link",
@@ -99,7 +90,7 @@ const TEMPLATES: EmailTemplate[] = [
   },
   {
     id: "capsule-saved",
-    name: "#9 Capsule Saved",
+    name: "#8 Capsule Saved",
     subject: "This is yours now.",
     bodyPreview: "Your capsule is saved to your account. You can return anytime to revisit what was written for you.",
     trigger: "Recipient creates account after opening",
@@ -108,7 +99,7 @@ const TEMPLATES: EmailTemplate[] = [
   },
   {
     id: "contributor-confirmation",
-    name: "#10 Contributor Confirmation",
+    name: "#9 Contributor Confirmation",
     subject: (t) => TONE_THANKYOU[t]("her"),
     bodyPreview: "Your message is saved. You can still edit it before it's sealed.",
     trigger: "Contributor submits → sent to contributor",
@@ -117,7 +108,7 @@ const TEMPLATES: EmailTemplate[] = [
   },
   {
     id: "contributor-approved",
-    name: "#11 Contributor Approved",
+    name: "#10 Contributor Approved",
     subject: "Your message is in.",
     bodyPreview: "Your contribution has been approved. It's now part of what they'll open one day.",
     trigger: "Organiser/admin approves contribution",
@@ -126,7 +117,7 @@ const TEMPLATES: EmailTemplate[] = [
   },
   {
     id: "contributor-rejected",
-    name: "#12 Contributor Rejected",
+    name: "#11 Contributor Rejected",
     subject: "Small update needed",
     bodyPreview: "Your message needs a quick update before it's approved. Take a moment to revise it.",
     trigger: "Organiser/admin rejects contribution",

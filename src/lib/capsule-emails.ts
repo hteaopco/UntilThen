@@ -160,28 +160,7 @@ export async function sendCapsuleDraftExpiring(params: {
   });
 }
 
-// #4 — Capsule Activated (Payment)
-export async function sendCapsuleActivated(params: {
-  to: string;
-  title: string;
-  recipientName: string;
-  revealDate: Date;
-  contributorCount: number;
-  dashboardUrl: string;
-}): Promise<void> {
-  await send({
-    to: params.to,
-    subject: "It\u2019s happening.",
-    html: wrap(`
-      ${heading("Your capsule is live.")}
-      ${body("Invites are going out. People are about to start writing.")}
-      ${muted("This is becoming something they&rsquo;ll open one day.")}
-      ${cta(params.dashboardUrl, "View your capsule")}
-    `),
-  });
-}
-
-// #5 — Contribution Submitted → Organiser
+// #4 — Contribution Submitted → Organiser
 export async function sendCapsuleContributionSubmitted(params: {
   to: string;
   contributorName: string;
@@ -199,7 +178,7 @@ export async function sendCapsuleContributionSubmitted(params: {
   });
 }
 
-// #6 — Contributor Reminder (48hr Deadline)
+// #5 — Contributor Reminder (48hr Deadline)
 export async function sendCapsuleContributorReminder(params: {
   to: string;
   contributorName: string | null;
@@ -219,7 +198,7 @@ export async function sendCapsuleContributorReminder(params: {
   });
 }
 
-// #7 — Reveal Day (Recipient)
+// #6 — Reveal Day (Recipient)
 export async function sendCapsuleRevealDay(params: {
   to: string;
   recipientName: string;
@@ -243,7 +222,7 @@ export async function sendCapsuleRevealDay(params: {
   });
 }
 
-// #8 — New Link Requested
+// #7 — New Link Requested
 export async function sendCapsuleNewLink(params: {
   to: string;
   recipientName: string;
@@ -264,7 +243,7 @@ export async function sendCapsuleNewLink(params: {
   });
 }
 
-// #9 — Capsule Saved (Recipient Account Created)
+// #8 — Capsule Saved (Recipient Account Created)
 export async function sendCapsuleSaved(params: {
   to: string;
   recipientName: string;
@@ -281,7 +260,7 @@ export async function sendCapsuleSaved(params: {
   });
 }
 
-// #10 — Contributor Confirmation
+// #9 — Contributor Confirmation
 export async function sendContributorConfirmation(params: {
   to: string;
   contributorName: string;
@@ -309,7 +288,7 @@ export async function sendContributorConfirmation(params: {
   });
 }
 
-// #11 — Contributor Approved
+// #10 — Contributor Approved
 export async function sendContributorApproved(params: {
   to: string;
   contributorName: string;
@@ -328,7 +307,7 @@ export async function sendContributorApproved(params: {
   });
 }
 
-// #12 — Contributor Rejected
+// #11 — Contributor Rejected
 export async function sendContributorRejected(params: {
   to: string;
   contributorName: string;
