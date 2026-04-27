@@ -23,6 +23,13 @@ export default function AccountLayout({
         <AccountShell>{children}</AccountShell>
       </main>
       <Footer />
+      {/* Mobile bottom-tab nav inside AccountShell is fixed and
+          covers the last ~64px of the viewport. Without this
+          spacer, the Footer sits permanently underneath it and
+          can never be fully seen. The spacer matches Footer's
+          warm-slate background so the Footer reads as extending
+          past the nav rather than as a stray colour band. */}
+      <div aria-hidden="true" className="lg:hidden h-20 bg-warm-slate" />
     </>
   );
 }
