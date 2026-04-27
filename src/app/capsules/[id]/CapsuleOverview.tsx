@@ -628,7 +628,10 @@ export function CapsuleOverview({
       </section>
 
       {capsule.occasionType === "WEDDING" && capsule.guestToken && !isDraft && (
-        <WeddingGuestSharePanel guestToken={capsule.guestToken} />
+        <WeddingGuestSharePanel
+          capsuleId={capsule.id}
+          guestToken={capsule.guestToken}
+        />
       )}
 
       {/* Live capsule summary (post-activation): contributions
@@ -1795,7 +1798,13 @@ function ActivationModal({
  * need a runtime QR dependency; it's a placeholder until the
  * print-ready easel/table-card flow ships.
  */
-function WeddingGuestSharePanel({ guestToken }: { guestToken: string }) {
+function WeddingGuestSharePanel({
+  capsuleId,
+  guestToken,
+}: {
+  capsuleId: string;
+  guestToken: string;
+}) {
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const origin =
@@ -1896,6 +1905,12 @@ function WeddingGuestSharePanel({ guestToken }: { guestToken: string }) {
             >
               Preview as guest
             </a>
+            <Link
+              href={`/capsules/${capsuleId}/share-card`}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
+            >
+              Print card
+            </Link>
           </div>
         </div>
         <div className="shrink-0 rounded-xl border border-navy/10 p-2 bg-white">
