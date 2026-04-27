@@ -33,15 +33,22 @@ to "ship this quarter"):
    letter content.
 6. April 27, 2027 — hard calendar floor regardless of the above.
 
-**Cheap on-ramps to do before the trigger fires** (do not require
+**Cheap on-ramp to do before the trigger fires** (does not require
 the full project):
 
-- Open an AWS account and provision a KMS master key (~$1/mo).
-  Pre-clears procurement when the trigger fires.
 - Confirm every admin tool that reads letter or contribution
   content writes an `AdminAuditLog` row. The "we know who looked
   at what" story is what customers actually care about; encryption
-  is partly a proxy for it.
+  is partly a proxy for it. This is already-relevant work
+  regardless of v3.
+
+KMS account setup is *not* on this list. Provisioning a KMS master
+key is genuinely ~30 minutes when the trigger fires — the
+"1-week sprint vs 4-week project" framing applies to the
+crypto library, schema migration, backfill, and cutover, not to
+the KMS account itself. Adding an AWS account pre-launch costs
+billing/IAM/incident surface area that isn't repaid by the
+30 minutes saved a year out.
 
 **Scope when the work begins** (full plan archived in conversation
 history; high-level only here):
