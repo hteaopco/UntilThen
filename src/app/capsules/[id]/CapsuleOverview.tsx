@@ -479,9 +479,7 @@ export function CapsuleOverview({
         <div className="rounded-2xl border border-amber/25 bg-amber-tint/40 px-6 py-6 space-y-3">
           <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] text-balance break-words">
             {isDraft
-              ? capsule.occasionType === "WEDDING"
-                ? "Activate your Wedding Capsule"
-                : `Invite everyone who loves ${pronoun}`
+              ? "Everyone is going to love this!"
               : isSealed
                 ? `${recipientDisplayName}\u2019s capsule is sealed`
                 : `${recipientDisplayName}\u2019s capsule is live`}
@@ -548,9 +546,11 @@ export function CapsuleOverview({
               </>
             ) : (
               <>
-                <span className="inline-flex items-center gap-2 bg-navy/10 text-ink-light px-5 py-2.5 rounded-lg text-sm font-bold cursor-default">
-                  {capsule.occasionType === "WEDDING" ? "Capsule Activated" : "Invites sent"}
-                </span>
+                {capsule.occasionType !== "WEDDING" && (
+                  <span className="inline-flex items-center gap-2 bg-navy/10 text-ink-light px-5 py-2.5 rounded-lg text-sm font-bold cursor-default">
+                    Invites sent
+                  </span>
+                )}
                 <button
                   type="button"
                   onClick={() => toggleSeal(true)}
@@ -560,23 +560,33 @@ export function CapsuleOverview({
                   <Lock size={12} strokeWidth={2.25} aria-hidden="true" />
                   {sealing ? "Sealing\u2026" : "Seal capsule"}
                 </button>
+                {capsule.occasionType === "WEDDING" && (
+                  <Link
+                    href={`/capsules/${capsule.id}/preview`}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
+                  >
+                    Preview Moment
+                  </Link>
+                )}
               </>
             )}
           </div>
-          {isDraft && (
+          {isDraft && capsule.occasionType !== "WEDDING" && (
             <p className="text-sm font-semibold text-navy">
               Nothing is sent to {recipientDisplayName} yet. You&rsquo;ll review
               everything before delivery.
             </p>
           )}
-          <div className="pt-1">
-            <Link
-              href={`/capsules/${capsule.id}/preview`}
-              className="inline-block px-4 py-2 rounded-lg text-[13px] font-semibold border border-amber/30 text-amber/80 hover:text-amber hover:border-amber transition-colors"
-            >
-              Preview their moment
-            </Link>
-          </div>
+          {capsule.occasionType !== "WEDDING" && (
+            <div className="pt-1">
+              <Link
+                href={`/capsules/${capsule.id}/preview`}
+                className="inline-block px-4 py-2 rounded-lg text-[13px] font-semibold border border-amber/30 text-amber/80 hover:text-amber hover:border-amber transition-colors"
+              >
+                Preview their moment
+              </Link>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1578,7 +1588,7 @@ function ActivationModal({
             </div>
             <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] leading-[1.25] whitespace-nowrap">
               {step === "summary"
-                ? `Invite everyone who loves ${recipientPronoun}`
+                ? "Everyone is going to love this!"
                 : "Add your card"}
             </h2>
           </div>
@@ -1650,13 +1660,24 @@ function ActivationModal({
                 </table>
               </div>
             )}
-            <button
-              type="button"
-              onClick={() => { onClose(); setTimeout(() => document.getElementById("invite-people")?.scrollIntoView({ behavior: "smooth" }), 100); }}
-              className="text-xs font-semibold text-amber hover:text-amber-dark transition-colors"
-            >
-              + Add contributor
-            </button>
+            {occasionType !== "WEDDING" && (
+              <button
+                type="button"
+                onClick={() => {
+                  onClose();
+                  setTimeout(
+                    () =>
+                      document
+                        .getElementById("invite-people")
+                        ?.scrollIntoView({ behavior: "smooth" }),
+                    100,
+                  );
+                }}
+                className="text-xs font-semibold text-amber hover:text-amber-dark transition-colors"
+              >
+                + Add contributor
+              </button>
+            )}
             {error && (
               <p className="text-sm text-red-600" role="alert">
                 {error}
@@ -1669,14 +1690,21 @@ function ActivationModal({
               className="w-full bg-amber text-white py-3 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors disabled:opacity-60"
             >
               {busy
-                ? "Sending…"
+                ? occasionType === "WEDDING"
+                  ? "Activating…"
+                  : "Sending…"
                 : requiresPayment
                   ? "Continue to payment"
-                  : "Send contributor invites"}
+                  : occasionType === "WEDDING"
+                    ? "Activate Capsule"
+                    : "Send contributor invites"}
             </button>
-            <p className="text-sm font-semibold text-navy text-center">
-              Nothing is sent to {recipientDisplayName} yet. You&rsquo;ll review everything before delivery.
-            </p>
+            {occasionType !== "WEDDING" && (
+              <p className="text-sm font-semibold text-navy text-center">
+                Nothing is sent to {recipientDisplayName} yet. You&rsquo;ll
+                review everything before delivery.
+              </p>
+            )}
           </div>
         ) : (
           <div className="p-6">

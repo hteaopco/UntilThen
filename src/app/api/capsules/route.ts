@@ -7,7 +7,6 @@ import {
   WEDDING_MAX_HORIZON_DAYS,
   maxHorizonMsForOccasion,
 } from "@/lib/capsules";
-import { sendCapsuleDraftSaved } from "@/lib/capsule-emails";
 import { captureServerEvent } from "@/lib/posthog-server";
 
 export const runtime = "nodejs";
@@ -257,29 +256,6 @@ export async function POST(req: Request) {
       capsuleId: capsule.id,
       occasionType,
     });
-
-    // Fire-and-forget draft-saved confirmation so the organiser
-    // has a link back into the flow if they close the tab.
-    try {
-      const { clerkClient } = await import("@clerk/nextjs/server");
-      const clerk = await clerkClient();
-      const clerkUser = await clerk.users.getUser(userId);
-      const organiserEmail =
-        clerkUser.primaryEmailAddress?.emailAddress ??
-        clerkUser.emailAddresses[0]?.emailAddress;
-      if (organiserEmail) {
-        const origin =
-          process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
-        await sendCapsuleDraftSaved({
-          to: organiserEmail,
-          organiserName: clerkUser.firstName ?? "",
-          title,
-          dashboardUrl: `${origin}/capsules/${capsule.id}`,
-        });
-      }
-    } catch (err) {
-      console.error("[capsules POST] draft-saved email:", err);
-    }
 
     return NextResponse.json({ success: true, id: capsule.id });
   } catch (err) {
