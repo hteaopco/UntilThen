@@ -23,7 +23,7 @@ const SECTIONS: AccordionSection[] = [
       {
         question: "What is untilThen?",
         answer:
-          "untilThen is a time capsule app. You write letters, record voice notes, and upload photos and videos for someone you love — sealed in a private Time Capsule until they reach a milestone you choose, like an 18th birthday, a wedding, or a future anniversary.",
+          "untilThen is a time capsule app where you write letters, record voice notes, and upload photos and videos for someone you love — sealed until a moment that matters. Create a Time Capsule for your child that opens on their 18th birthday, build a Gift Capsule for a birthday, retirement, or farewell where friends and family all contribute, or seal a wedding capsule that the couple opens together on their first anniversary. untilThen is also available for teams — companies use it to celebrate employee milestones in a way people actually remember.",
       },
       {
         question: "What's the difference between a Time Capsule and a Gift Capsule?",
@@ -137,6 +137,45 @@ export default function FAQPage() {
               {SUPPORT_EMAIL}
             </a>
           </p>
+
+          {/* Why We Built untilThen — always-visible banner. Kept
+              above the accordion so visitors meet the "why" before
+              the operational FAQ. Brand-amber treatment so it
+              reads as the founder's voice, not another FAQ row. */}
+          <section
+            aria-labelledby="why-we-built"
+            className="mt-10 rounded-2xl border border-amber/30 bg-amber-tint/50 px-6 py-7 sm:px-8 sm:py-9 shadow-[0_4px_18px_rgba(196,122,58,0.06)]"
+          >
+            <p className="text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.18em] text-amber mb-2">
+              A note from us
+            </p>
+            <h2
+              id="why-we-built"
+              className="text-[22px] sm:text-[26px] font-extrabold text-navy tracking-[-0.4px] mb-4 leading-[1.2]"
+            >
+              Why We Built untilThen
+            </h2>
+            <div className="space-y-3.5 text-[15px] sm:text-[16px] text-navy/85 leading-[1.65]">
+              <p>
+                Proverbs 18:21 says{" "}
+                <em>the power of life and death are in the tongue</em>. The
+                words we speak &mdash; and the ones we never get around to
+                saying &mdash; shape the people we love more than we realize.
+              </p>
+              <p>
+                Jesus said that{" "}
+                <em>out of the overflow of the heart, the mouth speaks</em>.
+                We built untilThen because most of us have a full heart and
+                an empty page. We mean to say the thing. We plan to write the
+                letter. And then life moves fast and the moment passes.
+              </p>
+              <p>
+                untilThen exists to close that gap &mdash; to give the words
+                in your heart a place to live until the moment they&rsquo;re
+                needed most.
+              </p>
+            </div>
+          </section>
 
           {/* Accordion */}
           <Accordion sections={SECTIONS} />
