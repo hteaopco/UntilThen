@@ -76,6 +76,7 @@ export function mockRevealCapsule(overrides: Partial<RevealCapsule> = {}): Revea
     revealDate: new Date("2056-09-15T09:00:00Z").toISOString(),
     isFirstOpen: true,
     hasCompleted: false,
+    isSaved: false,
     ...overrides,
   };
 }

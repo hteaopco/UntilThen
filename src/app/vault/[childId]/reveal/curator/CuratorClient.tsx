@@ -308,6 +308,9 @@ export function CuratorClient({
     revealDate: revealDate ?? new Date(Date.now() + 365 * 86400000).toISOString(),
     isFirstOpen: true,
     hasCompleted: false,
+    // Curator preview — vault owner is the organiser, not the
+    // recipient. No claim flow makes sense here.
+    isSaved: true,
   };
 
   // Pipe the currently-selected song's signed preview URL into the

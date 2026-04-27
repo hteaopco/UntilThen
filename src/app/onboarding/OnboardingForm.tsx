@@ -26,8 +26,15 @@ import { LogoSvg } from "@/components/ui/LogoSvg";
  */
 export function OnboardingForm({
   initialPath,
+  redirectUrl,
 }: {
   initialPath: "capsule" | null;
+  /** When supplied (typically from a /sign-up?redirect_url=...
+   *  upstream link), the onboarding form pushes here on successful
+   *  submit instead of /home or /capsules/new. Lets flows like the
+   *  reveal-claim handler or capsule creation resume after the user
+   *  signs up + names themselves. */
+  redirectUrl: string | null;
 }) {
   const { user, isLoaded } = useUser();
   const router = useRouter();
@@ -70,9 +77,15 @@ export function OnboardingForm({
         };
         throw new Error(data.error ?? "Something went wrong.");
       }
-      // initialPath=capsule users came in via the Gift Capsule CTA
-      // — drop them in the creation flow instead of /home.
-      router.push(initialPath === "capsule" ? "/capsules/new" : "/home");
+      // Destination priority:
+      //   1. explicit redirect_url (capsule creation resume,
+      //      reveal-claim handler, etc.)
+      //   2. initialPath=capsule → /capsules/new (Gift Capsule CTA)
+      //   3. /home (default)
+      const next =
+        redirectUrl ??
+        (initialPath === "capsule" ? "/capsules/new" : "/home");
+      router.push(next);
       router.refresh();
     } catch (err) {
       setError((err as Error).message);

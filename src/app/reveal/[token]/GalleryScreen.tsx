@@ -49,6 +49,8 @@ export function GalleryScreen({
   muted = false,
   onToggleMuted,
   musicEnabled = false,
+  showSaveBanner = false,
+  onSave,
 }: {
   recipientName: string;
   contributions: RevealContribution[];
@@ -74,6 +76,14 @@ export function GalleryScreen({
    *  false, the mute toggle in the gallery header stays hidden
    *  (there's nothing to mute once stories are over). */
   musicEnabled?: boolean;
+  /** Persistent "Replay anytime — save to your account" banner
+   *  rendered above the gallery header for unsaved capsules.
+   *  RevealExperience flips this off the moment a claim succeeds. */
+  showSaveBanner?: boolean;
+  /** Click handler for the banner CTA. When omitted (preview
+   *  surfaces, etc.) the banner is suppressed regardless of the
+   *  showSaveBanner flag. */
+  onSave?: () => void;
 }) {
   const { capture } = useRevealAnalytics();
   const [searchQuery, setSearchQuery] = useState("");
@@ -230,6 +240,34 @@ export function GalleryScreen({
         paddingBottom: "max(env(safe-area-inset-bottom), 5rem)",
       }}
     >
+      {/* Persistent save banner. Suppressed once the recipient has
+          claimed the capsule (RevealExperience flips off
+          showSaveBanner). Click handler bounces through
+          /sign-up?redirect_url=... so unauthenticated recipients
+          land back here after auth and the wrapper's claim handler
+          finishes the link. */}
+      {showSaveBanner && onSave && (
+        <div
+          className="sticky top-0 z-30 border-b border-amber/30 bg-amber-tint/80 backdrop-blur-sm"
+          style={{
+            paddingTop: "max(env(safe-area-inset-top), 0px)",
+          }}
+        >
+          <div className="mx-auto max-w-[640px] px-4 py-2.5 flex items-center justify-between gap-3">
+            <p className="text-[12px] sm:text-[13px] text-navy leading-[1.4]">
+              <span className="font-bold">Replay anytime</span> &mdash; save
+              to your account.
+            </p>
+            <button
+              type="button"
+              onClick={onSave}
+              className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-amber text-white text-[11px] font-bold uppercase tracking-[0.08em] hover:bg-amber-dark transition-colors"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      )}
       <header
         className="relative px-5"
         style={{

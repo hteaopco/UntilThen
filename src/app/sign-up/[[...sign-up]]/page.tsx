@@ -8,7 +8,34 @@ export const metadata = {
   title: "Get started — untilThen",
 };
 
-export default function SignUpPage() {
+/**
+ * Honour ?redirect_url=... so flows that bounce a user through
+ * sign-up (capsule creation, reveal claim, etc.) can land them
+ * back on their original page once they're authenticated.
+ *
+ * After Clerk completes, every new user still has to stop at
+ * /onboarding to capture their name + create the User row, so the
+ * forwarded redirect_url is propagated as a query param on the
+ * onboarding hop. OnboardingForm reads it and pushes there after
+ * the User row is created.
+ */
+export default async function SignUpPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect_url?: string }>;
+}) {
+  const sp = await searchParams;
+  const redirectUrl =
+    typeof sp.redirect_url === "string" && sp.redirect_url.startsWith("/")
+      ? sp.redirect_url
+      : null;
+  const onboardingTarget = redirectUrl
+    ? `/onboarding?redirect_url=${encodeURIComponent(redirectUrl)}`
+    : "/onboarding";
+  const signInUrl = redirectUrl
+    ? `/sign-in?redirect_url=${encodeURIComponent(redirectUrl)}`
+    : "/sign-in";
+
   return (
     <>
       <main className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 py-12">
@@ -39,9 +66,9 @@ export default function SignUpPage() {
           }}
           path="/sign-up"
           routing="path"
-          signInUrl="/sign-in"
-          forceRedirectUrl="/onboarding"
-          fallbackRedirectUrl="/onboarding"
+          signInUrl={signInUrl}
+          forceRedirectUrl={onboardingTarget}
+          fallbackRedirectUrl={onboardingTarget}
         />
       </main>
       <Footer />

@@ -133,6 +133,9 @@ export default async function CapsulePreviewPage({
     revealDate: capsule.revealDate.toISOString(),
     isFirstOpen: true,
     hasCompleted: false,
+    // Preview surface — no claim flow, no save banner. The
+    // organiser is just inspecting their own capsule.
+    isSaved: true,
   };
 
   // Sign the stock-voice URLs so the "Full demo" toggle plays the

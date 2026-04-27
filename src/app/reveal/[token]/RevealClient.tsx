@@ -1,5 +1,7 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { captureEvent } from "@/components/PosthogProvider";
@@ -55,6 +57,92 @@ export function RevealClient({ token }: { token: string }) {
   const [data, setData] = useState<LiveResponse | null>(null);
   const [sealed, setSealed] = useState<SealedResponse["capsule"] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Flips true once the in-session claim POST succeeds (or the
+  // capsule was already saved on initial load). Drives
+  // RevealExperience's `externalSaved` so the SavePromptScreen +
+  // gallery banner disappear without a remount.
+  const [savedInSession, setSavedInSession] = useState(false);
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { isSignedIn, isLoaded: authLoaded } = useAuth();
+
+  // Bounce the recipient through Clerk and back, then hand the
+  // returning user back to this same page with ?claim=1 so the
+  // claim effect below auto-fires.
+  function launchClaimRedirect() {
+    const claimUrl = `${pathname}?claim=1`;
+    router.push(`/sign-up?redirect_url=${encodeURIComponent(claimUrl)}`);
+  }
+
+  // Auto-claim handler. Triggers when:
+  //   - data has loaded (so we have capsule.id)
+  //   - the URL carries ?claim=1 (the post-auth handoff signal)
+  //   - the viewer is now signed in (Clerk session is hydrated)
+  //   - we haven't already claimed in-session
+  // Calls /api/capsules/[id]/save with the magic token (which the
+  // endpoint validates against capsule.accessToken). On success we
+  // flip savedInSession and strip ?claim=1 off the URL so a refresh
+  // doesn't re-fire the post.
+  useEffect(() => {
+    if (!authLoaded || !isSignedIn || !data) return;
+    if (savedInSession || data.capsule.isSaved) {
+      // Already saved server-side or this session — make sure the
+      // experience knows.
+      if (!savedInSession && data.capsule.isSaved) setSavedInSession(true);
+      return;
+    }
+    if (searchParams.get("claim") !== "1") return;
+
+    const capsuleId = data.capsule.id;
+    let cancelled = false;
+    async function claim() {
+      try {
+        const res = await fetch(
+          `/api/capsules/${encodeURIComponent(capsuleId)}/save`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token }),
+          },
+        );
+        if (cancelled) return;
+        if (res.ok) {
+          setSavedInSession(true);
+          captureEvent("reveal_save_claimed", { capsuleId });
+        } else {
+          // Surface in console for debugging; the recipient still
+          // gets a working gallery without the claim.
+          const body = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          console.warn("[reveal claim] save failed:", body.error ?? res.status);
+        }
+      } catch (err) {
+        if (cancelled) return;
+        console.warn("[reveal claim] save threw:", err);
+      } finally {
+        // Strip ?claim=1 off the URL whether or not the call
+        // succeeded — leaving it on the URL would re-fire the
+        // effect on every back/forward navigation.
+        if (!cancelled) router.replace(pathname);
+      }
+    }
+    void claim();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    authLoaded,
+    isSignedIn,
+    data,
+    savedInSession,
+    searchParams,
+    token,
+    pathname,
+    router,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -124,6 +212,8 @@ export function RevealClient({ token }: { token: string }) {
         <RevealExperience
           capsule={data.capsule}
           contributions={data.contributions}
+          onSaveRequested={launchClaimRedirect}
+          externalSaved={savedInSession || data.capsule.isSaved}
           onCompleted={() => {
             captureEvent("reveal_completed", {
               capsuleId: data.capsule.id,

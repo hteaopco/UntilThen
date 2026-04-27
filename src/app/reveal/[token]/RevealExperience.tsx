@@ -13,6 +13,7 @@ import {
 
 import { EntryScreen } from "./EntryScreen";
 import { GalleryScreen } from "./GalleryScreen";
+import { SavePromptScreen } from "./SavePromptScreen";
 import { GateScreen } from "./GateScreen";
 import { StoryCards } from "./StoryCards";
 import { TransitionScreen } from "./TransitionScreen";
@@ -94,9 +95,19 @@ export type RevealCapsule = {
   revealDate: string;
   isFirstOpen: boolean;
   hasCompleted: boolean;
+  /** True once the recipient has signed up + claimed this capsule
+   *  (recipientClerkId is set). Suppresses the SavePromptScreen
+   *  before gallery and the gallery's save banner. */
+  isSaved: boolean;
 };
 
-type Phase = "gate" | "entry" | "stories" | "transition" | "gallery";
+type Phase =
+  | "gate"
+  | "entry"
+  | "stories"
+  | "transition"
+  | "save-prompt"
+  | "gallery";
 
 /**
  * Pure phase state machine — takes a fully-loaded capsule +
@@ -130,9 +141,22 @@ export function RevealExperience({
   gateBelowSlot,
   galleryExit,
   allowReplay = true,
+  onSaveRequested,
+  externalSaved = false,
 }: {
   capsule: RevealCapsule;
   contributions: RevealContribution[];
+  /** Fired from the SavePromptScreen and gallery banner when the
+   *  recipient chooses "Save to your account". The wrapper handles
+   *  the actual sign-up/sign-in handoff — this component just
+   *  surfaces the intent. Optional so the admin preview can omit it
+   *  (no claim flow makes sense in preview). */
+  onSaveRequested?: () => void;
+  /** When the wrapper detects the recipient has come back from a
+   *  successful claim (e.g. ?claim=1 with an authed Clerk session),
+   *  flipping this to true tells the experience to suppress the
+   *  save prompt + gallery banner without a remount. */
+  externalSaved?: boolean;
   /** Optional UI rendered at the top of the GateScreen (and only
    *  the gate). Used by preview surfaces to expose the
    *  This-vault / Full-demo toggle before the user taps Begin. */
@@ -180,6 +204,25 @@ export function RevealExperience({
   const [phase, setPhase] = useState<Phase>(() =>
     capsule.hasCompleted ? "gallery" : "gate",
   );
+  // Local mirror of capsule.isSaved so the SavePromptScreen ↔
+  // gallery banner can flip in-session when the recipient comes
+  // back from the claim flow. Initial value seeded from the server
+  // payload; flipped via the externalSaved prop when the wrapper's
+  // claim handler succeeds in-session.
+  const [saved, setSaved] = useState<boolean>(capsule.isSaved);
+  useEffect(() => {
+    if (externalSaved) setSaved(true);
+  }, [externalSaved]);
+  // Helper: progress to the gallery. On first visit, when not yet
+  // saved, gate the transition behind the save prompt; otherwise
+  // go straight to gallery.
+  const goToGallery = () => {
+    if (!saved) {
+      setPhase("save-prompt");
+    } else {
+      setPhase("gallery");
+    }
+  };
   // Muted state is hoisted to the root so the story-card ✕ chrome
   // toggle, the gallery music button, the embedded voice cards,
   // and the background music element all stay in sync. One mute
@@ -434,7 +477,11 @@ export function RevealExperience({
             // Music already started on mount (or on the first
             // document-level tap for iOS) — nothing to do here
             // audio-wise.
-            setPhase(contributions.length === 0 ? "gallery" : "stories");
+            if (contributions.length === 0) {
+              goToGallery();
+            } else {
+              setPhase("stories");
+            }
           }}
         />
       );
@@ -450,10 +497,11 @@ export function RevealExperience({
           // explicitly says "exits to gallery immediately").
           // Reaching the end of the deck routes through the
           // transition screen first.
-          onClose={() => setPhase("gallery")}
-          onComplete={() =>
-            setPhase(remaining > 0 ? "transition" : "gallery")
-          }
+          onClose={() => goToGallery()}
+          onComplete={() => {
+            if (remaining > 0) setPhase("transition");
+            else goToGallery();
+          }}
         />
       );
     }
@@ -462,7 +510,24 @@ export function RevealExperience({
         <TransitionScreen
           remainingCount={remaining}
           contributorCount={contributorCount}
-          onContinue={() => setPhase("gallery")}
+          onContinue={() => goToGallery()}
+        />
+      );
+    }
+    if (phase === "save-prompt") {
+      return (
+        <SavePromptScreen
+          recipientName={capsule.recipientName}
+          onSave={() => {
+            // Wrapper handles the redirect to /sign-up?redirect_url=...
+            // — fall back to advancing into the gallery if the
+            // wrapper didn't supply a handler (admin preview path).
+            if (onSaveRequested) onSaveRequested();
+            else setPhase("gallery");
+          }}
+          onSkip={() => {
+            setPhase("gallery");
+          }}
         />
       );
     }
@@ -475,6 +540,13 @@ export function RevealExperience({
         onToggleMuted={() => setMuted((m) => !m)}
         musicEnabled={Boolean(effectiveMusicUrl)}
         exit={galleryExit}
+        // Show the persistent "save to your account" banner when
+        // the recipient hasn't claimed yet. Includes both the
+        // skip-from-prompt path and returning visitors who never
+        // saw the prompt (capsule.hasCompleted = true on a fresh
+        // session). Suppressed once `saved` flips true.
+        showSaveBanner={!saved && Boolean(onSaveRequested)}
+        onSave={onSaveRequested}
         onReplay={
           allowReplay
             ? () => {

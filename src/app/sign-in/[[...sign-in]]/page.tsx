@@ -8,7 +8,25 @@ export const metadata = {
   title: "Sign in — untilThen",
 };
 
-export default function SignInPage() {
+/**
+ * Honour ?redirect_url=... — existing users skip /onboarding so
+ * we can hand the URL straight to Clerk's forceRedirectUrl. Falls
+ * back to /home when no destination is supplied.
+ */
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ redirect_url?: string }>;
+}) {
+  const sp = await searchParams;
+  const redirectUrl =
+    typeof sp.redirect_url === "string" && sp.redirect_url.startsWith("/")
+      ? sp.redirect_url
+      : "/home";
+  const signUpUrl = redirectUrl !== "/home"
+    ? `/sign-up?redirect_url=${encodeURIComponent(redirectUrl)}`
+    : "/sign-up";
+
   return (
     <>
       <main className="min-h-screen bg-cream flex flex-col items-center justify-center px-6 py-12">
@@ -39,9 +57,9 @@ export default function SignInPage() {
           }}
           path="/sign-in"
           routing="path"
-          signUpUrl="/sign-up"
-          forceRedirectUrl="/home"
-          fallbackRedirectUrl="/home"
+          signUpUrl={signUpUrl}
+          forceRedirectUrl={redirectUrl}
+          fallbackRedirectUrl={redirectUrl}
         />
 
         <Link

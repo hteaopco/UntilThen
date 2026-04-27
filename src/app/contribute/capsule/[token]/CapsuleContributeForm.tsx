@@ -479,6 +479,9 @@ function PreviewReveal({
     revealDate: capsule.revealDate,
     isFirstOpen: true,
     hasCompleted: false,
+    // Contributor preview — they're not the recipient. Suppress
+    // the save flow here.
+    isSaved: true,
   };
 
   const previewContribution: RevealContribution = {

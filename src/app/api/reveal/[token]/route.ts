@@ -174,6 +174,12 @@ export async function GET(
       // on subsequent loads and lands the returning viewer in the
       // gallery directly.
       hasCompleted: Boolean(capsule.recipientCompletedAt),
+      // recipientClerkId is set by POST /api/capsules/[id]/save
+      // once a recipient signs up + claims this capsule. Drives
+      // the SavePromptScreen + gallery save banner — both are
+      // suppressed once the capsule is permanently linked to an
+      // account.
+      isSaved: Boolean(capsule.recipientClerkId),
     },
     contributions,
   });

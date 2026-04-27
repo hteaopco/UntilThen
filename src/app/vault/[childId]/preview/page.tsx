@@ -135,6 +135,9 @@ export default async function VaultPreviewPage({
     // short-circuiting to the gallery even if the parent has
     // previewed before.
     hasCompleted: false,
+    // Vault preview is for the parent, not the recipient. Skip
+    // the save prompt — there's no claim flow on a preview.
+    isSaved: true,
   };
 
   // BUILD-mode curator output. Falls back to Random in
