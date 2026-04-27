@@ -70,6 +70,16 @@ export function WeddingGuestForm({
   const [showCta, setShowCta] = useState(false);
   const [extraHeight, setExtraHeight] = useState(0);
   const [saveForLaterOpen, setSaveForLaterOpen] = useState(false);
+  // Fade the card-phase CTAs in after a short pause so they
+  // don't pop into view before the Card.png finishes painting.
+  // Resets each time the phase re-enters "card".
+  const [cardCtasVisible, setCardCtasVisible] = useState(false);
+  useEffect(() => {
+    if (phase !== "card") return;
+    setCardCtasVisible(false);
+    const t = window.setTimeout(() => setCardCtasVisible(true), 1500);
+    return () => window.clearTimeout(t);
+  }, [phase]);
   const mediaKeysRef = useRef<string[]>([]);
   const mediaTypesRef = useRef<string[]>([]);
   const stateRef = useRef({ name, body, contributionId });
@@ -215,14 +225,33 @@ export function WeddingGuestForm({
           <LogoSvg variant="dark" width={110} height={22} />
         </div>
         <div className="relative z-10 w-full max-w-[440px] mx-auto flex flex-col items-center">
+          {/* The card art has a transparent border around the
+              cream paper. We paint the same cream onto the img's
+              own background so transparent pixels render as the
+              page color (no checkerboard, no fringe). The
+              `transform: scale(1.1)` makes the painted artwork
+              ~10% larger than its layout box; bleed off the
+              phone edges is clipped by the parent `<main>`'s
+              `overflow-hidden`, and CTAs absorb the bottom
+              overflow with the bumped top margin below. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={`/Card.png?v=${assetVersions.card}`}
             alt=""
             aria-hidden="true"
-            className="w-full h-auto block select-none"
+            className="w-full h-auto block select-none bg-cream"
+            style={{
+              transform: "scale(1.1)",
+              transformOrigin: "center",
+            }}
           />
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <div
+            className="mt-12 flex flex-wrap items-center justify-center gap-3 transition-all duration-700 ease-out"
+            style={{
+              opacity: cardCtasVisible ? 1 : 0,
+              transform: cardCtasVisible ? "translateY(0)" : "translateY(16px)",
+            }}
+          >
             <button
               type="button"
               onClick={() => setPhase("editor")}
