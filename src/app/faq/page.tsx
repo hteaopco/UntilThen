@@ -63,7 +63,7 @@ const SECTIONS: AccordionSection[] = [
       {
         question: "Who can see my entries?",
         answer:
-          "Only you. The recipient cannot see any content until the reveal date. untilThen staff do not access your entries. All content is encrypted at rest.",
+          "Only you, before the reveal date — the recipient never sees any content until the reveal date, and locked content is never transmitted to their device until then. Storage volumes and media files are encrypted at rest by our infrastructure providers (Railway-managed Postgres and Cloudflare R2), access to production systems is restricted to authorised personnel, and admin actions are recorded in an internal audit log. We don't yet apply application-level encryption to the content of letters or media, which means authorised untilThen staff with database access could technically read entries in the course of operating the service or investigating abuse reports. Per-account content encryption is on our roadmap. See our privacy policy section 7.2 for the full picture.",
       },
     ],
   },
