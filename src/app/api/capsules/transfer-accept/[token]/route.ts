@@ -34,6 +34,8 @@ export async function POST(
       id: true,
       capsuleId: true,
       toEmail: true,
+      toFirstName: true,
+      toLastName: true,
       status: true,
     },
   });
@@ -66,10 +68,18 @@ export async function POST(
     select: { id: true },
   });
   if (!localUser) {
+    // Fall back to Clerk's resolved name when the inviter typed
+    // something different — Clerk is canonical for the user's
+    // own profile.
+    const firstName =
+      clerkUser.firstName ?? transfer.toFirstName;
+    const lastName = clerkUser.lastName ?? transfer.toLastName;
     localUser = await prisma.user.create({
       data: {
         clerkId: userId,
         email: transfer.toEmail.toLowerCase(),
+        firstName,
+        lastName,
       },
       select: { id: true },
     });
