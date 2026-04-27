@@ -22,18 +22,23 @@ import { CapsuleCreationFlow } from "./CapsuleCreationFlow";
  * /capsules/new and lets visitors see the pitch + price before
  * committing to the form.
  *
- * Wedding visitors (initialOccasion="WEDDING") skip the intro
- * entirely — they came from /weddings which already shows the
- * pitch and the $99.00 price; dropping them straight into the
- * flow with WEDDING pre-selected is the right move.
+ * Two paths skip the intro and land straight in the wizard:
+ *   - Wedding visitors (initialOccasion="WEDDING") came from
+ *     /weddings which already shows the $99.00 price; the
+ *     gift-capsule intro is irrelevant for them.
+ *   - Org members (skipIntro=true) hit the wizard for free —
+ *     their organisation covers the cost, so the $9.99 price
+ *     card is misleading. Resolved server-side in page.tsx.
  */
 export function CapsuleIntroGate({
   initialOccasion,
+  skipIntro = false,
 }: {
   initialOccasion?: "WEDDING";
+  skipIntro?: boolean;
 }) {
   const [phase, setPhase] = useState<"intro" | "flow">(
-    initialOccasion ? "flow" : "intro",
+    initialOccasion || skipIntro ? "flow" : "intro",
   );
 
   if (phase === "flow") {
