@@ -356,22 +356,39 @@ export default function PrivacyPage() {
 
       <h3>7.2 How We Protect Your Data</h3>
       <ul>
-        <li>All data is encrypted in transit (TLS/HTTPS)</li>
-        <li>All data is encrypted at rest</li>
+        <li>All data is encrypted in transit (TLS/HTTPS).</li>
         <li>
-          Media files are stored in Cloudflare R2 with signed, time-limited
-          access URLs
+          Database storage volumes and media files are encrypted at rest by
+          our infrastructure providers (Railway-managed Postgres and
+          Cloudflare R2).
+        </li>
+        <li>
+          Media files are served through signed, time-limited URLs &mdash; the
+          underlying objects in storage are never publicly addressable.
         </li>
         <li>
           Sealed Time Capsule content is never transmitted to a recipient&rsquo;s
-          device until the reveal date
+          device until the reveal date.
         </li>
         <li>
-          Passwords are managed by Clerk and never stored in plain text
+          Authentication is managed by Clerk; passwords are never stored by
+          untilThen, and PINs you set on your vault are hashed with scrypt and
+          never stored in plain text.
         </li>
         <li>
-          Access to production systems is restricted to authorised personnel
-          only
+          Access to production systems is restricted to authorised personnel,
+          and administrative actions on user data are recorded in an internal
+          audit log.
+        </li>
+        <li>
+          We do not currently apply application-level encryption to the
+          content of letters, contributions, or media (beyond the
+          infrastructure-level encryption described above). This means that
+          authorised untilThen personnel with database access could
+          technically read this content in the course of operating the
+          service or responding to abuse reports. We are evaluating
+          per-account encryption for a future release; this notice will be
+          updated when that work ships.
         </li>
       </ul>
 
