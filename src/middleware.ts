@@ -13,6 +13,16 @@ const isPublicRoute = createRouteMatcher([
   "/terms",
   "/sign-in(.*)",
   "/sign-up(.*)",
+  // Marketing / sales pages — visible without sign-in so visitors
+  // can read the pitch before being asked to create an account.
+  // The signed-in surfaces (/weddings/dashboard, /enterprise) keep
+  // their own auth gates; only the public landings are listed here.
+  "/weddings",
+  "/weddings/faq",
+  "/weddings/faq/(.*)",
+  "/business",
+  "/business/faq",
+  "/business/faq/(.*)",
   // Gift Capsule public surfaces — contributor invite links
   // and the recipient reveal flow are both accountless by design.
   // /capsules/new is public too so visitors landing from the

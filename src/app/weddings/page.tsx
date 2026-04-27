@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { HelpCircle, LogIn, Mail, Sparkles } from "lucide-react";
 
@@ -26,6 +27,15 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function WeddingsPage() {
+  // Public-facing sales page. Signed-out visitors get Login as a
+  // hand-off to /sign-up?redirect_url=/weddings/dashboard so they
+  // create an account and land back on their dashboard. Signed-in
+  // viewers go straight to their dashboard.
+  const { userId } = auth();
+  const loginHref = userId
+    ? "/weddings/dashboard"
+    : "/sign-up?redirect_url=%2Fweddings%2Fdashboard";
+
   return (
     <>
       <TopNav />
@@ -65,7 +75,7 @@ export default async function WeddingsPage() {
                 FAQ
               </Link>
               <Link
-                href="/weddings/dashboard"
+                href={loginHref}
                 className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-full border border-navy/10 text-navy/70 text-[13px] sm:text-[14px] font-bold whitespace-nowrap hover:border-amber/40 hover:text-navy transition-colors"
               >
                 <LogIn size={14} strokeWidth={2} aria-hidden="true" />

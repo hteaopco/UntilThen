@@ -28,12 +28,20 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function BusinessPage() {
-  // Show the "Login" CTA pill only when the viewer is signed
-  // in AND active in an org. Anyone else sees a clean landing
-  // — they have no dashboard to log into.
+  // Public-facing sales page. The Login CTA shows in two cases:
+  //   - Signed-out viewer → Login routes to /sign-up so they can
+  //     create an account; their org admin will invite them after.
+  //   - Signed-in org member → Login goes to the /enterprise
+  //     dashboard.
+  // A signed-in user without org membership has no enterprise to
+  // log into, so we hide the CTA for them rather than dump them
+  // on a redirect loop.
   const { userId } = auth();
   const orgCtx = userId ? await getOrgContextByClerkId(userId) : null;
-  const showEnterpriseLogin = Boolean(orgCtx);
+  const showEnterpriseLogin = !userId || Boolean(orgCtx);
+  const loginHref = orgCtx
+    ? "/enterprise"
+    : "/sign-up?redirect_url=%2Fenterprise";
 
   return (
     <>
@@ -74,7 +82,7 @@ export default async function BusinessPage() {
               </Link>
               {showEnterpriseLogin && (
                 <Link
-                  href="/enterprise"
+                  href={loginHref}
                   className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-full border border-navy/10 text-navy/70 text-[13px] sm:text-[14px] font-bold whitespace-nowrap hover:border-amber/40 hover:text-navy transition-colors"
                 >
                   <LogIn size={14} strokeWidth={2} aria-hidden="true" />
