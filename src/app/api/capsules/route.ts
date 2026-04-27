@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import {
   CAPSULE_MAX_HORIZON_DAYS,
+  RECIPIENT_TOKEN_TTL_MS,
   WEDDING_MAX_HORIZON_DAYS,
   maxHorizonMsForOccasion,
 } from "@/lib/capsules";
@@ -248,6 +249,19 @@ export async function POST(req: Request) {
     const guestToken =
       occasionType === "WEDDING" ? randomGuestToken() : null;
 
+    // Enterprise capsules skip the paywall (the org covers the
+    // cost upstream), so we activate at creation time. That puts
+    // the capsule in ACTIVE/isPaid immediately, lets the contributor
+    // invite emails fire on save instead of waiting for a separate
+    // /activate click, and matches the simplified enterprise UX
+    // (no activate modal). Personal capsules still create as DRAFT
+    // and flow through /activate + Square as before.
+    const autoActivate = orgCtx !== null;
+    const tokenExpiresAt = autoActivate
+      ? new Date(revealDate.getTime() + RECIPIENT_TOKEN_TTL_MS)
+      : null;
+    const now = autoActivate ? new Date() : null;
+
     const capsule = await prisma.memoryCapsule.create({
       data: {
         organiserId: user.id,
@@ -266,6 +280,14 @@ export async function POST(req: Request) {
         ...(deliveryTime ? { deliveryTime } : {}),
         ...(timezone ? { timezone } : {}),
         ...(orgCtx ? { organizationId: orgCtx.organizationId } : {}),
+        ...(autoActivate
+          ? {
+              status: "ACTIVE" as const,
+              isPaid: true,
+              paidAt: now,
+              tokenExpiresAt,
+            }
+          : {}),
       },
     });
 

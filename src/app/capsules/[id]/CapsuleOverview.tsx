@@ -1350,10 +1350,18 @@ function ContributorsPanel({
     }
   }
 
-  // Enterprise drafts: clicking Send Contributor Invites first
-  // saves any pending form rows, then opens the activate modal so
-  // the org admin confirms the send. Skips the save when the form
-  // is empty (organiser is sending the existing invite list).
+  // Send Contributor Invites for enterprise capsules.
+  //
+  // New enterprise capsules are auto-activated at creation
+  // (organisation covers the cost, so there's no paywall step) —
+  // adding contributors via the invites endpoint fires the emails
+  // immediately, no activate modal required. We just save and
+  // refresh.
+  //
+  // Backwards compatibility: a small number of pre-auto-activate
+  // enterprise capsules still exist in DRAFT state. For those we
+  // fall through to onActivate() so the existing modal can drive
+  // the activation.
   async function sendInvites() {
     const hasPending = rows.some((r) => r.email.trim().length > 0);
     if (hasPending) {
@@ -1363,7 +1371,7 @@ function ContributorsPanel({
       setError("Add at least one contributor before sending.");
       return;
     }
-    onActivate();
+    if (isDraft) onActivate();
   }
 
   return (
@@ -1492,7 +1500,7 @@ function ContributorsPanel({
               Add from List
             </button>
           )}
-          {isOrgAttributed && isDraft ? (
+          {isOrgAttributed ? (
             <button
               type="button"
               onClick={sendInvites}
