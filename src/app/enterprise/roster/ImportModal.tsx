@@ -69,11 +69,38 @@ export function ImportModal({
   const [deleteSelection, setDeleteSelection] = useState<Set<string>>(
     new Set(),
   );
+  const [revalidating, setRevalidating] = useState(false);
   const [result, setResult] = useState<{
     inserted: number;
     updated: number;
     deleted: number;
   } | null>(null);
+
+  async function runPreview(rows: CsvRow[]) {
+    setError(null);
+    if (rows.length === 0) {
+      setError("No rows left to import.");
+      return;
+    }
+    const res = await fetch(
+      `/api/orgs/${orgId}/employees/import/preview`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rows }),
+      },
+    );
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      throw new Error(data.error ?? "Couldn't preview the import.");
+    }
+    const body = (await res.json()) as PreviewResp;
+    setParsedRows(rows);
+    setPreview(body);
+    setDeleteSelection(new Set(body.toDelete.map((r) => r.id)));
+  }
 
   async function handleFile(file: File) {
     setError(null);
@@ -95,28 +122,56 @@ export function ImportModal({
       setError("No rows found in that CSV.");
       return;
     }
-    setParsedRows(rows);
     try {
-      const res = await fetch(
-        `/api/orgs/${orgId}/employees/import/preview`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rows }),
-        },
-      );
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as {
-          error?: string;
-        };
-        throw new Error(data.error ?? "Couldn't preview the import.");
-      }
-      const body = (await res.json()) as PreviewResp;
-      setPreview(body);
-      setDeleteSelection(new Set(body.toDelete.map((r) => r.id)));
+      await runPreview(rows);
       setPhase("preview");
     } catch (err) {
       setError((err as Error).message);
+    }
+  }
+
+  // Inline edits update parsedRows but don't re-fetch preview —
+  // the user clicks "Re-check" once they're done editing so we
+  // don't hammer /preview on every keystroke.
+  function editField(idx: number, field: keyof CsvRow, value: string) {
+    setParsedRows((prev) =>
+      prev.map((r, i) =>
+        i === idx
+          ? {
+              ...r,
+              [field]:
+                field === "phone" || field === "department" || field === "subTeam"
+                  ? value || null
+                  : value,
+            }
+          : r,
+      ),
+    );
+  }
+
+  // Skip drops the row entirely, then re-runs preview so row
+  // numbers / counts / toDelete all stay consistent with what's
+  // about to be committed.
+  async function skipRow(idx: number) {
+    const next = parsedRows.filter((_, i) => i !== idx);
+    setRevalidating(true);
+    try {
+      await runPreview(next);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setRevalidating(false);
+    }
+  }
+
+  async function revalidate() {
+    setRevalidating(true);
+    try {
+      await runPreview(parsedRows);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setRevalidating(false);
     }
   }
 
@@ -200,6 +255,7 @@ export function ImportModal({
             <PreviewPhase
               mode={mode}
               preview={preview}
+              parsedRows={parsedRows}
               deleteSelection={deleteSelection}
               onToggleDelete={toggleDelete}
               onCommit={commit}
@@ -208,6 +264,10 @@ export function ImportModal({
                 setPreview(null);
                 setError(null);
               }}
+              onEditField={editField}
+              onSkipRow={skipRow}
+              onRevalidate={revalidate}
+              revalidating={revalidating}
               error={error}
             />
           )}
@@ -241,12 +301,14 @@ function UploadPhase({
   return (
     <div>
       <p className="text-[13px] text-ink-mid leading-[1.55]">
-        Upload a CSV with the columns{" "}
+        Columns are read by position — the header row is optional.{" "}
+        Order:{" "}
         <code className="text-[12px] bg-navy/[0.05] px-1.5 py-0.5 rounded">
           firstName, lastName, email, phone, department, subTeam
         </code>
-        . Email is required and used as the natural key for
-        duplicate detection.
+        . You&rsquo;ll see the rows on the next screen, so it&rsquo;s
+        easy to catch a misaligned column. Email is required and used
+        as the natural key for duplicate detection.
       </p>
 
       <a
@@ -278,11 +340,11 @@ function UploadPhase({
         </div>
       </div>
 
-      <label className="mt-5 block">
+      <label className="mt-5 block cursor-pointer">
         <p className="text-[11px] uppercase tracking-[0.1em] font-bold text-ink-mid mb-2">
           CSV file
         </p>
-        <div className="rounded-xl border-2 border-dashed border-navy/15 bg-cream px-4 py-6 text-center hover:border-amber/50 transition-colors">
+        <div className="rounded-xl border-2 border-dashed border-navy/15 bg-cream px-4 py-6 text-center hover:border-amber/50 transition-colors cursor-pointer">
           <Upload
             size={22}
             strokeWidth={1.75}
@@ -346,21 +408,32 @@ function ModeCard({
 function PreviewPhase({
   mode,
   preview,
+  parsedRows,
   deleteSelection,
   onToggleDelete,
   onCommit,
   onBack,
+  onEditField,
+  onSkipRow,
+  onRevalidate,
+  revalidating,
   error,
 }: {
   mode: Mode;
   preview: PreviewResp;
+  parsedRows: CsvRow[];
   deleteSelection: Set<string>;
   onToggleDelete: (id: string) => void;
   onCommit: () => void;
   onBack: () => void;
+  onEditField: (idx: number, field: keyof CsvRow, value: string) => void;
+  onSkipRow: (idx: number) => void;
+  onRevalidate: () => void;
+  revalidating: boolean;
   error: string | null;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [errorsExpanded, setErrorsExpanded] = useState(true);
 
   const willDelete = deleteSelection.size;
   const willAdd = preview.newRows.length;
@@ -368,6 +441,22 @@ function PreviewPhase({
   const willSkip = mode === "ADD_NEW" ? preview.duplicates.length : 0;
 
   const blockedByErrors = preview.errors.length > 0;
+
+  // Group errors by 1-based row number so each errored row is
+  // rendered once with the union of its problems (e.g. row 17
+  // missing both firstName and email shows both messages on the
+  // same edit form, not as two separate cards).
+  const errorsByRow = useMemo(() => {
+    const map = new Map<number, { row: number; field?: string; message: string }[]>();
+    for (const e of preview.errors) {
+      const arr = map.get(e.row) ?? [];
+      arr.push(e);
+      map.set(e.row, arr);
+    }
+    return Array.from(map.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([row, errs]) => ({ row, errs }));
+  }, [preview.errors]);
 
   return (
     <div>
@@ -423,19 +512,101 @@ function PreviewPhase({
 
       {preview.errors.length > 0 && (
         <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2">
-          <p className="text-[12px] font-bold text-red-700">
-            {preview.errors.length}{" "}
-            {preview.errors.length === 1 ? "row needs" : "rows need"} fixing
-            before import
-          </p>
-          <ul className="mt-1 text-[12px] text-red-700 space-y-0.5 max-h-[120px] overflow-y-auto">
-            {preview.errors.map((e, i) => (
-              <li key={i}>
-                Row {e.row}
-                {e.field ? ` · ${e.field}` : ""}: {e.message}
-              </li>
-            ))}
-          </ul>
+          <button
+            type="button"
+            onClick={() => setErrorsExpanded((v) => !v)}
+            className="w-full flex items-center justify-between text-left"
+            aria-expanded={errorsExpanded}
+          >
+            <span className="text-[12px] font-bold text-red-700">
+              <span aria-hidden="true">{errorsExpanded ? "▾" : "▸"}</span>{" "}
+              {errorsByRow.length}{" "}
+              {errorsByRow.length === 1 ? "row needs" : "rows need"} fixing
+              before import
+            </span>
+            <span className="text-[11px] text-red-700/80 underline">
+              {errorsExpanded ? "Hide" : "View errors"}
+            </span>
+          </button>
+
+          {errorsExpanded && (
+            <div className="mt-2 space-y-2 max-h-[320px] overflow-y-auto">
+              {errorsByRow.map(({ row, errs }) => {
+                const idx = row - 1;
+                const r = parsedRows[idx];
+                if (!r) return null;
+                return (
+                  <div
+                    key={row}
+                    className="rounded-md border border-red-200 bg-white px-3 py-2"
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <span className="text-[11px] uppercase tracking-[0.08em] font-bold text-red-700">
+                        Row {row}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => onSkipRow(idx)}
+                        disabled={revalidating}
+                        className="text-[11px] font-bold text-ink-mid hover:text-red-600 underline disabled:opacity-50"
+                      >
+                        Skip this row
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-red-700 mb-2">
+                      {errs
+                        .map((e) =>
+                          e.field ? `${e.field}: ${e.message}` : e.message,
+                        )
+                        .join(" · ")}
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      <ErrorField
+                        label="First"
+                        value={r.firstName}
+                        onChange={(v) => onEditField(idx, "firstName", v)}
+                      />
+                      <ErrorField
+                        label="Last"
+                        value={r.lastName}
+                        onChange={(v) => onEditField(idx, "lastName", v)}
+                      />
+                      <ErrorField
+                        label="Email"
+                        value={r.email}
+                        onChange={(v) => onEditField(idx, "email", v)}
+                      />
+                      <ErrorField
+                        label="Phone"
+                        value={r.phone ?? ""}
+                        onChange={(v) => onEditField(idx, "phone", v)}
+                      />
+                      <ErrorField
+                        label="Department"
+                        value={r.department ?? ""}
+                        onChange={(v) => onEditField(idx, "department", v)}
+                      />
+                      <ErrorField
+                        label="Sub team"
+                        value={r.subTeam ?? ""}
+                        onChange={(v) => onEditField(idx, "subTeam", v)}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+              <div className="flex justify-end pt-1">
+                <button
+                  type="button"
+                  onClick={onRevalidate}
+                  disabled={revalidating}
+                  className="px-3 py-1.5 rounded-md text-[12px] font-bold bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-60"
+                >
+                  {revalidating ? "Re-checking…" : "Re-check"}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -463,6 +634,30 @@ function PreviewPhase({
         </button>
       </div>
     </div>
+  );
+}
+
+function ErrorField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="block text-[10px] uppercase tracking-[0.08em] font-bold text-ink-mid mb-1">
+        {label}
+      </span>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full px-2 py-1 rounded border border-navy/15 bg-white text-[12px] text-navy outline-none focus:border-amber focus:ring-1 focus:ring-amber/30"
+      />
+    </label>
   );
 }
 
@@ -546,45 +741,73 @@ function DonePhase({
 }
 
 /**
- * Tiny CSV parser tuned for our 6-column template. Handles quoted
- * fields with embedded commas and escaped quotes (""). Returns rows
- * with the expected keys; missing columns become null.
+ * Tiny CSV parser. The mapping is positional (not header-name
+ * dependent) so common spreadsheet quirks — renamed columns,
+ * translated headers, no header at all — never block an import:
  *
- * Throws on a header mismatch (so a wrong file shape fails fast
- * instead of producing nonsense rows).
+ *   col 0 → firstName
+ *   col 1 → lastName
+ *   col 2 → email
+ *   col 3 → phone
+ *   col 4 → department
+ *   col 5 → subTeam
+ *
+ * The first row is treated as a header and skipped iff it looks
+ * like one (no "@" in col 2, and at least one cell matches a
+ * known label like "email" / "first name"). Otherwise every row
+ * is data. Quoted fields with embedded commas / escaped quotes
+ * ("") are handled.
  */
 function parseCsv(text: string): CsvRow[] {
   const lines = splitCsvLines(text);
   if (lines.length === 0) return [];
 
-  const header = parseCsvLine(lines[0]).map((h) => h.trim());
-  const expected = ["firstName", "lastName", "email", "phone", "department", "subTeam"];
-  const idx: Record<string, number> = {};
-  for (const key of expected) {
-    const i = header.indexOf(key);
-    if (i < 0) {
-      throw new Error(
-        `Missing column "${key}". Expected: ${expected.join(", ")}`,
-      );
-    }
-    idx[key] = i;
-  }
+  const firstCells = parseCsvLine(lines[0]).map((c) => c.trim());
+  const startIdx = looksLikeHeader(firstCells) ? 1 : 0;
 
   const out: CsvRow[] = [];
-  for (let i = 1; i < lines.length; i++) {
+  for (let i = startIdx; i < lines.length; i++) {
     const raw = lines[i];
     if (!raw.trim()) continue;
     const cells = parseCsvLine(raw);
     out.push({
-      firstName: (cells[idx.firstName] ?? "").trim(),
-      lastName: (cells[idx.lastName] ?? "").trim(),
-      email: (cells[idx.email] ?? "").trim(),
-      phone: (cells[idx.phone] ?? "").trim() || null,
-      department: (cells[idx.department] ?? "").trim() || null,
-      subTeam: (cells[idx.subTeam] ?? "").trim() || null,
+      firstName: (cells[0] ?? "").trim(),
+      lastName: (cells[1] ?? "").trim(),
+      email: (cells[2] ?? "").trim(),
+      phone: (cells[3] ?? "").trim() || null,
+      department: (cells[4] ?? "").trim() || null,
+      subTeam: (cells[5] ?? "").trim() || null,
     });
   }
   return out;
+}
+
+const HEADER_LABELS = new Set([
+  "firstname",
+  "first name",
+  "first",
+  "lastname",
+  "last name",
+  "last",
+  "email",
+  "e-mail",
+  "phone",
+  "phone number",
+  "mobile",
+  "department",
+  "dept",
+  "subteam",
+  "sub team",
+  "team",
+]);
+
+function looksLikeHeader(cells: string[]): boolean {
+  // Email column with an "@" guarantees it's data, not a header —
+  // if col 2 is something like "alice@acme.com" we never strip
+  // row 0, even if other cells match label words by coincidence.
+  const emailCell = (cells[2] ?? "").toLowerCase();
+  if (emailCell.includes("@")) return false;
+  return cells.some((c) => HEADER_LABELS.has(c.toLowerCase().trim()));
 }
 
 /** Splits a CSV blob into logical rows, respecting embedded \n
