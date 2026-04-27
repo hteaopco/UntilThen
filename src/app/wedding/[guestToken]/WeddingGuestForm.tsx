@@ -217,34 +217,13 @@ export function WeddingGuestForm({
           <LogoSvg variant="dark" width={110} height={22} />
         </div>
         <div className="relative z-10 w-full max-w-[440px] mx-auto flex flex-col items-center">
-          <div className="relative w-full">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/Card.png?v=3"
-              alt=""
-              aria-hidden="true"
-              className="w-full h-auto block select-none"
-            />
-            {/* The card art has decorative ribbon corners; the copy
-                lives in the inner writable area. Padding is set
-                generously so the text never touches the ribbons. */}
-            <div className="absolute inset-0 flex items-center justify-center px-[18%] py-[20%]">
-              <p className="text-center font-serif italic text-[14px] sm:text-[15px] leading-[1.55] text-navy">
-                You&rsquo;ve been invited to contribute to a wedding capsule
-                for{" "}
-                <span className="font-bold not-italic">
-                  {couple.coupleNames}
-                </span>
-                . Write them a letter, record a voice note, or share a photo
-                &mdash; something they&rsquo;ll open together exactly one
-                year from their wedding date. Tell them what their love
-                means to you, share a memory, or offer a piece of advice
-                for the road ahead. It only takes a few minutes, but what
-                you leave behind will last a lifetime. Tap below to add
-                your message before the capsule is sealed.
-              </p>
-            </div>
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/Card.png?v=4"
+            alt=""
+            aria-hidden="true"
+            className="w-full h-auto block select-none"
+          />
           {/* Roses pulled close to the card with a negative margin
               so the empty cream space inside the rose PNG's
               bounding box doesn't add vertical air. Smaller width
