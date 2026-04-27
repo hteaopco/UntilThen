@@ -5,8 +5,6 @@ import { redirect } from "next/navigation";
 
 import { findOwnedCapsule } from "@/lib/capsules";
 
-import { PrintButton } from "./PrintButton";
-
 export const metadata = {
   title: "Share Card — untilThen",
 };
@@ -20,12 +18,17 @@ export const runtime = "nodejs";
  * Three-zone flex layout (top / middle / bottom) via
  * justify-between so the bottom row (icons + SCAN TO SHARE +
  * heart) is anchored to the card's lower edge regardless of
- * QR size or screen height. Prevents the previous bug where a
- * larger QR pushed the bottom content off the card on shorter
- * viewports.
+ * QR size or screen height.
  *
  * Design surface ONLY — QR slot uses a placeholder string;
  * wiring to a per-capsule QR comes after design lock.
+ *
+ * The two Download buttons hand back static PNG renders of the
+ * card so organisers can grab the file directly. Source assets
+ * live at /public/wedding-card-white.png (white background) and
+ * /public/wedding-card-cream.png (cream background). Replace
+ * those PNGs in /public to update what gets downloaded — no
+ * code change needed.
  *
  * Auth: organiser-only (findOwnedCapsule), wedding-only.
  */
@@ -55,16 +58,31 @@ export default async function ShareCardPage({
   const qrCodeUrl = "/your-qr-code.png";
 
   return (
-    <div className="min-h-screen bg-[#f8f5f0] flex flex-col items-center px-4 pt-6 print:bg-white print:pt-0">
-      {/* Controls — hidden on print */}
-      <div className="w-full max-w-[420px] flex justify-between items-center mb-5 print:hidden">
+    <div className="min-h-screen bg-[#f8f5f0] flex flex-col items-center px-4 pt-6">
+      {/* Controls */}
+      <div className="w-full max-w-[420px] flex justify-between items-center mb-5 gap-2 flex-wrap">
         <Link
           href={`/capsules/${id}`}
           className="rounded-full border border-[#d8dbe3] bg-white px-5 py-2 text-[#101936] font-semibold"
         >
           × Exit
         </Link>
-        <PrintButton />
+        <div className="flex gap-2 flex-wrap justify-end">
+          <a
+            href="/wedding-card-white.png"
+            download="wedding-card-white.png"
+            className="rounded-full bg-[#c1844f] px-5 py-2 text-white font-semibold shadow-md text-[13px] sm:text-[14px]"
+          >
+            Download Card (White)
+          </a>
+          <a
+            href="/wedding-card-cream.png"
+            download="wedding-card-cream.png"
+            className="rounded-full bg-[#c1844f] px-5 py-2 text-white font-semibold shadow-md text-[13px] sm:text-[14px]"
+          >
+            Download Card (Cream)
+          </a>
+        </div>
       </div>
 
       {/* Card — three-zone flex with justify-between so bottom
@@ -79,7 +97,6 @@ export default async function ShareCardPage({
           rounded-[18px]
           px-8 py-8
           flex flex-col justify-between
-          print:max-h-none print:h-screen print:w-full print:max-w-none print:border-0 print:rounded-none
         "
       >
         {/* TOP */}
@@ -124,14 +141,6 @@ export default async function ShareCardPage({
           <div className="text-[#c1844f] text-sm mt-1">♥</div>
         </div>
       </div>
-
-      {/* Print rules — single 5×7 page, edge-to-edge. */}
-      <style>{`
-        @media print {
-          @page { size: 5in 7in; margin: 0; }
-          html, body { background: white !important; }
-        }
-      `}</style>
     </div>
   );
 }
