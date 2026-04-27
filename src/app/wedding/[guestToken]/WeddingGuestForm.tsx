@@ -224,21 +224,7 @@ export function WeddingGuestForm({
             aria-hidden="true"
             className="w-full h-auto block select-none"
           />
-          {/* Roses pulled close to the card with a negative margin
-              so the empty cream space inside the rose PNG's
-              bounding box doesn't add vertical air. Smaller width
-              also reduces how much of that empty space is
-              visible. */}
-          <div className="-mt-6 sm:-mt-10 h-[110px] sm:h-[140px] w-[160px] sm:w-[200px] overflow-hidden flex items-center justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/Roses.png"
-              alt=""
-              aria-hidden="true"
-              className="w-full h-auto select-none"
-            />
-          </div>
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <button
               type="button"
               onClick={() => setPhase("editor")}
@@ -325,7 +311,7 @@ export function WeddingGuestForm({
 
   return (
     <main className="relative min-h-screen bg-cream overflow-hidden">
-      <FlowerCorner />
+      <RosesCorner />
       <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
         <div className="px-6 py-4 flex items-center justify-between max-w-[720px] mx-auto">
           <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
@@ -341,7 +327,8 @@ export function WeddingGuestForm({
           {couple.possessivePrefix}&rsquo;S WEDDING CAPSULE
         </p>
         <h1 className="mt-2 font-brush text-[36px] sm:text-[44px] text-navy leading-[0.95]">
-          A memory for{" "}
+          A memory for
+          <br />
           <span className="text-amber">{couple.coupleNames}</span>
         </h1>
         <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-amber/25 text-[11px] font-bold text-navy">
@@ -464,6 +451,32 @@ export function WeddingGuestForm({
         </form>
       </section>
     </main>
+  );
+}
+
+/**
+ * Editor-only top-right roses decoration. The Roses.png asset
+ * has a lot of cream padding around the actual flowers, so we
+ * size it large and translate the bounding box up + right so
+ * the empty padding bleeds off-screen and only the floral peeks
+ * into the corner. Absolute (not fixed) so it scrolls away with
+ * the heading instead of clinging while the user is in the
+ * editor body.
+ */
+function RosesCorner() {
+  return (
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute top-0 right-0 z-0 w-[280px] sm:w-[360px] lg:w-[440px]"
+      style={{ transform: "translate(20%, -18%)" }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/Roses.png?v=2"
+        alt=""
+        className="w-full h-auto select-none"
+      />
+    </div>
   );
 }
 
