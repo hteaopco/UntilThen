@@ -1,4 +1,7 @@
+import { auth } from "@clerk/nextjs/server";
+
 import { Footer } from "@/components/landing/Footer";
+import { getOrgContextByClerkId } from "@/lib/orgs";
 
 import { CapsuleIntroGate } from "./CapsuleIntroGate";
 
@@ -43,11 +46,24 @@ export default async function NewCapsulePage({
   const attribution: "personal" | "enterprise" =
     sp.source === "enterprise" ? "enterprise" : "personal";
 
+  // Resolve the creator's org only for enterprise-attributed flows
+  // so the recipient step can offer "Add from database". Personal
+  // flows never see the picker even if the user belongs to an org.
+  let organizationId: string | null = null;
+  if (attribution === "enterprise") {
+    const { userId } = auth();
+    if (userId) {
+      const ctx = await getOrgContextByClerkId(userId);
+      organizationId = ctx?.organizationId ?? null;
+    }
+  }
+
   return (
     <>
       <CapsuleIntroGate
         initialOccasion={initialOccasion}
         attribution={attribution}
+        organizationId={organizationId}
       />
       <Footer />
     </>

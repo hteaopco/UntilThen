@@ -38,9 +38,14 @@ import { CapsuleCreationFlow } from "./CapsuleCreationFlow";
 export function CapsuleIntroGate({
   initialOccasion,
   attribution = "personal",
+  organizationId = null,
 }: {
   initialOccasion?: "WEDDING";
   attribution?: "personal" | "enterprise";
+  /** Resolved server-side; non-null only when the visitor is an
+   *  enterprise-attributed org member. Drives the "Add from
+   *  database" recipient picker inside the wizard. */
+  organizationId?: string | null;
 }) {
   const skipIntro = attribution === "enterprise";
   const [phase, setPhase] = useState<"intro" | "flow">(
@@ -52,6 +57,7 @@ export function CapsuleIntroGate({
       <CapsuleCreationFlow
         initialOccasion={initialOccasion}
         attribution={attribution}
+        organizationId={organizationId}
       />
     );
   }

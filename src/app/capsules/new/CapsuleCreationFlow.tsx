@@ -6,6 +6,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import {
+  EmployeePickerModal,
+  type PickedEmployee,
+} from "@/components/enterprise/EmployeePickerModal";
 import { LogoSvg } from "@/components/ui/LogoSvg";
 import {
   CAPSULE_MAX_HORIZON_MS,
@@ -122,6 +126,7 @@ const pillInactive =
 export function CapsuleCreationFlow({
   initialOccasion,
   attribution = "personal",
+  organizationId = null,
 }: {
   /** Pre-select an occasion when the flow is reached from a
    *  product-specific landing (e.g. /weddings → ?occasion=WEDDING).
@@ -135,6 +140,11 @@ export function CapsuleCreationFlow({
    *  /capsules/new directly produce personal capsules even
    *  though they belong to an org. */
   attribution?: "personal" | "enterprise";
+  /** When non-null, Step 1 surfaces an "Add from database" CTA
+   *  that opens the single-select EmployeePickerModal scoped to
+   *  this org. Resolved server-side in page.tsx — only ever
+   *  populated for enterprise-attributed visitors. */
+  organizationId?: string | null;
 } = {}) {
   const router = useRouter();
   const { isLoaded: authLoaded, isSignedIn } = useAuth();
@@ -174,6 +184,17 @@ export function CapsuleCreationFlow({
   const [dateAlert, setDateAlert] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState("");
   const [recipient2Email, setRecipient2Email] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  function applyPickedEmployee(picks: PickedEmployee[]) {
+    const p = picks[0];
+    if (!p) return;
+    setRecipientFirstName(p.firstName);
+    setRecipientLastName(p.lastName);
+    setRecipientEmail(p.email);
+    setStepError(null);
+    setPickerOpen(false);
+  }
 
   // Wedding capsules get the long horizon (600 days) so the
   // default 1-year-anniversary reveal works even when the
@@ -447,6 +468,16 @@ export function CapsuleCreationFlow({
                   className="account-input"
                 />
               </Field>
+
+              {organizationId && !isCouple && (
+                <button
+                  type="button"
+                  onClick={() => setPickerOpen(true)}
+                  className="inline-flex items-center gap-1.5 bg-amber-tint/40 border border-amber/40 text-amber-dark px-4 py-2 rounded-lg text-[13px] font-semibold hover:bg-amber-tint transition-colors"
+                >
+                  Add from database
+                </button>
+              )}
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Field label="Recipient first name">
@@ -773,6 +804,15 @@ export function CapsuleCreationFlow({
           </p>
         </div>
       </section>
+
+      {pickerOpen && organizationId && (
+        <EmployeePickerModal
+          orgId={organizationId}
+          mode="single"
+          onClose={() => setPickerOpen(false)}
+          onConfirm={applyPickedEmployee}
+        />
+      )}
     </main>
   );
 }
