@@ -212,7 +212,7 @@ export function WeddingGuestForm({
         <div className="relative z-10 w-full max-w-[440px] mx-auto flex flex-col items-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/Card.png?v=4"
+            src="/Card.png?v=5"
             alt=""
             aria-hidden="true"
             className="w-full h-auto block select-none"

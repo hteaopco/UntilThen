@@ -1947,6 +1947,15 @@ function BrideGroomPanel({
   const [tEmail, setTEmail] = useState("");
   const [tPhone, setTPhone] = useState("");
 
+  // Transfer CTA only renders once first / last / email all
+  // pass a light validity check — same regex the API enforces
+  // server-side, mirrored here so the button doesn't even
+  // appear until the form is submittable.
+  const transferReady =
+    tFirstName.trim().length > 0 &&
+    tLastName.trim().length > 0 &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tEmail.trim());
+
   async function setHide(hide: boolean) {
     if (busy) return;
     setBusy(true);
@@ -2100,7 +2109,7 @@ function BrideGroomPanel({
               type="button"
               onClick={() => setHide(true)}
               disabled={busy}
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold border border-navy/15 bg-white text-navy hover:border-navy/30 transition-colors disabled:opacity-50"
             >
               {busy ? "Hiding…" : "Hide it"}
             </button>
@@ -2110,7 +2119,7 @@ function BrideGroomPanel({
                 setError(null);
                 setMode("transfer");
               }}
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold border border-navy/15 bg-white text-navy hover:border-navy/30 transition-colors"
             >
               Transfer
             </button>
@@ -2175,14 +2184,16 @@ function BrideGroomPanel({
             </p>
           )}
           <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={submitTransfer}
-              disabled={busy}
-              className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors disabled:opacity-50"
-            >
-              {busy ? "Sending…" : "Transfer"}
-            </button>
+            {transferReady && (
+              <button
+                type="button"
+                onClick={submitTransfer}
+                disabled={busy}
+                className="inline-flex items-center gap-1.5 px-5 py-2 rounded-lg text-[13px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors disabled:opacity-50"
+              >
+                {busy ? "Sending…" : "Transfer"}
+              </button>
+            )}
             <button
               type="button"
               onClick={() => {
