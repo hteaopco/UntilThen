@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -49,9 +49,12 @@ export function PreviewClient({
   /** Signed URLs for the admin-uploaded stock voice clips. The
    *  Full demo voice card uses capsuleBirthday; falls back to the
    *  W3C horse placeholder only if R2 isn't configured / the file
-   *  hasn't been uploaded. */
-  stockVoices: StockVoiceUrls;
+   *  hasn't been uploaded. Optional so callers that don't sign
+   *  R2 URLs (e.g. the curator preview) still type-check; they
+   *  just get the horse fallback. */
+  stockVoices?: StockVoiceUrls;
 }) {
+  const voices = stockVoices ?? { vaultMom: null, capsuleBirthday: null };
   const hasRealContent = realContributions.length > 0;
   // Default to demo when there's nothing real to show — otherwise
   // the organiser would land on an empty Gallery and think the
@@ -70,7 +73,7 @@ export function PreviewClient({
   // injected into the voice card. Without this, the static
   // MOCK_CAPSULE_CONTRIBUTIONS export plays the W3C horse fallback.
   const demoContributions = buildMockCapsuleContributions({
-    capsuleBirthday: stockVoices.capsuleBirthday,
+    capsuleBirthday: voices.capsuleBirthday,
   });
 
   const capsule = mode === "real" ? realCapsule : demoCapsule;
@@ -87,10 +90,11 @@ export function PreviewClient({
         <Link
           href={`/capsules/${capsuleId}`}
           prefetch={false}
-          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-ink-mid hover:text-navy transition-colors"
+          aria-label="Exit preview"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-navy/15 text-[12px] font-bold text-navy hover:border-navy/40 hover:bg-cream transition-colors"
         >
-          <ArrowLeft size={14} strokeWidth={2} />
-          Back
+          <X size={12} strokeWidth={2.25} aria-hidden="true" />
+          Exit
         </Link>
 
         <div className="flex items-center gap-1 rounded-full bg-white p-0.5 border border-navy/10 shadow-[0_2px_8px_rgba(15,31,61,0.04)]">
@@ -133,10 +137,7 @@ export function PreviewClient({
           key={mode}
           capsule={capsule}
           contributions={contributions}
-          galleryExit={{
-            href: `/capsules/${capsuleId}`,
-            label: "Back to capsule",
-          }}
+          allowReplay={false}
         />
       </div>
     </div>

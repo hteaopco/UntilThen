@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Sparkles } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -51,9 +51,13 @@ export function VaultPreviewClient({
   musicUrl?: string | null;
   /** Signed URLs for the admin-uploaded stock voice clips. The
    *  Full demo's voice card uses vaultMom; falls back to the W3C
-   *  horse only if R2 isn't configured / nothing uploaded. */
-  stockVoices: StockVoiceUrls;
+   *  horse only if R2 isn't configured / nothing uploaded.
+   *  Optional so callers that don't sign R2 URLs (e.g. the
+   *  curator preview) still type-check; they just get the horse
+   *  fallback. */
+  stockVoices?: StockVoiceUrls;
 }) {
+  const voices = stockVoices ?? { vaultMom: null, capsuleBirthday: null };
   const hasRealContent = realContributions.length > 0;
   const [mode, setMode] = useState<Mode>(hasRealContent ? "real" : "demo");
 
@@ -67,22 +71,23 @@ export function VaultPreviewClient({
   // Without this, the static MOCK_CONTRIBUTIONS export plays the
   // W3C horse fallback baked into the template.
   const demoContributions = buildMockContributions({
-    vaultMom: stockVoices.vaultMom,
+    vaultMom: voices.vaultMom,
   });
 
   const capsule = mode === "real" ? realCapsule : demoCapsule;
   const contributions = mode === "real" ? realContributions : demoContributions;
 
-  // Top of the gate — Back link only.
+  // Top of the gate — Exit pill only.
   const gateHeader = (
     <div className="flex items-center px-3 py-2.5">
       <Link
         href={`/vault/${childId}`}
         prefetch={false}
-        className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-ink-mid hover:text-navy transition-colors"
+        aria-label="Exit preview"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-navy/15 text-[12px] font-bold text-navy hover:border-navy/40 hover:bg-cream transition-colors"
       >
-        <ArrowLeft size={14} strokeWidth={2} />
-        Back
+        <X size={12} strokeWidth={2.25} aria-hidden="true" />
+        Exit
       </Link>
     </div>
   );
@@ -120,10 +125,7 @@ export function VaultPreviewClient({
       capsule={capsule}
       contributions={contributions}
       variant="vault"
-      galleryExit={{
-        href: `/vault/${childId}`,
-        label: "Back to capsule",
-      }}
+      allowReplay={false}
       // Curator + music only apply to "this vault" — the
       // demo mode is always a fresh randomised reel against
       // mock contributions.

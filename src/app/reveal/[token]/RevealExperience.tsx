@@ -129,6 +129,7 @@ export function RevealExperience({
   gateHeaderSlot,
   gateBelowSlot,
   galleryExit,
+  allowReplay = true,
 }: {
   capsule: RevealCapsule;
   contributions: RevealContribution[];
@@ -164,6 +165,12 @@ export function RevealExperience({
    *  global NEXT_PUBLIC_REVEAL_MUSIC_URL when not set. Used by
    *  vault reveals where the owner picks a per-vault song. */
   musicUrl?: string | null;
+  /** When false, the gallery's "Relive the reveal" replay pill is
+   *  hidden. Preview surfaces (organiser preview, vault preview)
+   *  set this to false because they already have an explicit
+   *  Exit pill in the top bar; offering Replay alongside it
+   *  clutters the gallery without adding a meaningful action. */
+  allowReplay?: boolean;
 }) {
   const effectiveMusicUrl = musicUrl ?? MUSIC_URL;
   // Returning visitors skip both gate + entry — they already
@@ -468,17 +475,21 @@ export function RevealExperience({
         onToggleMuted={() => setMuted((m) => !m)}
         musicEnabled={Boolean(effectiveMusicUrl)}
         exit={galleryExit}
-        onReplay={() => {
-          // Replay is session-only — recipientCompletedAt is not
-          // reset on the server. The recipient gets the cinematic
-          // intro again, then lands back here. The replay tap
-          // itself is a user gesture, so it's safe to spin up a
-          // fresh music element (the previous one was torn down
-          // by the gallery-entering fade-out) without running
-          // into autoplay restrictions.
-          startMusic();
-          setPhase("entry");
-        }}
+        onReplay={
+          allowReplay
+            ? () => {
+                // Replay is session-only — recipientCompletedAt is
+                // not reset on the server. The recipient gets the
+                // cinematic intro again, then lands back here. The
+                // tap itself is a user gesture, so it's safe to
+                // spin up a fresh music element (the previous one
+                // was torn down by the gallery-entering fade-out)
+                // without running into autoplay restrictions.
+                startMusic();
+                setPhase("entry");
+              }
+            : undefined
+        }
       />
     );
   })();
