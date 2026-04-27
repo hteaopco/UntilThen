@@ -4,9 +4,9 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 const IMAGES = [
-  "/51AC950C-0D81-4C37-BD6D-DA12891BFE4C.png",
-  "/592F39A3-29B8-4863-AAE3-9C929B3B315F.png",
-  "/6A94774F-54D1-47DD-800A-9DDF6C3C22D9.png",
+  "/landing-wedding-polaroid.png",
+  "/landing-school-polaroid.png",
+  "/landing-football-polaroid.png",
 ];
 
 export function HeroImageCrossfade() {

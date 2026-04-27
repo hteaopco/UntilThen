@@ -96,11 +96,11 @@ export default async function WeddingGuestPage({
   }
 
   // Cache-bust queries — keyed off the file's mtime so any
-  // re-upload of /public/Card.png or /public/Roses.png busts
-  // the browser cache automatically on next deploy.
+  // re-upload of the wedding invitation card or roses asset
+  // busts the browser cache automatically on next deploy.
   const assetVersions = {
-    card: assetVersion("Card.png"),
-    roses: assetVersion("Roses.png"),
+    card: assetVersion("wedding-invitation-card.png"),
+    roses: assetVersion("wedding-roses.png"),
   };
 
   return (

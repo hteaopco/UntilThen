@@ -71,9 +71,10 @@ export function WeddingGuestForm({
 }: {
   guestToken: string;
   capsule: Capsule;
-  /** Server-computed mtime stamps for /Card.png and /Roses.png.
-   *  Appended as ?v=… so any re-upload busts the browser cache
-   *  automatically on next deploy — see src/lib/asset-version.ts. */
+  /** Server-computed mtime stamps for the wedding invitation
+   *  card and roses asset. Appended as ?v=… so any re-upload
+   *  busts the browser cache automatically on next deploy —
+   *  see src/lib/asset-version.ts. */
   assetVersions: { card: string; roses: string };
   /** Set when the page resolves a valid ?edit=<editToken> on load.
    *  Drops the form straight into the editor pre-populated with
@@ -99,7 +100,7 @@ export function WeddingGuestForm({
   const [extraHeight, setExtraHeight] = useState(0);
   const [saveForLaterOpen, setSaveForLaterOpen] = useState(false);
   // Fade the card-phase CTAs in after a short pause so they
-  // don't pop into view before the Card.png finishes painting.
+  // don't pop into view before the invitation card finishes painting.
   // Resets each time the phase re-enters "card".
   const [cardCtasVisible, setCardCtasVisible] = useState(false);
   useEffect(() => {
@@ -253,8 +254,8 @@ export function WeddingGuestForm({
   }
 
   // ── Phase 2: Roses + invitation card ──────────────────
-  // Logo top, Card.png with the invitation copy overlaid in
-  // its writable area, then a smaller Roses.png decoration
+  // Logo top, invitation card with the copy overlaid in its
+  // writable area, then a smaller roses decoration
   // tucked below, CTA at the bottom. Card sits first because
   // that's where the eye lands on a wedding invitation.
   if (phase === "card") {
@@ -275,7 +276,7 @@ export function WeddingGuestForm({
               overflow with the bumped top margin below. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={`/Card.png?v=${assetVersions.card}`}
+            src={`/wedding-invitation-card.png?v=${assetVersions.card}`}
             alt=""
             aria-hidden="true"
             className="w-full h-auto block select-none bg-cream"
@@ -740,7 +741,7 @@ function EmailPromptScreen({
 }
 
 /**
- * Editor-only top-right roses decoration. The Roses.png asset
+ * Editor-only top-right roses decoration. The wedding-roses.png asset
  * has a lot of cream padding around the actual flowers, so we
  * size it large and translate the bounding box up + right so
  * the empty padding bleeds off-screen and only the floral peeks
@@ -757,7 +758,7 @@ function RosesCorner({ version }: { version: string }) {
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src={`/Roses.png?v=${version}`}
+        src={`/wedding-roses.png?v=${version}`}
         alt=""
         className="w-full h-auto select-none"
       />

@@ -123,7 +123,7 @@ export function ChooseYourVault() {
                 <div className="p-7 lg:p-8 flex flex-col">
                   <div className="mb-6 -mx-1 select-none pointer-events-none">
                     <Image
-                      src="/create%20gift.png"
+                      src="/create-gift.png"
                       alt=""
                       width={498}
                       height={328}
@@ -181,7 +181,7 @@ export function ChooseYourVault() {
                 <div className="p-7 lg:p-8 flex flex-col">
                   <div className="mb-6 -mx-1 select-none pointer-events-none">
                     <Image
-                      src="/write%20now.png"
+                      src="/write-now.png"
                       alt=""
                       width={493}
                       height={343}

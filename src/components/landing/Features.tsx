@@ -78,7 +78,7 @@ export function Features() {
             </div>
             <div className="self-end pr-1 pb-1 sm:pr-2 sm:pb-2 -ml-4">
               <Image
-                src="/44D3F619-120F-405B-9A06-4893EF64D33C.png"
+                src="/landing-birthday-polaroid.png"
                 alt="Polaroid photos and sealed envelope"
                 width={400}
                 height={500}

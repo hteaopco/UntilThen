@@ -5,7 +5,7 @@ import { join } from "node:path";
  * Cache-bust query for static assets in /public.
  *
  * Anything served from /public has long browser cache headers,
- * so when an asset (like Card.png) is replaced in the repo the
+ * so when an asset (like wedding-invitation-card.png) is replaced in the repo the
  * browser keeps showing the cached version until a manual
  * cache-bust query string changes. This helper reads the file's
  * mtime at request time and returns a stable string we append

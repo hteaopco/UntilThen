@@ -16,8 +16,8 @@ import { HomeCard } from "./HomeCard";
  * product do you want to use right now?" entry.
  *
  * Two big illustrated cards stacked vertically:
- *   VaultEnter2.png → /dashboard       (personal, private memories)
- *   auto_crop#…png  → /capsules/new    (shared, one-off gift capsule)
+ *   home-vault-card.png    → /dashboard      (personal, private memories)
+ *   gift-capsule-card.png  → /capsules/new   (shared, one-off gift capsule)
  *
  * Text lives on the LEFT half of each card so the illustration on
  * the right of the image stays the visual anchor. This page is NOT
@@ -96,7 +96,7 @@ export default async function HomePage() {
       <section className="flex-1 flex flex-col gap-4 px-6 sm:px-8 pb-4 relative max-w-[576px] w-full mx-auto">
         <HomeCard
           href="/dashboard"
-          imageSrc="/VaultEnter2.png"
+          imageSrc="/home-vault-card.png"
           icon={<Lock size={22} strokeWidth={1.5} className="text-amber" />}
           title={
             <>
@@ -115,7 +115,7 @@ export default async function HomePage() {
         />
         <HomeCard
           href="/capsules/new"
-          imageSrc="/auto_crop%23TUFISHowSlgtN3cjMSMxZmExNmQzYjc2N2RkY2NmNmU5N2I5NTA2ODc0NDhlNiMxNTM2IyNUUkFOU0ZPUk1BVElPTl9SRVFVRVNU.png"
+          imageSrc="/gift-capsule-card.png"
           icon={<Gift size={22} strokeWidth={1.5} className="text-amber" />}
           title="Create a Gift Capsule"
           subtitle="Create something unforgettable."
