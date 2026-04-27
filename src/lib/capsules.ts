@@ -75,7 +75,23 @@ export type OwnedCapsuleResult =
   | { ok: true; user: { id: string }; capsule: MemoryCapsule }
   | { ok: false; status: 401 | 403 | 404 };
 
-/** Resolve the capsule and verify the Clerk user owns it. */
+/**
+ * Resolve the capsule and verify the Clerk user can act on it.
+ *
+ * Two access paths are accepted:
+ *   1. The user is the original organiser (capsule.organiserId
+ *      matches the local User.id). Always allowed.
+ *   2. The capsule is org-attributed AND the user is an OWNER /
+ *      ADMIN of that org. This lets enterprise admins manage
+ *      capsules on behalf of teammates from their dashboard /
+ *      stat board surfaces. MEMBERs do not get this access — a
+ *      MEMBER who didn't create the capsule still 403s.
+ *
+ * The result still returns the calling user's row in `user`, not
+ * the original organiser's, so callers that key something off the
+ * acting user (audit log, who triggered an action) work as
+ * expected.
+ */
 export async function findOwnedCapsule(
   clerkUserId: string | null,
   capsuleId: string,
@@ -91,8 +107,26 @@ export async function findOwnedCapsule(
     where: { id: capsuleId },
   });
   if (!capsule) return { ok: false, status: 404 };
-  if (capsule.organiserId !== user.id) return { ok: false, status: 403 };
-  return { ok: true, user, capsule };
+  if (capsule.organiserId === user.id) {
+    return { ok: true, user, capsule };
+  }
+  // Org-attributed capsules: enterprise OWNER/ADMIN can manage
+  // even when they didn't organise.
+  if (capsule.organizationId) {
+    const membership = await prisma.organizationMember.findUnique({
+      where: {
+        organizationId_userId: {
+          organizationId: capsule.organizationId,
+          userId: user.id,
+        },
+      },
+      select: { role: true },
+    });
+    if (membership && (membership.role === "OWNER" || membership.role === "ADMIN")) {
+      return { ok: true, user, capsule };
+    }
+  }
+  return { ok: false, status: 403 };
 }
 
 /**

@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { ArrowRight, Gift, Plus, Sparkles, Users } from "lucide-react";
 
@@ -43,7 +43,30 @@ export default async function EnterprisePage() {
   const ctx = userId ? await getOrgContextByClerkId(userId) : null;
   const isAdmin = ctx?.role === "OWNER" || ctx?.role === "ADMIN";
 
-  const capsules = await loadEnterpriseCapsules(userId, ctx?.organizationId);
+  // Resolve the viewer's email for the recipient-of-self filter.
+  // Same approach as /enterprise/stats — best-effort; on failure
+  // we fall through and skip the filter rather than 500ing the
+  // dashboard.
+  let viewerEmail: string | null = null;
+  if (userId) {
+    try {
+      const clerk = await clerkClient();
+      const u = await clerk.users.getUser(userId);
+      viewerEmail =
+        u.primaryEmailAddress?.emailAddress?.toLowerCase() ??
+        u.emailAddresses[0]?.emailAddress?.toLowerCase() ??
+        null;
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const capsules = await loadEnterpriseCapsules(
+    userId,
+    ctx?.organizationId,
+    isAdmin,
+    viewerEmail,
+  );
   const hasCapsules = capsules.length > 0;
 
   return (
@@ -220,6 +243,8 @@ function StatusBadge({
 async function loadEnterpriseCapsules(
   clerkUserId: string | null,
   organizationId: string | undefined,
+  isAdmin: boolean,
+  viewerEmail: string | null,
 ): Promise<EnterpriseCapsuleRow[]> {
   if (!clerkUserId || !organizationId) return [];
   const { prisma } = await import("@/lib/prisma");
@@ -228,9 +253,13 @@ async function loadEnterpriseCapsules(
     select: { id: true },
   });
   if (!user) return [];
+  // Admins see every gift capsule attributed to the org so they
+  // can manage on behalf of teammates. MEMBERs are scoped to their
+  // own — surfacing other people's drafts to a non-admin would
+  // leak intent before reveal.
   const rows = await prisma.memoryCapsule.findMany({
     where: {
-      organiserId: user.id,
+      ...(isAdmin ? {} : { organiserId: user.id }),
       organizationId,
       occasionType: { not: "WEDDING" },
     },
@@ -238,6 +267,8 @@ async function loadEnterpriseCapsules(
       id: true,
       title: true,
       recipientName: true,
+      recipientEmail: true,
+      recipient2Email: true,
       revealDate: true,
       status: true,
       contributionsClosed: true,
@@ -247,7 +278,18 @@ async function loadEnterpriseCapsules(
     },
     orderBy: { createdAt: "desc" },
   });
-  return rows.map((r) => ({
+  // Hide capsules destined for the viewer themselves so a manager
+  // who's also a recipient doesn't get spoiled by seeing their
+  // own incoming gift on the dashboard. Mirrors the stat board's
+  // filter exactly.
+  const visible = viewerEmail
+    ? rows.filter(
+        (r) =>
+          r.recipientEmail?.toLowerCase() !== viewerEmail &&
+          r.recipient2Email?.toLowerCase() !== viewerEmail,
+      )
+    : rows;
+  return visible.map((r) => ({
     id: r.id,
     title: r.title,
     recipientName: r.recipientName,
