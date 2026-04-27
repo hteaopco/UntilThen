@@ -34,6 +34,14 @@ const isPublicRoute = createRouteMatcher([
   "/api/contribute/capsule/(.*)",
   "/api/capsules/(.*)/refresh-token",
   "/api/reveal/(.*)",
+  // Wedding guest contributor flow — QR codes on table cards
+  // resolve to /wedding/<guestToken>. Guests don't have accounts;
+  // the token in the URL is the auth. Same pattern for the API
+  // routes the form posts to (contribute, media upload, SMS
+  // save-for-later).
+  "/wedding/(.*)",
+  "/api/wedding/contribute/(.*)",
+  "/api/wedding/save-for-later/(.*)",
   "/api/webhooks/(.*)",
   "/api/health(.*)",
   // Account-recovery help page + its submit endpoint.
@@ -74,6 +82,8 @@ function rateLimitKindFor(
   // Public anonymous surfaces
   if (path.startsWith("/api/contribute/capsule/")) return "public";
   if (path.startsWith("/api/reveal/")) return "public";
+  if (path.startsWith("/api/wedding/contribute/")) return "public";
+  if (path.startsWith("/api/wedding/save-for-later/")) return "public";
   // Webhooks are signature-verified inside the handler — don't
   // throttle here since Square retries aggressively on any
   // non-2xx and can spike momentarily on renewal waves.
