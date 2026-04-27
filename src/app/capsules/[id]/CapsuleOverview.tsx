@@ -6,11 +6,14 @@ import {
   ChevronDown,
   Copy,
   Download,
+  Eye,
+  List,
   Lock,
   Mail,
   Paperclip,
   Pencil,
   QrCode,
+  Send,
   Sparkles,
   Trash2,
   UserPlus,
@@ -431,6 +434,7 @@ export function CapsuleOverview({
               <ContributorsPanel
                 capsuleId={capsule.id}
                 organizationId={capsule.organizationId}
+                isOrgAttributed={isOrgAttributed}
                 recipientName={capsule.recipientName}
                 recipientDisplayName={recipientDisplayName}
                 isCouple={isCouple}
@@ -438,6 +442,12 @@ export function CapsuleOverview({
                 isDraft={isDraft}
                 busyId={busy}
                 onRemove={removeInvite}
+                onActivate={() => setActivateOpen(true)}
+                previewUrl={
+                  capsule.occasionType !== "WEDDING"
+                    ? `/capsules/${capsule.id}/preview`
+                    : null
+                }
               />
             </div>
           )}
@@ -503,7 +513,14 @@ export function CapsuleOverview({
           contributors (not delivery to the recipient); the recipient
           doesn't see anything until the reveal date. Empty state
           (no invites yet) pivots to "unlock your capsule" so the
-          user still has a forward action. */}
+          user still has a forward action.
+
+          Hidden entirely for enterprise drafts: their org covers the
+          cost so the price card / "Everyone is going to love this!"
+          framing is pointless. The Send Contributor Invites + Preview
+          their reveal CTAs live inside the contributor section
+          instead, where the org admin is already working. */}
+      {!(isOrgAttributed && isDraft) && (
       <section
         id="activate"
         className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10"
@@ -612,7 +629,11 @@ export function CapsuleOverview({
               everything before delivery.
             </p>
           )}
-          {capsule.occasionType !== "WEDDING" && (
+          {/* Preview their moment lives here for personal capsules.
+              Enterprise capsules surface it inside the contributor
+              section instead, so we suppress it here to avoid two
+              preview links on the same page. */}
+          {capsule.occasionType !== "WEDDING" && !isOrgAttributed && (
             <div className="pt-1">
               <Link
                 href={`/capsules/${capsule.id}/preview`}
@@ -637,6 +658,7 @@ export function CapsuleOverview({
           )}
         </div>
       </section>
+      )}
 
       {capsule.occasionType === "WEDDING" && capsule.guestToken && !isDraft && (
         <WeddingGuestSharePanel
@@ -1174,6 +1196,7 @@ function blankRow(): DraftRow {
 function ContributorsPanel({
   capsuleId,
   organizationId,
+  isOrgAttributed,
   recipientName,
   recipientDisplayName,
   isCouple,
@@ -1181,12 +1204,21 @@ function ContributorsPanel({
   isDraft,
   busyId,
   onRemove,
+  onActivate,
+  previewUrl,
 }: {
   capsuleId: string;
   /** Set on org-attributed capsules. When non-null, the
-   *  "Add from database" button shows up alongside Add multiple,
+   *  "Add from List" button shows up alongside Add multiple,
    *  opening the EmployeePickerModal scoped to this org. */
   organizationId: string | null;
+  /** Mirrors capsule.organizationId !== null. Drives the
+   *  enterprise-only swap of the form-submit button into a
+   *  "Send Contributor Invites" action that saves any pending
+   *  rows then opens the activate modal — the activate panel is
+   *  hidden for enterprise drafts so this is the only way to
+   *  send. */
+  isOrgAttributed: boolean;
   recipientName: string;
   recipientDisplayName: string;
   isCouple: boolean;
@@ -1194,6 +1226,13 @@ function ContributorsPanel({
   isDraft: boolean;
   busyId: string | null;
   onRemove: (id: string) => void;
+  /** Opens the activate modal in the parent. Used by the
+   *  enterprise "Send Contributor Invites" CTA. */
+  onActivate: () => void;
+  /** Set for non-WEDDING capsules; null hides the Preview their
+   *  reveal button. Used by enterprise capsules where the activate
+   *  panel (which normally hosts this link) is suppressed. */
+  previewUrl: string | null;
 }) {
   const router = useRouter();
   const [rows, setRows] = useState<DraftRow[]>([blankRow()]);
@@ -1251,9 +1290,9 @@ function ContributorsPanel({
     setRows((prev) => [...prev, blankRow()]);
   }
 
-  async function save(e: FormEvent) {
-    e.preventDefault();
-    if (saving) return;
+  async function save(e?: FormEvent): Promise<boolean> {
+    if (e) e.preventDefault();
+    if (saving) return false;
     setError(null);
 
     // Normalise + filter any blank rows. At least one valid
@@ -1268,7 +1307,7 @@ function ContributorsPanel({
 
     if (payload.length === 0) {
       setError("Add at least one email.");
-      return;
+      return false;
     }
 
     setSaving(true);
@@ -1284,22 +1323,34 @@ function ContributorsPanel({
         };
         throw new Error(data.error ?? "Couldn't save contributors.");
       }
-      // Reset the form to a single blank row so the organiser
-      // can keep adding more batches. Remember how many we added so
-      // the inline confirmation can use the right pluralisation.
       const added = payload.length;
       setRows([blankRow()]);
       setJustAdded(added);
-      // Auto-dismiss the confirmation after a few seconds so it
-      // doesn't sit there forever; the badge in the list below is
-      // the persistent state of record.
       window.setTimeout(() => setJustAdded(0), 6000);
       router.refresh();
+      return true;
     } catch (err) {
       setError((err as Error).message);
+      return false;
     } finally {
       setSaving(false);
     }
+  }
+
+  // Enterprise drafts: clicking Send Contributor Invites first
+  // saves any pending form rows, then opens the activate modal so
+  // the org admin confirms the send. Skips the save when the form
+  // is empty (organiser is sending the existing invite list).
+  async function sendInvites() {
+    const hasPending = rows.some((r) => r.email.trim().length > 0);
+    if (hasPending) {
+      const ok = await save();
+      if (!ok) return;
+    } else if (invites.length === 0) {
+      setError("Add at least one contributor before sending.");
+      return;
+    }
+    onActivate();
   }
 
   return (
@@ -1388,13 +1439,18 @@ function ContributorsPanel({
           </div>
         ))}
 
-        <div className="flex flex-wrap items-center gap-3 pt-1">
-          {/* "Add multiple" appends another blank row. Secondary
-              style so Save reads as the primary action. */}
+        {/* CTA row. Mobile-first: each button is full-width on
+            narrow screens (basis-full) and reflows to auto-width
+            from sm: up. Order matches the staging → sending →
+            previewing arc:
+              - Add multiple / Add from List (white, secondary)
+              - Send Contributor Invites (navy, primary)
+              - Preview their reveal (amber, tertiary preview link) */}
+        <div className="flex flex-wrap items-stretch gap-2.5 pt-1">
           <button
             type="button"
             onClick={addRow}
-            className="inline-flex items-center gap-1.5 bg-white border border-navy/15 text-navy px-4 py-2 rounded-lg text-sm font-semibold hover:border-navy transition-colors"
+            className="inline-flex items-center justify-center gap-1.5 basis-full sm:basis-auto bg-white border border-navy/15 text-navy px-4 py-2.5 rounded-lg text-sm font-semibold hover:border-navy transition-colors"
           >
             <UserPlus size={14} strokeWidth={1.75} aria-hidden="true" />
             Add multiple
@@ -1403,22 +1459,45 @@ function ContributorsPanel({
             <button
               type="button"
               onClick={() => setPickerOpen(true)}
-              className="inline-flex items-center gap-1.5 bg-amber-tint/40 border border-amber/40 text-amber-dark px-4 py-2 rounded-lg text-sm font-semibold hover:bg-amber-tint transition-colors"
+              className="inline-flex items-center justify-center gap-1.5 basis-full sm:basis-auto bg-white border border-navy/15 text-navy px-4 py-2.5 rounded-lg text-sm font-semibold hover:border-navy transition-colors"
             >
-              Add from database
+              <List size={14} strokeWidth={1.75} aria-hidden="true" />
+              Add from List
             </button>
           )}
-          <button
-            type="submit"
-            disabled={saving}
-            className="inline-flex items-center gap-1.5 bg-navy text-white px-5 py-2 rounded-lg text-sm font-bold hover:bg-navy/90 transition-colors disabled:opacity-50"
-          >
-            {saving
-              ? "Saving…"
-              : rows.length > 1
-                ? `Add ${rows.length} contributors`
-                : "Add contributor"}
-          </button>
+          {isOrgAttributed && isDraft ? (
+            <button
+              type="button"
+              onClick={sendInvites}
+              disabled={saving}
+              className="inline-flex items-center justify-center gap-1.5 basis-full sm:basis-auto bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy/90 transition-colors disabled:opacity-50"
+            >
+              <Send size={14} strokeWidth={2} aria-hidden="true" />
+              {saving ? "Saving…" : "Send Contributor Invites"}
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={saving}
+              className="inline-flex items-center justify-center gap-1.5 basis-full sm:basis-auto bg-navy text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-navy/90 transition-colors disabled:opacity-50"
+            >
+              <Send size={14} strokeWidth={2} aria-hidden="true" />
+              {saving
+                ? "Saving…"
+                : rows.length > 1
+                  ? `Add ${rows.length} contributors`
+                  : "Add contributor"}
+            </button>
+          )}
+          {isOrgAttributed && previewUrl && (
+            <Link
+              href={previewUrl}
+              className="inline-flex items-center justify-center gap-1.5 basis-full sm:basis-auto bg-amber text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber-dark transition-colors"
+            >
+              <Eye size={14} strokeWidth={2} aria-hidden="true" />
+              Preview their reveal
+            </Link>
+          )}
         </div>
 
         {error && (
