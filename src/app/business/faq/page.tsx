@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 import { Footer } from "@/components/landing/Footer";
+import { FaqBrandNote } from "@/components/landing/FaqBrandNote";
 import { TopNav } from "@/components/ui/TopNav";
 import {
   Accordion,
@@ -95,6 +96,8 @@ export default function EnterpriseFaqPage() {
             .
           </p>
         </section>
+
+        <FaqBrandNote />
 
         <section className="mx-auto max-w-[820px] px-5 lg:px-10 mt-10">
           <Accordion sections={SECTIONS} showExpandAll />
