@@ -31,7 +31,13 @@ type Capsule = {
   closedReason: "draft" | "revealed" | "sealed" | null;
 };
 
-type Phase = "splash" | "card" | "editor" | "thankyou-typing" | "thankyou";
+type Phase =
+  | "splash"
+  | "card"
+  | "editor"
+  | "thankyou-typing"
+  | "thankyou"
+  | "preview";
 
 function deriveCouple(recipientName: string) {
   const isCouple = recipientName.includes("&");
@@ -70,6 +76,7 @@ export function WeddingGuestForm({
   const [showCta, setShowCta] = useState(false);
   const [extraHeight, setExtraHeight] = useState(0);
   const [saveForLaterOpen, setSaveForLaterOpen] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
   // Fade the card-phase CTAs in after a short pause so they
   // don't pop into view before the Card.png finishes painting.
   // Resets each time the phase re-enters "card".
@@ -197,7 +204,7 @@ export function WeddingGuestForm({
         <div className="fixed top-8 left-0 right-0 flex justify-center z-10">
           <LogoSvg variant="dark" width={100} height={20} />
         </div>
-        <FlowerCorner />
+        <RosesCorner version={assetVersions.roses} />
         <div className="max-w-[420px]">
           <h1 className="font-brush text-[42px] sm:text-[54px] text-navy leading-none">
             {headline}
@@ -287,7 +294,7 @@ export function WeddingGuestForm({
         <div className="fixed top-8 left-0 right-0 flex justify-center z-10">
           <LogoSvg variant="dark" width={100} height={20} />
         </div>
-        <FlowerCorner />
+        <RosesCorner version={assetVersions.roses} />
         <div className="relative z-10 max-w-[440px] text-center">
           {phase === "thankyou-typing" ? (
             <div className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
@@ -316,9 +323,16 @@ export function WeddingGuestForm({
                 .
               </p>
               <div
-                className="mt-6 transition-opacity duration-700 ease-out"
+                className="mt-6 flex flex-col items-center gap-2.5 transition-opacity duration-700 ease-out"
                 style={{ opacity: showCta ? 1 : 0 }}
               >
+                <button
+                  type="button"
+                  onClick={() => setPhase("preview")}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-[15px] font-bold border border-amber/50 bg-white text-amber-dark hover:bg-amber/10 transition-colors"
+                >
+                  Preview my message
+                </button>
                 <Link
                   href="/weddings"
                   className="inline-block bg-amber text-white px-6 py-3 rounded-lg text-[15px] font-bold hover:bg-amber-dark transition-colors"
@@ -329,6 +343,75 @@ export function WeddingGuestForm({
             </>
           )}
         </div>
+      </main>
+    );
+  }
+
+  // ── Phase 5: Preview the contributor's own message ─────
+  // Mirrors what the recipient will see on reveal day, but
+  // restricted to the contributor's own entry. Tapping
+  // "View all messages" surfaces the explainer modal that
+  // makes the limitation explicit and offers an exit back
+  // to /weddings.
+  if (phase === "preview") {
+    const plainBody = body
+      .replace(/<[^>]+>/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    return (
+      <main className="relative min-h-screen bg-cream overflow-hidden pb-20">
+        <RosesCorner version={assetVersions.roses} />
+        <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
+          <div className="px-6 py-4 flex items-center justify-between max-w-[720px] mx-auto">
+            <span className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
+              <Sparkles size={14} strokeWidth={1.75} aria-hidden="true" />
+              Preview
+            </span>
+            <LogoSvg variant="dark" width={110} height={22} />
+          </div>
+        </header>
+        <section className="relative z-10 mx-auto max-w-[640px] px-6 pt-6">
+          <p className="text-[10px] sm:text-[11px] font-bold tracking-[0.22em] uppercase text-amber">
+            Messages for {couple.coupleNames}
+          </p>
+          <h1 className="mt-2 font-brush text-[36px] sm:text-[44px] text-navy leading-[0.95]">
+            A memory for
+            <br />
+            <span className="text-amber">{couple.coupleNames}</span>
+          </h1>
+          <ul className="mt-6 space-y-3">
+            <li className="rounded-2xl border border-amber/30 bg-white px-5 py-4 shadow-[0_4px_18px_rgba(196,122,58,0.06)]">
+              <div className="text-[11px] uppercase tracking-[0.12em] font-bold text-amber-dark">
+                From {name.trim() || "you"}
+              </div>
+              {plainBody && (
+                <p className="mt-2 text-[15px] text-navy leading-[1.6] whitespace-pre-line">
+                  {plainBody}
+                </p>
+              )}
+              {!plainBody && (
+                <p className="mt-2 text-[13px] text-ink-light italic">
+                  (No text — your media will appear here on reveal day.)
+                </p>
+              )}
+            </li>
+          </ul>
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setPreviewModalOpen(true)}
+              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg text-[15px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors"
+            >
+              View all messages
+            </button>
+          </div>
+        </section>
+        {previewModalOpen && (
+          <PreviewExitModal
+            coupleNames={couple.coupleNames}
+            onClose={() => setPreviewModalOpen(false)}
+          />
+        )}
       </main>
     );
   }
@@ -505,39 +588,55 @@ function RosesCorner({ version }: { version: string }) {
 }
 
 /**
- * Decorative flower-and-ribbon image anchored top-right. Sits
- * behind the content (z-0) and is purely visual. We reuse the
- * existing dried-flower asset that's used on /weddings —
- * positioned and clipped so it reads as a corner decoration
- * rather than a hero image.
+ * Modal that fires when the contributor taps "View all messages"
+ * inside the preview phase. Makes it explicit that only their
+ * own message is visible right now and that the couple will see
+ * everyone's contributions on reveal day. The "Exit preview" CTA
+ * routes them back to /weddings.
  */
-function FlowerCorner() {
-  // Pre-deferred fetch loads the asset alongside HTML so it
-  // doesn't pop in mid-render. We size it as a fraction of the
-  // viewport so phones get a smaller, less obtrusive flourish.
-  useEffect(() => {
-    const img = new window.Image();
-    img.src =
-      "/auto_crop%23TUFISHowSlgtN3cjMSMxZmExNmQzYjc2N2RkY2NmNmU5N2I5NTA2ODc0NDhlNiMxNTM2IyNUUkFOU0ZPUk1BVElPTl9SRVFVRVNU.png";
-  }, []);
-
+function PreviewExitModal({
+  coupleNames,
+  onClose,
+}: {
+  coupleNames: string;
+  onClose: () => void;
+}) {
   return (
     <div
-      aria-hidden="true"
-      className="pointer-events-none fixed top-0 right-0 z-0 w-[180px] sm:w-[240px] lg:w-[320px] opacity-[0.65]"
-      style={{
-        maskImage:
-          "radial-gradient(circle at top right, black 55%, transparent 80%)",
-        WebkitMaskImage:
-          "radial-gradient(circle at top right, black 55%, transparent 80%)",
-      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-navy/40 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      onClick={onClose}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/auto_crop%23TUFISHowSlgtN3cjMSMxZmExNmQzYjc2N2RkY2NmNmU5N2I5NTA2ODc0NDhlNiMxNTM2IyNUUkFOU0ZPUk1BVElPTl9SRVFVRVNU.png"
-        alt=""
-        className="w-full h-auto select-none"
-      />
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-2xl shadow-[0_24px_48px_-8px_rgba(15,31,61,0.4)] w-full max-w-[440px] px-6 py-6"
+      >
+        <h2 className="text-[18px] font-extrabold text-navy tracking-[-0.2px]">
+          Just a preview
+        </h2>
+        <p className="mt-2 text-[14px] text-ink-mid leading-[1.55]">
+          {coupleNames} will be able to filter through all messages left for
+          them in this section. Right now only yours shows, but when the
+          reveal is sent to them, they&rsquo;ll have access to everyone&rsquo;s.
+          Thank you for contributing.
+        </p>
+        <div className="mt-5 flex gap-2">
+          <Link
+            href="/weddings"
+            className="flex-1 inline-flex items-center justify-center bg-amber text-white py-2.5 rounded-lg text-[14px] font-bold hover:bg-amber-dark transition-colors"
+          >
+            Exit preview
+          </Link>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-lg text-[13px] font-semibold border border-navy/15 text-ink-mid hover:text-navy hover:border-navy/30 transition-colors"
+          >
+            Back
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
