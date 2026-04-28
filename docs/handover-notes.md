@@ -226,3 +226,38 @@ preview) all stamp `isSaved: true` so the save flow stays invisible
   banner.
 - `externalSaved: boolean` — flips the local `saved` state without
   remount when the wrapper's claim handler succeeds.
+
+## Pending org invite auto-claim
+
+`claimPendingOrgInvitesForUser(userId, email)` in `src/lib/orgs.ts`
+finds every PENDING `OrganizationInvite` matching an email and:
+- creates the `OrganizationMember` row (idempotent — skipped if it
+  already exists),
+- flips the invite to ACCEPTED with `acceptedUserId` set.
+
+Wired into:
+- `POST /api/onboarding` — runs immediately after user creation so
+  new signups whose email matches an invite auto-join.
+- `/home` page render — lazy backfill for users who signed up
+  before this was added or skipped the magic link entirely.
+
+Background: the legacy claim endpoint
+`POST /api/orgs/invites/[token]/accept` only fires when the user
+clicks the magic-link invite. Without the auto-claim helper, a user
+signing up via the standard flow stranded the invite in PENDING
+forever. New flows should NOT add a third claim path; instead make
+sure the email matches and rely on the existing helper.
+
+## Stat board hides capsules where the viewer is the recipient
+
+`/enterprise/stats` filters the recipient list (and its derived
+active/sent counts) to exclude any capsule whose `recipientEmail`
+or `recipient2Email` matches the viewer's Clerk primary email.
+Avoids spoiling a manager's own gift when they happen to be both
+admin and recipient. Aggregate org-wide totals stay unfiltered so
+admins still see real volume.
+
+If you add another surface that lists per-recipient capsule data,
+mirror this filter before listing — leaking a manager-recipient's
+own incoming capsule on a stat board is the bug the filter was
+written to fix.
