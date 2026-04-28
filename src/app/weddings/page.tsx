@@ -41,7 +41,12 @@ export default async function WeddingsPage() {
       <TopNav />
       <main className="pt-10 sm:pt-14 pb-20 bg-cream min-h-screen">
         <section className="mx-auto max-w-[1080px] px-5 lg:px-14">
-          <div className="max-w-[720px]">
+          {/* Hero block — left-aligned on mobile, centred on
+              desktop so it sits above the centred flyer below.
+              text-center handles the inline elements (badge,
+              h1); mx-auto on the paragraph + justify-center on
+              the button row keep the wrapped blocks aligned. */}
+          <div className="max-w-[720px] lg:mx-auto lg:text-center">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-tint border border-amber/30 text-amber-dark text-[11px] font-bold uppercase tracking-[0.14em]">
               <Sparkles size={12} strokeWidth={2.25} />
               untilThen Weddings
@@ -53,13 +58,13 @@ export default async function WeddingsPage() {
               <br />
               one year later.
             </h1>
-            <p className="mt-6 text-[16px] sm:text-[18px] text-navy/70 max-w-[520px] leading-[1.55]">
+            <p className="mt-6 text-[16px] sm:text-[18px] text-navy/70 max-w-[520px] lg:mx-auto leading-[1.55]">
               Set a card on every table. Guests scan a QR code and leave a
               letter, voice note, or photo for the couple. Everything is
               sealed and quietly revealed on your first anniversary &mdash; a
               love letter from the day, delivered when you need it most.
             </p>
-            <div className="mt-8 flex items-center gap-2 sm:gap-3">
+            <div className="mt-8 flex items-center gap-2 sm:gap-3 lg:justify-center">
               <a
                 href="mailto:hello@untilthenapp.io?subject=Wedding%20capsule%20question"
                 className="inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2.5 sm:py-3 rounded-full bg-amber-tint border border-amber/40 text-amber-dark text-[13px] sm:text-[14px] font-bold whitespace-nowrap hover:bg-amber/15 hover:border-amber/60 transition-colors"
