@@ -12,6 +12,11 @@ const LINKS = [
   { href: "/#pricing", label: "Pricing" },
 ] as const;
 
+const ALSO_FOR_LINKS = [
+  { href: "/weddings", label: "Weddings" },
+  { href: "/business", label: "Enterprise" },
+] as const;
+
 export function Nav() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -125,6 +130,25 @@ export function Nav() {
             <hr className="my-1 border-navy/[0.06]" />
           </li>
           {LINKS.map((l) => (
+            <li key={l.href}>
+              <Link
+                href={l.href}
+                onClick={() => setOpen(false)}
+                className="block px-3 py-3 rounded-lg text-[15px] font-semibold text-navy hover:bg-amber-tint transition-colors"
+              >
+                {l.label}
+              </Link>
+            </li>
+          ))}
+          <li aria-hidden="true">
+            <hr className="my-1 border-navy/[0.06]" />
+          </li>
+          <li>
+            <p className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-amber">
+              Also for
+            </p>
+          </li>
+          {ALSO_FOR_LINKS.map((l) => (
             <li key={l.href}>
               <Link
                 href={l.href}
