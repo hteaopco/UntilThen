@@ -62,6 +62,11 @@ const TEMPLATES: Record<string, TemplateConfig> = {
   // ~3-4px gutter on every side without overlapping the orange
   // line.
   easel: { file: "Easel-Card-Image.png", qrSize: 150, qrLeft: 974, qrTop: 704 },
+  // Easel 2 box: x=1023..1174, y=680..839 (~151×159) — shifted
+  // right and slightly smaller than the original easel. 144 QR
+  // centred at (1099, 759) gives ~4px horizontal and ~7-8px
+  // vertical gutter.
+  easel2: { file: "Easel-Card-Image2.png", qrSize: 144, qrLeft: 1027, qrTop: 687 },
 };
 
 export async function GET(
