@@ -29,13 +29,7 @@ export async function POST(
   const existing = await prisma.capsuleContribution.findUnique({
     where: { id },
     select: {
-      id: true,
-      authorName: true,
-      authorEmail: true,
       moderationState: true,
-      capsule: {
-        select: { id: true, title: true, recipientName: true },
-      },
     },
   });
   if (!existing) {
@@ -69,31 +63,9 @@ export async function POST(
     },
   );
 
-  // Approval email only fires for true approvals (published).
-  // Flagged-then-cleared items go back to the organiser pipeline;
-  // the contributor shouldn't get a "your message is in" email
-  // until the organiser also approves.
-  if (!wasFlagged) {
-    try {
-      if (contribution.authorEmail) {
-        const { sendContributorApproved } = await import("@/lib/capsule-emails");
-        const invite = await prisma.capsuleInvite.findFirst({
-          where: { capsuleId: contribution.capsule.id, email: contribution.authorEmail },
-          select: { inviteToken: true },
-        });
-        const origin = process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
-        await sendContributorApproved({
-          to: contribution.authorEmail,
-          contributorName: contribution.authorName,
-          recipientName: contribution.capsule.recipientName,
-          capsuleTitle: contribution.capsule.title,
-          editUrl: invite ? `${origin}/contribute/capsule/${invite.inviteToken}` : origin,
-        });
-      }
-    } catch (err) {
-      console.error("[admin approve] email failed:", err);
-    }
-  }
+  // No outbound email on approve — the "Your message is in"
+  // notification was removed; the contributor sees their entry
+  // when they revisit their invite link.
 
   return NextResponse.json({ success: true, clearedFlag: wasFlagged });
 }

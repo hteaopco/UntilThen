@@ -114,30 +114,11 @@ export async function sendCapsuleInvite(params: {
     to: params.to,
     subject: `Add your message for ${displayNamePlain(params.recipientName)}.`,
     html: wrap(`
-      ${heading("You&rsquo;ve been invited to contribute to a gift capsule for " + displayName(params.recipientName) + ".")}
-      ${body(escapeHtml(params.organiserName) + " invited you to be part of this.")}
-      ${body("<strong>A message. A memory.</strong> Something " + pronoun(params.recipientName, "contraction") + " open and experience in the future.")}
+      ${heading("You&rsquo;ve been invited by " + escapeHtml(params.organiserName) + " to create something for " + displayName(params.recipientName) + ".")}
+      ${body("<strong>A message. A memory.</strong> Something " + pronoun(params.recipientName, "contraction") + " open and feel for years.")}
       ${body("You can write a note, record a voice message, or share a photo or video.")}
       ${body("It only takes a minute &mdash; and it&rsquo;s something " + pronoun(params.recipientName, "contraction") + " keep forever.")}
       ${cta(url, "Leave your message")}
-    `),
-  });
-}
-
-// #2 — Draft Saved (Organiser)
-export async function sendCapsuleDraftSaved(params: {
-  to: string;
-  organiserName: string;
-  title: string;
-  dashboardUrl: string;
-}): Promise<void> {
-  await send({
-    to: params.to,
-    subject: "You started something meaningful.",
-    html: wrap(`
-      ${heading("Your capsule is saved.")}
-      ${body("Come back anytime to finish it &mdash; invite people, add memories, and make it something they&rsquo;ll never forget.")}
-      ${cta(params.dashboardUrl, "Continue building")}
     `),
   });
 }
@@ -284,25 +265,6 @@ export async function sendContributorConfirmation(params: {
       ${preview}
       ${muted("You can still edit it before it&rsquo;s sealed.")}
       ${cta(params.editUrl, "Edit your message")}
-    `),
-  });
-}
-
-// #10 — Contributor Approved
-export async function sendContributorApproved(params: {
-  to: string;
-  contributorName: string;
-  recipientName: string;
-  capsuleTitle: string;
-  editUrl: string;
-}): Promise<void> {
-  await send({
-    to: params.to,
-    subject: "Your message is in.",
-    html: wrap(`
-      ${heading("Your contribution has been approved.")}
-      ${body("It&rsquo;s now part of what " + pronoun(params.recipientName, "contraction") + " open one day.")}
-      ${cta(params.editUrl, "View your message")}
     `),
   });
 }

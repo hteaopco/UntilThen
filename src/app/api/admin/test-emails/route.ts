@@ -35,7 +35,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   const {
     sendCapsuleInvite,
-    sendCapsuleDraftSaved,
     sendCapsuleDraftExpiring,
     sendCapsuleContributionSubmitted,
     sendCapsuleContributorReminder,
@@ -43,15 +42,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     sendCapsuleNewLink,
     sendCapsuleSaved,
     sendContributorConfirmation,
-    sendContributorApproved,
     sendContributorRejected,
   } = await import("@/lib/capsule-emails");
 
   const {
     sendAccountDeleted,
     sendTrusteeNominated,
-    sendWritingReminder,
-    sendRevealCountdown,
     sendAccountRecoveryRequest,
     sendAccountRecoveryConfirmation,
     sendPinReset,
@@ -72,16 +68,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       recipientName: "Margaret Smith",
       revealDate: new Date(Date.now() + 30 * 86400000),
       inviteToken: "test-token-123",
-    }),
-  );
-
-  // #2 — Draft Saved
-  await fire("draft-saved", "#2 Draft Saved", () =>
-    sendCapsuleDraftSaved({
-      to,
-      organiserName: "Jett",
-      title: "Mom's 60th Birthday",
-      dashboardUrl: `${origin}/capsules/test-id`,
     }),
   );
 
@@ -158,17 +144,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   );
 
-  // #10 — Contributor Approved
-  await fire("contributor-approved", "#10 Contributor Approved", () =>
-    sendContributorApproved({
-      to,
-      contributorName: "Sarah",
-      recipientName: "Margaret Smith",
-      capsuleTitle: "Mom's 60th Birthday",
-      editUrl: `${origin}/contribute/capsule/test-token-123`,
-    }),
-  );
-
   // #11 — Contributor Rejected
   await fire("contributor-rejected", "#11 Contributor Rejected", () =>
     sendContributorRejected({
@@ -192,44 +167,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       trusteeName: "Sam",
       parentName: "Jett",
       childName: "Olivia",
-    }),
-  );
-
-  // #18 — Writing Reminder
-  await fire("writing-reminder", "#18 Writing Reminder", () =>
-    sendWritingReminder({ to, parentName: "Jett", childName: "Olivia" }),
-  );
-
-  // #19a — Countdown 30 days
-  await fire("countdown-30", "#19a Countdown 30 days", () =>
-    sendRevealCountdown({
-      to,
-      parentName: "Jett",
-      childName: "Olivia",
-      daysLeft: 30,
-      revealDate: new Date(Date.now() + 30 * 86400000).toISOString(),
-    }),
-  );
-
-  // #19b — Countdown 7 days
-  await fire("countdown-7", "#19b Countdown 7 days", () =>
-    sendRevealCountdown({
-      to,
-      parentName: "Jett",
-      childName: "Olivia",
-      daysLeft: 7,
-      revealDate: new Date(Date.now() + 7 * 86400000).toISOString(),
-    }),
-  );
-
-  // #19c — Countdown 1 day
-  await fire("countdown-1", "#19c Countdown 1 day", () =>
-    sendRevealCountdown({
-      to,
-      parentName: "Jett",
-      childName: "Olivia",
-      daysLeft: 1,
-      revealDate: new Date(Date.now() + 86400000).toISOString(),
     }),
   );
 

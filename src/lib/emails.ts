@@ -117,60 +117,6 @@ export async function sendTrusteeNominated(params: {
   });
 }
 
-// #18 — Writing Reminder (30+ Days)
-export async function sendWritingReminder(params: {
-  to: string;
-  parentName: string;
-  childName: string;
-}): Promise<void> {
-  const url = `${baseUrl()}/dashboard`;
-  await send({
-    to: params.to,
-    subject: "Don\u2019t forget this version of them.",
-    html: wrapper(`
-      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
-        It&rsquo;s been a while since your last memory.
-      </h1>
-      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
-        Take a minute to write something &mdash; even small moments matter.
-      </p>
-      ${cta(url, "Write a memory")}
-    `),
-  });
-}
-
-// #19 — Reveal Countdown
-export async function sendRevealCountdown(params: {
-  to: string;
-  parentName: string;
-  childName: string;
-  daysLeft: number;
-  revealDate: string;
-}): Promise<void> {
-  const url = `${baseUrl()}/dashboard`;
-  const subject =
-    params.daysLeft === 1 ? "Tomorrow changes everything"
-    : params.daysLeft === 7 ? "One week to go"
-    : "One month from now";
-  await send({
-    to: params.to,
-    subject,
-    html: wrapper(`
-      <h1 style="font-size:24px;font-weight:800;margin:0 0 16px;letter-spacing:-0.5px;">
-        ${params.daysLeft === 1
-          ? "It&rsquo;s almost time."
-          : params.daysLeft === 7
-            ? "They&rsquo;re about to see it all."
-            : "They&rsquo;ll open everything."}
-      </h1>
-      <p style="font-size:16px;color:#4a5568;line-height:1.7;margin:0 0 12px;">
-        ${escapeHtml(params.childName)}&rsquo;s capsule ${params.daysLeft === 1 ? "opens tomorrow" : `opens in ${params.daysLeft} days`}.
-      </p>
-      ${cta(url, "View your capsule")}
-    `),
-  });
-}
-
 // #20a — Recovery Request (internal — to support inbox)
 //
 // Submitted by the /help/recovery form when a user has lost access

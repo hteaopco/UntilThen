@@ -19,7 +19,7 @@ export async function POST(
   const { prisma } = await import("@/lib/prisma");
   const contribution = await prisma.capsuleContribution.findUnique({
     where: { id: contributionId },
-    include: { capsule: { select: { title: true, recipientName: true } } },
+    select: { capsuleId: true },
   });
   if (!contribution || contribution.capsuleId !== id)
     return NextResponse.json({ error: "Not found." }, { status: 404 });
@@ -29,26 +29,8 @@ export async function POST(
     data: { approvalStatus: "APPROVED" },
   });
 
-  try {
-    const email = contribution.authorEmail;
-    if (email) {
-      const { sendContributorApproved } = await import("@/lib/capsule-emails");
-      const invite = await prisma.capsuleInvite.findFirst({
-        where: { capsuleId: id, email },
-        select: { inviteToken: true },
-      });
-      const origin = process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
-      await sendContributorApproved({
-        to: email,
-        contributorName: contribution.authorName,
-        recipientName: contribution.capsule.recipientName,
-        capsuleTitle: contribution.capsule.title,
-        editUrl: invite ? `${origin}/contribute/capsule/${invite.inviteToken}` : origin,
-      });
-    }
-  } catch (err) {
-    console.error("[approve] email failed:", err);
-  }
+  // No outbound email on approve — the "Your message is in"
+  // notification was removed.
 
   return NextResponse.json({ success: true });
 }
