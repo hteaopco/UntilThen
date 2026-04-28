@@ -2266,13 +2266,13 @@ function MarketingCollateralPanel({ capsuleId }: { capsuleId: string }) {
               Tap a card to preview at full size. Each one already has the
               capsule&rsquo;s QR baked in &mdash; print and place.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
               {COLLATERAL_CARDS.map((c) => (
                 <button
                   key={c.variant}
                   type="button"
                   onClick={() => setActive(c)}
-                  className="group flex flex-col items-center gap-2 rounded-xl border border-navy/10 bg-warm-surface/40 p-3 hover:border-amber/40 hover:bg-amber/5 transition-colors"
+                  className="group flex flex-col items-center gap-1.5 sm:gap-2 rounded-xl border border-navy/10 bg-warm-surface/40 p-2 sm:p-3 hover:border-amber/40 hover:bg-amber/5 transition-colors"
                 >
                   <div className="w-full aspect-[3/4] overflow-hidden rounded-lg bg-white border border-navy/[0.06] flex items-center justify-center">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -2283,7 +2283,7 @@ function MarketingCollateralPanel({ capsuleId }: { capsuleId: string }) {
                       loading="lazy"
                     />
                   </div>
-                  <span className="text-[12px] font-bold text-navy">
+                  <span className="text-[11px] sm:text-[12px] font-bold text-navy text-center leading-tight">
                     {c.label}
                   </span>
                 </button>
