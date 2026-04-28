@@ -2185,21 +2185,24 @@ function WeddingGuestSharePanel({
             >
               Preview as guest
             </a>
-            {/* Two ready-to-print card variants. Plain `download`
-                attribute on the <a> hits the static asset in /public
-                directly so we don't need a server round-trip; the
-                browser saves the PNG with the suggested filename. */}
+            {/* Two ready-to-print card variants. Each link hits
+                /api/capsules/[id]/wedding-card?variant=… which
+                composes the capsule's actual guest QR into the
+                template's centre box server-side via sharp +
+                qrcode, then streams the PNG back as an
+                attachment. The organiser gets a print-ready file
+                with no manual paste step. */}
             <a
-              href="/wedding-card-white.png"
-              download="wedding-card-white.png"
+              href={`/api/capsules/${capsuleId}/wedding-card?variant=white`}
+              download
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold bg-white border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
             >
               <Download size={12} strokeWidth={2.25} aria-hidden="true" />
               Download Card &mdash; White
             </a>
             <a
-              href="/wedding-card-cream.png"
-              download="wedding-card-cream.png"
+              href={`/api/capsules/${capsuleId}/wedding-card?variant=cream`}
+              download
               className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold bg-white border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
             >
               <Download size={12} strokeWidth={2.25} aria-hidden="true" />
