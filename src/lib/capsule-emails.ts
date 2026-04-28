@@ -4,6 +4,7 @@
 import {
   TONE_EMOJI,
   TONE_HERO,
+  TONE_THANKYOU,
   TONE_UNLOCK_LINE,
   toneClosingLine,
   type CapsuleTone,
@@ -271,7 +272,13 @@ export async function sendContributorConfirmation(params: {
   capsuleTitle: string;
   messagePreview: string | null;
   editUrl: string;
+  /** Capsule tone — drives subject (TONE_THANKYOU). Falls back to
+   *  OTHER's generic "That's going to mean a lot to them." when
+   *  unknown so older callers keep working. */
+  tone?: CapsuleTone | null;
 }): Promise<void> {
+  const tone: CapsuleTone = params.tone ?? "OTHER";
+  const subjectPronoun = pronoun(params.recipientName, "object");
   const preview = params.messagePreview
     ? `<div style="margin:16px 0;padding:16px;background:#fdf8f2;border-radius:12px;border:1px solid rgba(196,122,58,0.15);">
         <p style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;color:#8896a5;margin:0 0 8px;">Your message</p>
@@ -280,7 +287,7 @@ export async function sendContributorConfirmation(params: {
     : "";
   await send({
     to: params.to,
-    subject: "This is going to mean everything to them.",
+    subject: TONE_THANKYOU[tone](subjectPronoun),
     html: wrap(`
       ${heading("Your message is saved.")}
       ${body("One day, " + pronoun(params.recipientName, "contraction") + " read this.")}

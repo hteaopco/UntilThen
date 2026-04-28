@@ -136,7 +136,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   );
 
-  // #9 — Contributor Confirmation
+  // #9 — Contributor Confirmation. Defaults to CELEBRATION for
+  // the preview; production /contribute route passes through the
+  // capsule's actual tone.
   await fire("contributor-confirmation", "#9 Contributor Confirmation", () =>
     sendContributorConfirmation({
       to,
@@ -145,6 +147,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       capsuleTitle: "Mom's 60th Birthday",
       messagePreview: "You are the strongest woman I know. Every time I think about who I want to be, I think of you. I hope this birthday is everything you deserve.",
       editUrl: `${origin}/contribute/capsule/test-token-123`,
+      tone: "CELEBRATION",
     }),
   );
 

@@ -1,4 +1,4 @@
-import { EntryType, Prisma } from "@prisma/client";
+import { CapsuleTone, EntryType, Prisma } from "@prisma/client";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { effectiveStatus } from "@/lib/capsules";
@@ -197,6 +197,7 @@ export async function POST(
       capsuleId: c.id,
       capsuleTitle: c.title,
       recipientName: c.recipientName,
+      capsuleTone: c.tone,
       organiserClerkId: c.organiser.clerkId,
       authorName,
       inviteEmail: invite.email,
@@ -318,6 +319,7 @@ async function processContributionAsync(params: {
   capsuleId: string;
   capsuleTitle: string;
   recipientName: string;
+  capsuleTone: CapsuleTone | null;
   organiserClerkId: string;
   authorName: string;
   inviteEmail: string | null;
@@ -344,6 +346,7 @@ async function processContributionAsync(params: {
         capsuleTitle: params.capsuleTitle,
         messagePreview: bodyPreview,
         editUrl: `${origin}/contribute/capsule/${params.inviteToken}`,
+        tone: params.capsuleTone,
       });
     } catch (err) {
       console.error("[contribute async] contributor confirm:", err);
