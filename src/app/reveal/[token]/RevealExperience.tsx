@@ -13,7 +13,6 @@ import {
 
 import { EntryScreen } from "./EntryScreen";
 import { GalleryScreen } from "./GalleryScreen";
-import { SavePromptScreen } from "./SavePromptScreen";
 import { GateScreen } from "./GateScreen";
 import { StoryCards } from "./StoryCards";
 import { TransitionScreen } from "./TransitionScreen";
@@ -101,13 +100,7 @@ export type RevealCapsule = {
   isSaved: boolean;
 };
 
-type Phase =
-  | "gate"
-  | "entry"
-  | "stories"
-  | "transition"
-  | "save-prompt"
-  | "gallery";
+type Phase = "gate" | "entry" | "stories" | "transition" | "gallery";
 
 /**
  * Pure phase state machine — takes a fully-loaded capsule +
@@ -213,16 +206,11 @@ export function RevealExperience({
   useEffect(() => {
     if (externalSaved) setSaved(true);
   }, [externalSaved]);
-  // Helper: progress to the gallery. On first visit, when not yet
-  // saved, gate the transition behind the save prompt; otherwise
-  // go straight to gallery.
-  const goToGallery = () => {
-    if (!saved) {
-      setPhase("save-prompt");
-    } else {
-      setPhase("gallery");
-    }
-  };
+  // Progress to the gallery. The save prompt no longer gates this
+  // transition — the gallery itself ('explore everything' landing)
+  // appears first, and the prompt overlays it once the gallery
+  // has rendered. See GalleryScreen for the overlay timing.
+  const goToGallery = () => setPhase("gallery");
   // Muted state is hoisted to the root so the story-card ✕ chrome
   // toggle, the gallery music button, the embedded voice cards,
   // and the background music element all stay in sync. One mute
@@ -511,23 +499,6 @@ export function RevealExperience({
           remainingCount={remaining}
           contributorCount={contributorCount}
           onContinue={() => goToGallery()}
-        />
-      );
-    }
-    if (phase === "save-prompt") {
-      return (
-        <SavePromptScreen
-          recipientName={capsule.recipientName}
-          onSave={() => {
-            // Wrapper handles the redirect to /sign-up?redirect_url=...
-            // — fall back to advancing into the gallery if the
-            // wrapper didn't supply a handler (admin preview path).
-            if (onSaveRequested) onSaveRequested();
-            else setPhase("gallery");
-          }}
-          onSkip={() => {
-            setPhase("gallery");
-          }}
         />
       );
     }

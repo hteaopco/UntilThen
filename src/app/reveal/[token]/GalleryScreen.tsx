@@ -22,6 +22,7 @@ import { GalleryCard } from "./GalleryCard";
 import { GalleryCardView } from "./GalleryCardView";
 import { GalleryListView } from "./GalleryListView";
 import type { RevealContribution } from "./RevealClient";
+import { SavePromptScreen } from "./SavePromptScreen";
 
 type TypeFilter = "all" | "TEXT" | "PHOTO" | "VOICE" | "VIDEO";
 type View = "grid" | "list";
@@ -87,6 +88,18 @@ export function GalleryScreen({
 }) {
   const { capture } = useRevealAnalytics();
   const [searchQuery, setSearchQuery] = useState("");
+  // One-shot save-prompt overlay. Renders ~700ms after the gallery
+  // mounts so the recipient sees they've landed on 'everything'
+  // before the prompt appears, not as a separate page in front of
+  // it. Skip dismisses for the session; the persistent banner
+  // (showSaveBanner) is still there as the always-on fallback.
+  const [savePromptOpen, setSavePromptOpen] = useState(false);
+  const savePromptArmed = Boolean(showSaveBanner) && Boolean(onSave);
+  useEffect(() => {
+    if (!savePromptArmed) return;
+    const t = window.setTimeout(() => setSavePromptOpen(true), 700);
+    return () => window.clearTimeout(t);
+  }, [savePromptArmed]);
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [authorFilter, setAuthorFilter] = useState<string | null>(null);
   const [collectionFilter, setCollectionFilter] = useState<string | null>(null);
@@ -234,6 +247,7 @@ export function GalleryScreen({
   const opened = openId ? sorted.find((c) => c.id === openId) ?? null : null;
 
   return (
+    <>
     <main
       className="min-h-[100dvh] bg-cream"
       style={{
@@ -578,6 +592,17 @@ export function GalleryScreen({
         }
       `}</style>
     </main>
+    {savePromptOpen && onSave && (
+      <SavePromptScreen
+        recipientName={recipientName}
+        onSave={() => {
+          setSavePromptOpen(false);
+          onSave();
+        }}
+        onSkip={() => setSavePromptOpen(false)}
+      />
+    )}
+    </>
   );
 }
 
