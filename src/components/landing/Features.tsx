@@ -14,7 +14,7 @@ export function Features() {
           <div className="grid gap-2 sm:gap-3 grid-cols-2 lg:grid-cols-1 lg:gap-5">
             {/* Voice Notes */}
             <div className="relative rounded-2xl border border-amber/10 overflow-hidden" style={{ background: "#fef0dc" }}>
-              <div className="relative z-[1] p-4 sm:p-6 lg:p-8">
+              <div className="relative z-[1] p-4 sm:p-6 lg:p-6">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Mic size={18} strokeWidth={1.5} className="text-amber" />
@@ -34,7 +34,7 @@ export function Features() {
 
             {/* Multi-Contributor */}
             <div className="relative rounded-2xl border border-amber/10 overflow-hidden" style={{ background: "#fef0dc" }}>
-              <div className="relative z-[1] p-4 sm:p-6 lg:p-8">
+              <div className="relative z-[1] p-4 sm:p-6 lg:p-6">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-amber-tint flex items-center justify-center">
                     <Pencil size={18} strokeWidth={1.5} className="text-amber" />
@@ -56,7 +56,7 @@ export function Features() {
           {/* ── The Reveal — image sets card height on mobile,
               grid row-height sets it on desktop ── */}
           <div className="relative rounded-2xl border border-amber/15 overflow-hidden grid grid-cols-[1fr_auto] lg:h-full" style={{ background: "#fef0dc" }}>
-            <div className="relative z-[2] p-6 sm:p-8 lg:p-10 flex flex-col justify-center">
+            <div className="relative z-[2] p-6 sm:p-8 lg:p-7 flex flex-col justify-center">
               <div className="flex items-center gap-2.5 mb-4">
                 <span className="text-gold" aria-hidden="true">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -82,7 +82,7 @@ export function Features() {
                 alt="Polaroid photos and sealed envelope"
                 width={400}
                 height={500}
-                className="w-[184px] sm:w-[230px] lg:w-[300px] h-auto object-contain"
+                className="w-[184px] sm:w-[230px] lg:w-[260px] h-auto object-contain"
                 style={{
                   filter: "drop-shadow(0 8px 16px rgba(0,0,0,0.06))",
                 }}
