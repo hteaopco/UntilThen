@@ -70,10 +70,11 @@ const TEMPLATES: Record<string, TemplateConfig> = {
   // Easel 3 box: x=1207..1380, y=480..684 (~173 wide × 204 tall —
   // portrait, tucked inside the right-side "ADD YOUR MEMORIES"
   // panel of this layout instead of the bottom band the first
-  // two easels use). 160 QR centred at (1293, 582) gives ~6-7px
-  // horizontal gutter and ~22px vertical gutter (top + bottom)
-  // since the QR is square but the box is taller than wide.
-  easel3: { file: "Easel-Card-Image3.png", qrSize: 160, qrLeft: 1214, qrTop: 502 },
+  // two easels use). 165 QR bottom-aligned at qrTop=511 leaves
+  // ~4px horizontal gutter and an ~8px gap above "SCAN TO
+  // SHARE", filling the lower portion of the slot rather than
+  // leaving it visually empty.
+  easel3: { file: "Easel-Card-Image3.png", qrSize: 165, qrLeft: 1211, qrTop: 511 },
 };
 
 export async function GET(
