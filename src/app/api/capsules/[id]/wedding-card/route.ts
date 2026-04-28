@@ -29,13 +29,11 @@ export const dynamic = "force-dynamic";
  * capsule's organisation. WEDDING-only: capsules without a
  * guestToken (every non-WEDDING type) return 400.
  *
- * Coordinates (1054 × 1492 templates):
+ * Coordinates (templates are 1054 × 1492):
  *   Box bounds detected from the orange border at x=296..750,
  *   y=447..997. We render a 380×380 QR centred at (523, 722) so
  *   it sits inside the box with comfortable margin on all sides.
  */
-const TEMPLATE_W = 1054;
-const TEMPLATE_H = 1492;
 const QR_SIZE = 380;
 const QR_LEFT = Math.round((296 + 750) / 2 - QR_SIZE / 2); // 333
 const QR_TOP = Math.round((447 + 997) / 2 - QR_SIZE / 2); // 532
@@ -113,12 +111,3 @@ export async function GET(
     },
   });
 }
-
-// Silence the unused-template-size lint when sharp's pipeline is
-// wired strictly to known dimensions — a stray export keeps the
-// constants discoverable for tests / migrations without flagging
-// them as dead code.
-export const _TEMPLATE_DIMENSIONS = {
-  width: TEMPLATE_W,
-  height: TEMPLATE_H,
-} as const;
