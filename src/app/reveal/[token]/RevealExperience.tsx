@@ -486,10 +486,7 @@ export function RevealExperience({
           // Reaching the end of the deck routes through the
           // transition screen first.
           onClose={() => goToGallery()}
-          onComplete={() => {
-            if (remaining > 0) setPhase("transition");
-            else goToGallery();
-          }}
+          onComplete={() => setPhase("transition")}
         />
       );
     }
@@ -497,6 +494,7 @@ export function RevealExperience({
       return (
         <TransitionScreen
           remainingCount={remaining}
+          totalCount={contributions.length}
           contributorCount={contributorCount}
           onContinue={() => goToGallery()}
         />

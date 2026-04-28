@@ -8,20 +8,35 @@ import { useRevealAnalytics } from "./analytics";
 /**
  * Phase 3 — Transition Screen.
  *
- * Bridge between the cinematic 5-card highlight reel and the full
- * archive. Tells the recipient how much more is waiting and gives
- * them a clear next action.
+ * Bridge between the cinematic highlight reel (up to STORY_LIMIT
+ * cards) and the full gallery. Tells the recipient how many
+ * memories are waiting and gives them a clear next action.
  *
- * Caller guarantees `remainingCount > 0` — when zero, RevealClient
- * skips this phase entirely so we never render "0 more memories
- * waiting" copy.
+ * Always renders after stories now (regardless of contribution
+ * count). Two copy variants:
+ *
+ *   remainingCount > 0 — "There are X more memories waiting…"
+ *     Cinematic reel covered the highlights; the gallery has X
+ *     unseen memories.
+ *
+ *   remainingCount = 0 — "There are X memories waiting…"
+ *     Capsule had ≤ STORY_LIMIT contributions, so the reel showed
+ *     all of them. The gallery is the same content, just in a
+ *     browse-and-search shape. Drops "more" so the copy doesn't
+ *     read as "0 more".
+ *
+ * The bottom subtitle always shows totals (X memories · Y
+ * contributors) so the recipient sees how big their archive is
+ * regardless of which copy variant fires.
  */
 export function TransitionScreen({
   remainingCount,
+  totalCount,
   contributorCount,
   onContinue,
 }: {
   remainingCount: number;
+  totalCount: number;
   contributorCount: number;
   onContinue: () => void;
 }) {
@@ -29,9 +44,17 @@ export function TransitionScreen({
   useEffect(() => {
     capture("reveal_transition_viewed", {
       remainingCount,
+      totalCount,
       contributorCount,
     });
-  }, [capture, remainingCount, contributorCount]);
+  }, [capture, remainingCount, totalCount, contributorCount]);
+
+  // Body copy: "more" only when there are actually more memories
+  // beyond what the highlight reel showed.
+  const bodyCount = remainingCount > 0 ? remainingCount : totalCount;
+  const bodyVerb = bodyCount === 1 ? "is" : "are";
+  const bodyNoun = bodyCount === 1 ? "memory" : "memories";
+  const moreSuffix = remainingCount > 0 ? " more" : "";
 
   return (
     <main
@@ -60,13 +83,12 @@ export function TransitionScreen({
       </h2>
 
       <p className="mt-4 max-w-[260px] text-[14px] leading-[1.6] text-ink-mid">
-        There {remainingCount === 1 ? "is" : "are"} {remainingCount} more memor
-        {remainingCount === 1 ? "y" : "ies"} waiting &mdash; letters, photos,
-        and voice notes from everyone who loves you.
+        There {bodyVerb} {bodyCount}{moreSuffix} {bodyNoun} waiting &mdash;
+        letters, photos, and voice notes from everyone who loves you.
       </p>
 
       <p className="mt-6 text-[12px] tracking-[0.18em] uppercase text-amber font-semibold">
-        {remainingCount} {remainingCount === 1 ? "memory" : "memories"} ·{" "}
+        {totalCount} {totalCount === 1 ? "memory" : "memories"} ·{" "}
         {contributorCount}{" "}
         {contributorCount === 1 ? "contributor" : "contributors"}
       </p>
