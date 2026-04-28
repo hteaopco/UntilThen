@@ -101,7 +101,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }),
   );
 
-  // #6 — Reveal Day
+  // #6 — Reveal Day. Defaults to CELEBRATION for the preview;
+  // production cron passes through the capsule's actual tone so
+  // each recipient gets the variant matching how the organiser
+  // framed it.
   await fire("reveal-day", "#6 Reveal Day", () =>
     sendCapsuleRevealDay({
       to,
@@ -109,6 +112,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       title: "Mom's 60th Birthday",
       capsuleId: "test-id",
       accessToken: "test-access-token",
+      tone: "CELEBRATION",
     }),
   );
 

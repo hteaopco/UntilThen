@@ -82,6 +82,7 @@ export const POST = cronRoute("reveal", async (): Promise<NextResponse> => {
           title: capsule.title,
           capsuleId: capsule.id,
           accessToken: capsule.accessToken,
+          tone: capsule.tone,
         });
       }
 

@@ -1,6 +1,14 @@
 // Resend email helpers for Gift Capsules. Best-effort — failed
 // sends log and move on, never fail the parent request.
 
+import {
+  TONE_EMOJI,
+  TONE_HERO,
+  TONE_UNLOCK_LINE,
+  toneClosingLine,
+  type CapsuleTone,
+} from "@/lib/tone";
+
 const FROM = "untilThen <hello@untilthenapp.io>";
 const REPLY_TO = "hello@untilthenapp.io";
 
@@ -186,17 +194,31 @@ export async function sendCapsuleRevealDay(params: {
   title: string;
   capsuleId: string;
   accessToken: string;
+  /** Capsule tone — drives subject, heading, body, and closing
+   *  line. Falls back to OTHER (the existing generic copy) when
+   *  unknown / missing so older callers keep working. */
+  tone?: CapsuleTone | null;
 }): Promise<void> {
   // New token-only URL. Legacy /capsule/[id]/open?t={token} still
   // redirects here so magic-link emails already in inboxes keep
   // working.
   const url = `${baseUrl()}/reveal/${params.accessToken}`;
+  const tone: CapsuleTone = params.tone ?? "OTHER";
+  const emoji = TONE_EMOJI[tone];
+  const hero = TONE_HERO[tone];
+  const unlock = TONE_UNLOCK_LINE[tone];
+  const closing = toneClosingLine(tone);
   await send({
     to: params.to,
-    subject: "It\u2019s time.",
+    // Subject left as text-only (no emoji) — most spam filters
+    // are forgiving about emoji in subject lines now, but the
+    // tone-flavoured hero copy is already evocative enough on
+    // its own. Keep the body emoji for warmth.
+    subject: hero,
     html: wrap(`
-      ${heading("Today is the day.")}
-      ${body("There are messages waiting for you &mdash; written in the past, meant for right now.")}
+      ${heading(emoji + " " + hero)}
+      ${body(unlock)}
+      ${muted(closing)}
       ${cta(url, "Open your capsule")}
     `),
     tags: { capsuleId: params.capsuleId },
