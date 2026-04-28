@@ -1,7 +1,7 @@
 "use client";
 
 import { SignedIn, SignedOut } from "@clerk/nextjs";
-import { CircleUserRound, X } from "lucide-react";
+import { CircleUserRound, ChevronDown, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -68,6 +68,41 @@ export function Nav() {
               </Link>
             </li>
           ))}
+          <li className="relative group">
+            {/* Trigger is a button so the dropdown opens on hover
+                AND on keyboard focus (group-focus-within). The
+                'after' pseudo-bridge below the trigger keeps the
+                dropdown open while the cursor crosses the gap. */}
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 hover:text-navy transition-colors font-medium relative after:absolute after:left-0 after:right-0 after:top-full after:h-2"
+              aria-haspopup="menu"
+            >
+              Other Products
+              <ChevronDown
+                size={14}
+                strokeWidth={2}
+                aria-hidden="true"
+                className="transition-transform group-hover:rotate-180 group-focus-within:rotate-180"
+              />
+            </button>
+            <div
+              role="menu"
+              aria-label="Other Products"
+              className="absolute right-0 top-[calc(100%+8px)] min-w-[180px] rounded-xl border border-navy/[0.08] bg-cream/[0.98] backdrop-blur-md shadow-[0_12px_32px_-8px_rgba(15,31,61,0.18)] p-1 opacity-0 invisible translate-y-1 transition-[opacity,transform,visibility] duration-150 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 group-focus-within:opacity-100 group-focus-within:visible group-focus-within:translate-y-0"
+            >
+              {ALSO_FOR_LINKS.map((l) => (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  role="menuitem"
+                  className="block px-3 py-2 rounded-lg text-[14px] font-semibold text-navy hover:bg-amber-tint transition-colors"
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </div>
+          </li>
           <li>
             <DesktopActions />
           </li>
@@ -108,12 +143,15 @@ export function Nav() {
         </div>
       </div>
 
-      {/* Mobile dropdown */}
+      {/* Mobile dropdown — hairline amber border when open so the
+          panel reads as a distinct surface against the page
+          underneath. Border is wrapped in a sub-div so the
+          collapsed state doesn't render any chrome at all. */}
       <div
         id="mobile-nav-panel"
         className={`lg:hidden overflow-hidden transition-[max-height,opacity] duration-300 ease-out ${
           open ? "max-h-[520px] opacity-100" : "max-h-0 opacity-0"
-        } ${open ? "bg-cream/[0.96] backdrop-blur-[12px]" : ""}`}
+        } ${open ? "bg-cream/[0.96] backdrop-blur-[12px] border-y border-amber/50" : ""}`}
         style={{ WebkitBackdropFilter: open ? "blur(12px)" : "none" }}
       >
         <ul className="px-5 pb-6 pt-2 flex flex-col gap-1 border-t border-navy/[0.06]">
