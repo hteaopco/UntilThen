@@ -123,34 +123,6 @@ signing up via the standard flow stranded the invite in PENDING
 forever. New flows should NOT add a third claim path; instead make
 sure the email matches and rely on the existing helper.
 
-# Reveal save / claim flow
-
-Recipients claim a gift capsule (link it to their Clerk account
-permanently) by clicking "Save to your account" on the
-`SavePromptScreen` that appears between the cinematic flow and the
-gallery, OR via the persistent banner inside the gallery. Both
-bounce through `/sign-up?redirect_url=/reveal/<token>?claim=1`.
-
-When the recipient lands back at `/reveal/<token>?claim=1` with a
-Clerk session, `RevealClient` POSTs to
-`/api/capsules/[id]/save` (the magic token is sent in the body,
-which the endpoint validates against `capsule.accessToken`),
-flips an in-session `savedInSession` flag to suppress the prompt
-+ banner without a remount, and strips `?claim=1` off the URL so a
-refresh doesn't re-fire the claim.
-
-`RevealCapsule.isSaved` (server-side `Boolean(recipientClerkId)`)
-gates whether the prompt + banner ever render. Preview surfaces
-(organiser preview, vault preview, contributor preview, curator
-preview) all stamp `isSaved: true` so the save flow stays
-invisible — the viewer there is the organiser, not the recipient.
-
-`RevealExperience` exposes two props for the claim flow:
-- `onSaveRequested: () => void` — fired by both the prompt and the
-  banner.
-- `externalSaved: boolean` — flips the local `saved` state without
-  remount when the wrapper's claim handler succeeds.
-
 # Stat board hides capsules where the viewer is the recipient
 
 `/enterprise/stats` filters the recipient list (and its derived

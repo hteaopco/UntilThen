@@ -199,3 +199,30 @@ Lint: `npm run lint`. Type-check: `npx tsc --noEmit`.
 2. Square webhook endpoint is `/api/webhooks/square`. Most promotion logic (pending → current on sub.updated ACTIVE) fires from here.
 3. `subscription a… not found locally yet — skipping` logs mean the webhook fired before the DB write completed. Usually self-heals on the next event.
 4. If a user's billing gets stuck, `/admin/settings → Reset subscription` is the clean-slate hammer.
+
+## Reveal save / claim flow
+
+Recipients claim a gift capsule (link it to their Clerk account
+permanently) by clicking "Save to your account" on the
+`SavePromptScreen` that appears between the cinematic flow and the
+gallery, OR via the persistent banner inside the gallery. Both
+bounce through `/sign-up?redirect_url=/reveal/<token>?claim=1`.
+
+When the recipient lands back at `/reveal/<token>?claim=1` with a
+Clerk session, `RevealClient` POSTs to `/api/capsules/[id]/save`
+(the magic token is sent in the body, which the endpoint validates
+against `capsule.accessToken`), flips an in-session `savedInSession`
+flag to suppress the prompt + banner without a remount, and strips
+`?claim=1` off the URL so a refresh doesn't re-fire the claim.
+
+`RevealCapsule.isSaved` (server-side `Boolean(recipientClerkId)`)
+gates whether the prompt + banner ever render. Preview surfaces
+(organiser preview, vault preview, contributor preview, curator
+preview) all stamp `isSaved: true` so the save flow stays invisible
+— the viewer there is the organiser, not the recipient.
+
+`RevealExperience` exposes two props for the claim flow:
+- `onSaveRequested: () => void` — fired by both the prompt and the
+  banner.
+- `externalSaved: boolean` — flips the local `saved` state without
+  remount when the wrapper's claim handler succeeds.
