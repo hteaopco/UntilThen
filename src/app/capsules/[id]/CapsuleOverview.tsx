@@ -2208,6 +2208,14 @@ function WeddingGuestSharePanel({
               <Download size={12} strokeWidth={2.25} aria-hidden="true" />
               Download Card &mdash; Cream
             </a>
+            <a
+              href={`/api/capsules/${capsuleId}/wedding-card?variant=easel`}
+              download
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold bg-white border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
+            >
+              <Download size={12} strokeWidth={2.25} aria-hidden="true" />
+              Download Card &mdash; Easel
+            </a>
           </div>
         </div>
         <div className="shrink-0 rounded-xl border border-navy/10 p-2 bg-white">

@@ -13,33 +13,49 @@ export const dynamic = "force-dynamic";
  * Wedding share-card download with the capsule's guest QR baked
  * into the printable template.
  *
- * Two cosmetic variants exist as PNG templates in /public:
- *   - wedding-card-cream.png
- *   - wedding-card-white.png
+ * Three cosmetic variants exist as PNG templates in /public:
+ *   - wedding-card-cream.png  (1054×1492 portrait, big QR box)
+ *   - wedding-card-white.png  (1054×1492 portrait, big QR box)
+ *   - Easel-Card-Image.png    (1536×1024 landscape, small QR box
+ *                              tucked next to the "ADD YOUR
+ *                              MEMORIES" panel)
  *
- * Both share the same layout — a centred orange box that a QR
- * code is supposed to live in. Until now those PNGs shipped with
- * the box empty; the organiser had to print, paste a QR by hand,
- * and reprint. This endpoint composes the capsule's actual QR
- * (`/wedding/<guestToken>`) into the box and streams the result
- * back as a download so the print is one tap.
+ * All three ship with empty QR boxes. Until this endpoint, the
+ * organiser had to print, paste a QR by hand, and reprint. We
+ * compose the capsule's actual QR (`/wedding/<guestToken>`) into
+ * the box and stream the result back as a download so the print
+ * is one tap.
  *
  * Auth: same as the other capsule endpoints — the caller must
  * either be the original organiser or an OWNER/ADMIN of the
  * capsule's organisation. WEDDING-only: capsules without a
  * guestToken (every non-WEDDING type) return 400.
  *
- * Coordinates (templates are 1054 × 1492):
- *   Box bounds detected from the orange border at x=296..750,
- *   y=447..997 — i.e. ~454 wide × 550 tall. We render a 440×440
- *   QR centred at (523, 722) so it almost fills the box
- *   horizontally (≈7px gutter each side) and gives the print
- *   plenty of scannable surface, with the extra vertical room
- *   absorbed equally above and below.
+ * Coordinates were detected per-template from the orange border
+ * via pixel sampling; each variant carries its own size + offset
+ * because the easel is landscape with a much smaller box than
+ * the portrait cards.
  */
-const QR_SIZE = 440;
-const QR_LEFT = Math.round((296 + 750) / 2 - QR_SIZE / 2); // 303
-const QR_TOP = Math.round((447 + 997) / 2 - QR_SIZE / 2); // 502
+type TemplateConfig = {
+  /** Filename in /public (case-sensitive on Linux). */
+  file: string;
+  /** Square QR size in pixels. */
+  qrSize: number;
+  /** Top-left composite offset on the template. */
+  qrLeft: number;
+  qrTop: number;
+};
+
+const TEMPLATES: Record<string, TemplateConfig> = {
+  // Box: x=296..750, y=447..997 (~454 wide × 550 tall). 440 QR
+  // gives ~7px horizontal gutter and absorbs the extra vertical
+  // room equally above and below.
+  cream: { file: "wedding-card-cream.png", qrSize: 440, qrLeft: 303, qrTop: 502 },
+  white: { file: "wedding-card-white.png", qrSize: 440, qrLeft: 303, qrTop: 502 },
+  // Box: x=970..1127, y=697..860 (~157×163). 150 QR gives ~3-4px
+  // gutter on every side without overlapping the orange line.
+  easel: { file: "Easel-Card-Image.png", qrSize: 150, qrLeft: 974, qrTop: 704 },
+};
 
 export async function GET(
   req: NextRequest,
@@ -62,13 +78,10 @@ export async function GET(
     );
   }
 
-  const variant =
-    req.nextUrl.searchParams.get("variant") === "white" ? "white" : "cream";
-  const templatePath = path.join(
-    process.cwd(),
-    "public",
-    `wedding-card-${variant}.png`,
-  );
+  const variantParam = req.nextUrl.searchParams.get("variant") ?? "cream";
+  const tpl = TEMPLATES[variantParam] ?? TEMPLATES.cream;
+  const variant = TEMPLATES[variantParam] ? variantParam : "cream";
+  const templatePath = path.join(process.cwd(), "public", tpl.file);
 
   const origin =
     process.env.NEXT_PUBLIC_APP_URL ?? "https://untilthenapp.io";
@@ -76,20 +89,20 @@ export async function GET(
 
   let composed: Buffer;
   try {
-    // qrcode buffer in PNG, sized exactly to QR_SIZE so we don't
-    // need to resample with sharp. Black-on-transparent so the
-    // template's box border peeks through if the QR is slightly
-    // smaller than the box.
+    // qrcode buffer in PNG, sized exactly to the template's QR
+    // slot so we don't need to resample with sharp. Black-on-
+    // transparent so the template's box border peeks through if
+    // the QR is slightly smaller than the box.
     const qrBuffer = await QRCode.toBuffer(guestUrl, {
       type: "png",
-      width: QR_SIZE,
+      width: tpl.qrSize,
       margin: 1,
       errorCorrectionLevel: "M",
       color: { dark: "#0F1F3D", light: "#00000000" },
     });
 
     composed = await sharp(templatePath)
-      .composite([{ input: qrBuffer, left: QR_LEFT, top: QR_TOP }])
+      .composite([{ input: qrBuffer, left: tpl.qrLeft, top: tpl.qrTop }])
       .png()
       .toBuffer();
   } catch (err) {
