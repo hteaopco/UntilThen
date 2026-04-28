@@ -31,12 +31,15 @@ export const dynamic = "force-dynamic";
  *
  * Coordinates (templates are 1054 × 1492):
  *   Box bounds detected from the orange border at x=296..750,
- *   y=447..997. We render a 380×380 QR centred at (523, 722) so
- *   it sits inside the box with comfortable margin on all sides.
+ *   y=447..997 — i.e. ~454 wide × 550 tall. We render a 440×440
+ *   QR centred at (523, 722) so it almost fills the box
+ *   horizontally (≈7px gutter each side) and gives the print
+ *   plenty of scannable surface, with the extra vertical room
+ *   absorbed equally above and below.
  */
-const QR_SIZE = 380;
-const QR_LEFT = Math.round((296 + 750) / 2 - QR_SIZE / 2); // 333
-const QR_TOP = Math.round((447 + 997) / 2 - QR_SIZE / 2); // 532
+const QR_SIZE = 440;
+const QR_LEFT = Math.round((296 + 750) / 2 - QR_SIZE / 2); // 303
+const QR_TOP = Math.round((447 + 997) / 2 - QR_SIZE / 2); // 502
 
 export async function GET(
   req: NextRequest,

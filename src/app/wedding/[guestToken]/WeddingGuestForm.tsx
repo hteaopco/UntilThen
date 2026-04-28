@@ -261,9 +261,12 @@ export function WeddingGuestForm({
   if (phase === "card") {
     return (
       <main className="relative min-h-screen bg-cream overflow-hidden flex flex-col items-center px-6 py-10">
-        <div className="flex justify-center pt-2 pb-8">
+        <div className="flex justify-center pt-2 pb-4">
           <LogoSvg variant="dark" width={110} height={22} />
         </div>
+        <h1 className="font-brush text-[42px] sm:text-[54px] text-navy leading-none text-center pb-6">
+          {couple.coupleNames} <span className="text-amber">♡</span>
+        </h1>
         <div className="relative z-10 w-full max-w-[440px] mx-auto flex flex-col items-center">
           {/* The card art has a transparent border around the
               cream paper. We paint the same cream onto the img's
