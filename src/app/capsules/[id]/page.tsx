@@ -2,11 +2,9 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 
 import type { Attachment } from "@/components/editor/MediaAttachments";
-import { EnterpriseCapsuleSubNav } from "@/components/enterprise/EnterpriseCapsuleSubNav";
 import { Footer } from "@/components/landing/Footer";
 import { TopNav } from "@/components/ui/TopNav";
 import { effectiveStatus, findOwnedCapsule } from "@/lib/capsules";
-import { getOrgContextByClerkId } from "@/lib/orgs";
 import { userHasGiftAccess } from "@/lib/paywall";
 import { r2IsConfigured, signGetUrl, type MediaKind } from "@/lib/r2";
 
@@ -61,20 +59,6 @@ export default async function CapsulePage({
   // checkout. Same gate is mirrored in /api/.../activate.
   const isOrgAttributed = Boolean(capsule.organizationId);
   const requiresPayment = !giftAccessFree && !isOrgAttributed;
-
-  // Resolve enterprise role for the sub-nav strip. We only render
-  // the strip when the viewer is actually a member of the same
-  // org the capsule is attributed to — preventing a personal
-  // capsule's organiser from accidentally seeing org-shaped
-  // navigation, and skipping the lookup entirely for non-org
-  // capsules.
-  let enterpriseRole: "OWNER" | "ADMIN" | "MEMBER" | null = null;
-  if (isOrgAttributed) {
-    const orgCtx = await getOrgContextByClerkId(userId);
-    if (orgCtx && orgCtx.organizationId === capsule.organizationId) {
-      enterpriseRole = orgCtx.role;
-    }
-  }
 
   // Wedding bride/groom hand-off: when the organiser opted to
   // hide messages until reveal day, scrub every contribution
@@ -163,7 +147,6 @@ export default async function CapsulePage({
   return (
     <>
       <TopNav />
-      {enterpriseRole && <EnterpriseCapsuleSubNav role={enterpriseRole} />}
       <CapsuleOverview
         capsule={{
         id: capsule.id,
