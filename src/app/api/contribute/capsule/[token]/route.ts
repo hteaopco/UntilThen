@@ -46,6 +46,11 @@ export async function GET(
       { error: "This capsule has already been opened." },
       { status: 410 },
     );
+  if (status === "SENT")
+    return NextResponse.json(
+      { error: "This capsule has already been sent." },
+      { status: 410 },
+    );
   if (status === "SEALED")
     return NextResponse.json(
       { error: "Contributions are closed for this capsule." },
@@ -105,7 +110,7 @@ export async function POST(
     return NextResponse.json({ error: "Invite not found." }, { status: 404 });
   const c = invite.capsule;
   const status = effectiveStatus(c);
-  if (c.status === "DRAFT" || status === "SEALED" || status === "REVEALED") {
+  if (c.status === "DRAFT" || status === "SEALED" || status === "SENT" || status === "REVEALED") {
     return NextResponse.json(
       { error: "Contributions are closed for this capsule." },
       { status: 410 },
@@ -227,7 +232,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Invite not found." }, { status: 404 });
   const c = invite.capsule;
   const status = effectiveStatus(c);
-  if (c.status === "DRAFT" || status === "SEALED" || status === "REVEALED")
+  if (c.status === "DRAFT" || status === "SEALED" || status === "SENT" || status === "REVEALED")
     return NextResponse.json({ error: "Contributions are closed." }, { status: 410 });
 
   const body = (await req.json().catch(() => ({}))) as {

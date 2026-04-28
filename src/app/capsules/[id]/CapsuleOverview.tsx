@@ -53,8 +53,8 @@ type CapsuleSummary = {
   tone: CapsuleTone;
   revealDate: string;
   contributorDeadline: string | null;
-  status: "DRAFT" | "ACTIVE" | "SEALED" | "REVEALED";
-  /** The persisted status, before the temporal SEALED derivation. */
+  status: "DRAFT" | "ACTIVE" | "SEALED" | "SENT" | "REVEALED";
+  /** The persisted status, before the temporal SEALED/SENT derivation. */
   rawStatus: "DRAFT" | "ACTIVE" | "SEALED" | "REVEALED";
   isPaid: boolean;
   requiresApproval: boolean;
@@ -165,7 +165,14 @@ export function CapsuleOverview({
   const [inviteOpen, setInviteOpen] = useState(true);
 
   const isDraft = capsule.rawStatus === "DRAFT";
-  const isSealed = capsule.contributionsClosed;
+  // isSealed covers any closed-to-contributions state — manual
+  // SEALED, post-revealDate SENT, and post-open REVEALED. Drives
+  // the heading copy + hides the contribution edit affordances.
+  // The narrower isSent specifically gates whether the unseal
+  // button is shown (post-send the seal is permanent).
+  const isSent = capsule.status === "SENT" || capsule.status === "REVEALED";
+  const isSealed =
+    capsule.status === "SEALED" || isSent;
 
   async function toggleSeal(next: boolean) {
     if (sealing) return;
@@ -390,6 +397,7 @@ export function CapsuleOverview({
             tone={capsule.tone}
             contribution={ownContribution ?? null}
             initialAttachments={ownAttachments}
+            editable={!isSealed}
           />
         </section>
       )}
@@ -528,9 +536,13 @@ export function CapsuleOverview({
           <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] text-balance break-words">
             {isDraft
               ? "Everyone is going to love this!"
-              : isSealed
-                ? `${recipientDisplayName}\u2019s capsule is sealed`
-                : `${recipientDisplayName}\u2019s capsule is live`}
+              : capsule.status === "REVEALED"
+                ? `${recipientDisplayName}\u2019s capsule has been opened`
+                : isSent
+                  ? `${recipientDisplayName}\u2019s capsule was sent`
+                  : isSealed
+                    ? `${recipientDisplayName}\u2019s capsule is sealed`
+                    : `${recipientDisplayName}\u2019s capsule is live`}
           </h2>
           {/* Active-state body copy. Hidden for weddings — there
               are no contributors to invite, and the QR share
@@ -552,6 +564,17 @@ export function CapsuleOverview({
                     all at once.
                   </>
                 )
+              ) : capsule.status === "REVEALED" ? (
+                <>
+                  {recipientDisplayName} has opened the capsule. Everything
+                  written here is theirs to revisit anytime.
+                </>
+              ) : isSent ? (
+                <>
+                  The capsule has been sent to {recipientDisplayName}. Locked
+                  from edits and new contributions &mdash; the seal is
+                  permanent now that delivery is out.
+                </>
               ) : isSealed ? (
                 <>
                   Locked from edits. Contributors who follow their invite link
@@ -582,18 +605,32 @@ export function CapsuleOverview({
               </button>
             ) : isSealed ? (
               <>
-                <span className="inline-flex items-center gap-1.5 bg-navy text-white px-3 py-1.5 rounded-lg text-[12px] font-bold">
-                  <Lock size={12} strokeWidth={2.25} aria-hidden="true" />
-                  Sealed
-                </span>
-                <button
-                  type="button"
-                  onClick={() => toggleSeal(false)}
-                  disabled={sealing}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold border border-navy/15 text-ink-mid hover:text-navy hover:border-navy/30 transition-colors disabled:opacity-50"
+                <span
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-bold ${
+                    isSent
+                      ? "bg-amber/15 text-amber-dark border border-amber/40"
+                      : "bg-navy text-white"
+                  }`}
                 >
-                  {sealing ? "Unsealing\u2026" : "Unseal capsule"}
-                </button>
+                  <Lock size={12} strokeWidth={2.25} aria-hidden="true" />
+                  {capsule.status === "REVEALED"
+                    ? "Opened"
+                    : isSent
+                      ? "Sent"
+                      : "Sealed"}
+                </span>
+                {/* Unseal is only available pre-send. Once the
+                    capsule is SENT/REVEALED the seal is locked. */}
+                {!isSent && (
+                  <button
+                    type="button"
+                    onClick={() => toggleSeal(false)}
+                    disabled={sealing}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-semibold border border-navy/15 text-ink-mid hover:text-navy hover:border-navy/30 transition-colors disabled:opacity-50"
+                  >
+                    {sealing ? "Unsealing\u2026" : "Unseal capsule"}
+                  </button>
+                )}
               </>
             ) : (
               <>
@@ -787,6 +824,7 @@ function OwnContribution({
   tone,
   contribution,
   initialAttachments,
+  editable,
 }: {
   capsuleId: string;
   recipientDisplayName: string;
@@ -797,6 +835,10 @@ function OwnContribution({
   tone: CapsuleTone;
   contribution: ContributionRow | null;
   initialAttachments: Attachment[];
+  /** False once the capsule is SEALED / SENT / REVEALED. Hides
+   *  the Edit + Delete affordances and the inline editor entry
+   *  point — the message is still visible read-only. */
+  editable: boolean;
 }) {
   // Match surface 1 (CapsuleContributeForm) — couple capsules get
   // both first names in the placeholder so the "&" separator
@@ -969,30 +1011,32 @@ function OwnContribution({
             {contribution.attachmentCount === 1 ? "attachment" : "attachments"}
           </p>
         )}
-        <div className="mt-4 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              setTitle(contribution.title ?? "");
-              setBody(contribution.body ?? "");
-              setContributionId(contribution.id);
-              setEditing(true);
-            }}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-mid hover:text-navy transition-colors"
-          >
-            <Pencil size={12} strokeWidth={1.75} aria-hidden="true" />
-            Edit
-          </button>
-          <button
-            type="button"
-            onClick={remove}
-            disabled={saving}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-light hover:text-red-600 transition-colors disabled:opacity-50"
-          >
-            <Trash2 size={12} strokeWidth={1.75} aria-hidden="true" />
-            Delete
-          </button>
-        </div>
+        {editable && (
+          <div className="mt-4 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setTitle(contribution.title ?? "");
+                setBody(contribution.body ?? "");
+                setContributionId(contribution.id);
+                setEditing(true);
+              }}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-mid hover:text-navy transition-colors"
+            >
+              <Pencil size={12} strokeWidth={1.75} aria-hidden="true" />
+              Edit
+            </button>
+            <button
+              type="button"
+              onClick={remove}
+              disabled={saving}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-light hover:text-red-600 transition-colors disabled:opacity-50"
+            >
+              <Trash2 size={12} strokeWidth={1.75} aria-hidden="true" />
+              Delete
+            </button>
+          </div>
+        )}
         {error && (
           <p className="mt-3 text-sm text-red-600" role="alert">
             {error}
@@ -1134,6 +1178,11 @@ function OwnContribution({
       </form>
     );
   }
+
+  // Capsule is sealed/sent/revealed and the organiser never wrote
+  // a message — there's nothing to show here, and they can't add
+  // one anymore. Suppress the section entirely.
+  if (!editable) return null;
 
   return (
     <button

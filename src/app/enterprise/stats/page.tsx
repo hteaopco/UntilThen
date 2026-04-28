@@ -271,24 +271,28 @@ function formatDate(d: Date): string {
 function RecipientStatusBadge({
   status,
 }: {
-  status: "DRAFT" | "ACTIVE" | "SEALED" | "REVEALED";
+  status: "DRAFT" | "ACTIVE" | "SEALED" | "SENT" | "REVEALED";
 }) {
   const styles =
     status === "ACTIVE"
       ? "bg-sage-tint text-sage"
       : status === "SEALED"
         ? "bg-navy/10 text-navy"
-        : status === "REVEALED"
-          ? "bg-gold-tint text-gold"
-          : "bg-amber-tint text-amber-dark";
+        : status === "SENT"
+          ? "bg-amber/15 text-amber-dark"
+          : status === "REVEALED"
+            ? "bg-gold-tint text-gold"
+            : "bg-amber-tint text-amber-dark";
   const label =
     status === "ACTIVE"
       ? "Live"
       : status === "SEALED"
         ? "Sealed"
-        : status === "REVEALED"
-          ? "Opened"
-          : "Draft";
+        : status === "SENT"
+          ? "Sent"
+          : status === "REVEALED"
+            ? "Opened"
+            : "Draft";
   return (
     <span
       className={`inline-flex items-center text-[10px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded ${styles}`}

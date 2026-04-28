@@ -97,6 +97,11 @@ export async function GET(
       { error: "This capsule has already been opened." },
       { status: 410 },
     );
+  if (status === "SENT")
+    return NextResponse.json(
+      { error: "This capsule has already been sent." },
+      { status: 410 },
+    );
   if (status === "SEALED")
     return NextResponse.json(
       { error: "This capsule is sealed — contributions are closed." },
@@ -161,7 +166,7 @@ export async function POST(
     return NextResponse.json({ error: "Not found." }, { status: 404 });
 
   const status = effectiveStatus(capsule);
-  if (capsule.status === "DRAFT" || status === "SEALED" || status === "REVEALED")
+  if (capsule.status === "DRAFT" || status === "SEALED" || status === "SENT" || status === "REVEALED")
     return NextResponse.json(
       { error: "Contributions are closed for this capsule." },
       { status: 410 },
@@ -286,7 +291,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Not found." }, { status: 404 });
 
   const status = effectiveStatus(capsule);
-  if (capsule.status === "DRAFT" || status === "SEALED" || status === "REVEALED")
+  if (capsule.status === "DRAFT" || status === "SEALED" || status === "SENT" || status === "REVEALED")
     return NextResponse.json(
       { error: "Contributions are closed." },
       { status: 410 },

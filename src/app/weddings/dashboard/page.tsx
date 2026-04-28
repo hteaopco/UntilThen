@@ -185,7 +185,7 @@ function StatusPill({
   status,
   isPaid,
 }: {
-  status: "DRAFT" | "ACTIVE" | "SEALED" | "REVEALED";
+  status: "DRAFT" | "ACTIVE" | "SEALED" | "SENT" | "REVEALED";
   isPaid: boolean;
 }) {
   if (status === "DRAFT") {
@@ -200,6 +200,14 @@ function StatusPill({
       <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-navy text-white text-[10px] font-bold uppercase tracking-[0.1em]">
         <Lock size={10} strokeWidth={2.25} aria-hidden="true" />
         Sealed
+      </span>
+    );
+  }
+  if (status === "SENT") {
+    return (
+      <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber/15 border border-amber/40 text-amber-dark text-[10px] font-bold uppercase tracking-[0.1em]">
+        <Lock size={10} strokeWidth={2.25} aria-hidden="true" />
+        Sent
       </span>
     );
   }

@@ -77,6 +77,14 @@ export default async function CapsuleContributePage({
       />
     );
   }
+  if (status === "SENT") {
+    return (
+      <ClosedScreen
+        headline={`${c.recipientName}'s capsule has been sent.`}
+        sub="Contributions are locked once a capsule reaches its reveal date."
+      />
+    );
+  }
   if (status === "REVEALED") {
     return (
       <ClosedScreen

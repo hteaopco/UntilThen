@@ -17,7 +17,7 @@ type EnterpriseCapsuleRow = {
   title: string;
   recipientName: string;
   revealDate: string;
-  effectiveStatus: "DRAFT" | "ACTIVE" | "SEALED" | "REVEALED";
+  effectiveStatus: "DRAFT" | "ACTIVE" | "SEALED" | "SENT" | "REVEALED";
   contributionCount: number;
 };
 
@@ -213,7 +213,7 @@ function ManageCard({ capsules }: { capsules: EnterpriseCapsuleRow[] }) {
 function StatusBadge({
   status,
 }: {
-  status: "DRAFT" | "ACTIVE" | "SEALED" | "REVEALED";
+  status: "DRAFT" | "ACTIVE" | "SEALED" | "SENT" | "REVEALED";
 }) {
   const styles =
     status === "DRAFT"
@@ -222,7 +222,9 @@ function StatusBadge({
         ? "bg-sage-tint text-sage"
         : status === "SEALED"
           ? "bg-navy/10 text-navy"
-          : "bg-gold-tint text-gold";
+          : status === "SENT"
+            ? "bg-amber/15 text-amber-dark"
+            : "bg-gold-tint text-gold";
   const label =
     status === "DRAFT"
       ? "Draft"
@@ -230,7 +232,9 @@ function StatusBadge({
         ? "Live"
         : status === "SEALED"
           ? "Sealed"
-          : "Opened";
+          : status === "SENT"
+            ? "Sent"
+            : "Opened";
   return (
     <span
       className={`inline-flex items-center text-[10px] font-bold uppercase tracking-[0.1em] px-2 py-0.5 rounded ${styles}`}

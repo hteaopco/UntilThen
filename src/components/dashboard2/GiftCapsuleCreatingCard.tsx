@@ -17,7 +17,7 @@ export type GiftCapsuleCreatingData = {
     avatarUrl: string | null;
   }>;
   coverUrl: string | null;
-  status: "DRAFT" | "ACTIVE" | "SEALED" | "REVEALED";
+  status: "DRAFT" | "ACTIVE" | "SEALED" | "SENT" | "REVEALED";
 };
 
 /**
@@ -90,6 +90,10 @@ const STATUS_STYLES: Record<
   SEALED: {
     label: "Sealed",
     className: "text-gold bg-gold-tint border-gold/30",
+  },
+  SENT: {
+    label: "Sent",
+    className: "text-amber-dark bg-amber/15 border-amber/40",
   },
   REVEALED: {
     label: "Revealed",

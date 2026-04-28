@@ -130,11 +130,37 @@ export async function findOwnedCapsule(
 }
 
 /**
+ * Effective status union — wider than the persisted `CapsuleStatus`
+ * Prisma enum because `SENT` is derived (no schema change) from
+ * `revealDate <= now` and not-yet-opened.
+ *
+ * Lifecycle visible to UI:
+ *   DRAFT    → not paid yet
+ *   ACTIVE   → paid, collecting contributions
+ *   SEALED   → closed to contributions but pre-reveal-date
+ *              (manual close OR contributorDeadline passed)
+ *   SENT     → reveal date has passed; the capsule has been
+ *              emailed to the recipient (or will be on the next
+ *              cron tick within 15 min). Cannot be unsealed; no
+ *              new contributions; existing contributions can no
+ *              longer be edited.
+ *   REVEALED → recipient has opened the capsule.
+ */
+export type EffectiveStatus =
+  | "DRAFT"
+  | "ACTIVE"
+  | "SEALED"
+  | "SENT"
+  | "REVEALED";
+
+/**
  * Computed status for read paths. The stored `status` column
  * moves DRAFT → ACTIVE on payment and → REVEALED on first open;
  * SEALED is derived — either temporal (past the contributor
  * deadline) or organiser-triggered (contributionsClosed flag
- * toggled from the capsule dashboard).
+ * toggled from the capsule dashboard); SENT is derived from
+ * revealDate <= now (cron may or may not have fired yet, but
+ * either way the capsule is locked).
  */
 export function effectiveStatus(
   c: Pick<
@@ -143,9 +169,17 @@ export function effectiveStatus(
     | "contributorDeadline"
     | "firstOpenedAt"
     | "contributionsClosed"
+    | "revealDate"
   >,
-): CapsuleStatus {
+): EffectiveStatus {
   if (c.firstOpenedAt) return "REVEALED";
+  if (c.status === "REVEALED") return "REVEALED";
+  // revealDate <= now means the recipient has been (or is about
+  // to be) emailed. Treat as SENT — locked from edits / new
+  // contributions / unseal — even before the cron has flipped
+  // the persisted status to SEALED.
+  if (c.revealDate.getTime() <= Date.now()) return "SENT";
+  if (c.status === "SEALED") return "SEALED";
   if (c.status === "ACTIVE" && c.contributionsClosed) return "SEALED";
   if (
     c.status === "ACTIVE" &&
@@ -155,6 +189,16 @@ export function effectiveStatus(
     return "SEALED";
   }
   return c.status;
+}
+
+/**
+ * True when the capsule is closed to new contributions and edits
+ * — covers both the pre-reveal SEALED state and the post-send
+ * SENT/REVEALED states. Use this at every contribution-mutating
+ * guard so all three closed states behave identically.
+ */
+export function isCapsuleClosed(status: EffectiveStatus): boolean {
+  return status === "SEALED" || status === "SENT" || status === "REVEALED";
 }
 
 /** True if a capsule's magic link is still valid. */

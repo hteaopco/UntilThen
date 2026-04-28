@@ -172,10 +172,18 @@ export async function PATCH(
   if (typeof body.contributionsClosed === "boolean") {
     // Only meaningful on ACTIVE capsules. DRAFT capsules can't
     // be sealed (no one can contribute yet); SEALED/REVEALED
-    // capsules are already past this gate.
+    // capsules are already past this gate. SENT capsules (reveal
+    // date passed) can't be unsealed either — once the recipient
+    // has been emailed, the seal is permanent.
     if (owned.capsule.status !== "ACTIVE") {
       return NextResponse.json(
         { error: "Only active capsules can be sealed." },
+        { status: 400 },
+      );
+    }
+    if (owned.capsule.revealDate.getTime() <= Date.now()) {
+      return NextResponse.json(
+        { error: "This capsule has already been sent — the seal is locked." },
         { status: 400 },
       );
     }

@@ -36,7 +36,7 @@ export async function POST(
     return NextResponse.json({ error: "Invite not found." }, { status: 404 });
 
   const status = effectiveStatus(invite.capsule);
-  if (invite.capsule.status === "DRAFT" || status === "SEALED" || status === "REVEALED")
+  if (invite.capsule.status === "DRAFT" || status === "SEALED" || status === "SENT" || status === "REVEALED")
     return NextResponse.json({ error: "Capsule is not accepting contributions." }, { status: 403 });
 
   const body = (await req.json().catch(() => ({}))) as {

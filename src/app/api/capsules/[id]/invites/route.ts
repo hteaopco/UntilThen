@@ -43,7 +43,7 @@ export async function POST(
   const capsule = owned.capsule;
 
   const status = effectiveStatus(capsule);
-  if (status === "SEALED" || status === "REVEALED") {
+  if (status === "SEALED" || status === "SENT" || status === "REVEALED") {
     return NextResponse.json(
       { error: "This capsule is no longer accepting new contributors." },
       { status: 410 },

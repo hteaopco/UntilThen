@@ -46,6 +46,7 @@ export async function POST(
   if (
     capsule.status === "DRAFT" ||
     status === "SEALED" ||
+    status === "SENT" ||
     status === "REVEALED"
   )
     return NextResponse.json(
