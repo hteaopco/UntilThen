@@ -1,104 +1,91 @@
-# Session setup — install deps first
+# CLAUDE.md
 
-Run `npm install` at the start of every session, before making any
-code changes. Without `node_modules` you can't typecheck (`npx tsc
---noEmit`) or lint locally, which means TypeScript errors only
-surface once Railway rebuilds — slow, painful, and avoidable.
+## Project
 
-After dependencies are installed, run `npx tsc --noEmit` before
-pushing any commit. Railway's build does the same check; catching
-errors locally saves the round-trip.
+untilThen is a time-capsule platform with two products: **Time Capsules**
+(parents write letters, photos, voice notes for their child, sealed until a
+milestone like the 18th birthday — $4.99/mo subscription) and **Gift Capsules**
+(occasion gifts where contributors crowd-write a sealed surprise that opens on
+reveal day — $9.99 one-time, or free for enterprise org members). Live at
+[untilthenapp.io](https://untilthenapp.io).
 
-# Git workflow
+## Stack
 
-Always commit and push directly to `main`. Do not create feature branches.
-Every push goes straight to `main` so Railway auto-deploys immediately
-without any manual merges.
+- **Frontend:** Next.js 15 (App Router), React 19, TypeScript, Tailwind 3
+- **Auth:** Clerk (`@clerk/nextjs`)
+- **DB:** PostgreSQL on Railway, Prisma 5.22 (direct connection, no Accelerate)
+- **Media:** Cloudflare R2 via `@aws-sdk/client-s3`, signed URLs
+- **Email:** Resend (`@/lib/emails.ts` + `@/lib/capsule-emails.ts`)
+- **Payments:** Square SDK
+- **SMS:** Twilio (A2P 10DLC, campaign pending)
+- **Rate-limit:** Upstash Redis
+- **Analytics:** PostHog server + browser
+- **Errors:** Sentry (`@sentry/nextjs`)
+- **Deploy:** Railway (auto-deploys on every push to `main`)
 
-- If the session was started on a feature branch, switch to `main`
-  first, merge/rebase the work in, and push `main`.
-- Empty commits are fine (and sometimes necessary) to force a
-  Railway rebuild: `git commit --allow-empty -m "..."`.
+## Commands
 
-# Email Templates — Sync Rule
+- Build: `npm run build`
+- Dev: `npm run dev`
+- Test single file: `npm test -- path/to/file`
+- Lint + fix: `npm run lint:fix`
+- Type check: `npx tsc --noEmit`
 
-When changing ANY email template copy (subject, body, CTA) in
-`src/lib/capsule-emails.ts`, `src/lib/emails.ts`, or inline in
-API routes, ALWAYS update the matching entry in the admin Emails
-tab at `src/app/admin/emails/EmailTestClient.tsx` (the TEMPLATES
-array) AND the test-fire endpoint at
-`src/app/api/admin/test-emails/route.ts` so the admin UI and
-test emails stay in sync with production.
+## Architecture
 
-# Nomenclature
+- `src/app/` — Next.js App Router pages + API routes
+  - `api/` — server endpoints (capsules, reveal, orgs, webhooks, cron)
+  - `dashboard/`, `vault/`, `account/` — Time Capsule (Vault) surfaces
+  - `capsules/`, `reveal/` — Gift Capsule organiser + recipient surfaces
+  - `enterprise/` — org admin dashboard, roster, stat board
+  - `weddings/`, `wedding/` — wedding capsule landing + guest contribution
+  - `admin/` — internal staff console
+- `src/components/` — React components, grouped by surface
+- `src/lib/` — shared helpers (prisma client, capsules, orgs, emails, square, r2, paywall, sms)
+- `prisma/schema.prisma` — single source of truth for the data model
+- `docs/` — long-form notes (glossary, handover-notes, roadmap, etc.)
 
-Canonical glossary lives at `docs/glossary.md`. Read it before
-writing user-facing copy. The short version:
+## Rules
+
+- **IMPORTANT: run `npx tsc --noEmit` after every code change before pushing.** Railway runs the same check; catching errors locally saves the round-trip.
+- **Commit + push directly to `main`.** No feature branches. Every push auto-deploys via Railway. If you started on a branch, switch to `main`, merge, then push.
+- **Email template sync:** when you change copy in `src/lib/capsule-emails.ts`, `src/lib/emails.ts`, or inline in API routes, also update `src/app/admin/emails/EmailTestClient.tsx` (TEMPLATES array) AND `src/app/api/admin/test-emails/route.ts`. Three places, every time.
+- **Enterprise gift capsules auto-activate at creation.** `organizationId !== null` capsules skip the paywall and stamp `status: ACTIVE` + `isPaid: true` in `POST /api/capsules`. Don't reintroduce the deleted `sendCapsuleActivated` email; the dashboard already shows live state. Treat `isDraft` as the cold path for org-attributed capsules.
+- **Auth bounce-back uses `?redirect_url=`.** `/sign-up`, `/sign-in`, `/onboarding` all honour relative `redirect_url` query params. Prefer this over localStorage stashes when a flow needs to send a user through auth and back.
+- **Use the canonical names in user-facing copy** (see Nomenclature). Code uses legacy Prisma names; copy must not.
+- Make minimal changes. Don't refactor unrelated code.
+- When unsure between two approaches, present both and let the user pick.
+
+## Workflow
+
+- Run `npm install` at session start; `npx tsc --noEmit` before every push.
+- Read `docs/handover-notes.md` when working in unfamiliar territory — it captures the architectural decisions that don't fit in this file.
+- Keep commits focused. One logical change per commit; descriptive messages explaining the *why*.
+- Empty commits are fine to force a Railway rebuild: `git commit --allow-empty -m "..."`.
+
+## Nomenclature
+
+Canonical glossary lives at `docs/glossary.md`. Read it before writing
+user-facing copy. The short version:
 
 - **Vault** — top-level container. One per user.
-- **Time Capsule** — long-form sealed container inside the Vault.
-  Many per Vault. May be for a child, but doesn't have to be.
+- **Time Capsule** — long-form sealed container inside the Vault. Many per Vault. May be for a child, but doesn't have to be.
 - **Collection** — optional grouping inside a Time Capsule.
 - **Entry** / **Memory** — single letter / photo / voice / video.
-- **Gift Capsule** — separate product. Standalone occasion gift,
-  not part of the Vault.
+- **Gift Capsule** — separate product. Standalone occasion gift, not part of the Vault.
 
-Do **not** say "child's vault", "the child's memory capsule", or
-"vault for [name]" in user-facing copy. Say "Time Capsule".
+Do **not** say "child's vault", "the child's memory capsule", or "vault for [name]"
+in user-facing copy. Say "Time Capsule".
 
-Code lags copy by design: Prisma `Vault` model === a single Time
-Capsule, Prisma `Child` model === the Time Capsule's subject,
-Prisma `MemoryCapsule` model === Gift Capsule. The code rename is
-a future Pass 2; until then, copy and code nomenclature diverge
-and that's expected.
+Code lags copy by design: Prisma `Vault` model === a single Time Capsule,
+Prisma `Child` model === the Time Capsule's subject, Prisma `MemoryCapsule`
+model === Gift Capsule. The code rename is a future Pass 2; until then, copy
+and code nomenclature diverge and that's expected.
 
-# Enterprise Gift Capsules — auto-activate at creation
+## Out of scope
 
-Org-attributed gift capsules (`organizationId !== null`) skip the
-$9.99 paywall, so `POST /api/capsules` stamps `status: ACTIVE`,
-`isPaid: true`, `paidAt`, and `tokenExpiresAt` at creation time
-when `attribution === "enterprise"`. Personal capsules still create
-as DRAFT and run through `/api/capsules/[id]/activate` + Square
-checkout.
-
-Implications future code must respect:
-
-- An enterprise capsule's `status === "DRAFT"` is rare (only legacy
-  rows from before the auto-activation change). Code that branches
-  on `isDraft` for enterprise should treat it as the cold path.
-- `/api/capsules/[id]/invites` already routes ACTIVE+isPaid invites
-  to PENDING with immediate email dispatch — saving contributors
-  on an enterprise capsule sends emails right away. No `/activate`
-  hop needed.
-- `CapsuleOverview`'s "Send Contributor Invites" button (visible
-  for `isOrgAttributed`) only opens the activate modal when the
-  capsule is still DRAFT (legacy). For new enterprise capsules
-  it just saves and refreshes; the emails fire from the invites
-  endpoint itself.
-- `sendCapsuleActivated` ("Your capsule is live.") was deleted —
-  the dashboard already reflects the live state, so the email was
-  redundant. Don't reintroduce it.
-
-# `?redirect_url=` chain through auth
-
-`/sign-up`, `/sign-in`, and `/onboarding` honour `?redirect_url=`
-(relative paths only — same-origin guard via `startsWith("/")`).
-The chain:
-
-1. Caller pushes `/sign-up?redirect_url=/some/path`.
-2. Sign-up page reads the param, sets `forceRedirectUrl` to
-   `/onboarding?redirect_url=...` so it survives the Clerk hop.
-3. `OnboardingPage` reads it, passes it to `OnboardingForm` as
-   `redirectUrl` prop. Existing users (already-onboarded) bounce
-   to `redirect_url` instead of `/home`.
-4. `OnboardingForm.handleSubmit` pushes to `redirectUrl` after
-   the `/api/onboarding` call succeeds.
-
-Sign-in is simpler because there's no /onboarding stop — the page
-hands `redirect_url` straight to Clerk's `forceRedirectUrl`.
-
-When threading a new flow through auth, prefer `redirect_url` over
-localStorage stashes. The reveal-claim flow
-(`/reveal/<token>?claim=1`), capsule creation, and any future
-"bounce a user through auth and back" feature all use this.
-
+- `prisma/migrations/` — never hand-edit applied migrations. Generate new ones via `prisma migrate dev` / `prisma migrate deploy`.
+- `node_modules/`, `.next/` — generated. Don't commit or hand-edit.
+- Railway environment variables — managed through the Railway dashboard, not the repo. Don't paste secrets into code.
+- Cron Railway services — provisioned in Railway, not in the repo.
+- Square Subscription Plan IDs — hardcoded in `src/lib/square.ts`; treat as immutable unless you're explicitly changing the pricing model.
