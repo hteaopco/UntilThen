@@ -2224,7 +2224,7 @@ function WeddingGuestSharePanel({
  * coordinates, then add a row to CARDS below.
  */
 type CollateralCard = {
-  variant: "white" | "cream" | "easel" | "easel2";
+  variant: "white" | "cream" | "easel" | "easel2" | "easel3";
   label: string;
 };
 
@@ -2233,6 +2233,7 @@ const COLLATERAL_CARDS: CollateralCard[] = [
   { variant: "cream", label: "Table Card — Cream" },
   { variant: "easel", label: "Easel Card" },
   { variant: "easel2", label: "Easel Card 2" },
+  { variant: "easel3", label: "Easel Card 3" },
 ];
 
 function MarketingCollateralPanel({ capsuleId }: { capsuleId: string }) {

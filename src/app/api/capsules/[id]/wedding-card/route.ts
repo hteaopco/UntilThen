@@ -67,6 +67,13 @@ const TEMPLATES: Record<string, TemplateConfig> = {
   // centred at (1099, 759) gives ~4px horizontal and ~7-8px
   // vertical gutter.
   easel2: { file: "Easel-Card-Image2.png", qrSize: 144, qrLeft: 1027, qrTop: 687 },
+  // Easel 3 box: x=1207..1380, y=480..684 (~173 wide × 204 tall —
+  // portrait, tucked inside the right-side "ADD YOUR MEMORIES"
+  // panel of this layout instead of the bottom band the first
+  // two easels use). 160 QR centred at (1293, 582) gives ~6-7px
+  // horizontal gutter and ~22px vertical gutter (top + bottom)
+  // since the QR is square but the box is taller than wide.
+  easel3: { file: "Easel-Card-Image3.png", qrSize: 160, qrLeft: 1214, qrTop: 502 },
 };
 
 export async function GET(
