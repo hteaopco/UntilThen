@@ -73,9 +73,11 @@ export function GiftCapsulesSection({ capsules, archived }: Props) {
           </div>
         )}
 
-        {/* Pill 2 — Archived view toggle. When already on the
-            archived view, the same pill becomes the way back to
-            active. */}
+        {/* Pill 2 — Archived view toggle. Steady state is a quiet
+            white pill with amber chrome so it doesn't compete
+            with the primary 'View all' action; the moment the
+            archived view is active it fills in to amber-tint to
+            mirror View all's selected look. */}
         <button
           type="button"
           onClick={() => {
@@ -84,8 +86,8 @@ export function GiftCapsulesSection({ capsules, archived }: Props) {
           }}
           className={`flex-1 text-center rounded-xl border px-4 py-3 text-[13px] font-bold transition-colors ${
             view === "archived"
-              ? "border-navy bg-navy text-white hover:bg-navy/90"
-              : "border-amber/40 bg-amber-tint text-amber hover:bg-amber-tint/80"
+              ? "border-amber/40 bg-amber-tint text-amber hover:bg-amber-tint/80"
+              : "border-amber/40 bg-white text-amber hover:bg-amber-tint/40"
           }`}
         >
           {view === "archived"
