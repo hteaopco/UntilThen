@@ -47,14 +47,20 @@ type TemplateConfig = {
 };
 
 const TEMPLATES: Record<string, TemplateConfig> = {
-  // Box: x=296..750, y=505..995 (~454 wide × 490 tall — close
-  // to square). 450 QR gives ~2px horizontal gutter and ~20px
-  // vertical gutter top + bottom, killing the dead space below
-  // the QR that earlier coordinates left behind.
+  // Cream box: x=296..750, y=505..995 (~454 wide × 490 tall —
+  // close to square). 450 QR gives ~2px horizontal gutter and
+  // ~20px vertical gutter top + bottom.
   cream: { file: "wedding-card-cream.png", qrSize: 450, qrLeft: 298, qrTop: 525 },
-  white: { file: "wedding-card-white.png", qrSize: 450, qrLeft: 298, qrTop: 525 },
-  // Box: x=970..1127, y=697..860 (~157×163). 150 QR gives ~3-4px
-  // gutter on every side without overlapping the orange line.
+  // White box: x=250..800, y=500..1053 (~550 wide × 553 tall —
+  // a notably bigger printed box than the cream variant).
+  // Reusing cream's coords made the QR look stranded; 530 QR
+  // centred at (525, 776) fills the box like cream fills its
+  // own (~10-12px gutter on every side) so the two thumbnails
+  // read at the same visual scale.
+  white: { file: "wedding-card-white.png", qrSize: 530, qrLeft: 260, qrTop: 511 },
+  // Easel box: x=970..1127, y=697..860 (~157×163). 150 QR gives
+  // ~3-4px gutter on every side without overlapping the orange
+  // line.
   easel: { file: "Easel-Card-Image.png", qrSize: 150, qrLeft: 974, qrTop: 704 },
 };
 
