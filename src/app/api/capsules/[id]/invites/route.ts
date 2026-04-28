@@ -101,10 +101,14 @@ export async function POST(
       });
     }
 
-    const organiser = await prisma.user.findUnique({
-      where: { id: capsule.organiserId },
-      select: { firstName: true },
-    });
+    // organiserId is null when the original organiser deleted
+    // their account; the invite email falls back to "Someone".
+    const organiser = capsule.organiserId
+      ? await prisma.user.findUnique({
+          where: { id: capsule.organiserId },
+          select: { firstName: true },
+        })
+      : null;
     const organiserName = organiser?.firstName ?? "Someone";
 
     const created = await prisma.$transaction(

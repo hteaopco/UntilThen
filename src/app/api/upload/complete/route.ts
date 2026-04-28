@@ -136,10 +136,15 @@ export async function POST(req: Request) {
           { status: 404 },
         );
       if (contribution.clerkUserId !== userId) {
-        const organiser = await prisma.user.findUnique({
-          where: { id: contribution.capsule.organiserId },
-          select: { clerkId: true },
-        });
+        // organiserId is null when the original organiser deleted
+        // their account — there's no organiser to validate
+        // against, so a non-author edit attempt is rejected.
+        const organiser = contribution.capsule.organiserId
+          ? await prisma.user.findUnique({
+              where: { id: contribution.capsule.organiserId },
+              select: { clerkId: true },
+            })
+          : null;
         if (organiser?.clerkId !== userId) {
           return NextResponse.json({ error: "Forbidden." }, { status: 403 });
         }

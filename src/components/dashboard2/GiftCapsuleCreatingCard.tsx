@@ -18,6 +18,10 @@ export type GiftCapsuleCreatingData = {
   }>;
   coverUrl: string | null;
   status: "DRAFT" | "ACTIVE" | "SEALED" | "SENT" | "REVEALED";
+  /** ISO timestamp when the organiser archived the capsule. Null
+   *  on active rows; non-null on the archived list. Lets the
+   *  Archived view sort by archivedAt without an extra fetch. */
+  archivedAt: string | null;
 };
 
 /**

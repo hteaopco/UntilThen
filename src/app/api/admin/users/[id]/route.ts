@@ -231,10 +231,20 @@ export async function DELETE(
         await tx.child.deleteMany({ where: { id: { in: childIds } } });
       }
 
-      // Gift capsules organised by this user — cascade via the
-      // MemoryCapsule FKs wired into the schema (contributions +
-      // invites cascade on delete).
-      await tx.memoryCapsule.deleteMany({ where: { organiserId: id } });
+      // Gift capsules — only delete the deletable subset
+      // (DRAFT/ACTIVE with no recipient attachment). Anything
+      // sent / opened / saved to the recipient is preserved; the
+      // FK SET NULL on User.delete detaches organiserId so the
+      // recipient still has access.
+      const now = new Date();
+      await tx.memoryCapsule.deleteMany({
+        where: {
+          organiserId: id,
+          revealDate: { gt: now },
+          firstOpenedAt: null,
+          recipientClerkId: null,
+        },
+      });
 
       await tx.user.delete({ where: { id } });
     });

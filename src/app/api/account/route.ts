@@ -139,7 +139,25 @@ export async function DELETE(): Promise<NextResponse> {
         await tx.child.deleteMany({ where: { id: { in: childIds } } });
       }
 
-      await tx.memoryCapsule.deleteMany({ where: { organiserId: id } });
+      // Capsule retention rule (added 2026-04-28):
+      // Once a capsule has been sent to the recipient, opened by
+      // the recipient, OR saved to the recipient's account, the
+      // recipient depends on the row existing — losing it would
+      // be data loss for them. Hard-delete only the deletable
+      // subset (DRAFT/ACTIVE with no recipient attachment); the
+      // remaining rows are preserved with their organiserId
+      // detached (the User.id → MemoryCapsule.organiserId FK
+      // is ON DELETE SET NULL, so the User.delete below handles
+      // that automatically).
+      const now = new Date();
+      await tx.memoryCapsule.deleteMany({
+        where: {
+          organiserId: id,
+          revealDate: { gt: now },
+          firstOpenedAt: null,
+          recipientClerkId: null,
+        },
+      });
 
       await tx.user.delete({ where: { id } });
     });

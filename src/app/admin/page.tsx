@@ -359,7 +359,7 @@ export default async function AdminDashboard() {
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-navy truncate">{c.title}</p>
                       <p className="text-xs text-ink-light truncate">
-                        by {c.organiser.firstName} {c.organiser.lastName} · {c._count.contributions} contribution{c._count.contributions !== 1 ? "s" : ""} · {c._count.invites} invite{c._count.invites !== 1 ? "s" : ""}
+                        by {c.organiser ? `${c.organiser.firstName} ${c.organiser.lastName}` : "(account deleted)"} · {c._count.contributions} contribution{c._count.contributions !== 1 ? "s" : ""} · {c._count.invites} invite{c._count.invites !== 1 ? "s" : ""}
                       </p>
                     </div>
                     <span className={`text-[9px] uppercase tracking-[0.1em] font-bold px-2 py-0.5 rounded shrink-0 ${

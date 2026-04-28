@@ -290,13 +290,37 @@ export function CapsuleOverview({
     }
   }
 
+  // Capsules that have already been sent, opened, or saved by
+  // the recipient can't be hard-deleted — losing the row would
+  // strand the recipient. The dashboard surfaces an Archive
+  // affordance instead. mustArchive flips the action button
+  // copy + the confirm modal copy in a single place.
+  const mustArchive = isSent;
+
   async function deleteCapsule() {
     setDeleting(true);
     try {
-      const res = await fetch(`/api/capsules/${capsule.id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Couldn't delete capsule.");
+      // Archive path: PATCH archived: true. The capsule stays
+      // available to the recipient via the magic link / saved
+      // account; the organiser's dashboard hides it.
+      if (mustArchive) {
+        const res = await fetch(`/api/capsules/${capsule.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ archived: true }),
+        });
+        if (!res.ok) throw new Error("Couldn't archive capsule.");
+      } else {
+        const res = await fetch(`/api/capsules/${capsule.id}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          const body = (await res.json().catch(() => ({}))) as {
+            error?: string;
+          };
+          throw new Error(body.error ?? "Couldn't delete capsule.");
+        }
+      }
       // Org-attributed capsules belong to the enterprise surface,
       // so deletes return there. Personal capsules go back to the
       // consumer dashboard as before.
@@ -775,7 +799,13 @@ export function CapsuleOverview({
           disabled={deleting}
           className="text-[10px] uppercase tracking-[0.12em] text-ink-light hover:text-red-600 transition-colors underline underline-offset-[3px] disabled:opacity-50"
         >
-          {deleting ? "Deleting…" : "Delete capsule"}
+          {deleting
+            ? mustArchive
+              ? "Archiving…"
+              : "Deleting…"
+            : mustArchive
+              ? "Archive capsule"
+              : "Delete capsule"}
         </button>
       </section>
 
@@ -783,6 +813,7 @@ export function CapsuleOverview({
         <ConfirmDelete
           title={capsule.title}
           deleting={deleting}
+          mustArchive={mustArchive}
           onCancel={() => {
             if (!deleting) setDeleteOpen(false);
           }}
@@ -1705,11 +1736,16 @@ function InviteAvatar({
 function ConfirmDelete({
   title,
   deleting,
+  mustArchive,
   onCancel,
   onConfirm,
 }: {
   title: string;
   deleting: boolean;
+  /** True when the capsule has been sent / opened / saved by the
+   *  recipient, so hard delete is blocked and the only available
+   *  action is archive. Flips the modal copy + button colour. */
+  mustArchive: boolean;
   onCancel: () => void;
   onConfirm: () => void;
 }) {
@@ -1727,17 +1763,22 @@ function ConfirmDelete({
         <div className="px-6 py-5 border-b border-navy/[0.08] flex items-start gap-3">
           <div
             aria-hidden="true"
-            className="shrink-0 w-9 h-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center"
+            className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${
+              mustArchive ? "bg-amber-tint text-amber-dark" : "bg-red-50 text-red-600"
+            }`}
           >
             <AlertTriangle size={18} strokeWidth={1.75} />
           </div>
           <div>
             <h2 className="text-lg font-extrabold text-navy tracking-[-0.3px]">
-              Delete &ldquo;{title}&rdquo;?
+              {mustArchive
+                ? `Archive “${title}”?`
+                : `Delete “${title}”?`}
             </h2>
             <p className="mt-1 text-sm text-ink-mid leading-[1.5]">
-              This removes the capsule and every contribution inside.
-              Can&rsquo;t be undone.
+              {mustArchive
+                ? "This capsule has already been sent. We won’t delete it — your recipient still needs access. Archiving moves it out of your dashboard; they keep their copy."
+                : "This removes the capsule and every contribution inside. Can’t be undone."}
             </p>
           </div>
         </div>
@@ -1754,10 +1795,20 @@ function ConfirmDelete({
             type="button"
             onClick={onConfirm}
             disabled={deleting}
-            className="inline-flex items-center gap-2 bg-red-600 text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-50"
+            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-colors disabled:opacity-50 ${
+              mustArchive
+                ? "bg-amber text-white hover:bg-amber-dark"
+                : "bg-red-600 text-white hover:bg-red-700"
+            }`}
           >
             <Trash2 size={14} strokeWidth={1.75} aria-hidden="true" />
-            {deleting ? "Deleting…" : "Delete capsule"}
+            {mustArchive
+              ? deleting
+                ? "Archiving…"
+                : "Archive capsule"
+              : deleting
+                ? "Deleting…"
+                : "Delete capsule"}
           </button>
         </div>
       </div>

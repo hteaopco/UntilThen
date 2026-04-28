@@ -34,7 +34,9 @@ export default async function AdminQAPage() {
     occasionType: c.occasionType,
     revealDate: c.revealDate.toISOString(),
     status: c.status,
-    organiser: `${c.organiser.firstName} ${c.organiser.lastName}`,
+    organiser: c.organiser
+      ? `${c.organiser.firstName} ${c.organiser.lastName}`
+      : "(account deleted)",
     contributionCount: c._count.contributions,
     accessToken: c.accessToken,
   }));

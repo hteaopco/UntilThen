@@ -71,8 +71,13 @@ export async function GET(
       revealDate: c.revealDate.toISOString(),
       createdAt: c.createdAt.toISOString(),
       organiserId: c.organiserId,
-      organiserName: `${c.organiser.firstName} ${c.organiser.lastName ?? ""}`.trim(),
-      organiserEmail: c.organiser.email,
+      // Organiser can be null when the original creator deleted
+      // their account — capsules SENT/REVEALED/saved are kept
+      // (recipient still needs access) with organiserId nulled out.
+      organiserName: c.organiser
+        ? `${c.organiser.firstName} ${c.organiser.lastName ?? ""}`.trim()
+        : "(account deleted)",
+      organiserEmail: c.organiser?.email ?? null,
     })),
   });
 }

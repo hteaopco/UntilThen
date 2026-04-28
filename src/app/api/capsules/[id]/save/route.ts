@@ -54,25 +54,29 @@ export async function POST(
     capsuleId: id,
   });
 
-  // Let the organiser know — warm loop back.
-  try {
-    const { clerkClient } = await import("@clerk/nextjs/server");
-    const clerk = await clerkClient();
-    const organiserClerk = await clerk.users.getUser(
-      capsule.organiser.clerkId,
-    );
-    const organiserEmail =
-      organiserClerk.primaryEmailAddress?.emailAddress ??
-      organiserClerk.emailAddresses[0]?.emailAddress;
-    if (organiserEmail) {
-      await sendCapsuleSaved({
-        to: organiserEmail,
-        recipientName: capsule.recipientName,
-        title: capsule.title,
-      });
+  // Let the organiser know — warm loop back. Skipped when the
+  // organiser deleted their account (capsule was kept for the
+  // recipient, but there's no one to notify).
+  if (capsule.organiser) {
+    try {
+      const { clerkClient } = await import("@clerk/nextjs/server");
+      const clerk = await clerkClient();
+      const organiserClerk = await clerk.users.getUser(
+        capsule.organiser.clerkId,
+      );
+      const organiserEmail =
+        organiserClerk.primaryEmailAddress?.emailAddress ??
+        organiserClerk.emailAddresses[0]?.emailAddress;
+      if (organiserEmail) {
+        await sendCapsuleSaved({
+          to: organiserEmail,
+          recipientName: capsule.recipientName,
+          title: capsule.title,
+        });
+      }
+    } catch (err) {
+      console.error("[capsule save] organiser notify:", err);
     }
-  } catch (err) {
-    console.error("[capsule save] organiser notify:", err);
   }
 
   return NextResponse.json({ success: true });

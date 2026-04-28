@@ -32,6 +32,7 @@ export async function loadDashboard2Data({
 }): Promise<{
   vaults: VaultCardData[];
   creating: GiftCapsuleCreatingData[];
+  archived: GiftCapsuleCreatingData[];
   received: GiftCapsuleReceivedData[];
 }> {
   // Opportunistic email + phone sync so server-side reads of
@@ -198,7 +199,12 @@ export async function loadDashboard2Data({
     );
   }
 
-  const creating: GiftCapsuleCreatingData[] = creatingCapsules.map((c) => {
+  // Single map then split: archived capsules render the same
+  // card shape as active ones — they just live behind the
+  // 'Archived' pill on the dashboard. Splitting keeps the rest
+  // of the data wiring (avatar lookups, contribution counts)
+  // shared between the two lists.
+  const allCards: GiftCapsuleCreatingData[] = creatingCapsules.map((c) => {
     const inviteNames = c.invites
       .map((i) => i.name?.trim() || i.email.split("@")[0])
       .filter(Boolean);
@@ -218,8 +224,11 @@ export async function loadDashboard2Data({
       // and deadline-passed cases back into "SEALED" so the pill
       // reads the same regardless of which path got there.
       status: effectiveStatus(c),
+      archivedAt: c.archivedAt ? c.archivedAt.toISOString() : null,
     };
   });
+  const creating = allCards.filter((c) => !c.archivedAt);
+  const archived = allCards.filter((c) => Boolean(c.archivedAt));
 
   const received: GiftCapsuleReceivedData[] = receivedCapsules.map((c) => {
     const stats = receivedStats.get(c.id) ?? {
@@ -237,7 +246,7 @@ export async function loadDashboard2Data({
     };
   });
 
-  return { vaults, creating, received };
+  return { vaults, creating, archived, received };
 }
 
 function aggregateStats(

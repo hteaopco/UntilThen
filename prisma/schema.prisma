@@ -323,7 +323,13 @@ enum CapsuleStatus {
 
 model MemoryCapsule {
   id                  String        @id @default(cuid())
-  organiserId         String
+  /// Nullable on purpose: when the organiser deletes their account,
+  /// capsules that are SENT/REVEALED or already saved by the
+  /// recipient are kept so the recipient never loses access.
+  /// organiserId is set to null on those rows; everything else
+  /// (DRAFT/ACTIVE with no recipient save) is hard-deleted with
+  /// the user.
+  organiserId         String?
   title               String
   recipientName       String
   /// Object-form pronoun for this recipient ("her" / "him" /
@@ -390,10 +396,17 @@ model MemoryCapsule {
   /// visible. Reverts automatically once revealDate passes;
   /// guests / contributions list /api routes are unaffected.
   hideUntilReveal     Boolean       @default(false)
+  /// Soft hide for the organiser's dashboard. Once a capsule has
+  /// been SENT or REVEALED, hard delete is blocked so the
+  /// recipient never loses access — but the organiser can still
+  /// move the row out of their main view via archive. Null means
+  /// not archived; a timestamp records when it was archived for
+  /// audit purposes.
+  archivedAt          DateTime?
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 
-  organiser     User                  @relation(fields: [organiserId], references: [id])
+  organiser     User?                 @relation(fields: [organiserId], references: [id], onDelete: SetNull)
   organization  Organization?         @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   contributions CapsuleContribution[]
   invites       CapsuleInvite[]

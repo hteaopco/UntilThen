@@ -45,6 +45,12 @@ export const POST = cronRoute("capsule-draft-expiry", async (): Promise<NextResp
     checked += drafts.length;
 
     for (const capsule of drafts) {
+      // Skip orphan rows whose organiser deleted their account
+      // — there's no one left to nudge.
+      if (!capsule.organiser) {
+        skipped++;
+        continue;
+      }
       try {
         const { clerkClient } = await import("@clerk/nextjs/server");
         const clerk = await clerkClient();

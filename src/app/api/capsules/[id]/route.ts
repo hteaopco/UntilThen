@@ -35,6 +35,12 @@ interface PatchBody {
    *  true. Reversible. ACTIVE capsule status is preserved so the
    *  reveal cron still picks the capsule up on revealDate. */
   contributionsClosed?: boolean;
+  /** Archive flag. true → set archivedAt = now (capsule
+   *  disappears from organiser's main dashboard view but stays
+   *  fully accessible to the recipient). false → clear
+   *  archivedAt. Used as the "soft delete" replacement for
+   *  capsules that have already been SENT/REVEALED. */
+  archived?: boolean;
 }
 
 export async function GET(
@@ -189,6 +195,9 @@ export async function PATCH(
     }
     data.contributionsClosed = body.contributionsClosed;
   }
+  if (typeof body.archived === "boolean") {
+    data.archivedAt = body.archived ? new Date() : null;
+  }
 
   try {
     const { prisma } = await import("@/lib/prisma");
@@ -212,6 +221,30 @@ export async function DELETE(
   const owned = await findOwnedCapsule(userId ?? null, id);
   if (!owned.ok)
     return NextResponse.json({ error: "Not found." }, { status: owned.status });
+
+  // Hard delete is blocked once the recipient has been notified
+  // (revealDate <= now), the recipient has opened the capsule,
+  // OR the recipient has saved the capsule to their account.
+  // In any of those cases the recipient depends on the row
+  // existing — losing it would be data loss for them. The
+  // organiser's path forward is the archive flag (PATCH
+  // archived: true) which removes it from their main view
+  // without breaking the recipient.
+  const c = owned.capsule;
+  const recipientLocked =
+    c.revealDate.getTime() <= Date.now() ||
+    c.firstOpenedAt !== null ||
+    c.recipientClerkId !== null;
+  if (recipientLocked) {
+    return NextResponse.json(
+      {
+        error:
+          "This capsule has already been sent or saved by the recipient. Archive it instead — it'll move out of your dashboard but stay accessible.",
+        canArchive: true,
+      },
+      { status: 409 },
+    );
+  }
 
   try {
     const { prisma } = await import("@/lib/prisma");

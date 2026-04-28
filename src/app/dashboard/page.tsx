@@ -106,14 +106,17 @@ export default async function DashboardPage() {
             icon={<Gift size={18} strokeWidth={1.75} />}
             title="Gift Capsules You're Creating"
           />
-          {data.creating.length === 0 ? (
+          {data.creating.length === 0 && data.archived.length === 0 ? (
             <EmptyState
               copy="Create a moment someone will never forget."
               ctaHref="/capsules/new"
               ctaLabel="New Gift Capsule"
             />
           ) : (
-            <GiftCapsulesSection capsules={data.creating} />
+            <GiftCapsulesSection
+              capsules={data.creating}
+              archived={data.archived}
+            />
           )}
         </section>
 

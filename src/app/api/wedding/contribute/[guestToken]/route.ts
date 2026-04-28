@@ -236,22 +236,31 @@ export async function POST(
       },
     });
 
-    await captureServerEvent(
-      capsule.organiser.clerkId,
-      "wedding_guest_contribution_submitted",
-      { capsuleId: capsule.id, type },
-    );
+    // capsule.organiser can be null when the original organiser
+    // deleted their account — analytics + the organiser-notify
+    // background job are best-effort, skip them in that case.
+    const organiserClerkId = capsule.organiser?.clerkId ?? null;
 
-    void processWeddingGuestContributionAsync({
-      contributionId: contribution.id,
-      capsuleId: capsule.id,
-      capsuleTitle: capsule.title,
-      organiserClerkId: capsule.organiser.clerkId,
-      authorName,
-      text,
-      mediaUrls,
-      mediaTypes,
-    });
+    if (organiserClerkId) {
+      await captureServerEvent(
+        organiserClerkId,
+        "wedding_guest_contribution_submitted",
+        { capsuleId: capsule.id, type },
+      );
+    }
+
+    if (organiserClerkId) {
+      void processWeddingGuestContributionAsync({
+        contributionId: contribution.id,
+        capsuleId: capsule.id,
+        capsuleTitle: capsule.title,
+        organiserClerkId,
+        authorName,
+        text,
+        mediaUrls,
+        mediaTypes,
+      });
+    }
 
     return NextResponse.json({
       success: true,

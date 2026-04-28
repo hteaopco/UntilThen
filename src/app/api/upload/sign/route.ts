@@ -182,10 +182,15 @@ export async function POST(req: Request) {
           { status: 404 },
         );
       if (contribution.clerkUserId !== userId) {
-        const organiser = await prisma.user.findUnique({
-          where: { id: contribution.capsule.organiserId },
-          select: { clerkId: true },
-        });
+        // organiserId is null when the original creator deleted
+        // their account; nobody can claim organiser access in
+        // that state, so a non-author sign attempt is rejected.
+        const organiser = contribution.capsule.organiserId
+          ? await prisma.user.findUnique({
+              where: { id: contribution.capsule.organiserId },
+              select: { clerkId: true },
+            })
+          : null;
         // Allow the capsule organiser to attach media to their
         // own contribution even if the row's clerkUserId hasn't
         // been backfilled (defensive).

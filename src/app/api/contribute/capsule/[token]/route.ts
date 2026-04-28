@@ -187,11 +187,17 @@ export async function POST(
       });
     }
 
-    await captureServerEvent(
-      c.organiser.clerkId,
-      "capsule_contribution_submitted",
-      { capsuleId: c.id, type },
-    );
+    // c.organiser can be null when the organiser deleted their
+    // account; the contribution still saves, but the organiser-
+    // notify and analytics steps degrade gracefully.
+    const organiserClerkId = c.organiser?.clerkId ?? null;
+    if (organiserClerkId) {
+      await captureServerEvent(
+        organiserClerkId,
+        "capsule_contribution_submitted",
+        { capsuleId: c.id, type },
+      );
+    }
 
     // Fire-and-forget: scan + both notification emails. The Node
     // server on Railway stays alive after the response returns so
@@ -203,7 +209,7 @@ export async function POST(
       capsuleTitle: c.title,
       recipientName: c.recipientName,
       capsuleTone: c.tone,
-      organiserClerkId: c.organiser.clerkId,
+      organiserClerkId,
       authorName,
       inviteEmail: invite.email,
       inviteToken: token,
@@ -325,7 +331,7 @@ async function processContributionAsync(params: {
   capsuleTitle: string;
   recipientName: string;
   capsuleTone: CapsuleTone | null;
-  organiserClerkId: string;
+  organiserClerkId: string | null;
   authorName: string;
   inviteEmail: string | null;
   inviteToken: string;
@@ -387,8 +393,10 @@ async function processContributionAsync(params: {
     return;
   }
 
-  // 4. Organiser notification — skip for flagged items.
-  if (!flagged) {
+  // 4. Organiser notification — skip for flagged items, and skip
+  //    when the organiser has deleted their account (organiserId
+  //    nulled out, capsule kept for the recipient).
+  if (!flagged && params.organiserClerkId) {
     try {
       const { clerkClient } = await import("@clerk/nextjs/server");
       const clerk = await clerkClient();
