@@ -78,13 +78,32 @@ export function PhotoCard({
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
-          /* eslint-disable-next-line @next/next/no-img-element */
-          <img
-            src={media.url}
-            alt=""
-            onError={() => setFailed(true)}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+          <>
+            {/* Blurred copy of the same image as the backdrop —
+                fills the frame without harsh letterbox bars when
+                the photo's aspect ratio doesn't match the
+                viewport's. The foreground photo below uses
+                object-contain so portrait shots aren't cropped
+                and landscape shots aren't squashed. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={media.url}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 w-full h-full object-cover scale-110 blur-2xl opacity-70"
+            />
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-black/30"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={media.url}
+              alt=""
+              onError={() => setFailed(true)}
+              className="relative z-[1] w-full h-full object-contain"
+            />
+          </>
         )
       ) : (
         <div
