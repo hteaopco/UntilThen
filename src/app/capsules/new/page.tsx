@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 
 import { Footer } from "@/components/landing/Footer";
+import { TopNav } from "@/components/ui/TopNav";
 import { getOrgContextByClerkId } from "@/lib/orgs";
 
 import { CapsuleIntroGate } from "./CapsuleIntroGate";
@@ -60,6 +61,7 @@ export default async function NewCapsulePage({
 
   return (
     <>
+      <TopNav />
       <CapsuleIntroGate
         initialOccasion={initialOccasion}
         attribution={attribution}

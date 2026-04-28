@@ -115,7 +115,12 @@ export function HorizontalCardRail({
         // critical on desktop — the dashboard sits inside a
         // narrower max-width container, so 50vw would overshoot
         // and push every card off the right edge of the rail.
-        className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 pl-[calc(50%-91px)] pr-[calc(50%-91px)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        //
+        // Desktop (lg+) flips to a flat row: padding drops to a
+        // small constant + gap-3 between cards so the cards sit
+        // side-by-side without overlap. The blur / scale-down /
+        // negative-margin focus treatment stays mobile-only.
+        className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth pb-2 pl-[calc(50%-91px)] pr-[calc(50%-91px)] lg:pl-2 lg:pr-2 lg:gap-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {childArray.map((child, i) => {
           const isActive = i === activeIdx;
@@ -124,21 +129,18 @@ export function HorizontalCardRail({
           // active one always renders above a card further away.
           // Without this, the rightmost (Add) card was rendering on
           // top of its left neighbour because of DOM order.
+          // On desktop every card is "active" (flat row), so z-index
+          // doesn't matter — leaving the math intact for parity with
+          // mobile.
           const z = Math.max(0, 10 - Math.abs(i - activeIdx));
           return (
             <div
               key={i}
               data-rail-slot
-              className={`snap-center shrink-0 transition-[transform,filter] duration-300 ease-out -ml-[100px] first:ml-0 ${
-                isActive ? "scale-100" : "scale-[0.92]"
-              }`}
-              // Inline filter so the blur transitions cleanly from
-              // 0 → 1.5px (Tailwind's blur-0/blur-sm jump). zIndex
-              // also inline so it can be a computed number.
-              style={{
-                filter: isActive ? "blur(0px)" : "blur(1.5px)",
-                zIndex: z,
-              }}
+              className={`snap-center shrink-0 transition-[transform,filter] duration-300 ease-out -ml-[100px] first:ml-0 lg:ml-0 ${
+                isActive ? "scale-100" : "scale-[0.92] lg:scale-100"
+              } ${isActive ? "" : "blur-[1.5px] lg:blur-0"}`}
+              style={{ zIndex: z }}
             >
               {child}
             </div>

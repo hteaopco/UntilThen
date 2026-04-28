@@ -82,16 +82,18 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-dvh bg-cream flex flex-col">
-      <header className="px-5 sm:px-8 py-3 flex items-center justify-between">
-        <Link
-          href="/account"
-          aria-label="Settings"
-          className="w-9 h-9 rounded-full bg-white border border-navy/[0.08] flex items-center justify-center shadow-[0_2px_6px_-2px_rgba(15,31,61,0.08)] hover:border-amber/30 transition-colors"
-        >
-          <Settings size={16} strokeWidth={1.5} className="text-navy" />
-        </Link>
-        <LogoSvg variant="dark" width={100} height={20} />
-        <Avatar avatarUrl={avatarViewUrl} />
+      <header className="px-5 sm:px-8 py-3">
+        <div className="mx-auto w-full max-w-[576px] flex items-center justify-between">
+          <Link
+            href="/account"
+            aria-label="Settings"
+            className="w-9 h-9 rounded-full bg-white border border-navy/[0.08] flex items-center justify-center shadow-[0_2px_6px_-2px_rgba(15,31,61,0.08)] hover:border-amber/30 transition-colors"
+          >
+            <Settings size={16} strokeWidth={1.5} className="text-navy" />
+          </Link>
+          <LogoSvg variant="dark" width={100} height={20} />
+          <Avatar avatarUrl={avatarViewUrl} />
+        </div>
       </header>
 
       <section className="px-6 pt-3 sm:pt-5 pb-7 sm:pb-9 text-center">

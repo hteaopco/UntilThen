@@ -1,8 +1,7 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { ArrowLeft, Check, ChevronLeft, Feather, Flame, HandHeart, Heart, Home, PartyPopper, Sparkles } from "lucide-react";
-import Link from "next/link";
+import { Check, Feather, Flame, HandHeart, Heart, PartyPopper, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -10,7 +9,6 @@ import {
   EmployeePickerModal,
   type PickedEmployee,
 } from "@/components/enterprise/EmployeePickerModal";
-import { LogoSvg } from "@/components/ui/LogoSvg";
 import {
   CAPSULE_MAX_HORIZON_MS,
   WEDDING_MAX_HORIZON_MS,
@@ -362,23 +360,11 @@ export function CapsuleCreationFlow({
 
   return (
     <main className="min-h-screen bg-cream">
-      <header className="sticky top-0 z-40 bg-cream/90 backdrop-blur-md border-b border-navy/[0.06]">
-        <div className="mx-auto max-w-[720px] px-6 lg:px-10 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={() => router.back()}
-              className="w-9 h-9 rounded-full border border-navy/15 flex items-center justify-center text-ink-mid hover:text-navy hover:border-navy transition-colors"
-              aria-label="Go back">
-              <ArrowLeft size={16} strokeWidth={1.75} />
-            </button>
-            <Link href="/dashboard"
-              className="w-9 h-9 rounded-full border border-navy/15 flex items-center justify-center text-ink-mid hover:text-navy hover:border-navy transition-colors"
-              aria-label="Home">
-              <Home size={16} strokeWidth={1.75} />
-            </Link>
-          </div>
-          <LogoSvg variant="dark" width={110} height={22} />
-        </div>
-      </header>
+      {/* The page-level TopNav (rendered by /capsules/new/page.tsx)
+          owns the back / home / settings / wordmark / avatar
+          chrome — the wizard used to render a stripped-down
+          version of that header here, which double-stacked once
+          the page added the standard nav. */}
 
       {/* Progress bar */}
       <div className="mx-auto max-w-[560px] px-6 lg:px-10 pt-6">
