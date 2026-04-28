@@ -721,10 +721,13 @@ export function CapsuleOverview({
       )}
 
       {capsule.occasionType === "WEDDING" && capsule.guestToken && !isDraft && (
-        <WeddingGuestSharePanel
-          capsuleId={capsule.id}
-          guestToken={capsule.guestToken}
-        />
+        <>
+          <WeddingGuestSharePanel
+            capsuleId={capsule.id}
+            guestToken={capsule.guestToken}
+          />
+          <MarketingCollateralPanel capsuleId={capsule.id} />
+        </>
       )}
 
       {/* Live capsule summary (post-activation): contributions
@@ -2185,37 +2188,6 @@ function WeddingGuestSharePanel({
             >
               Preview as guest
             </a>
-            {/* Two ready-to-print card variants. Each link hits
-                /api/capsules/[id]/wedding-card?variant=… which
-                composes the capsule's actual guest QR into the
-                template's centre box server-side via sharp +
-                qrcode, then streams the PNG back as an
-                attachment. The organiser gets a print-ready file
-                with no manual paste step. */}
-            <a
-              href={`/api/capsules/${capsuleId}/wedding-card?variant=white`}
-              download
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold bg-white border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
-            >
-              <Download size={12} strokeWidth={2.25} aria-hidden="true" />
-              Download Card &mdash; White
-            </a>
-            <a
-              href={`/api/capsules/${capsuleId}/wedding-card?variant=cream`}
-              download
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold bg-white border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
-            >
-              <Download size={12} strokeWidth={2.25} aria-hidden="true" />
-              Download Card &mdash; Cream
-            </a>
-            <a
-              href={`/api/capsules/${capsuleId}/wedding-card?variant=easel`}
-              download
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-bold bg-white border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
-            >
-              <Download size={12} strokeWidth={2.25} aria-hidden="true" />
-              Download Card &mdash; Easel
-            </a>
           </div>
         </div>
         <div className="shrink-0 rounded-xl border border-navy/10 p-2 bg-white">
@@ -2229,6 +2201,140 @@ function WeddingGuestSharePanel({
           />
         </div>
       </div>
+    </section>
+  );
+}
+
+/**
+ * Marketing-collateral gallery: server-rendered preview thumbnails
+ * for every printable card variant the organiser can hand to
+ * guests. Clicking a thumbnail opens a lightbox with the full
+ * print-resolution PNG and a download CTA, so the user can
+ * eyeball the QR placement before committing the file to disk.
+ *
+ * The thumbnails point at the same /api/capsules/[id]/wedding-card
+ * endpoint as the lightbox + download — `Content-Disposition:
+ * attachment` only kicks in on top-level navigation, so an
+ * <img src> renders the bytes inline and `<a download>` triggers
+ * the save. Browser cache (max-age=300 from the route) covers
+ * thumb -> lightbox -> download as one fetch.
+ *
+ * Adding a new collateral piece: drop the template into /public,
+ * add a TEMPLATES entry in the wedding-card route with its QR
+ * coordinates, then add a row to CARDS below.
+ */
+type CollateralCard = {
+  variant: "white" | "cream" | "easel";
+  label: string;
+};
+
+const COLLATERAL_CARDS: CollateralCard[] = [
+  { variant: "white", label: "Table Card — White" },
+  { variant: "cream", label: "Table Card — Cream" },
+  { variant: "easel", label: "Easel Card" },
+];
+
+function MarketingCollateralPanel({ capsuleId }: { capsuleId: string }) {
+  const [open, setOpen] = useState(true);
+  const [active, setActive] = useState<CollateralCard | null>(null);
+
+  return (
+    <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-6">
+      <div className="rounded-2xl border border-amber/25 bg-white shadow-[0_4px_18px_rgba(196,122,58,0.08)]">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="w-full flex items-center justify-between gap-3 px-6 py-4 text-left"
+        >
+          <span className="flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
+            <Paperclip size={12} strokeWidth={2.25} aria-hidden="true" />
+            Marketing Collateral
+          </span>
+          <ChevronDown
+            size={16}
+            strokeWidth={2.25}
+            aria-hidden="true"
+            className={`text-ink-mid transition-transform ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+        {open && (
+          <div className="px-6 pb-6">
+            <p className="text-[14px] text-ink-mid leading-[1.5] mb-4">
+              Tap a card to preview at full size. Each one already has the
+              capsule&rsquo;s QR baked in &mdash; print and place.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {COLLATERAL_CARDS.map((c) => (
+                <button
+                  key={c.variant}
+                  type="button"
+                  onClick={() => setActive(c)}
+                  className="group flex flex-col items-center gap-2 rounded-xl border border-navy/10 bg-warm-surface/40 p-3 hover:border-amber/40 hover:bg-amber/5 transition-colors"
+                >
+                  <div className="w-full aspect-[3/4] overflow-hidden rounded-lg bg-white border border-navy/[0.06] flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`/api/capsules/${capsuleId}/wedding-card?variant=${c.variant}`}
+                      alt={`${c.label} preview`}
+                      className="w-full h-full object-contain"
+                      loading="lazy"
+                    />
+                  </div>
+                  <span className="text-[12px] font-bold text-navy">
+                    {c.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {active && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${active.label} preview`}
+          className="fixed inset-0 z-50 bg-navy/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8"
+          onClick={() => setActive(null)}
+        >
+          <div
+            className="relative w-full max-w-[720px] max-h-full overflow-auto rounded-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setActive(null)}
+              aria-label="Close preview"
+              className="absolute top-3 right-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-navy hover:bg-amber/20 border border-navy/10 z-10"
+            >
+              <X size={16} strokeWidth={2.25} aria-hidden="true" />
+            </button>
+            <div className="p-4 sm:p-6">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`/api/capsules/${capsuleId}/wedding-card?variant=${active.variant}`}
+                alt={`${active.label} full preview`}
+                className="w-full h-auto rounded-lg border border-navy/[0.06]"
+              />
+              <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
+                <span className="text-[14px] font-bold text-navy">
+                  {active.label}
+                </span>
+                <a
+                  href={`/api/capsules/${capsuleId}/wedding-card?variant=${active.variant}`}
+                  download
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-[13px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors"
+                >
+                  <Download size={14} strokeWidth={2.25} aria-hidden="true" />
+                  Download
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
