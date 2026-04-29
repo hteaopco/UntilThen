@@ -14,6 +14,10 @@ import {
   WEDDING_MAX_HORIZON_MS,
 } from "@/lib/capsules";
 import {
+  REVEAL_MIN_LEAD_MS,
+  combineRevealMs,
+} from "@/lib/reveal-schedule";
+import {
   TONE_LABELS,
   TONE_DESCRIPTIONS,
   type CapsuleTone,
@@ -260,6 +264,18 @@ export function CapsuleCreationFlow({
     }
     if (step === 3) {
       if (!deliveryTime) return "Please select a delivery time";
+      // Mirror the API's same-day buffer so a manually-typed
+      // custom time can't slip past the picker. Wedding flow's
+      // actual reveal is +1 year, so check against that to avoid
+      // a false-positive on wedding-day picks.
+      const checkIso =
+        isWedding && revealDate ? addOneYearIsoUtc(revealDate) : revealDate;
+      if (checkIso) {
+        const ms = combineRevealMs(checkIso, deliveryTime, timezone);
+        if (!Number.isNaN(ms) && ms < Date.now() + REVEAL_MIN_LEAD_MS) {
+          return "Pick a time at least 2 hours from now";
+        }
+      }
       return null;
     }
     if (step === 4) {
@@ -357,6 +373,64 @@ export function CapsuleCreationFlow({
 
   const progress =
     ((step - firstStep + 1) / visibleStepCount) * 100;
+
+  // Same-day reveal guard: combine the chosen date + each
+  // delivery-time preset in the chosen timezone, then hide any
+  // preset whose resulting moment is inside the 2-hour buffer.
+  // Wedding flow's actual reveal is the picked date + 1 year, so
+  // we use that for the comparison; for every other occasion the
+  // raw revealDate is the moment.
+  const effectiveRevealIso =
+    isWedding && revealDate ? addOneYearIsoUtc(revealDate) : revealDate;
+  const minRevealMs = Date.now() + REVEAL_MIN_LEAD_MS;
+  function presetIsAvailable(presetTime: string): boolean {
+    if (!effectiveRevealIso) return true;
+    const ms = combineRevealMs(effectiveRevealIso, presetTime, timezone);
+    return Number.isNaN(ms) || ms >= minRevealMs;
+  }
+  const availablePresets = TIME_PRESETS.filter((t) =>
+    presetIsAvailable(t.value),
+  );
+  // Earliest valid HH:MM the custom <input type="time"> can accept
+  // when the chosen date matches "today" (in the selected tz).
+  // Returns undefined for future dates, where any time is fine.
+  let customMinTime: string | undefined;
+  if (effectiveRevealIso) {
+    const fmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      hourCycle: "h23",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    const parts: Record<string, string> = {};
+    for (const p of fmt.formatToParts(new Date(minRevealMs))) {
+      if (p.type !== "literal") parts[p.type] = p.value;
+    }
+    const minDateInTz = `${parts.year}-${parts.month}-${parts.day}`;
+    if (minDateInTz === effectiveRevealIso) {
+      customMinTime = `${parts.hour}:${parts.minute}`;
+    }
+  }
+
+  // Drop a previously-selected preset that's no longer available
+  // — happens when the user goes back to step 2, picks today,
+  // and returns to step 3 with the old "Morning (9am)" still
+  // pinned even though it's now in the past. Custom times are
+  // left alone (the user typed them deliberately and the input's
+  // min attribute keeps them honest).
+  useEffect(() => {
+    if (!deliveryTime || customTime) return;
+    if (!TIME_PRESETS.some((t) => t.value === deliveryTime)) return;
+    if (!presetIsAvailable(deliveryTime)) {
+      setDeliveryTime(null);
+    }
+    // presetIsAvailable closes over revealDate + timezone, both
+    // listed below — eslint is OK with this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealDate, timezone, deliveryTime, customTime, isWedding]);
 
   return (
     <main className="min-h-screen bg-cream">
@@ -595,7 +669,7 @@ export function CapsuleCreationFlow({
               <div>
                 <Label>Delivery time</Label>
                 <div className="flex flex-wrap gap-2">
-                  {TIME_PRESETS.map((t) => (
+                  {availablePresets.map((t) => (
                     <button key={t.value} type="button" onClick={() => { setDeliveryTime(t.value); setCustomTime(false); setStepError(null); }}
                       className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
                         deliveryTime === t.value && !customTime ? pillActive : pillInactive
@@ -610,11 +684,23 @@ export function CapsuleCreationFlow({
                     Custom
                   </button>
                 </div>
+                {availablePresets.length < TIME_PRESETS.length && (
+                  <p className="mt-2 text-[12px] text-ink-mid">
+                    {availablePresets.length === 0
+                      ? "Today's slots have all passed — pick Custom for a later time, or change the date."
+                      : "Earlier slots have passed for today — pick a later one or use Custom."}
+                  </p>
+                )}
                 {customTime && (
                   <div className="mt-3 flex items-center gap-3">
                     <span className="text-[11px] font-bold tracking-[0.06em] uppercase text-ink-mid whitespace-nowrap">Reveal time:</span>
-                    <input type="time" value={deliveryTime ?? ""} onChange={(e) => setDeliveryTime(e.target.value)}
-                      className="account-input w-auto max-w-[140px]" />
+                    <input
+                      type="time"
+                      value={deliveryTime ?? ""}
+                      onChange={(e) => setDeliveryTime(e.target.value)}
+                      min={customMinTime}
+                      className="account-input w-auto max-w-[140px]"
+                    />
                   </div>
                 )}
               </div>

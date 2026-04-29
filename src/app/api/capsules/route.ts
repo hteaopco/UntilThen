@@ -9,6 +9,10 @@ import {
   maxHorizonMsForOccasion,
 } from "@/lib/capsules";
 import { captureServerEvent } from "@/lib/posthog-server";
+import {
+  REVEAL_MIN_LEAD_MS,
+  combineRevealMs,
+} from "@/lib/reveal-schedule";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -173,11 +177,28 @@ export async function POST(req: Request) {
       { error: "Please pick a reveal date." },
       { status: 400 },
     );
-  if (revealDate.getTime() <= Date.now())
+  // Validate the actual reveal moment (date + delivery time in
+  // the chosen timezone) is at least REVEAL_MIN_LEAD_MS in the
+  // future. This is what unlocks same-day reveals: comparing the
+  // raw revealDate to Date.now() rejected today even when the
+  // chosen delivery time was hours away, because revealDate is
+  // parsed as UTC midnight. Falls back to UTC midnight when the
+  // wizard hasn't supplied a delivery time / timezone yet (older
+  // clients) so the legacy "future date" check still applies.
+  const revealMomentMs =
+    deliveryTime && timezone && typeof body.revealDate === "string"
+      ? combineRevealMs(body.revealDate, deliveryTime, timezone)
+      : revealDate.getTime();
+  const minRevealMs = Date.now() + REVEAL_MIN_LEAD_MS;
+  if (Number.isNaN(revealMomentMs) || revealMomentMs < minRevealMs) {
     return NextResponse.json(
-      { error: "Reveal date must be in the future." },
+      {
+        error:
+          "Reveal time must be at least 2 hours from now so you can finish staging the capsule.",
+      },
       { status: 400 },
     );
+  }
   // Hard cap: per-occasion ceiling. Standard Gift Capsules are
   // short-horizon (60 days); wedding capsules get a 600-day
   // window so the default 1-year-anniversary reveal works even
