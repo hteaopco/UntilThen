@@ -3,6 +3,10 @@ import { AudioLines, ChevronRight, FileText, Image as ImageIcon } from "lucide-r
 
 export type GiftCapsuleReceivedData = {
   id: string;
+  /** Magic recipient token used as the path on /reveal/<token>.
+   *  Saved capsules link there instead of /capsules/<id>, which
+   *  is the organiser surface and 403s for recipients. */
+  accessToken: string;
   title: string;
   coverUrl: string | null;
   entryCount: number;
@@ -17,7 +21,7 @@ export type GiftCapsuleReceivedData = {
 export function GiftCapsuleReceivedCard({ capsule }: { capsule: GiftCapsuleReceivedData }) {
   return (
     <Link
-      href={`/capsules/${capsule.id}`}
+      href={`/reveal/${capsule.accessToken}`}
       prefetch={false}
       className="flex items-center gap-4 rounded-2xl bg-white border border-navy/[0.06] shadow-[0_4px_14px_-6px_rgba(15,31,61,0.08)] p-3 sm:p-4 hover:border-amber/30 transition-colors"
     >

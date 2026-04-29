@@ -238,6 +238,7 @@ export async function loadDashboard2Data({
     };
     return {
       id: c.id,
+      accessToken: c.accessToken,
       title: c.title,
       coverUrl: null,
       entryCount: stats.letters,

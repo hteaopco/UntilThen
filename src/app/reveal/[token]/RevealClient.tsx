@@ -71,7 +71,20 @@ export function RevealClient({ token }: { token: string }) {
   // Bounce the recipient through Clerk and back, then hand the
   // returning user back to this same page with ?claim=1 so the
   // claim effect below auto-fires.
+  //
+  // If the recipient is already signed in (e.g. they completed
+  // sign-up earlier but the post-auth bounce dropped them at
+  // /home instead of here, then they came back to /reveal/<token>
+  // manually and tapped Save again), there's nothing to bounce
+  // through — pushing them through /sign-up a second time was
+  // the bug behind the "had to sign in twice and ended up on
+  // /home" reports. Just stamp ?claim=1 directly so the existing
+  // claim effect below fires the save in place.
   function launchClaimRedirect() {
+    if (authLoaded && isSignedIn) {
+      router.replace(`${pathname}?claim=1`);
+      return;
+    }
     const claimUrl = `${pathname}?claim=1`;
     router.push(`/sign-up?redirect_url=${encodeURIComponent(claimUrl)}`);
   }

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { TopNav } from "@/components/ui/TopNav";
+
 import { RevealClient } from "./RevealClient";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://untilthenapp.io";
@@ -41,5 +43,17 @@ export default async function RevealPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  return <RevealClient token={token} />;
+  // TopNav is rendered above the client experience so saved
+  // recipients have a way out (logo + avatar menu). The
+  // cinematic phases (gate / entry / stories / transition) all
+  // mount as `fixed inset-0 z-[260]` overlays, which cover this
+  // header during the immersive flow — the nav only becomes
+  // visible once the gallery phase takes over the document
+  // root, which is exactly when the recipient needs it.
+  return (
+    <>
+      <TopNav />
+      <RevealClient token={token} />
+    </>
+  );
 }
