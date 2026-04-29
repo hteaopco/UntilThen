@@ -22,6 +22,10 @@ export type GiftCapsuleCreatingData = {
    *  on active rows; non-null on the archived list. Lets the
    *  Archived view sort by archivedAt without an extra fetch. */
   archivedAt: string | null;
+  /** ISO timestamp of the capsule's reveal day. The archived
+   *  modal sorts by this so the most-recent reveals surface
+   *  first; also displayed inline on each archived row. */
+  revealDate: string;
 };
 
 /**

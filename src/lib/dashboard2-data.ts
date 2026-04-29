@@ -225,6 +225,7 @@ export async function loadDashboard2Data({
       // reads the same regardless of which path got there.
       status: effectiveStatus(c),
       archivedAt: c.archivedAt ? c.archivedAt.toISOString() : null,
+      revealDate: c.revealDate.toISOString(),
     };
   });
   const creating = allCards.filter((c) => !c.archivedAt);
