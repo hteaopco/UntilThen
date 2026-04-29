@@ -625,7 +625,7 @@ export function CapsuleOverview({
                   ? `Activate Capsule — ${formatCapsulePrice(capsule.occasionType)}`
                   : isOrgAttributed
                     ? "Invite Contributors"
-                    : `Send invites — ${formatCapsulePrice(capsule.occasionType)}`}
+                    : `Activate — ${formatCapsulePrice(capsule.occasionType)}`}
               </button>
             ) : isSealed ? (
               <>

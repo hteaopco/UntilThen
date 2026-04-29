@@ -74,3 +74,30 @@ export function combineRevealMs(
   const offsetMs = tzWallMs - naive.getTime();
   return naive.getTime() - offsetMs;
 }
+
+/**
+ * Convenience wrapper: given a capsule with revealDate +
+ * deliveryTime + timezone, return ms-since-epoch for the actual
+ * reveal moment. Falls back to the raw revealDate (UTC midnight
+ * on the picked day) when combineRevealMs can't parse — keeps
+ * legacy callers safe.
+ *
+ * Use this anywhere you'd be tempted to write
+ * `capsule.revealDate.getTime() <= Date.now()` to gate a
+ * "post-reveal" path. Comparing against the raw revealDate
+ * mis-fires for same-day reveals because revealDate is parsed
+ * as UTC midnight on the chosen date and so always reads as
+ * past once the calendar ticks over.
+ */
+export function actualRevealMs(c: {
+  revealDate: Date;
+  deliveryTime: string;
+  timezone: string;
+}): number {
+  const ms = combineRevealMs(
+    c.revealDate.toISOString().slice(0, 10),
+    c.deliveryTime,
+    c.timezone,
+  );
+  return Number.isNaN(ms) ? c.revealDate.getTime() : ms;
+}

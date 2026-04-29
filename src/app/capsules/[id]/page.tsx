@@ -7,6 +7,7 @@ import { TopNav } from "@/components/ui/TopNav";
 import { effectiveStatus, findOwnedCapsule } from "@/lib/capsules";
 import { userHasGiftAccess } from "@/lib/paywall";
 import { r2IsConfigured, signGetUrl, type MediaKind } from "@/lib/r2";
+import { actualRevealMs } from "@/lib/reveal-schedule";
 
 import { CapsuleOverview } from "./CapsuleOverview";
 
@@ -66,7 +67,7 @@ export default async function CapsulePage({
   // payload leaves the request. Only the total count survives.
   // Auto-expires the moment revealDate passes — no cron needed.
   const redactContributions =
-    capsule.hideUntilReveal && capsule.revealDate.getTime() > Date.now();
+    capsule.hideUntilReveal && actualRevealMs(capsule) > Date.now();
 
   // Hydrate the organiser's own contribution attachments with
   // signed GET urls so MediaAttachments can render thumbnails

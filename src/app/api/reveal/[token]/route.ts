@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { tokenIsValid } from "@/lib/capsules";
 import { captureServerEvent } from "@/lib/posthog-server";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
+import { actualRevealMs } from "@/lib/reveal-schedule";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -63,7 +64,7 @@ export async function GET(
       { status: 410 },
     );
   }
-  if (capsule.revealDate.getTime() > Date.now()) {
+  if (actualRevealMs(capsule) > Date.now()) {
     // Soft 200 with a sealed flag so the client can render the
     // "opens on {date}" screen instead of treating this as an
     // error condition. The contributions are stripped.

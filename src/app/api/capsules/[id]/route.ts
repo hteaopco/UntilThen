@@ -8,6 +8,7 @@ import {
   findOwnedCapsule,
   maxHorizonMsForOccasion,
 } from "@/lib/capsules";
+import { actualRevealMs } from "@/lib/reveal-schedule";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -187,7 +188,10 @@ export async function PATCH(
         { status: 400 },
       );
     }
-    if (owned.capsule.revealDate.getTime() <= Date.now()) {
+    // Use the actual reveal moment (date + time + tz), not the
+    // raw revealDate parsed as UTC midnight — otherwise the seal
+    // toggle is permanently blocked for any same-day capsule.
+    if (actualRevealMs(owned.capsule) <= Date.now()) {
       return NextResponse.json(
         { error: "This capsule has already been sent — the seal is locked." },
         { status: 400 },
@@ -232,7 +236,7 @@ export async function DELETE(
   // without breaking the recipient.
   const c = owned.capsule;
   const recipientLocked =
-    c.revealDate.getTime() <= Date.now() ||
+    actualRevealMs(c) <= Date.now() ||
     c.firstOpenedAt !== null ||
     c.recipientClerkId !== null;
   if (recipientLocked) {
