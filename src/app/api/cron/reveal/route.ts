@@ -1,30 +1,10 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 import { cronRoute } from "@/lib/cron-run";
+import { actualRevealMs } from "@/lib/reveal-schedule";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function isDeliveryTimePassed(
-  revealDate: Date,
-  deliveryTime: string,
-  timezone: string,
-): boolean {
-  const match = /^(\d{2}):(\d{2})$/.exec(deliveryTime);
-  const hours = match ? Number(match[1]) : 9;
-  const minutes = match ? Number(match[2]) : 0;
-
-  const nowInTz = new Date(
-    new Date().toLocaleString("en-US", { timeZone: timezone }),
-  );
-  const revealInTz = new Date(
-    revealDate.toLocaleString("en-US", { timeZone: timezone }),
-  );
-
-  revealInTz.setHours(hours, minutes, 0, 0);
-
-  return nowInTz >= revealInTz;
-}
 
 export const POST = cronRoute("reveal", async (): Promise<NextResponse> => {
   if (!process.env.DATABASE_URL) {
@@ -52,13 +32,15 @@ export const POST = cronRoute("reveal", async (): Promise<NextResponse> => {
   for (const capsule of capsules) {
     if (!capsule.recipientEmail) continue;
 
-    if (
-      !isDeliveryTimePassed(
-        capsule.revealDate,
-        capsule.deliveryTime,
-        capsule.timezone,
-      )
-    ) {
+    // Combine revealDate + deliveryTime + timezone via the
+    // shared helper. The previous toLocaleString+setHours
+    // approach silently rolled the date back one day in any
+    // timezone behind UTC (revealDate is stored as UTC midnight,
+    // and UTC midnight on April 29 is April 28 evening in CT)
+    // so a same-day reveal could either fire 24 hours early or
+    // never at all depending on tz. actualRevealMs uses
+    // Intl.DateTimeFormat and is DST-aware.
+    if (actualRevealMs(capsule) > now.getTime()) {
       skipped++;
       continue;
     }
