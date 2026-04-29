@@ -247,23 +247,6 @@ export async function sendCapsuleNewLink(params: {
   });
 }
 
-// #8 — Capsule Saved (Recipient Account Created)
-export async function sendCapsuleSaved(params: {
-  to: string;
-  recipientName: string;
-  title: string;
-}): Promise<void> {
-  await send({
-    to: params.to,
-    subject: "This is yours now.",
-    html: wrap(`
-      ${heading("Your capsule is saved to your account.")}
-      ${body("You can return anytime to revisit what was written for you.")}
-      ${cta(baseUrl() + "/dashboard", "Go to your vault")}
-    `),
-  });
-}
-
 // #9 — Contributor Confirmation
 export async function sendContributorConfirmation(params: {
   to: string;

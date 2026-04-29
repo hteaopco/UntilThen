@@ -40,7 +40,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     sendCapsuleContributorReminder,
     sendCapsuleRevealDay,
     sendCapsuleNewLink,
-    sendCapsuleSaved,
     sendContributorConfirmation,
     sendContributorRejected,
   } = await import("@/lib/capsule-emails");
@@ -124,15 +123,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       title: "Mom's 60th Birthday",
       capsuleId: "test-id",
       accessToken: "test-access-token",
-    }),
-  );
-
-  // #8 — Capsule Saved
-  await fire("capsule-saved", "#8 Capsule Saved", () =>
-    sendCapsuleSaved({
-      to,
-      recipientName: "Margaret",
-      title: "Mom's 60th Birthday",
     }),
   );
 

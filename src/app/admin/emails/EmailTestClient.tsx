@@ -81,15 +81,6 @@ const TEMPLATES: EmailTemplate[] = [
     funnel: "Retention",
   },
   {
-    id: "capsule-saved",
-    name: "#8 Capsule Saved",
-    subject: "This is yours now.",
-    bodyPreview: "Your capsule is saved to your account. You can return anytime to revisit what was written for you.",
-    trigger: "Recipient creates account after opening",
-    frequency: "On event",
-    funnel: "Activation",
-  },
-  {
     id: "contributor-confirmation",
     name: "#9 Contributor Confirmation",
     subject: (t) => TONE_THANKYOU[t]("her"),
