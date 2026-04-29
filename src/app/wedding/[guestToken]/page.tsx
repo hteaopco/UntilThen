@@ -54,6 +54,8 @@ export default async function WeddingGuestPage({
       contributionsClosed: true,
       firstOpenedAt: true,
       isPaid: true,
+      deliveryTime: true,
+      timezone: true,
     },
   });
   if (!capsule || capsule.occasionType !== "WEDDING") notFound();

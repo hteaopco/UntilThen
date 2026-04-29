@@ -278,6 +278,8 @@ async function loadEnterpriseCapsules(
       contributionsClosed: true,
       contributorDeadline: true,
       firstOpenedAt: true,
+      deliveryTime: true,
+      timezone: true,
       _count: { select: { contributions: true } },
     },
     orderBy: { createdAt: "desc" },

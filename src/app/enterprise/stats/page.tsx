@@ -74,6 +74,8 @@ export default async function StatBoardPage() {
           contributionsClosed: true,
           contributorDeadline: true,
           firstOpenedAt: true,
+          deliveryTime: true,
+          timezone: true,
           _count: { select: { contributions: true } },
         },
         orderBy: { revealDate: "desc" },

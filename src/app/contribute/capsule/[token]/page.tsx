@@ -33,6 +33,8 @@ export default async function CapsuleContributePage({
           contributorDeadline: true,
           firstOpenedAt: true,
           contributionsClosed: true,
+          deliveryTime: true,
+          timezone: true,
         },
       },
     },

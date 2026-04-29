@@ -4,6 +4,7 @@
 
 import type { CapsuleStatus, MemoryCapsule, OccasionType } from "@prisma/client";
 
+import { combineRevealMs } from "@/lib/reveal-schedule";
 import {
   GIFT_CAPSULE_PRICE_CENTS,
   WEDDING_CAPSULE_PRICE_CENTS,
@@ -170,15 +171,35 @@ export function effectiveStatus(
     | "firstOpenedAt"
     | "contributionsClosed"
     | "revealDate"
+    | "deliveryTime"
+    | "timezone"
   >,
 ): EffectiveStatus {
   if (c.firstOpenedAt) return "REVEALED";
   if (c.status === "REVEALED") return "REVEALED";
-  // revealDate <= now means the recipient has been (or is about
-  // to be) emailed. Treat as SENT — locked from edits / new
-  // contributions / unseal — even before the cron has flipped
-  // the persisted status to SEALED.
-  if (c.revealDate.getTime() <= Date.now()) return "SENT";
+  // DRAFT capsules haven't been activated yet, so no email has
+  // gone out and the organiser is still composing — keep them
+  // editable regardless of the revealDate. Without this guard a
+  // same-day DRAFT (revealDate parsed as UTC midnight) flipped
+  // to SENT immediately and locked the organiser out of their
+  // own letter editor before they'd written anything.
+  if (c.status === "DRAFT") return "DRAFT";
+  // For activated capsules: revealDate <= now means the recipient
+  // has been (or is about to be) emailed. Treat as SENT — locked
+  // from edits / new contributions / unseal — even before the
+  // cron has flipped the persisted status to SEALED. Compute the
+  // *actual* reveal moment from date + delivery time + timezone
+  // so a same-day reveal scheduled for tonight doesn't read as
+  // already sent the moment UTC midnight passes.
+  const revealMomentMs = combineRevealMs(
+    c.revealDate.toISOString().slice(0, 10),
+    c.deliveryTime,
+    c.timezone,
+  );
+  const compareMs = Number.isNaN(revealMomentMs)
+    ? c.revealDate.getTime()
+    : revealMomentMs;
+  if (compareMs <= Date.now()) return "SENT";
   if (c.status === "SEALED") return "SEALED";
   if (c.status === "ACTIVE" && c.contributionsClosed) return "SEALED";
   if (
