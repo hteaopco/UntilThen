@@ -42,11 +42,25 @@ function isCouple(name: string): boolean {
   return name.includes("&");
 }
 
-function pronoun(name: string, form: "object" | "subject" | "possessive" | "contraction"): string {
-  if (isCouple(name)) {
-    return form === "object" ? "them" : form === "subject" ? "they" : form === "possessive" ? "their" : "they\u2019ll";
-  }
-  return form === "object" ? "her" : form === "subject" ? "she" : form === "possessive" ? "her" : "she\u2019ll";
+/**
+ * Recipient-pronoun helper. Used in copy where the recipient's
+ * name has already appeared earlier in the same paragraph and
+ * repeating it would read clunky.
+ *
+ * Singular default: "they/them/their/they'll". Couple capsules
+ * (recipientName contains "&") render the same. We dropped
+ * gendered output (she/her, he/him) because asking organisers
+ * for a gender to drive copy was both intrusive and unnecessary
+ * \u2014 the name carries the identity, the pronoun stays neutral.
+ */
+function pronoun(_name: string, form: "object" | "subject" | "possessive" | "contraction"): string {
+  return form === "object"
+    ? "them"
+    : form === "subject"
+      ? "they"
+      : form === "possessive"
+        ? "their"
+        : "they\u2019ll";
 }
 
 function displayName(name: string): string {

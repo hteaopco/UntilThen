@@ -228,10 +228,14 @@ export function CapsuleOverview({
       setSealing(false);
     }
   }
-  const pronoun = recipientPronounOf(capsule);
-  const subjectPronoun = pronoun === "her" ? "she" : pronoun === "him" ? "he" : "they";
-  const possessivePronoun = pronoun === "her" ? "her" : pronoun === "him" ? "his" : "their";
-  const subjectCapitalized = subjectPronoun.charAt(0).toUpperCase() + subjectPronoun.slice(1);
+  // Gender is no longer collected, so every recipient is
+  // referenced with the neutral "they/them/their". Kept the
+  // local consts as is so JSX call-sites don't need to be
+  // rewritten — they all read these names.
+  const pronoun = recipientPronounOf(capsule); // always "them"
+  const subjectPronoun = "they";
+  const possessivePronoun = "their";
+  const subjectCapitalized = "They";
   const isCouple = pronoun === "them";
   const nameParts = capsule.recipientName.split("&");
   const firstName1 = (nameParts[0] ?? "").trim().split(" ")[0] ?? "";

@@ -34,9 +34,12 @@ function derivePronouns(recipientName: string) {
   const displayName = isCouple && firstName2
     ? `${firstName1} & ${firstName2}`
     : firstName1;
-  const pronoun = isCouple ? "them" : "her";
-  const possessive = isCouple ? "their" : "her";
-  const subjectContraction = isCouple ? "they'll" : "she'll";
+  // Gender-neutral default — was "her/she'll" for singular,
+  // "them/they'll" for couple. Now uniformly the neutral form so
+  // copy doesn't lean on an organiser-supplied gender.
+  const pronoun = "them";
+  const possessive = "their";
+  const subjectContraction = "they’ll";
   return { isCouple, firstName1, firstName2, displayName, pronoun, possessive, subjectContraction };
 }
 

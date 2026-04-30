@@ -30,7 +30,7 @@ const TEMPLATES: EmailTemplate[] = [
     name: "#1 Invite Contributor",
     subject: "Add your message for Margaret.",
     bodyPreview:
-      "You've been invited by Sarah to create something for Margaret. A message. A memory. Something she'll open and feel for years.",
+      "You've been invited by Sarah to create something for Margaret. A message. A memory. Something they'll open and feel for years.",
     trigger: "Contributor added to Gift Capsule",
     frequency: "On event",
     funnel: "Acquisition",

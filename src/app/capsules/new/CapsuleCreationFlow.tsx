@@ -33,7 +33,6 @@ type OccasionType =
   | "WEDDING"
   | "OTHER";
 
-type Gender = "female" | "male" | "couple";
 
 const TONE_ICONS: Record<CapsuleTone, React.ReactNode> = {
   CELEBRATION: <PartyPopper size={20} strokeWidth={1.5} />,
@@ -183,9 +182,12 @@ export function CapsuleCreationFlow({
   const [recipientLastName, setRecipientLastName] = useState("");
   const [recipient2FirstName, setRecipient2FirstName] = useState("");
   const [recipient2LastName, setRecipient2LastName] = useState("");
-  const [recipientGender, setRecipientGender] = useState<Gender>(
-    isWedding ? "couple" : "female",
-  );
+  // Was a 3-way "Female / Male / Couple" selector — gender is no
+  // longer collected (the name carries identity, the pronouns
+  // default to neutral "they/them/their"), so this is now just a
+  // toggle for whether the capsule has a second named recipient.
+  // Wedding flow stays implicitly couple-shaped.
+  const [isCouple, setIsCouple] = useState<boolean>(isWedding);
   const [occasionType, setOccasionType] = useState<OccasionType | null>(
     initialOccasion ?? null,
   );
@@ -219,8 +221,11 @@ export function CapsuleCreationFlow({
   const maxDateIso = yyyymmdd(new Date(Date.now() + horizonMs));
   const minDateIso = yyyymmdd(new Date(Date.now() + 86400000));
 
-  const isCouple = recipientGender === "couple";
-  const recipientPronoun = isCouple ? "them" : recipientGender === "female" ? "her" : "him";
+  // Gender removed — every capsule sends the gender-neutral
+  // "them" so the API stamps a consistent value for back-compat
+  // readers (lib/capsules.ts now hard-codes the same default
+  // when reading old rows).
+  const recipientPronoun = "them";
 
   const recipientName = isCouple
     ? `${recipientFirstName.trim()} & ${recipient2FirstName.trim()}`.trim()
@@ -568,21 +573,20 @@ export function CapsuleCreationFlow({
 
               {!isWedding && (
                 <div>
-                  <Label>Recipient gender</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {([
-                      { value: "female" as Gender, label: "Female" },
-                      { value: "male" as Gender, label: "Male" },
-                      { value: "couple" as Gender, label: "Couple" },
-                    ]).map((g) => (
-                      <button key={g.value} type="button" onClick={() => setRecipientGender(g.value)}
-                        className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
-                          recipientGender === g.value ? pillActive : pillInactive
-                        }`}>
-                        {g.label}
-                      </button>
-                    ))}
-                  </div>
+                  {/* Bridge toggle until the multi-recipient flow
+                      lands — flips the form into the existing
+                      couple shape (second name + second email). */}
+                  <button
+                    type="button"
+                    onClick={() => setIsCouple((v) => !v)}
+                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
+                      isCouple ? pillActive : pillInactive
+                    }`}
+                  >
+                    {isCouple
+                      ? "Sending to a couple — switch to one"
+                      : "Sending to a couple?"}
+                  </button>
                 </div>
               )}
 

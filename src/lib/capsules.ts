@@ -232,20 +232,22 @@ export function tokenIsValid(
   return expires.getTime() > Date.now();
 }
 
-/** Valid object-form pronouns for MemoryCapsule.recipientPronoun. */
+/** Valid object-form pronouns for MemoryCapsule.recipientPronoun.
+ *  Kept as a constant so legacy reads still typecheck; new
+ *  capsules always store "them". */
 export const RECIPIENT_PRONOUNS = ["her", "him", "them"] as const;
 export type RecipientPronoun = (typeof RECIPIENT_PRONOUNS)[number];
 
 /**
- * Normalise whatever's on the capsule row into one of the three
- * valid pronouns. Null / legacy / garbage all fall back to
- * "them" so copy never breaks.
+ * Returns the recipient pronoun for copy. Always "them" — gender
+ * is no longer collected from the organiser, so every recipient
+ * is referenced as the gender-neutral "they/them/their" through-
+ * out the app. The argument is preserved for call-site
+ * compatibility but the stored value is ignored.
  */
 export function recipientPronounOf(
-  capsule: { recipientPronoun: string | null } | null | undefined,
+  _capsule: { recipientPronoun: string | null } | null | undefined,
 ): RecipientPronoun {
-  const v = capsule?.recipientPronoun?.toLowerCase();
-  if (v === "her" || v === "him" || v === "them") return v;
   return "them";
 }
 
