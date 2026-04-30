@@ -663,10 +663,11 @@ export function CapsuleCreationFlow({
 
               {!isWedding && (
                 <>
-                  {/* Occasion grid — 2-column cards with an icon
-                      and label. The selected card shows an inline
-                      tick on the right; matches the screenshot. */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Occasion grid — 2x3 of icon + label cards
+                      on every breakpoint. Selected card shows
+                      an inline tick on the right; matches the
+                      screenshot. */}
+                  <div className="grid grid-cols-2 gap-3">
                     {OCCASIONS.map((o) => {
                       const active = occasionType === o.value;
                       return (
