@@ -302,6 +302,7 @@ enum OccasionType {
   RETIREMENT
   GRADUATION
   WEDDING
+  JUST_BECAUSE
   OTHER
 }
 

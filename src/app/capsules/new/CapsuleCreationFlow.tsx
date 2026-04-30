@@ -42,6 +42,7 @@ type OccasionType =
   | "RETIREMENT"
   | "GRADUATION"
   | "WEDDING"
+  | "JUST_BECAUSE"
   | "OTHER";
 
 
@@ -60,6 +61,7 @@ const OCCASIONS: { value: OccasionType; label: string }[] = [
   { value: "RETIREMENT", label: "Retirement" },
   { value: "GRADUATION", label: "Graduation" },
   { value: "WEDDING", label: "Wedding" },
+  { value: "JUST_BECAUSE", label: "Just Because" },
   { value: "OTHER", label: "Other" },
 ];
 
@@ -101,7 +103,13 @@ const STEP_BLURBS = [
   "",
 ] as const;
 
-const TOTAL_STEPS = 6;
+// Step layout (consolidated):
+//   0 — date + tone + occasion (single screen, dividers between)
+//   1 — title + recipients
+//   2 — delivery time
+//   3 — recipient emails
+//   4 — review
+const TOTAL_STEPS = 5;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const TONE_OPTIONS: CapsuleTone[] = [
@@ -176,8 +184,12 @@ export function CapsuleCreationFlow({
   // Wedding flow skips Step 0 (tone — locked to LOVE) entirely.
   // The user picked WEDDING from the /weddings landing, so the
   // tone interstitial is just friction. Counter + back button
-  // both clamp to firstStep below.
-  const firstStep = isWedding ? 1 : 0;
+  // both clamp to firstStep below. After consolidating tone +
+  // occasion + date onto step 0, the wedding flow needs to start
+  // there too (the wedding date input lives on step 0). Tone and
+  // occasion are auto-set + hidden for wedding so the visible
+  // step 0 only renders the date input.
+  const firstStep = 0;
   const visibleStepCount = TOTAL_STEPS - firstStep;
 
   const [step, setStep] = useState(firstStep);
@@ -358,7 +370,14 @@ export function CapsuleCreationFlow({
 
   function validateStep(): string | null {
     if (step === 0) {
-      if (!tone) return "Please select a tone";
+      // Combined screen: date (always required), plus tone +
+      // occasion for non-wedding. Wedding flow has both
+      // auto-locked so only the date matters there.
+      if (!revealDate) return "Please select a reveal date";
+      if (!isWedding) {
+        if (!tone) return "Please select a tone";
+        if (!occasionType) return "Please select an occasion";
+      }
       return null;
     }
     if (step === 1) {
@@ -378,11 +397,6 @@ export function CapsuleCreationFlow({
       return null;
     }
     if (step === 2) {
-      if (!occasionType) return "Please select an occasion";
-      if (!revealDate) return "Please select a reveal date";
-      return null;
-    }
-    if (step === 3) {
       if (!deliveryTime) return "Please select a delivery time";
       // Mirror the API's same-day buffer so a manually-typed
       // custom time can't slip past the picker. Wedding flow's
@@ -398,7 +412,7 @@ export function CapsuleCreationFlow({
       }
       return null;
     }
-    if (step === 4) {
+    if (step === 3) {
       // Every recipient row needs a valid email. Mirrors the API's
       // EMAIL_RE check so the wizard catches bad input before the
       // round-trip.
@@ -613,41 +627,129 @@ export function CapsuleCreationFlow({
         </div>
 
         <div>
-          {/* ── Step 0: Tone ───────────────────────────── */}
+          {/* ── Step 0: Date + tone + occasion ─────────── */}
           {step === 0 && (
             <div className="space-y-5">
               <h1 className="text-[24px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
-                What kind of moment is this?
+                {isWedding ? "Wedding day" : "What’s the moment?"}
               </h1>
-              <p className="text-[15px] text-ink-mid leading-[1.6]">
-                This shapes how it feels when they open it.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {TONE_OPTIONS.map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => { setTone(t); setStepError(null); }}
-                    className={`text-left rounded-xl border px-4 py-3.5 transition-all ${
-                      tone === t
-                        ? "border-amber bg-amber-tint/60 shadow-[0_2px_8px_rgba(196,122,58,0.12)]"
-                        : "border-navy/10 bg-white hover:border-amber/30"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span className={`shrink-0 ${tone === t ? "text-amber" : "text-ink-light"}`}>{TONE_ICONS[t]}</span>
-                      <div>
-                        <div className={`text-[14px] font-bold ${tone === t ? "text-amber" : "text-navy"}`}>
-                          {TONE_LABELS[t]}
-                        </div>
-                        <div className="text-[12px] text-ink-light leading-[1.4]">
-                          {TONE_DESCRIPTIONS[t]}
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                ))}
+              {!isWedding && (
+                <p className="text-[15px] text-ink-mid leading-[1.6]">
+                  Pick the day, the feeling, and the occasion.
+                </p>
+              )}
+
+              {/* Date picker — top of the screen for both flows. */}
+              <div>
+                <Label>{isWedding ? "Wedding Date" : "Reveal date"}</Label>
+                <input
+                  type="date"
+                  value={revealDate}
+                  onChange={(e) => {
+                    handleRevealDate(e.target.value);
+                    setStepError(null);
+                  }}
+                  min={minDateIso}
+                  max={maxDateIso}
+                  className="account-input max-w-[220px]"
+                />
+                {dateAlert && (
+                  <div className="mt-2 rounded-lg bg-amber-tint border border-amber/30 px-3 py-2">
+                    <p className="text-xs text-navy font-semibold">
+                      {isWedding
+                        ? "Wedding Capsules reveal within 600 days."
+                        : "Gift Capsules must open within 60 days."}
+                    </p>
+                    <p className="text-xs text-ink-mid mt-0.5">
+                      {isWedding
+                        ? "Most couples set this to their first anniversary."
+                        : "Please check back closer to the reveal date."}
+                    </p>
+                  </div>
+                )}
+                <p className="mt-2 text-xs italic text-ink-light">
+                  {isWedding
+                    ? revealDate
+                      ? `Capsule will send on ${formatIsoLong(addOneYearIsoUtc(revealDate))} (1 year from the wedding date).`
+                      : "Capsule will send 1 year from the wedding date."
+                    : "They’ll open everything at once on this day."}
+                </p>
               </div>
+
+              {/* Tone + occasion only for non-wedding. The wedding
+                  flow auto-locks both (tone="LOVE", occasion=
+                  "WEDDING") so the screen stays just the date. */}
+              {!isWedding && (
+                <>
+                  <hr className="border-amber/15" />
+                  <div className="space-y-3">
+                    <div>
+                      <h2 className="text-[16px] font-extrabold text-navy tracking-[-0.2px]">
+                        What kind of moment is this?
+                      </h2>
+                      <p className="mt-1 text-[13px] text-ink-mid">
+                        This shapes how it feels when they open it.
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {TONE_OPTIONS.map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => { setTone(t); setStepError(null); }}
+                          className={`text-left rounded-xl border px-4 py-3.5 transition-all ${
+                            tone === t
+                              ? "border-amber bg-amber-tint/60 shadow-[0_2px_8px_rgba(196,122,58,0.12)]"
+                              : "border-navy/10 bg-white hover:border-amber/30"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className={`shrink-0 ${tone === t ? "text-amber" : "text-ink-light"}`}>{TONE_ICONS[t]}</span>
+                            <div>
+                              <div className={`text-[14px] font-bold ${tone === t ? "text-amber" : "text-navy"}`}>
+                                {TONE_LABELS[t]}
+                              </div>
+                              <div className="text-[12px] text-ink-light leading-[1.4]">
+                                {TONE_DESCRIPTIONS[t]}
+                              </div>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <hr className="border-amber/15" />
+                  <div>
+                    <Label>Occasion &mdash; select one</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {OCCASIONS.filter((o) => o.value !== "WEDDING").map((o) => (
+                        <button
+                          key={o.value}
+                          type="button"
+                          onClick={() => { setOccasionType(o.value); setStepError(null); }}
+                          className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
+                            occasionType === o.value ? pillActive : pillInactive
+                          }`}
+                        >
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                    {occasionType === "OTHER" && (
+                      <div className="mt-3">
+                        <input
+                          type="text"
+                          value={otherOccasion}
+                          onChange={(e) => setOtherOccasion(e.target.value)}
+                          placeholder="Describe the occasion..."
+                          className="account-input"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           )}
 
@@ -759,79 +861,8 @@ export function CapsuleCreationFlow({
             </div>
           )}
 
-          {/* ── Step 2: Occasion & date ────────────────── */}
+          {/* ── Step 2: Delivery time ──────────────────── */}
           {step === 2 && (
-            <div className="space-y-5">
-              <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
-                {isWedding ? "Wedding Day" : "What’s the occasion?"}
-              </h1>
-              {!isWedding && (
-                <p className="text-[15px] text-ink-mid leading-[1.6]">
-                  Pick the occasion and the day they&rsquo;ll open everything.
-                </p>
-              )}
-
-              {!isWedding && (
-                <div>
-                  <Label>Occasion &mdash; select one</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {OCCASIONS.map((o) => (
-                      <button key={o.value} type="button" onClick={() => { setOccasionType(o.value); setStepError(null); }}
-                        className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
-                          occasionType === o.value ? pillActive : pillInactive
-                        }`}>
-                        {o.label}
-                      </button>
-                    ))}
-                  </div>
-                  {occasionType === "OTHER" && (
-                    <div className="mt-3">
-                      <input type="text" value={otherOccasion} onChange={(e) => setOtherOccasion(e.target.value)}
-                        placeholder="Describe the occasion..." className="account-input" />
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {occasionType && (
-                <div>
-                  <Label>{isWedding ? "Wedding Date" : "Reveal date"}</Label>
-                  <input
-                    type="date"
-                    value={revealDate}
-                    onChange={(e) => { handleRevealDate(e.target.value); setStepError(null); }}
-                    min={minDateIso}
-                    max={maxDateIso}
-                    className="account-input max-w-[220px]"
-                  />
-                  {dateAlert && (
-                    <div className="mt-2 rounded-lg bg-amber-tint border border-amber/30 px-3 py-2">
-                      <p className="text-xs text-navy font-semibold">
-                        {occasionType === "WEDDING"
-                          ? "Wedding Capsules reveal within 600 days."
-                          : "Gift Capsules must open within 60 days."}
-                      </p>
-                      <p className="text-xs text-ink-mid mt-0.5">
-                        {occasionType === "WEDDING"
-                          ? "Most couples set this to their first anniversary."
-                          : "Please check back closer to the reveal date."}
-                      </p>
-                    </div>
-                  )}
-                  <p className="mt-2 text-xs italic text-ink-light">
-                    {occasionType === "WEDDING"
-                      ? revealDate
-                        ? `Capsule will send on ${formatIsoLong(addOneYearIsoUtc(revealDate))} (1 year from the wedding date).`
-                        : "Capsule will send 1 year from the wedding date."
-                      : "They’ll open everything at once on this day."}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── Step 3: Delivery time ──────────────────── */}
-          {step === 3 && (
             <div className="space-y-5">
               <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
                 When should we deliver?
@@ -899,8 +930,8 @@ export function CapsuleCreationFlow({
             </div>
           )}
 
-          {/* ── Step 4: Recipient email(s) ──────────────── */}
-          {step === 4 && (
+          {/* ── Step 3: Recipient email(s) ──────────────── */}
+          {step === 3 && (
             <div className="space-y-5">
               <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
                 Where should we send it?
@@ -938,8 +969,8 @@ export function CapsuleCreationFlow({
             </div>
           )}
 
-          {/* ── Step 5: Review & create ────────────────── */}
-          {step === 5 && (
+          {/* ── Step 4: Review & create ────────────────── */}
+          {step === 4 && (
             <div className="space-y-5">
               <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
                 Review your capsule

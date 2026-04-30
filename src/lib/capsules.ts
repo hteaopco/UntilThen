@@ -261,6 +261,7 @@ export const OCCASION_LABELS: Record<
   | "RETIREMENT"
   | "GRADUATION"
   | "WEDDING"
+  | "JUST_BECAUSE"
   | "OTHER",
   string
 > = {
@@ -269,5 +270,6 @@ export const OCCASION_LABELS: Record<
   RETIREMENT: "Retirement",
   GRADUATION: "Graduation",
   WEDDING: "Wedding",
+  JUST_BECAUSE: "Just Because",
   OTHER: "Other",
 };
