@@ -20,8 +20,14 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useRef, useState, type FormEvent } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 
 import { GiftCapsuleCheckout } from "@/components/checkout/GiftCapsuleCheckout";
 import {
@@ -77,6 +83,11 @@ type CapsuleSummary = {
    *  picker pulls from this org's Employees database. Null on
    *  non-org capsules; the picker is hidden then. */
   organizationId: string | null;
+  /** Pre-signed R2 GET URL for the capsule's cover photo. Null
+   *  when the organiser hasn't picked one yet — the avatar
+   *  bubble next to the title falls back to a gradient + initials
+   *  placeholder. */
+  coverUrl: string | null;
 };
 
 type ContributionRow = {
@@ -153,12 +164,28 @@ export function CapsuleOverview({
   contributionCount: number;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [activateOpen, setActivateOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [sealing, setSealing] = useState(false);
+  // First-run cover-photo prompt. The wizard appends ?welcome=1
+  // when handing off to /capsules/[id] after create; we open the
+  // modal once if the capsule still doesn't have a cover, then
+  // strip the query param so a refresh doesn't re-prompt.
+  const [welcomeOpen, setWelcomeOpen] = useState(
+    () =>
+      searchParams.get("welcome") === "1" && capsule.coverUrl === null,
+  );
+  function closeWelcome() {
+    setWelcomeOpen(false);
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("welcome");
+    const qs = next.toString();
+    router.replace(qs ? `?${qs}` : window.location.pathname);
+  }
   // Add-contributors panel collapsed by default so a brand-new
   // capsule doesn't open as a wall of empty form fields. Auto-
   // opens when there's an existing invite list to surface.
@@ -356,9 +383,22 @@ export function CapsuleOverview({
           )}
         </div>
 
-        <h1 className="text-balance text-[32px] lg:text-[40px] font-extrabold text-navy leading-[1.05] tracking-[-0.8px]">
-          {capsule.title}
-        </h1>
+        <div className="flex items-start gap-4">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-balance text-[32px] lg:text-[40px] font-extrabold text-navy leading-[1.05] tracking-[-0.8px]">
+              {capsule.title}
+            </h1>
+          </div>
+          {/* Capsule cover bubble — sits flush with the title so
+              the visual weight matches the screenshot mock. The
+              editor handles upload + persistence; the parent just
+              needs to refresh on success. */}
+          <CapsuleCoverEditor
+            capsuleId={capsule.id}
+            initialCoverUrl={capsule.coverUrl}
+            recipientName={recipientDisplayName}
+          />
+        </div>
 
         {isDraft ? (
           <>
@@ -840,6 +880,14 @@ export function CapsuleOverview({
             setActivateOpen(false);
             router.refresh();
           }}
+        />
+      )}
+
+      {welcomeOpen && (
+        <CapsuleCoverWelcomeModal
+          capsuleId={capsule.id}
+          recipientName={recipientDisplayName}
+          onClose={closeWelcome}
         />
       )}
     </main>
@@ -2066,6 +2114,294 @@ function ActivationModal({
               serverError={error}
             />
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Inline cover-photo editor — circular avatar bubble with a
+ * pencil-edit overlay that sits next to the capsule title in the
+ * page header. Tap (or click the pencil) opens the OS file
+ * picker, the chosen image is signed-PUT to R2, then the
+ * /api/capsules/[id]/cover PATCH persists the key on the
+ * capsule. Falls back to a gradient + initials placeholder when
+ * there's no cover yet.
+ *
+ * Cropping is intentionally absent — the bubble is rendered with
+ * `object-cover`, so any aspect ratio reads as a centred square.
+ * If the design ever wants a true crop the existing
+ * EditCollectionDetailsModal pattern can be lifted in.
+ */
+function CapsuleCoverEditor({
+  capsuleId,
+  initialCoverUrl,
+  recipientName,
+}: {
+  capsuleId: string;
+  initialCoverUrl: string | null;
+  recipientName: string;
+}) {
+  const router = useRouter();
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [coverUrl, setCoverUrl] = useState<string | null>(initialCoverUrl);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Initials placeholder seed — first letter of the recipient
+  // display name, falling back to a sparkle. Mirrors the
+  // GiftCapsuleCreatingCard placeholder shape so a brand-new
+  // capsule's avatar reads consistently with the dashboard rail.
+  const initial = (recipientName.trim().charAt(0) || "·").toUpperCase();
+
+  async function handlePick(file: File) {
+    if (!file.type.startsWith("image/")) {
+      setError("Please pick a photo.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const sign = await fetch("/api/upload/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          target: "capsuleCover",
+          targetId: capsuleId,
+          kind: "photo",
+          contentType: file.type,
+          filename: file.name,
+          size: file.size,
+        }),
+      });
+      const signBody = (await sign.json().catch(() => ({}))) as {
+        uploadUrl?: string;
+        key?: string;
+        error?: string;
+      };
+      if (!sign.ok || !signBody.uploadUrl || !signBody.key) {
+        throw new Error(signBody.error ?? "Couldn't prepare the upload.");
+      }
+      const put = await fetch(signBody.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      if (!put.ok) throw new Error("Couldn't upload the photo.");
+
+      const patch = await fetch(`/api/capsules/${capsuleId}/cover`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: signBody.key }),
+      });
+      const patchBody = (await patch.json().catch(() => ({}))) as {
+        viewUrl?: string;
+        error?: string;
+      };
+      if (!patch.ok || !patchBody.viewUrl) {
+        throw new Error(patchBody.error ?? "Couldn't save the cover.");
+      }
+      setCoverUrl(patchBody.viewUrl);
+      router.refresh();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  return (
+    <div className="relative shrink-0">
+      <button
+        type="button"
+        onClick={() => fileRef.current?.click()}
+        disabled={busy}
+        aria-label={coverUrl ? "Change cover photo" : "Add cover photo"}
+        className="relative block w-[80px] h-[80px] sm:w-[88px] sm:h-[88px] rounded-full overflow-hidden border-2 border-amber/30 bg-gradient-to-br from-amber/30 via-cream to-gold/30 hover:border-amber transition-colors disabled:opacity-60"
+      >
+        {coverUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={coverUrl}
+            alt=""
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <span className="w-full h-full flex items-center justify-center text-[28px] sm:text-[32px] font-extrabold text-amber-dark/70">
+            {initial}
+          </span>
+        )}
+      </button>
+      <span
+        aria-hidden="true"
+        className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-white border border-amber/40 text-amber-dark flex items-center justify-center shadow-[0_2px_6px_rgba(196,122,58,0.18)] pointer-events-none"
+      >
+        <Pencil size={12} strokeWidth={2.25} />
+      </span>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          if (f) void handlePick(f);
+        }}
+        className="hidden"
+      />
+      {busy && (
+        <span className="absolute inset-0 rounded-full bg-white/60 flex items-center justify-center text-[10px] font-bold text-navy">
+          Uploading…
+        </span>
+      )}
+      {error && (
+        <p
+          role="alert"
+          className="absolute -bottom-12 right-0 text-[11px] text-red-600 max-w-[160px] text-right"
+        >
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * First-run "add a cover photo" prompt. Shown once per capsule
+ * when the wizard hands off with ?welcome=1 and the capsule
+ * doesn't yet have a cover. Reuses the same upload flow as
+ * CapsuleCoverEditor so the two stay in sync. Closing the
+ * modal (Skip or pick + save) strips the query param so a
+ * refresh doesn't re-prompt.
+ */
+function CapsuleCoverWelcomeModal({
+  capsuleId,
+  recipientName,
+  onClose,
+}: {
+  capsuleId: string;
+  recipientName: string;
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  async function handlePick(file: File) {
+    if (!file.type.startsWith("image/")) {
+      setError("Please pick a photo.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      const sign = await fetch("/api/upload/sign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          target: "capsuleCover",
+          targetId: capsuleId,
+          kind: "photo",
+          contentType: file.type,
+          filename: file.name,
+          size: file.size,
+        }),
+      });
+      const signBody = (await sign.json().catch(() => ({}))) as {
+        uploadUrl?: string;
+        key?: string;
+        error?: string;
+      };
+      if (!sign.ok || !signBody.uploadUrl || !signBody.key) {
+        throw new Error(signBody.error ?? "Couldn't prepare the upload.");
+      }
+      const put = await fetch(signBody.uploadUrl, {
+        method: "PUT",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      if (!put.ok) throw new Error("Couldn't upload the photo.");
+      const patch = await fetch(`/api/capsules/${capsuleId}/cover`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: signBody.key }),
+      });
+      if (!patch.ok) {
+        const b = (await patch.json().catch(() => ({}))) as { error?: string };
+        throw new Error(b.error ?? "Couldn't save the cover.");
+      }
+      router.refresh();
+      onClose();
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Add a cover photo"
+      className="fixed inset-0 z-50 bg-navy/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-[440px] rounded-2xl bg-white shadow-2xl p-6 sm:p-7"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-[20px] font-extrabold text-navy tracking-[-0.3px]">
+          Give it a face
+        </h2>
+        <p className="mt-2 text-[14px] text-ink-mid leading-[1.5]">
+          Add a photo of {recipientName} (or anything that fits the moment) so
+          contributors and the dashboard recognise this capsule at a glance.
+          You can skip and add one later.
+        </p>
+        <div className="mt-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            disabled={busy}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-[14px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors disabled:opacity-60"
+          >
+            {busy ? "Uploading…" : "Add a photo"}
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={busy}
+            className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-[14px] font-bold text-ink-mid hover:text-navy transition-colors disabled:opacity-60"
+          >
+            Skip for now
+          </button>
+        </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void handlePick(f);
+          }}
+          className="hidden"
+        />
+        {error && (
+          <p role="alert" className="mt-3 text-sm text-red-600">
+            {error}
+          </p>
         )}
       </div>
     </div>

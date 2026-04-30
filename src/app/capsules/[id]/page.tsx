@@ -69,6 +69,19 @@ export default async function CapsulePage({
   const redactContributions =
     capsule.hideUntilReveal && actualRevealMs(capsule) > Date.now();
 
+  // Sign the capsule's cover image (if any) so the avatar bubble
+  // next to the title can render. Same R2 pattern as the vault
+  // and contribution covers — falls through to null and the UI
+  // shows the gradient placeholder.
+  let coverSignedUrl: string | null = null;
+  if (capsule.coverUrl && r2IsConfigured()) {
+    try {
+      coverSignedUrl = await signGetUrl(capsule.coverUrl);
+    } catch {
+      /* skip — placeholder will render */
+    }
+  }
+
   // Hydrate the organiser's own contribution attachments with
   // signed GET urls so MediaAttachments can render thumbnails
   // for what's already saved.
@@ -170,6 +183,7 @@ export default async function CapsulePage({
         guestToken: capsule.guestToken,
         hideUntilReveal: capsule.hideUntilReveal,
         organizationId: capsule.organizationId,
+        coverUrl: coverSignedUrl,
       }}
       currentUserClerkId={userId}
       requiresPayment={requiresPayment}

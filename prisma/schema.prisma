@@ -389,6 +389,12 @@ model MemoryCapsule {
   /// enterprise channel) — drives org usage reporting + the
   /// transfer flow on offboarding. Null for personal capsules.
   organizationId      String?
+  /// Optional cover image — square photo the organiser uploads
+  /// to give the capsule a face. R2 object key (the same shape
+  /// as Vault.coverUrl / Collection.coverUrl); render via a
+  /// signed GET URL. Null = use the gradient + initials
+  /// placeholder.
+  coverUrl            String?
   /// Wedding-specific: when the bride/groom buys the capsule
   /// themselves but doesn't want to read messages early. With
   /// this true, the organiser's own dashboard redacts every

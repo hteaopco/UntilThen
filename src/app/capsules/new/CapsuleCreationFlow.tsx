@@ -375,7 +375,11 @@ export function CapsuleCreationFlow({
       }
       const data = (await res.json()) as { id: string };
       try { window.localStorage.removeItem(PENDING_STEP1_KEY); } catch { /* */ }
-      router.push(`/capsules/${data.id}`);
+      // ?welcome=1 prompts the capsule overview to open the
+      // first-run "Add a cover photo" modal once. The flag is
+      // stripped after the modal closes so a refresh doesn't
+      // re-prompt.
+      router.push(`/capsules/${data.id}?welcome=1`);
     } catch (err) {
       setError((err as Error).message);
       setSaving(false);

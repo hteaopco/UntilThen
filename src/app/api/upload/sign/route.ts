@@ -34,6 +34,7 @@ const VALID_TARGETS: MediaTarget[] = [
   "vault",
   "collection",
   "userAvatar",
+  "capsuleCover",
 ];
 
 export async function POST(req: Request) {
@@ -221,6 +222,31 @@ export async function POST(req: Request) {
         select: { clerkId: true },
       });
       if (parent?.clerkId !== userId) {
+        return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+      }
+    } else if (target === "capsuleCover") {
+      // capsuleCover — only the capsule organiser can upload a
+      // cover. Photos only; same shape as the vault cover gate.
+      // Org-attributed capsules currently keep the per-organiser
+      // check (the personal organiser is also the org member who
+      // created the capsule); revisit if/when org admins need to
+      // edit covers on capsules they didn't create.
+      if (kind !== "photo") {
+        return NextResponse.json(
+          { error: "Capsule covers must be photos." },
+          { status: 400 },
+        );
+      }
+      const capsule = await prisma.memoryCapsule.findUnique({
+        where: { id: targetId },
+        include: { organiser: { select: { clerkId: true } } },
+      });
+      if (!capsule)
+        return NextResponse.json(
+          { error: "Capsule not found." },
+          { status: 404 },
+        );
+      if (capsule.organiser?.clerkId !== userId) {
         return NextResponse.json({ error: "Forbidden." }, { status: 403 });
       }
     } else if (target === "collection") {

@@ -74,7 +74,8 @@ export type MediaTarget =
   | "capsuleContribution"
   | "vault"
   | "collection"
-  | "userAvatar";
+  | "userAvatar"
+  | "capsuleCover";
 
 export function mediaKeyPrefix(target: MediaTarget, id: string): string {
   switch (target) {
@@ -88,6 +89,8 @@ export function mediaKeyPrefix(target: MediaTarget, id: string): string {
       return `collections/${id}`;
     case "userAvatar":
       return `users/${id}`;
+    case "capsuleCover":
+      return `gift-capsules/${id}`;
   }
 }
 
