@@ -1,11 +1,11 @@
 export type CapsuleTone = "CELEBRATION" | "GRATITUDE" | "THINKING_OF_YOU" | "ENCOURAGEMENT" | "LOVE" | "OTHER";
 
 export const TONE_LABELS: Record<CapsuleTone, string> = {
-  CELEBRATION: "Celebration",
-  GRATITUDE: "Gratitude",
-  THINKING_OF_YOU: "Thinking of You",
-  ENCOURAGEMENT: "Encouragement",
-  LOVE: "Love",
+  CELEBRATION: "Joyful",
+  GRATITUDE: "Grateful",
+  THINKING_OF_YOU: "Thinking of you",
+  ENCOURAGEMENT: "Encouraging",
+  LOVE: "Loving",
   OTHER: "Other",
 };
 

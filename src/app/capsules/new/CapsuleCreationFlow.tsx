@@ -2,11 +2,16 @@
 
 import { useAuth } from "@clerk/nextjs";
 import {
+  Cake,
   Check,
   Feather,
   Flame,
+  Gift,
+  GraduationCap,
   HandHeart,
   Heart,
+  HeartHandshake,
+  Palmtree,
   PartyPopper,
   PlusCircle,
   Sparkles,
@@ -55,14 +60,22 @@ const TONE_ICONS: Record<CapsuleTone, React.ReactNode> = {
   OTHER: <Sparkles size={20} strokeWidth={1.5} />,
 };
 
-const OCCASIONS: { value: OccasionType; label: string }[] = [
-  { value: "BIRTHDAY", label: "Birthday" },
-  { value: "ANNIVERSARY", label: "Anniversary" },
-  { value: "RETIREMENT", label: "Retirement" },
-  { value: "GRADUATION", label: "Graduation" },
-  { value: "WEDDING", label: "Wedding" },
-  { value: "JUST_BECAUSE", label: "Just Because" },
-  { value: "OTHER", label: "Other" },
+const OCCASIONS: {
+  value: OccasionType;
+  label: string;
+  icon: React.ReactNode;
+}[] = [
+  // Order matters — the screenshot shows Birthday + Anniversary
+  // first as the most-common picks, then Graduation + Retirement
+  // (life-stage milestones), then Wedding + Just Because. OTHER
+  // is intentionally absent from the picker; capsules without an
+  // occasion fall back to JUST_BECAUSE.
+  { value: "BIRTHDAY", label: "Birthday", icon: <Cake size={20} strokeWidth={1.6} /> },
+  { value: "ANNIVERSARY", label: "Anniversary", icon: <Heart size={20} strokeWidth={1.6} /> },
+  { value: "GRADUATION", label: "Graduation", icon: <GraduationCap size={20} strokeWidth={1.6} /> },
+  { value: "RETIREMENT", label: "Retirement", icon: <Palmtree size={20} strokeWidth={1.6} /> },
+  { value: "WEDDING", label: "Wedding", icon: <HeartHandshake size={20} strokeWidth={1.6} /> },
+  { value: "JUST_BECAUSE", label: "Just because", icon: <Gift size={20} strokeWidth={1.6} /> },
 ];
 
 const TIME_PRESETS = [
@@ -112,8 +125,15 @@ const STEP_BLURBS = [
 const TOTAL_STEPS = 5;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Visible tone picker — the four common ones the screenshot
+// shows. THINKING_OF_YOU + OTHER stay valid CapsuleTone values
+// for legacy capsules created before this picker shrank, but
+// new capsules pick from this short list.
 const TONE_OPTIONS: CapsuleTone[] = [
-  "CELEBRATION", "GRATITUDE", "THINKING_OF_YOU", "ENCOURAGEMENT", "LOVE", "OTHER",
+  "CELEBRATION",
+  "GRATITUDE",
+  "ENCOURAGEMENT",
+  "LOVE",
 ];
 
 function yyyymmdd(d: Date): string {
@@ -370,14 +390,11 @@ export function CapsuleCreationFlow({
 
   function validateStep(): string | null {
     if (step === 0) {
-      // Combined screen: date (always required), plus tone +
-      // occasion for non-wedding. Wedding flow has both
-      // auto-locked so only the date matters there.
-      if (!revealDate) return "Please select a reveal date";
-      if (!isWedding) {
-        if (!tone) return "Please select a tone";
-        if (!occasionType) return "Please select an occasion";
-      }
+      // Step 1 ("What's this for?") only requires occasion for
+      // non-wedding capsules. Tone is optional — the picker has
+      // a "Recommended" badge but the flow can move forward
+      // without one. Wedding flow has occasion auto-locked.
+      if (!isWedding && !occasionType) return "Please select an occasion";
       return null;
     }
     if (step === 1) {
@@ -394,6 +411,9 @@ export function CapsuleCreationFlow({
             : `Recipient ${i + 1} first name is required`;
         }
       }
+      // Date moved from the original "Occasion + date" step onto
+      // this one once step 0 became the occasion + tone screen.
+      if (!revealDate) return "Please select a reveal date";
       return null;
     }
     if (step === 2) {
@@ -627,126 +647,119 @@ export function CapsuleCreationFlow({
         </div>
 
         <div>
-          {/* ── Step 0: Date + tone + occasion ─────────── */}
+          {/* ── Step 0 (visible 1): What's this for? ───── */}
           {step === 0 && (
-            <div className="space-y-5">
-              <h1 className="text-[24px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
-                {isWedding ? "Wedding day" : "What’s the moment?"}
-              </h1>
-              {!isWedding && (
-                <p className="text-[15px] text-ink-mid leading-[1.6]">
-                  Pick the day, the feeling, and the occasion.
-                </p>
-              )}
-
-              {/* Date picker — top of the screen for both flows. */}
+            <div className="space-y-7">
               <div>
-                <Label>{isWedding ? "Wedding Date" : "Reveal date"}</Label>
-                <input
-                  type="date"
-                  value={revealDate}
-                  onChange={(e) => {
-                    handleRevealDate(e.target.value);
-                    setStepError(null);
-                  }}
-                  min={minDateIso}
-                  max={maxDateIso}
-                  className="account-input max-w-[220px]"
-                />
-                {dateAlert && (
-                  <div className="mt-2 rounded-lg bg-amber-tint border border-amber/30 px-3 py-2">
-                    <p className="text-xs text-navy font-semibold">
-                      {isWedding
-                        ? "Wedding Capsules reveal within 600 days."
-                        : "Gift Capsules must open within 60 days."}
-                    </p>
-                    <p className="text-xs text-ink-mid mt-0.5">
-                      {isWedding
-                        ? "Most couples set this to their first anniversary."
-                        : "Please check back closer to the reveal date."}
-                    </p>
-                  </div>
-                )}
-                <p className="mt-2 text-xs italic text-ink-light">
+                <h1 className="text-[24px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
+                  {isWedding ? "Wedding capsule" : "What’s this for?"}
+                </h1>
+                <p className="mt-2 text-[15px] text-ink-mid leading-[1.6]">
                   {isWedding
-                    ? revealDate
-                      ? `Capsule will send on ${formatIsoLong(addOneYearIsoUtc(revealDate))} (1 year from the wedding date).`
-                      : "Capsule will send 1 year from the wedding date."
-                    : "They’ll open everything at once on this day."}
+                    ? "Tone is auto-set for weddings. Pick a delivery date in the next step."
+                    : "Choose the moment you’re creating this for."}
                 </p>
               </div>
 
-              {/* Tone + occasion only for non-wedding. The wedding
-                  flow auto-locks both (tone="LOVE", occasion=
-                  "WEDDING") so the screen stays just the date. */}
               {!isWedding && (
                 <>
-                  <hr className="border-amber/15" />
-                  <div className="space-y-3">
-                    <div>
-                      <h2 className="text-[16px] font-extrabold text-navy tracking-[-0.2px]">
-                        What kind of moment is this?
-                      </h2>
-                      <p className="mt-1 text-[13px] text-ink-mid">
-                        This shapes how it feels when they open it.
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {TONE_OPTIONS.map((t) => (
-                        <button
-                          key={t}
-                          type="button"
-                          onClick={() => { setTone(t); setStepError(null); }}
-                          className={`text-left rounded-xl border px-4 py-3.5 transition-all ${
-                            tone === t
-                              ? "border-amber bg-amber-tint/60 shadow-[0_2px_8px_rgba(196,122,58,0.12)]"
-                              : "border-navy/10 bg-white hover:border-amber/30"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <span className={`shrink-0 ${tone === t ? "text-amber" : "text-ink-light"}`}>{TONE_ICONS[t]}</span>
-                            <div>
-                              <div className={`text-[14px] font-bold ${tone === t ? "text-amber" : "text-navy"}`}>
-                                {TONE_LABELS[t]}
-                              </div>
-                              <div className="text-[12px] text-ink-light leading-[1.4]">
-                                {TONE_DESCRIPTIONS[t]}
-                              </div>
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <hr className="border-amber/15" />
-                  <div>
-                    <Label>Occasion &mdash; select one</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {OCCASIONS.filter((o) => o.value !== "WEDDING").map((o) => (
+                  {/* Occasion grid — 2-column cards with an icon
+                      and label. The selected card shows an inline
+                      tick on the right; matches the screenshot. */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {OCCASIONS.map((o) => {
+                      const active = occasionType === o.value;
+                      return (
                         <button
                           key={o.value}
                           type="button"
-                          onClick={() => { setOccasionType(o.value); setStepError(null); }}
-                          className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
-                            occasionType === o.value ? pillActive : pillInactive
+                          onClick={() => {
+                            setOccasionType(o.value);
+                            setStepError(null);
+                          }}
+                          className={`relative flex items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-colors ${
+                            active
+                              ? "border-amber bg-amber-tint/40 shadow-[0_2px_8px_rgba(196,122,58,0.10)]"
+                              : "border-navy/10 bg-white hover:border-amber/40"
                           }`}
                         >
-                          {o.label}
+                          <span
+                            className={`shrink-0 ${active ? "text-amber" : "text-navy"}`}
+                            aria-hidden="true"
+                          >
+                            {o.icon}
+                          </span>
+                          <span
+                            className={`text-[15px] font-bold ${active ? "text-navy" : "text-navy"}`}
+                          >
+                            {o.label}
+                          </span>
+                          {active && (
+                            <span
+                              aria-hidden="true"
+                              className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber text-white"
+                            >
+                              <Check size={12} strokeWidth={2.5} />
+                            </span>
+                          )}
                         </button>
-                      ))}
+                      );
+                    })}
+                  </div>
+
+                  {/* Tone — optional, with a "Recommended" badge
+                      and a horizontal pill row of the four common
+                      tones. Tapping a pill toggles its selection;
+                      tapping it again clears the choice. */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[11px] font-bold tracking-[0.14em] uppercase text-ink-mid">
+                        Tone (optional)
+                      </span>
+                      <span className="inline-flex items-center text-[10px] font-bold uppercase tracking-[0.1em] text-amber-dark bg-amber-tint px-2 py-0.5 rounded-full">
+                        Recommended
+                      </span>
                     </div>
-                    {occasionType === "OTHER" && (
-                      <div className="mt-3">
-                        <input
-                          type="text"
-                          value={otherOccasion}
-                          onChange={(e) => setOtherOccasion(e.target.value)}
-                          placeholder="Describe the occasion..."
-                          className="account-input"
-                        />
-                      </div>
-                    )}
+                    <p className="text-[14px] text-ink-mid leading-[1.5] mb-3">
+                      Choose how you want this to feel when they open it.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {TONE_OPTIONS.map((t) => {
+                        const active = tone === t;
+                        return (
+                          <button
+                            key={t}
+                            type="button"
+                            onClick={() => {
+                              setTone(active ? null : t);
+                              setStepError(null);
+                            }}
+                            className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-[13px] font-semibold transition-colors ${
+                              active
+                                ? "border-amber bg-amber-tint text-amber-dark"
+                                : "border-navy/10 bg-white text-navy hover:border-amber/40"
+                            }`}
+                          >
+                            <span
+                              className={`shrink-0 ${active ? "text-amber" : "text-ink-light"}`}
+                              aria-hidden="true"
+                            >
+                              {TONE_ICONS[t]}
+                            </span>
+                            {TONE_LABELS[t]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-3 inline-flex items-center gap-1.5 text-[12px] text-ink-mid">
+                      <Sparkles
+                        size={12}
+                        strokeWidth={1.75}
+                        className="text-amber"
+                        aria-hidden="true"
+                      />
+                      We&rsquo;ll tailor prompts and emails to match.
+                    </p>
                   </div>
                 </>
               )}
@@ -857,6 +870,46 @@ export function CapsuleCreationFlow({
                   <PlusCircle size={16} strokeWidth={1.75} aria-hidden="true" />
                   Add another person
                 </button>
+              </div>
+
+              {/* Date picker — moved here from step 0 once that
+                  screen narrowed to occasion + tone. Wedding date
+                  copy is preserved (input collects the wedding
+                  day; the actual reveal lands +1 year later). */}
+              <div>
+                <Label>{isWedding ? "Wedding Date" : "Reveal date"}</Label>
+                <input
+                  type="date"
+                  value={revealDate}
+                  onChange={(e) => {
+                    handleRevealDate(e.target.value);
+                    setStepError(null);
+                  }}
+                  min={minDateIso}
+                  max={maxDateIso}
+                  className="account-input max-w-[220px]"
+                />
+                {dateAlert && (
+                  <div className="mt-2 rounded-lg bg-amber-tint border border-amber/30 px-3 py-2">
+                    <p className="text-xs text-navy font-semibold">
+                      {isWedding
+                        ? "Wedding Capsules reveal within 600 days."
+                        : "Gift Capsules must open within 60 days."}
+                    </p>
+                    <p className="text-xs text-ink-mid mt-0.5">
+                      {isWedding
+                        ? "Most couples set this to their first anniversary."
+                        : "Please check back closer to the reveal date."}
+                    </p>
+                  </div>
+                )}
+                <p className="mt-2 text-xs italic text-ink-light">
+                  {isWedding
+                    ? revealDate
+                      ? `Capsule will send on ${formatIsoLong(addOneYearIsoUtc(revealDate))} (1 year from the wedding date).`
+                      : "Capsule will send 1 year from the wedding date."
+                    : "They’ll open everything at once on this day."}
+                </p>
               </div>
             </div>
           )}
