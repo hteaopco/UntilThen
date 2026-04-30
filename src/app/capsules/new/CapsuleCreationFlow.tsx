@@ -54,11 +54,22 @@ const OCCASIONS: { value: OccasionType; label: string }[] = [
 ];
 
 const TIME_PRESETS = [
-  { value: "09:00", label: "Morning (9am)" },
-  { value: "14:00", label: "Afternoon (2pm)" },
-  { value: "19:00", label: "Evening (7pm)" },
-  { value: "00:00", label: "Midnight" },
+  { value: "09:00", label: "Morning (9:00 AM)" },
+  { value: "14:00", label: "Afternoon (2:00 PM)" },
+  { value: "19:00", label: "Evening (7:00 PM)" },
+  { value: "00:00", label: "Midnight (12:00 AM)" },
 ] as const;
+
+/** "09:00" → "9:00 AM", "14:00" → "2:00 PM", "00:00" → "12:00 AM" */
+function formatTime12h(hhmm: string): string {
+  const m = /^(\d{2}):(\d{2})$/.exec(hhmm);
+  if (!m) return hhmm;
+  const h = Number(m[1]);
+  const min = m[2];
+  const period = h >= 12 ? "PM" : "AM";
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${min} ${period}`;
+}
 
 const COMMON_TIMEZONES = [
   { value: "America/New_York", label: "Eastern (ET)" },
@@ -510,7 +521,8 @@ export function CapsuleCreationFlow({
                 Who&rsquo;s it for?
               </h1>
               <p className="text-[15px] text-ink-mid leading-[1.6]">
-                A one-time gift they&rsquo;ll open on a day that matters.
+                More than a gift &mdash; words, voices and memories
+                they&rsquo;ll return to for years to come.
               </p>
 
               <Field
@@ -821,7 +833,10 @@ export function CapsuleCreationFlow({
                     value={revealDate ? formatIsoLong(addOneYearIsoUtc(revealDate)) : "—"}
                   />
                 )}
-                <ReviewRow label="Delivery time" value={deliveryTime ?? "—"} />
+                <ReviewRow
+                  label="Delivery time"
+                  value={deliveryTime ? formatTime12h(deliveryTime) : "—"}
+                />
                 <ReviewRow label="Timezone" value={COMMON_TIMEZONES.find((tz) => tz.value === timezone)?.label ?? timezone} />
               </div>
 
