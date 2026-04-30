@@ -30,6 +30,7 @@ import {
 } from "react";
 
 import { GiftCapsuleCheckout } from "@/components/checkout/GiftCapsuleCheckout";
+import { CoverUploader } from "@/components/dashboard2/CoverUploader";
 import {
   EmployeePickerModal,
   type PickedEmployee,
@@ -2125,18 +2126,13 @@ function ActivationModal({
 }
 
 /**
- * Inline cover-photo editor — circular avatar bubble with a
- * pencil-edit overlay that sits next to the capsule title in the
- * page header. Tap (or click the pencil) opens the OS file
- * picker, the chosen image is signed-PUT to R2, then the
- * /api/capsules/[id]/cover PATCH persists the key on the
- * capsule. Falls back to a gradient + initials placeholder when
- * there's no cover yet.
- *
- * Cropping is intentionally absent — the bubble is rendered with
- * `object-cover`, so any aspect ratio reads as a centred square.
- * If the design ever wants a true crop the existing
- * EditCollectionDetailsModal pattern can be lifted in.
+ * Inline cover-photo editor — square-with-rounded-corners avatar
+ * bubble with a pencil-edit overlay that sits next to the capsule
+ * title in the page header. Tapping the bubble opens the shared
+ * CoverUploader modal which handles the pan / zoom / crop pipeline
+ * (file pick → react-easy-crop → canvas-crop → signed PUT →
+ * PATCH /api/capsules/[id]/cover). Falls back to a gradient +
+ * initials placeholder when there's no cover yet.
  */
 function CapsuleCoverEditor({
   capsuleId,
@@ -2147,11 +2143,7 @@ function CapsuleCoverEditor({
   initialCoverUrl: string | null;
   recipientName: string;
 }) {
-  const router = useRouter();
-  const fileRef = useRef<HTMLInputElement | null>(null);
-  const [coverUrl, setCoverUrl] = useState<string | null>(initialCoverUrl);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   // Initials placeholder seed — first letter of the recipient
   // display name, falling back to a sparkle. Mirrors the
@@ -2159,76 +2151,18 @@ function CapsuleCoverEditor({
   // capsule's avatar reads consistently with the dashboard rail.
   const initial = (recipientName.trim().charAt(0) || "·").toUpperCase();
 
-  async function handlePick(file: File) {
-    if (!file.type.startsWith("image/")) {
-      setError("Please pick a photo.");
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      const sign = await fetch("/api/upload/sign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          target: "capsuleCover",
-          targetId: capsuleId,
-          kind: "photo",
-          contentType: file.type,
-          filename: file.name,
-          size: file.size,
-        }),
-      });
-      const signBody = (await sign.json().catch(() => ({}))) as {
-        uploadUrl?: string;
-        key?: string;
-        error?: string;
-      };
-      if (!sign.ok || !signBody.uploadUrl || !signBody.key) {
-        throw new Error(signBody.error ?? "Couldn't prepare the upload.");
-      }
-      const put = await fetch(signBody.uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-      if (!put.ok) throw new Error("Couldn't upload the photo.");
-
-      const patch = await fetch(`/api/capsules/${capsuleId}/cover`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: signBody.key }),
-      });
-      const patchBody = (await patch.json().catch(() => ({}))) as {
-        viewUrl?: string;
-        error?: string;
-      };
-      if (!patch.ok || !patchBody.viewUrl) {
-        throw new Error(patchBody.error ?? "Couldn't save the cover.");
-      }
-      setCoverUrl(patchBody.viewUrl);
-      router.refresh();
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setBusy(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
-  }
-
   return (
     <div className="relative shrink-0">
       <button
         type="button"
-        onClick={() => fileRef.current?.click()}
-        disabled={busy}
-        aria-label={coverUrl ? "Change cover photo" : "Add cover photo"}
-        className="relative block w-[80px] h-[80px] sm:w-[88px] sm:h-[88px] rounded-2xl overflow-hidden border-2 border-amber/30 bg-gradient-to-br from-amber/30 via-cream to-gold/30 hover:border-amber transition-colors disabled:opacity-60"
+        onClick={() => setOpen(true)}
+        aria-label={initialCoverUrl ? "Change cover photo" : "Add cover photo"}
+        className="relative block w-[80px] h-[80px] sm:w-[88px] sm:h-[88px] rounded-2xl overflow-hidden border-2 border-amber/30 bg-gradient-to-br from-amber/30 via-cream to-gold/30 hover:border-amber transition-colors"
       >
-        {coverUrl ? (
+        {initialCoverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={coverUrl}
+            src={initialCoverUrl}
             alt=""
             className="w-full h-full object-cover"
           />
@@ -2244,28 +2178,14 @@ function CapsuleCoverEditor({
       >
         <Pencil size={12} strokeWidth={2.25} />
       </span>
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          if (f) void handlePick(f);
-        }}
-        className="hidden"
-      />
-      {busy && (
-        <span className="absolute inset-0 rounded-full bg-white/60 flex items-center justify-center text-[10px] font-bold text-navy">
-          Uploading…
-        </span>
-      )}
-      {error && (
-        <p
-          role="alert"
-          className="absolute -bottom-12 right-0 text-[11px] text-red-600 max-w-[160px] text-right"
-        >
-          {error}
-        </p>
+      {open && (
+        <CoverUploader
+          target="capsuleCover"
+          targetId={capsuleId}
+          childFirstName={recipientName}
+          currentCoverUrl={initialCoverUrl}
+          onClose={() => setOpen(false)}
+        />
       )}
     </div>
   );
@@ -2288,10 +2208,7 @@ function CapsuleCoverWelcomeModal({
   recipientName: string;
   onClose: () => void;
 }) {
-  const router = useRouter();
-  const fileRef = useRef<HTMLInputElement | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [uploaderOpen, setUploaderOpen] = useState(false);
 
   useEffect(() => {
     const prev = document.body.style.overflow;
@@ -2301,57 +2218,20 @@ function CapsuleCoverWelcomeModal({
     };
   }, []);
 
-  async function handlePick(file: File) {
-    if (!file.type.startsWith("image/")) {
-      setError("Please pick a photo.");
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      const sign = await fetch("/api/upload/sign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          target: "capsuleCover",
-          targetId: capsuleId,
-          kind: "photo",
-          contentType: file.type,
-          filename: file.name,
-          size: file.size,
-        }),
-      });
-      const signBody = (await sign.json().catch(() => ({}))) as {
-        uploadUrl?: string;
-        key?: string;
-        error?: string;
-      };
-      if (!sign.ok || !signBody.uploadUrl || !signBody.key) {
-        throw new Error(signBody.error ?? "Couldn't prepare the upload.");
-      }
-      const put = await fetch(signBody.uploadUrl, {
-        method: "PUT",
-        headers: { "Content-Type": file.type },
-        body: file,
-      });
-      if (!put.ok) throw new Error("Couldn't upload the photo.");
-      const patch = await fetch(`/api/capsules/${capsuleId}/cover`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: signBody.key }),
-      });
-      if (!patch.ok) {
-        const b = (await patch.json().catch(() => ({}))) as { error?: string };
-        throw new Error(b.error ?? "Couldn't save the cover.");
-      }
-      router.refresh();
-      onClose();
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setBusy(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
+  // Once the cropper modal is open, hand off entirely — its
+  // own header + cancel control already let the user back out.
+  // When CoverUploader closes (whether from save or cancel) we
+  // also dismiss the welcome shell so a refresh doesn't re-prompt.
+  if (uploaderOpen) {
+    return (
+      <CoverUploader
+        target="capsuleCover"
+        targetId={capsuleId}
+        childFirstName={recipientName}
+        currentCoverUrl={null}
+        onClose={onClose}
+      />
+    );
   }
 
   return (
@@ -2377,36 +2257,19 @@ function CapsuleCoverWelcomeModal({
         <div className="mt-5 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
           <button
             type="button"
-            onClick={() => fileRef.current?.click()}
-            disabled={busy}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-[14px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors disabled:opacity-60"
+            onClick={() => setUploaderOpen(true)}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg text-[14px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors"
           >
-            {busy ? "Uploading…" : "Add a photo"}
+            Add a photo
           </button>
           <button
             type="button"
             onClick={onClose}
-            disabled={busy}
-            className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-[14px] font-bold text-ink-mid hover:text-navy transition-colors disabled:opacity-60"
+            className="inline-flex items-center justify-center px-4 py-2.5 rounded-lg text-[14px] font-bold text-ink-mid hover:text-navy transition-colors"
           >
             Skip for now
           </button>
         </div>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            if (f) void handlePick(f);
-          }}
-          className="hidden"
-        />
-        {error && (
-          <p role="alert" className="mt-3 text-sm text-red-600">
-            {error}
-          </p>
-        )}
       </div>
     </div>
   );
