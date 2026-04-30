@@ -2219,7 +2219,7 @@ function CapsuleCoverEditor({
         onClick={() => fileRef.current?.click()}
         disabled={busy}
         aria-label={coverUrl ? "Change cover photo" : "Add cover photo"}
-        className="relative block w-[80px] h-[80px] sm:w-[88px] sm:h-[88px] rounded-full overflow-hidden border-2 border-amber/30 bg-gradient-to-br from-amber/30 via-cream to-gold/30 hover:border-amber transition-colors disabled:opacity-60"
+        className="relative block w-[80px] h-[80px] sm:w-[88px] sm:h-[88px] rounded-2xl overflow-hidden border-2 border-amber/30 bg-gradient-to-br from-amber/30 via-cream to-gold/30 hover:border-amber transition-colors disabled:opacity-60"
       >
         {coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

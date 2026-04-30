@@ -7,6 +7,7 @@ import { GiftCapsuleReceivedCard } from "@/components/dashboard2/GiftCapsuleRece
 import { Footer } from "@/components/landing/Footer";
 import { TopNav } from "@/components/ui/TopNav";
 import { prisma } from "@/lib/prisma";
+import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
 export const metadata = {
   title: "Capsules Given to You — untilThen",
@@ -57,6 +58,7 @@ export default async function CapsulesIndexPage({
       id: true,
       accessToken: true,
       title: true,
+      coverUrl: true,
     },
   });
 
@@ -92,13 +94,31 @@ export default async function CapsulesIndexPage({
     stats.set(r.capsuleId, cur);
   }
 
+  // Sign each capsule's cover key into a short-lived GET URL so
+  // the card can render the actual image (matches the dashboard
+  // rail's pattern). Misses fall through to null and the card's
+  // gradient placeholder paints.
+  const signedCovers = await Promise.all(
+    receivedCapsules.map(async (c) => {
+      if (!c.coverUrl || !r2IsConfigured()) {
+        return { id: c.id, url: null as string | null };
+      }
+      try {
+        return { id: c.id, url: await signGetUrl(c.coverUrl) };
+      } catch {
+        return { id: c.id, url: null as string | null };
+      }
+    }),
+  );
+  const coverById = new Map(signedCovers.map((s) => [s.id, s.url]));
+
   const cards = receivedCapsules.map((c) => {
     const s = stats.get(c.id) ?? { letters: 0, photos: 0, voices: 0 };
     return {
       id: c.id,
       accessToken: c.accessToken,
       title: c.title,
-      coverUrl: null,
+      coverUrl: coverById.get(c.id) ?? null,
       entryCount: s.letters,
       photoCount: s.photos,
       voiceCount: s.voices,

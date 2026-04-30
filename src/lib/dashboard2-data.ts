@@ -141,6 +141,29 @@ export async function loadDashboard2Data({
   );
   const coverByVault = new Map(signedCovers.map((s) => [s.vaultId, s.url]));
 
+  // Same R2 sign-on-read pattern for the gift-capsule covers
+  // (creating + received). Each row's `coverUrl` is an R2 object
+  // key when set; we hand the dashboard cards a short-lived
+  // signed GET URL instead. Misses (no key, or signing failed)
+  // fall through to null so the card paints its gradient
+  // placeholder. One Promise.all keeps the latency floor low.
+  const allCapsuleRows = [...creatingCapsules, ...receivedCapsules];
+  const signedCapsuleCovers = await Promise.all(
+    allCapsuleRows.map(async (c) => {
+      if (!c.coverUrl || !r2IsConfigured()) {
+        return { id: c.id, url: null as string | null };
+      }
+      try {
+        return { id: c.id, url: await signGetUrl(c.coverUrl) };
+      } catch {
+        return { id: c.id, url: null as string | null };
+      }
+    }),
+  );
+  const capsuleCoverById = new Map(
+    signedCapsuleCovers.map((s) => [s.id, s.url]),
+  );
+
   const vaults: VaultCardData[] = children
     .filter((c) => c.vault !== null)
     .map((c) => {
@@ -219,7 +242,7 @@ export async function loadDashboard2Data({
       newCount: newByCapsule.get(c.id) ?? 0,
       contributorNames: inviteNames,
       contributorAvatars,
-      coverUrl: null,
+      coverUrl: capsuleCoverById.get(c.id) ?? null,
       // effectiveStatus folds the manual seal (contributionsClosed)
       // and deadline-passed cases back into "SEALED" so the pill
       // reads the same regardless of which path got there.
@@ -241,7 +264,7 @@ export async function loadDashboard2Data({
       id: c.id,
       accessToken: c.accessToken,
       title: c.title,
-      coverUrl: null,
+      coverUrl: capsuleCoverById.get(c.id) ?? null,
       entryCount: stats.letters,
       photoCount: stats.photos,
       voiceCount: stats.voices,
