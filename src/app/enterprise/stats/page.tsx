@@ -69,6 +69,7 @@ export default async function StatBoardPage() {
           recipientName: true,
           recipientEmail: true,
           recipient2Email: true,
+          additionalRecipients: true,
           revealDate: true,
           status: true,
           contributionsClosed: true,
@@ -99,11 +100,23 @@ export default async function StatBoardPage() {
     // Treat as no-match — show everything rather than fail the page.
   }
   const visibleRecipientCapsules = viewerEmail
-    ? recipientCapsules.filter(
-        (c) =>
-          c.recipientEmail?.toLowerCase() !== viewerEmail &&
-          c.recipient2Email?.toLowerCase() !== viewerEmail,
-      )
+    ? recipientCapsules.filter((c) => {
+        if (c.recipientEmail?.toLowerCase() === viewerEmail) return false;
+        if (c.recipient2Email?.toLowerCase() === viewerEmail) return false;
+        const extras = Array.isArray(c.additionalRecipients)
+          ? (c.additionalRecipients as Array<{ email?: string }>)
+          : [];
+        if (
+          extras.some(
+            (x) =>
+              typeof x?.email === "string" &&
+              x.email.toLowerCase() === viewerEmail,
+          )
+        ) {
+          return false;
+        }
+        return true;
+      })
     : recipientCapsules;
 
   // Active = scheduled (revealDate still in the future). Sent = the

@@ -45,12 +45,21 @@ export const POST = cronRoute("reveal", async (): Promise<NextResponse> => {
       continue;
     }
 
-    // For couple capsules, both recipientEmail and recipient2Email
-    // get a copy. We dedupe in case the user accidentally entered
-    // the same address twice.
+    // Fan out to every recipient: the primary recipientEmail,
+    // the legacy recipient2Email (still populated for couple
+    // capsules created before multi-recipient shipped), and
+    // every email in additionalRecipients (the JSON array used
+    // by the new N-recipient flow). Deduped so an organiser who
+    // accidentally enters the same address twice still only
+    // gets one send.
+    const extras = Array.isArray(capsule.additionalRecipients)
+      ? (capsule.additionalRecipients as Array<{ email?: string }>).map(
+          (r) => (typeof r?.email === "string" ? r.email : null),
+        )
+      : [];
     const recipients = Array.from(
       new Set(
-        [capsule.recipientEmail, capsule.recipient2Email]
+        [capsule.recipientEmail, capsule.recipient2Email, ...extras]
           .filter((e): e is string => !!e)
           .map((e) => e.toLowerCase()),
       ),

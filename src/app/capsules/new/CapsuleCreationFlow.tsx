@@ -1,7 +1,18 @@
 "use client";
 
 import { useAuth } from "@clerk/nextjs";
-import { Check, Feather, Flame, HandHeart, Heart, PartyPopper, Sparkles } from "lucide-react";
+import {
+  Check,
+  Feather,
+  Flame,
+  HandHeart,
+  Heart,
+  PartyPopper,
+  PlusCircle,
+  Sparkles,
+  Trash2,
+  User as UserIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -178,16 +189,44 @@ export function CapsuleCreationFlow({
     isWedding ? "LOVE" : null,
   );
   const [title, setTitle] = useState("");
-  const [recipientFirstName, setRecipientFirstName] = useState("");
-  const [recipientLastName, setRecipientLastName] = useState("");
-  const [recipient2FirstName, setRecipient2FirstName] = useState("");
-  const [recipient2LastName, setRecipient2LastName] = useState("");
-  // Was a 3-way "Female / Male / Couple" selector — gender is no
-  // longer collected (the name carries identity, the pronouns
-  // default to neutral "they/them/their"), so this is now just a
-  // toggle for whether the capsule has a second named recipient.
-  // Wedding flow stays implicitly couple-shaped.
-  const [isCouple, setIsCouple] = useState<boolean>(isWedding);
+  // Multi-recipient flow. Each row is a single person; the capsule
+  // primary is recipients[0] and everyone past that lands in
+  // additionalRecipients on the API. Wedding flow seeds two rows
+  // (bride + groom); every other flow starts with one row and the
+  // organiser taps "Add another person" to grow the list.
+  type RecipientDraft = {
+    key: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  const newRecipientKey = () =>
+    `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const [recipients, setRecipients] = useState<RecipientDraft[]>(() =>
+    isWedding
+      ? [
+          { key: newRecipientKey(), firstName: "", lastName: "", email: "" },
+          { key: newRecipientKey(), firstName: "", lastName: "", email: "" },
+        ]
+      : [{ key: newRecipientKey(), firstName: "", lastName: "", email: "" }],
+  );
+  function updateRecipient(key: string, patch: Partial<RecipientDraft>) {
+    setRecipients((rs) => rs.map((r) => (r.key === key ? { ...r, ...patch } : r)));
+  }
+  function removeRecipient(key: string) {
+    setRecipients((rs) => (rs.length <= 1 ? rs : rs.filter((r) => r.key !== key)));
+  }
+  function addRecipient() {
+    setRecipients((rs) => [
+      ...rs,
+      { key: newRecipientKey(), firstName: "", lastName: "", email: "" },
+    ]);
+  }
+  // Derived flag for downstream copy that already has a "couple"
+  // shape (wedding hint text, contributor copy, etc.). Two rows =
+  // couple-style display ("Margaret & Robert"); 3+ rows = list-
+  // style display ("Margaret, Robert & Sarah").
+  const isCouple = recipients.length === 2;
   const [occasionType, setOccasionType] = useState<OccasionType | null>(
     initialOccasion ?? null,
   );
@@ -197,16 +236,36 @@ export function CapsuleCreationFlow({
   const [customTime, setCustomTime] = useState(false);
   const [timezone, setTimezone] = useState(detectTimezone);
   const [dateAlert, setDateAlert] = useState(false);
-  const [recipientEmail, setRecipientEmail] = useState("");
-  const [recipient2Email, setRecipient2Email] = useState("");
+  // Recipient emails now live on each `recipients[]` row, but
+  // we keep two thin aliases so the rest of the flow (validate
+  // step, submit body) reads the primary + secondary the way it
+  // used to. recipient2Email is null for 0/1/3+ recipient
+  // capsules; legacy couple consumers (cron + enterprise filter)
+  // also fall through to additionalRecipients.
+  const recipientEmail = recipients[0]?.email ?? "";
+  const recipient2Email = recipients.length === 2 ? (recipients[1]?.email ?? "") : "";
   const [pickerOpen, setPickerOpen] = useState(false);
 
   function applyPickedEmployee(picks: PickedEmployee[]) {
     const p = picks[0];
     if (!p) return;
-    setRecipientFirstName(p.firstName);
-    setRecipientLastName(p.lastName);
-    setRecipientEmail(p.email);
+    // Replaces the first row with the picked employee. Multi-
+    // recipient picking is left for a future iteration; for now
+    // the database picker stays single-select and just seeds the
+    // primary recipient so the rest of the flow can carry on.
+    setRecipients((rs) => {
+      const head = rs[0];
+      const rest = rs.slice(1);
+      return [
+        {
+          key: head?.key ?? newRecipientKey(),
+          firstName: p.firstName,
+          lastName: p.lastName,
+          email: p.email,
+        },
+        ...rest,
+      ];
+    });
     setStepError(null);
     setPickerOpen(false);
   }
@@ -227,9 +286,29 @@ export function CapsuleCreationFlow({
   // when reading old rows).
   const recipientPronoun = "them";
 
-  const recipientName = isCouple
-    ? `${recipientFirstName.trim()} & ${recipient2FirstName.trim()}`.trim()
-    : `${recipientFirstName.trim()} ${recipientLastName.trim()}`.trim();
+  // Display label derived from every recipient row. One person
+  // reads as "Margaret Smith"; two read as "Margaret & Robert"
+  // (couple shape preserved for back-compat); three+ read as
+  // "Margaret, Robert & Sarah". Handles missing names gracefully
+  // so the wizard preview stays readable mid-typing.
+  const recipientName = (() => {
+    const firsts = recipients
+      .map((r) => r.firstName.trim())
+      .filter((s) => s.length > 0);
+    if (firsts.length === 0) return "";
+    if (firsts.length === 1) {
+      const last = recipients[0]?.lastName.trim() ?? "";
+      return `${firsts[0]}${last ? ` ${last}` : ""}`;
+    }
+    if (firsts.length === 2) return `${firsts[0]} & ${firsts[1]}`;
+    return `${firsts.slice(0, -1).join(", ")} & ${firsts[firsts.length - 1]}`;
+  })();
+  // Convenience accessors used by the rest of the flow's copy
+  // (delivery-time hint, email step labels, review screen). The
+  // primary recipient drives most of the per-name copy because
+  // the form was originally single-recipient.
+  const recipientFirstName = recipients[0]?.firstName ?? "";
+  const recipient2FirstName = recipients[1]?.firstName ?? "";
 
   useEffect(() => {
     // Consume-on-read: hydrate the form from the stash that was
@@ -243,8 +322,23 @@ export function CapsuleCreationFlow({
       window.localStorage.removeItem(PENDING_STEP1_KEY);
       const p = JSON.parse(raw) as Record<string, string>;
       if (p.title) setTitle(p.title);
-      if (p.recipientFirstName) setRecipientFirstName(p.recipientFirstName);
-      if (p.recipientLastName) setRecipientLastName(p.recipientLastName);
+      if (p.recipientFirstName || p.recipientLastName) {
+        // Pre-fill the primary recipient's name fields from the
+        // stash. Email is captured later in the flow, so we keep
+        // it empty here.
+        setRecipients((rs) => {
+          const head = rs[0];
+          return [
+            {
+              key: head?.key ?? newRecipientKey(),
+              firstName: p.recipientFirstName ?? "",
+              lastName: p.recipientLastName ?? "",
+              email: "",
+            },
+            ...rs.slice(1),
+          ];
+        });
+      }
       if (p.occasionType) setOccasionType(p.occasionType as OccasionType);
       if (p.revealDate) setRevealDate(p.revealDate);
     } catch { /* ignore */ }
@@ -269,8 +363,18 @@ export function CapsuleCreationFlow({
     }
     if (step === 1) {
       if (!title.trim()) return "Please add a title";
-      if (!recipientFirstName.trim()) return "Recipient first name is required";
-      if (isCouple && !recipient2FirstName.trim()) return "Second recipient first name is required";
+      // Every row needs at least a first name. Last name is
+      // optional so a "Marketing Team" / "Mom & Dad" capsule
+      // doesn't force surnames the organiser may not even know.
+      for (let i = 0; i < recipients.length; i++) {
+        const r = recipients[i];
+        if (!r) continue;
+        if (!r.firstName.trim()) {
+          return i === 0
+            ? "Recipient first name is required"
+            : `Recipient ${i + 1} first name is required`;
+        }
+      }
       return null;
     }
     if (step === 2) {
@@ -295,15 +399,17 @@ export function CapsuleCreationFlow({
       return null;
     }
     if (step === 4) {
-      const trimmed = recipientEmail.trim();
-      if (!trimmed) return "Recipient email is required";
-      if (!EMAIL_RE.test(trimmed))
-        return "Please enter a valid email address";
-      if (isCouple) {
-        const trimmed2 = recipient2Email.trim();
-        if (!trimmed2) return "Second recipient email is required";
-        if (!EMAIL_RE.test(trimmed2))
-          return "Please enter a valid second recipient email";
+      // Every recipient row needs a valid email. Mirrors the API's
+      // EMAIL_RE check so the wizard catches bad input before the
+      // round-trip.
+      for (let i = 0; i < recipients.length; i++) {
+        const r = recipients[i];
+        if (!r) continue;
+        const trimmed = r.email.trim();
+        const label = r.firstName.trim() || `recipient ${i + 1}`;
+        if (!trimmed) return `Email is required for ${label}`;
+        if (!EMAIL_RE.test(trimmed))
+          return `Please enter a valid email for ${label}`;
       }
       return null;
     }
@@ -332,8 +438,8 @@ export function CapsuleCreationFlow({
       try {
         window.localStorage.setItem(PENDING_STEP1_KEY, JSON.stringify({
           title: title.trim(),
-          recipientFirstName: recipientFirstName.trim(),
-          recipientLastName: recipientLastName.trim(),
+          recipientFirstName: recipients[0]?.firstName.trim() ?? "",
+          recipientLastName: recipients[0]?.lastName.trim() ?? "",
           occasionType: occasionType ?? "OTHER",
           revealDate,
         }));
@@ -344,9 +450,32 @@ export function CapsuleCreationFlow({
 
     setSaving(true);
     try {
-      const fullName = isCouple
-        ? `${recipientFirstName.trim()} ${recipientLastName.trim()} & ${recipient2FirstName.trim()} ${recipient2LastName.trim()}`.replace(/\s+/g, " ").trim()
-        : `${recipientFirstName.trim()} ${recipientLastName.trim()}`.trim();
+      // Build the human-readable display label from every row.
+      // 1 person → "Margaret Smith", 2 → "Margaret & Robert",
+      // 3+ → "Margaret, Robert & Sarah". Strips empty rows (the
+      // validator enforces firstName above, but lastName may be
+      // missing).
+      const namedRecipients = recipients
+        .map((r) => ({
+          firstName: r.firstName.trim(),
+          lastName: r.lastName.trim(),
+          email: r.email.trim().toLowerCase(),
+        }))
+        .filter((r) => r.firstName.length > 0);
+      const firstNames = namedRecipients.map((r) => r.firstName);
+      const fullName =
+        namedRecipients.length === 1
+          ? `${namedRecipients[0]!.firstName}${namedRecipients[0]!.lastName ? ` ${namedRecipients[0]!.lastName}` : ""}`
+          : namedRecipients.length === 2
+            ? `${firstNames[0]} & ${firstNames[1]}`
+            : `${firstNames.slice(0, -1).join(", ")} & ${firstNames[firstNames.length - 1]}`;
+      // Primary recipient stays in recipientName + recipientEmail;
+      // everyone past that goes into additionalRecipients. We also
+      // populate recipient2Email when there are exactly two rows so
+      // legacy back-compat readers (older code paths that still
+      // peek at it) keep working.
+      const primary = namedRecipients[0];
+      const extras = namedRecipients.slice(1);
 
       const res = await fetch("/api/capsules", {
         method: "POST",
@@ -355,10 +484,9 @@ export function CapsuleCreationFlow({
           title: title.trim(),
           recipientName: fullName,
           recipientPronoun,
-          recipientEmail: recipientEmail.trim() || null,
-          recipient2Email: isCouple
-            ? recipient2Email.trim() || null
-            : null,
+          recipientEmail: primary?.email || null,
+          recipient2Email: extras.length === 1 ? extras[0]!.email : null,
+          additionalRecipients: extras,
           occasionType: occasionType ?? "OTHER",
           tone: tone ?? "CELEBRATION",
           // Wedding flow: the date input collects the wedding day,
@@ -550,7 +678,7 @@ export function CapsuleCreationFlow({
                 />
               </Field>
 
-              {organizationId && !isCouple && (
+              {organizationId && recipients.length === 1 && (
                 <button
                   type="button"
                   onClick={() => setPickerOpen(true)}
@@ -560,48 +688,74 @@ export function CapsuleCreationFlow({
                 </button>
               )}
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <Field label="Recipient first name">
-                  <input type="text" value={recipientFirstName} onChange={(e) => { setRecipientFirstName(e.target.value); setStepError(null); }}
-                    placeholder="Margaret" className="account-input" />
-                </Field>
-                <Field label="Recipient last name">
-                  <input type="text" value={recipientLastName} onChange={(e) => setRecipientLastName(e.target.value)}
-                    placeholder="Smith" className="account-input" />
-                </Field>
+              {/* Recipients section — N (firstName, lastName) rows
+                  with a trash control on every row past the first
+                  and an "Add another person" pill at the bottom.
+                  The wedding flow seeds two rows up front; every
+                  other flow starts at one. */}
+              <div>
+                <Label>
+                  <span className="inline-flex items-center gap-1.5">
+                    <UserIcon size={12} strokeWidth={2.25} aria-hidden="true" />
+                    Recipients
+                  </span>
+                </Label>
+                <p className="-mt-1 mb-3 text-[13px] text-ink-mid leading-[1.5]">
+                  Add one or more people who will receive this gift capsule.
+                </p>
+                <div className="space-y-3">
+                  {recipients.map((r, i) => (
+                    <div
+                      key={r.key}
+                      className="rounded-2xl bg-amber-tint/40 border border-amber/15 px-3 py-3 flex items-end gap-2"
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 min-w-0">
+                        <Field label="First name">
+                          <input
+                            type="text"
+                            value={r.firstName}
+                            onChange={(e) => {
+                              updateRecipient(r.key, { firstName: e.target.value });
+                              setStepError(null);
+                            }}
+                            placeholder={i === 0 ? "Margaret" : "Robert"}
+                            className="account-input"
+                          />
+                        </Field>
+                        <Field label="Last name">
+                          <input
+                            type="text"
+                            value={r.lastName}
+                            onChange={(e) =>
+                              updateRecipient(r.key, { lastName: e.target.value })
+                            }
+                            placeholder="Smith"
+                            className="account-input"
+                          />
+                        </Field>
+                      </div>
+                      {recipients.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeRecipient(r.key)}
+                          aria-label={`Remove recipient ${i + 1}`}
+                          className="shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white border border-amber/25 text-amber hover:bg-amber/10 transition-colors"
+                        >
+                          <Trash2 size={14} strokeWidth={1.75} aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={addRecipient}
+                  className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-dashed border-amber/40 bg-amber-tint/30 px-4 py-3 text-[13px] font-semibold text-amber-dark hover:bg-amber-tint/50 transition-colors"
+                >
+                  <PlusCircle size={16} strokeWidth={1.75} aria-hidden="true" />
+                  Add another person
+                </button>
               </div>
-
-              {!isWedding && (
-                <div>
-                  {/* Bridge toggle until the multi-recipient flow
-                      lands — flips the form into the existing
-                      couple shape (second name + second email). */}
-                  <button
-                    type="button"
-                    onClick={() => setIsCouple((v) => !v)}
-                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-1.5 text-[13px] font-semibold transition-colors ${
-                      isCouple ? pillActive : pillInactive
-                    }`}
-                  >
-                    {isCouple
-                      ? "Sending to a couple — switch to one"
-                      : "Sending to a couple?"}
-                  </button>
-                </div>
-              )}
-
-              {isCouple && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="Recipient 2 first name">
-                    <input type="text" value={recipient2FirstName} onChange={(e) => { setRecipient2FirstName(e.target.value); setStepError(null); }}
-                      placeholder="Robert" className="account-input" />
-                  </Field>
-                  <Field label="Recipient 2 last name">
-                    <input type="text" value={recipient2LastName} onChange={(e) => setRecipient2LastName(e.target.value)}
-                      placeholder="Smith" className="account-input" />
-                  </Field>
-                </div>
-              )}
             </div>
           )}
 
@@ -753,52 +907,34 @@ export function CapsuleCreationFlow({
               </h1>
               <p className="text-[15px] text-ink-mid leading-[1.6]">
                 On the reveal date, we&rsquo;ll email{" "}
-                {isCouple
-                  ? "both recipients"
+                {recipients.length > 1
+                  ? "every recipient"
                   : recipientFirstName.trim() || "the recipient"}{" "}
-                a link to open the capsule. We&rsquo;ll only use this on the reveal
-                date. Nothing is sent now.
+                a link to open the capsule. We&rsquo;ll only use these on the
+                reveal date. Nothing is sent now.
               </p>
 
-              <Field
-                label={
-                  isCouple
-                    ? `${recipientFirstName.trim() || "First recipient"}'s email`
-                    : "Recipient email"
-                }
-              >
-                <input
-                  type="email"
-                  inputMode="email"
-                  autoComplete="email"
-                  value={recipientEmail}
-                  onChange={(e) => {
-                    setRecipientEmail(e.target.value);
-                    setStepError(null);
-                  }}
-                  placeholder="them@example.com"
-                  className="account-input"
-                />
-              </Field>
-
-              {isCouple ? (
-                <Field
-                  label={`${recipient2FirstName.trim() || "Second recipient"}'s email`}
-                >
-                  <input
-                    type="email"
-                    inputMode="email"
-                    autoComplete="email"
-                    value={recipient2Email}
-                    onChange={(e) => {
-                      setRecipient2Email(e.target.value);
-                      setStepError(null);
-                    }}
-                    placeholder="them@example.com"
-                    className="account-input"
-                  />
-                </Field>
-              ) : null}
+              <div className="space-y-3">
+                {recipients.map((r) => {
+                  const label = r.firstName.trim() || "Recipient";
+                  return (
+                    <Field key={r.key} label={`${label}'s email`}>
+                      <input
+                        type="email"
+                        inputMode="email"
+                        autoComplete="email"
+                        value={r.email}
+                        onChange={(e) => {
+                          updateRecipient(r.key, { email: e.target.value });
+                          setStepError(null);
+                        }}
+                        placeholder={`${(r.firstName.trim() || "them").toLowerCase()}@example.com`}
+                        className="account-input"
+                      />
+                    </Field>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -819,13 +955,12 @@ export function CapsuleCreationFlow({
                 <ReviewRow label="Title" value={title} />
                 <ReviewRow label="For" value={recipientName} />
                 <ReviewRow
-                  label={isCouple ? "Recipient emails" : "Recipient email"}
+                  label={recipients.length > 1 ? "Recipient emails" : "Recipient email"}
                   value={
-                    isCouple
-                      ? [recipientEmail.trim(), recipient2Email.trim()]
-                          .filter(Boolean)
-                          .join(", ") || "—"
-                      : recipientEmail.trim() || "—"
+                    recipients
+                      .map((r) => r.email.trim())
+                      .filter(Boolean)
+                      .join(", ") || "—"
                   }
                 />
                 {!isWedding && (

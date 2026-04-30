@@ -273,6 +273,7 @@ async function loadEnterpriseCapsules(
       recipientName: true,
       recipientEmail: true,
       recipient2Email: true,
+      additionalRecipients: true,
       revealDate: true,
       status: true,
       contributionsClosed: true,
@@ -289,11 +290,22 @@ async function loadEnterpriseCapsules(
   // own incoming gift on the dashboard. Mirrors the stat board's
   // filter exactly.
   const visible = viewerEmail
-    ? rows.filter(
-        (r) =>
-          r.recipientEmail?.toLowerCase() !== viewerEmail &&
-          r.recipient2Email?.toLowerCase() !== viewerEmail,
-      )
+    ? rows.filter((r) => {
+        if (r.recipientEmail?.toLowerCase() === viewerEmail) return false;
+        if (r.recipient2Email?.toLowerCase() === viewerEmail) return false;
+        // Multi-recipient capsules keep extras in additionalRecipients;
+        // each entry is `{ firstName, lastName, email }`. Cast through
+        // the JsonValue union for the lookup.
+        const extras = Array.isArray(r.additionalRecipients)
+          ? (r.additionalRecipients as Array<{ email?: string }>)
+          : [];
+        if (
+          extras.some((x) => typeof x?.email === "string" && x.email.toLowerCase() === viewerEmail)
+        ) {
+          return false;
+        }
+        return true;
+      })
     : rows;
   return visible.map((r) => ({
     id: r.id,

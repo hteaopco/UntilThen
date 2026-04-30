@@ -57,8 +57,21 @@ interface CreateBody {
   /** Optional at creation — captured at activation instead. */
   recipientEmail?: string | null;
   /** Second recipient email for couple capsules. Reveal-day mail
-   *  delivers to both addresses when set. */
+   *  delivers to both addresses when set. Kept for back-compat
+   *  with the original couple flow — new capsules with 2+
+   *  recipients put everyone past the primary in
+   *  additionalRecipients instead. */
   recipient2Email?: string | null;
+  /** Recipients past the primary, in display order. Each entry
+   *  must be a `{ firstName, lastName, email }` triple. The
+   *  reveal cron and the recipientName-display helper read this
+   *  alongside the primary so a Boss's-Day-style capsule for 5
+   *  people fans out cleanly. */
+  additionalRecipients?: Array<{
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  }>;
   /** Optional at creation — captured at activation instead. */
   recipientPhone?: string | null;
   occasionType?: string;
@@ -132,6 +145,40 @@ export async function POST(req: Request) {
     typeof body.recipientPhone === "string" && body.recipientPhone.trim()
       ? body.recipientPhone.trim()
       : null;
+  // Validate + normalise the multi-recipient extras. Each entry
+  // must carry firstName + email (lastName is optional). Bad
+  // shape just gets dropped silently — the wizard keeps the
+  // primary recipient working even if a row is half-filled. We
+  // ship a typed null when no valid extras are present so the
+  // Prisma column stays clean.
+  type AdditionalRecipient = {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  let additionalRecipients: AdditionalRecipient[] | null = null;
+  if (Array.isArray(body.additionalRecipients)) {
+    const cleaned: AdditionalRecipient[] = [];
+    for (const r of body.additionalRecipients) {
+      const first =
+        typeof r?.firstName === "string" ? r.firstName.trim() : "";
+      const last =
+        typeof r?.lastName === "string" ? r.lastName.trim() : "";
+      const email =
+        typeof r?.email === "string" ? r.email.trim().toLowerCase() : "";
+      if (!first || !email) continue;
+      if (!EMAIL_RE.test(email)) {
+        return NextResponse.json(
+          {
+            error: `Please enter a valid email for ${first || "every recipient"}.`,
+          },
+          { status: 400 },
+        );
+      }
+      cleaned.push({ firstName: first, lastName: last, email });
+    }
+    if (cleaned.length > 0) additionalRecipients = cleaned;
+  }
   const recipientPronoun =
     typeof body.recipientPronoun === "string" &&
     ["her", "him", "them"].includes(body.recipientPronoun.toLowerCase())
@@ -291,6 +338,7 @@ export async function POST(req: Request) {
         recipientPronoun,
         recipientEmail,
         recipient2Email,
+        ...(additionalRecipients ? { additionalRecipients } : {}),
         recipientPhone,
         occasionType,
         tone,

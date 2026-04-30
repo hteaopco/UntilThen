@@ -341,10 +341,21 @@ model MemoryCapsule {
   /// capsule to ACTIVE — enforced server-side in /activate.
   recipientEmail      String?
   /// Second recipient email for couple gift capsules. The reveal
-  /// cron loops over [recipientEmail, recipient2Email] and sends
-  /// to each non-null entry; single-recipient capsules leave this
-  /// null.
+  /// cron loops over [recipientEmail, recipient2Email,
+  /// ...additionalRecipients] and sends to each non-null entry;
+  /// single-recipient capsules leave this null. Kept for
+  /// back-compat with capsules created before the N-recipient
+  /// flow shipped — new capsules with 2+ people store everyone
+  /// past the primary in `additionalRecipients`.
   recipient2Email     String?
+  /// Recipients past the primary one. Json array of
+  /// `{ firstName: string; lastName: string; email: string }`,
+  /// in display order. The primary recipient's first/last is
+  /// baked into recipientName + recipientEmail; this column
+  /// captures everyone after that without needing a join table
+  /// or per-recipient row migration. Null for single-recipient
+  /// (or pre-multi-recipient) capsules.
+  additionalRecipients Json?
   recipientPhone      String?
   occasionType        OccasionType  @default(OTHER)
   tone                CapsuleTone   @default(CELEBRATION)
