@@ -259,6 +259,7 @@ export async function loadDashboard2Data({
       letters: 0,
       photos: 0,
       voices: 0,
+      videos: 0,
     };
     return {
       id: c.id,
@@ -268,6 +269,7 @@ export async function loadDashboard2Data({
       entryCount: stats.letters,
       photoCount: stats.photos,
       voiceCount: stats.voices,
+      videoCount: stats.videos,
     };
   });
 
@@ -277,19 +279,29 @@ export async function loadDashboard2Data({
 function aggregateStats(
   rows: { type: string; mediaTypes: string[] }[],
   idKey: "vaultId" | "capsuleId",
-): Map<string, { letters: number; photos: number; voices: number }> {
-  // "letters" counts text-only memories so the three pills stay
+): Map<
+  string,
+  { letters: number; photos: number; voices: number; videos: number }
+> {
+  // "letters" counts text-only memories so the four pills stay
   // distinct — an entry with a photo attached is a photo, not a
-  // letter + a photo.
-  const out = new Map<string, { letters: number; photos: number; voices: number }>();
+  // letter + a photo. videos is independent of voices/photos so
+  // a video-with-voice still counts in both columns (matches
+  // how the gallery renders them as separate slides).
+  const out = new Map<
+    string,
+    { letters: number; photos: number; voices: number; videos: number }
+  >();
   for (const r of rows) {
     const key = (r as unknown as Record<string, string>)[idKey];
-    const current = out.get(key) ?? { letters: 0, photos: 0, voices: 0 };
+    const current =
+      out.get(key) ?? { letters: 0, photos: 0, voices: 0, videos: 0 };
     const hasPhoto = r.type === "PHOTO" || r.mediaTypes.includes("photo");
     const hasVoice = r.type === "VOICE" || r.mediaTypes.includes("voice");
     const hasVideo = r.type === "VIDEO" || r.mediaTypes.includes("video");
     if (hasPhoto) current.photos += 1;
     if (hasVoice) current.voices += 1;
+    if (hasVideo) current.videos += 1;
     if (r.type === "TEXT" && !hasPhoto && !hasVoice && !hasVideo) {
       current.letters += 1;
     }

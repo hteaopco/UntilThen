@@ -29,6 +29,7 @@ export function VoiceCard({
   contribution,
   muted,
   autoPlay = false,
+  onEnded,
 }: {
   contribution: RevealContribution;
   muted: boolean;
@@ -36,6 +37,12 @@ export function VoiceCard({
    *  away. StoryCards passes true; GalleryCardView leaves it
    *  default (false). */
   autoPlay?: boolean;
+  /** Optional callback fired when the audio finishes playing.
+   *  StoryCards uses it to auto-advance to the next slide so a
+   *  recipient can sit through the reveal hands-free; the static
+   *  GalleryCardView leaves it undefined (the gallery view stays
+   *  put after playback). */
+  onEnded?: () => void;
 }) {
   const { capture } = useRevealAnalytics();
   const { duck, unduck } = useMusicDuck();
@@ -249,6 +256,7 @@ export function VoiceCard({
             setPlaying(false);
             setPosition(duration);
             releaseDuck();
+            onEnded?.();
           }}
         />
       )}

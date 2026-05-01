@@ -79,15 +79,17 @@ export default async function CapsulesIndexPage({
         });
   const stats = new Map<
     string,
-    { letters: number; photos: number; voices: number }
+    { letters: number; photos: number; voices: number; videos: number }
   >();
   for (const r of contributions) {
-    const cur = stats.get(r.capsuleId) ?? { letters: 0, photos: 0, voices: 0 };
+    const cur =
+      stats.get(r.capsuleId) ?? { letters: 0, photos: 0, voices: 0, videos: 0 };
     const hasPhoto = r.type === "PHOTO" || r.mediaTypes.includes("photo");
     const hasVoice = r.type === "VOICE" || r.mediaTypes.includes("voice");
     const hasVideo = r.type === "VIDEO" || r.mediaTypes.includes("video");
     if (hasPhoto) cur.photos += 1;
     if (hasVoice) cur.voices += 1;
+    if (hasVideo) cur.videos += 1;
     if (r.type === "TEXT" && !hasPhoto && !hasVoice && !hasVideo) {
       cur.letters += 1;
     }
@@ -113,7 +115,8 @@ export default async function CapsulesIndexPage({
   const coverById = new Map(signedCovers.map((s) => [s.id, s.url]));
 
   const cards = receivedCapsules.map((c) => {
-    const s = stats.get(c.id) ?? { letters: 0, photos: 0, voices: 0 };
+    const s =
+      stats.get(c.id) ?? { letters: 0, photos: 0, voices: 0, videos: 0 };
     return {
       id: c.id,
       accessToken: c.accessToken,
@@ -122,6 +125,7 @@ export default async function CapsulesIndexPage({
       entryCount: s.letters,
       photoCount: s.photos,
       voiceCount: s.voices,
+      videoCount: s.videos,
     };
   });
 

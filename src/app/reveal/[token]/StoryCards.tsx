@@ -161,12 +161,17 @@ export function StoryCards({
           <PhotoCard
             contribution={photoOrVideoVariant(current.contribution, current.view)}
             muted={muted}
+            // Auto-advance when a video plays through; a still
+            // photo card has no end event so this is a no-op for
+            // PHOTO views (a tap still drives advance).
+            onEnded={current.view === "VIDEO" ? advance : undefined}
           />
         ) : current.view === "VOICE" ? (
           <VoiceCard
             contribution={current.contribution}
             muted={muted}
             autoPlay
+            onEnded={advance}
           />
         ) : (
           <LetterCard

@@ -19,9 +19,17 @@ import type { RevealContribution } from "./RevealClient";
 export function PhotoCard({
   contribution,
   muted,
+  onEnded,
 }: {
   contribution: RevealContribution;
   muted: boolean;
+  /** Optional callback fired when a video finishes playing
+   *  through. StoryCards uses it to auto-advance the highlight
+   *  reel so the recipient stays hands-free. When set, the
+   *  video plays once instead of looping; left undefined (the
+   *  GalleryCardView default) the video keeps its loop so a
+   *  static viewer can watch repeatedly. Photos are unaffected. */
+  onEnded?: () => void;
 }) {
   const [failed, setFailed] = useState(false);
   const isVideo = contribution.type === "VIDEO";
@@ -72,8 +80,14 @@ export function PhotoCard({
             playsInline
             autoPlay
             muted={muted}
-            loop
+            // Loop only when there's nothing waiting on the
+            // video to finish — i.e. the static GalleryCardView
+            // where the viewer is paused on this slide. In the
+            // story-card flow onEnded is wired up to advance, so
+            // a single play-through is correct.
+            loop={!onEnded}
             preload="metadata"
+            onEnded={() => onEnded?.()}
             onError={() => setFailed(true)}
             className="absolute inset-0 w-full h-full object-cover"
           />
