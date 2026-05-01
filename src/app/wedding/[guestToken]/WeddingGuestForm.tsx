@@ -13,6 +13,7 @@ import {
 import { TiptapEditor } from "@/components/editor/TiptapEditor";
 import { IntroSplash } from "@/components/landing/IntroSplash";
 import { LogoSvg } from "@/components/ui/LogoSvg";
+import { SmsConsentNote } from "@/components/ui/SmsConsentNote";
 import { Typewriter } from "@/components/ui/Typewriter";
 import { PublicMediaAttachments } from "@/app/contribute/capsule/[token]/PublicMediaAttachments";
 import { formatLong } from "@/lib/dateFormatters";
@@ -876,15 +877,22 @@ function SaveForLaterModal({
                 placeholder="Last Name"
                 className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
               />
-              <input
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="Phone Number"
-                className="w-full sm:col-span-2 px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
-              />
+              <div className="sm:col-span-2">
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Phone Number"
+                  className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+                />
+                {/* SMS consent disclosure — visible at the
+                    save-for-later opt-in point so an A2P 10DLC
+                    reviewer can verify the consent flow without
+                    a wedding token. */}
+                <SmsConsentNote />
+              </div>
             </div>
             {error && (
               <p className="mt-3 text-sm text-red-600" role="alert">

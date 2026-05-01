@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Footer } from "@/components/landing/Footer";
 import { LogoSvg } from "@/components/ui/LogoSvg";
+import { SmsConsentNote } from "@/components/ui/SmsConsentNote";
 
 export const metadata = {
   title: "Get started — untilThen",
@@ -70,6 +71,16 @@ export default async function SignUpPage({
           forceRedirectUrl={onboardingTarget}
           fallbackRedirectUrl={onboardingTarget}
         />
+
+        {/* SMS consent disclosure — visible at the consent point
+            so Twilio reviewers can verify the opt-in flow without
+            signing in. Sign-up may collect a phone number for
+            verification + transactional notifications; the note
+            covers frequency, rates, STOP/HELP, and links to the
+            policies. */}
+        <div className="mt-6 max-w-[420px] w-full px-1">
+          <SmsConsentNote />
+        </div>
       </main>
       <Footer />
     </>

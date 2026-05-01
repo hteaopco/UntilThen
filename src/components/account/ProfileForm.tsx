@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
 import { AvatarUploader } from "@/components/account/AvatarUploader";
+import { SmsConsentNote } from "@/components/ui/SmsConsentNote";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 
@@ -253,7 +254,8 @@ export function ProfileForm({
                 </>
               ) : (
                 <>
-                  Optional &mdash; used for SMS recovery and reveal-day notifications.{" "}
+                  Optional &mdash; used for SMS recovery and capsule
+                  notifications.{" "}
                   <button
                     type="button"
                     onClick={() => openUserProfile()}
@@ -264,6 +266,10 @@ export function ProfileForm({
                 </>
               )}
             </p>
+            {/* SMS consent disclosure — A2P 10DLC compliance.
+                Lives directly under the phone field so the
+                opt-in language sits at the consent point. */}
+            <SmsConsentNote />
           </Field>
 
           <Field

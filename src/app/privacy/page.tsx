@@ -456,6 +456,12 @@ export default function PrivacyPage() {
         the unsubscribe link in any email or from your account notification
         settings.
       </p>
+      <p>
+        For SMS messaging see <a href="#sms-messaging">Section 9 (SMS
+        Messaging Program)</a> below — reply <strong>STOP</strong> to any
+        untilThen message to immediately end further messages, or reply{" "}
+        <strong>HELP</strong> to receive support information.
+      </p>
 
       <h3>8.6 CCPA Rights (California Residents)</h3>
       <p>
@@ -477,7 +483,130 @@ export default function PrivacyPage() {
 
       <hr />
 
-      <h2>9. Cookies</h2>
+      <h2 id="sms-messaging">9. SMS Messaging Program</h2>
+      <p>
+        untilThen sends transactional SMS messages from a U.S. long code
+        registered through the A2P 10DLC framework via our messaging
+        provider, Twilio.
+      </p>
+
+      <h3>9.1 What Messages You May Receive</h3>
+      <ul>
+        <li>
+          Account verification codes (one-time passcodes used during
+          sign-up or sign-in).
+        </li>
+        <li>
+          Capsule activity updates &mdash; confirmation that a capsule has
+          been activated, contributors have been invited, or a capsule has
+          been saved by a recipient.
+        </li>
+        <li>
+          Reveal-day alerts &mdash; on the day a capsule opens, the
+          recipient may receive a single SMS notifying them their capsule
+          is ready, with a magic link.
+        </li>
+        <li>
+          Contributor invite reminders &mdash; if a capsule contributor
+          provided a phone number through a wedding QR or guest flow and
+          opted into SMS, they may receive up to two reminders before the
+          contribution deadline.
+        </li>
+      </ul>
+
+      <h3>9.2 How You Opt In</h3>
+      <p>
+        We collect SMS consent at three points, and the consent text +
+        STOP/HELP language is shown directly at each opt-in:
+      </p>
+      <ul>
+        <li>
+          <strong>Account registration</strong> &mdash; users voluntarily
+          provide a phone number while signing up at{" "}
+          <a href="https://untilthenapp.io/sign-up">
+            untilthenapp.io/sign-up
+          </a>{" "}
+          and agree to receive transactional SMS as part of the service.
+        </li>
+        <li>
+          <strong>Direct invite</strong> &mdash; when an organiser adds a
+          contributor whose phone number is provided, the contributor may
+          receive an SMS invite or reveal-day alert. Organisers confirm at
+          submission that the recipient has consented.
+        </li>
+        <li>
+          <strong>Wedding capsule opt-in</strong> &mdash; guests
+          contributing to a wedding capsule via the public{" "}
+          <a href="https://untilthenapp.io/wedding/[token]">
+            untilthenapp.io/wedding/&hellip;
+          </a>{" "}
+          flow may provide their phone number to receive a reminder when
+          the capsule is sealed and on the reveal date.
+        </li>
+      </ul>
+
+      <h3>9.3 Message Frequency</h3>
+      <p>
+        Frequency varies by capsule activity. A typical capsule lifecycle
+        produces between <strong>1 and 5 SMS messages per recipient</strong>
+        across activation, reminders, and the reveal alert. Users who
+        provide a phone number outside an active capsule (e.g. account
+        verification only) typically receive between 1 and 2 messages per
+        sign-in.
+      </p>
+
+      <h3>9.4 Message and Data Rates</h3>
+      <p>
+        <strong>Message and data rates may apply.</strong> Standard carrier
+        rates from your mobile carrier apply to every message sent or
+        received. untilThen does not charge a separate fee for SMS.
+      </p>
+
+      <h3>9.5 STOP and HELP</h3>
+      <p>
+        You may opt out of any further untilThen SMS at any time by
+        replying <strong>STOP</strong> to any message we send. You will
+        receive a single confirmation message and no further SMS unless you
+        opt back in. Recognised opt-out keywords also include{" "}
+        <em>OPTOUT, CANCEL, END, QUIT, UNSUBSCRIBE, REVOKE</em>, and{" "}
+        <em>STOPALL</em>.
+      </p>
+      <p>
+        Reply <strong>HELP</strong> (or <em>INFO</em>) for support details.
+        For account or messaging help, contact{" "}
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>.
+      </p>
+
+      <h3>9.6 Mobile Number Handling</h3>
+      <p>
+        <strong>
+          We do not sell, rent, or share mobile numbers with third parties
+          for marketing purposes.
+        </strong>{" "}
+        Phone numbers are used only to deliver the transactional SMS
+        described above and to support account recovery. We share numbers
+        only with the service providers strictly necessary to send the
+        message (Twilio for SMS delivery; Clerk for authentication
+        verification codes). See Section 6 (How We Share Your
+        Information) for the full list of subprocessors.
+      </p>
+      <p>
+        If you remove your phone number from your account, we stop sending
+        SMS to that number on the next request and delete the stored value
+        within 30 days, except where required to retain it (e.g. fraud
+        investigation, legal hold).
+      </p>
+
+      <h3>9.7 Carriers and Geographic Scope</h3>
+      <p>
+        Our SMS program is supported by major U.S. wireless carriers
+        (AT&amp;T, T-Mobile, Verizon, and most regional carriers).
+        Messages are not currently sent to numbers outside the United
+        States. Carriers are not liable for delayed or undelivered
+        messages.
+      </p>
+
+      <h2>10. Cookies</h2>
       <p>We use cookies to:</p>
       <ul>
         <li>Keep you logged in (essential — cannot be disabled)</li>
@@ -491,7 +620,7 @@ export default function PrivacyPage() {
 
       <hr />
 
-      <h2>10. Changes to This Policy</h2>
+      <h2>11. Changes to This Policy</h2>
       <p>
         We will notify you of material changes to this Privacy Policy by email
         and by posting a notice on the app. Your continued use of untilThen
@@ -500,7 +629,7 @@ export default function PrivacyPage() {
 
       <hr />
 
-      <h2>11. Contact Us</h2>
+      <h2>12. Contact Us</h2>
       <p>
         <strong>Privacy inquiries:</strong>{" "}
         <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>

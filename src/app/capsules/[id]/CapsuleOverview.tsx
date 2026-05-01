@@ -41,6 +41,7 @@ import {
 } from "@/components/editor/MediaAttachments";
 import { TiptapEditor } from "@/components/editor/TiptapEditor";
 import { ContributorAvatar } from "@/components/ui/ContributorAvatar";
+import { SmsConsentNote } from "@/components/ui/SmsConsentNote";
 import { formatLong } from "@/lib/dateFormatters";
 import {
   OCCASION_LABELS,
@@ -2823,6 +2824,10 @@ function BrideGroomPanel({
               className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/40 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
             />
           </div>
+          {/* SMS consent — third-party variant because the organiser
+              is supplying someone else's number. They must confirm
+              the recipient has agreed before submitting. */}
+          <SmsConsentNote variant="third-party" />
           {error && (
             <p className="mt-2 text-sm text-red-600" role="alert">
               {error}

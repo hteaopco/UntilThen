@@ -429,21 +429,93 @@ export default function TermsPage() {
 
       <hr />
 
-      <h2>8. Service Availability</h2>
+      <h2 id="sms">8. SMS Messaging Program</h2>
 
-      <h3>8.1 Uptime</h3>
+      <h3>8.1 Consent</h3>
+      <p>
+        When you provide a phone number during account registration, when an
+        organiser submits your number with their consent confirmation, or
+        when you opt in through a wedding capsule&rsquo;s public guest flow,
+        you agree to receive transactional SMS messages from untilThen.
+        Consent text and opt-out instructions are shown directly at every
+        opt-in surface; full details are in{" "}
+        <a href="/privacy#sms-messaging">
+          Section 9 of our Privacy Policy
+        </a>
+        .
+      </p>
+
+      <h3>8.2 Message Types</h3>
+      <p>
+        SMS from untilThen is strictly transactional &mdash; account
+        verification codes, capsule activation confirmations, contributor
+        invite reminders, and reveal-day alerts. We do not send marketing
+        SMS through this program.
+      </p>
+
+      <h3>8.3 Frequency</h3>
+      <p>
+        Message frequency varies by capsule activity, typically{" "}
+        <strong>1&ndash;5 messages per capsule lifecycle</strong> across
+        activation, reminders, and the reveal alert. Account-only users
+        (no active capsules) typically receive 1&ndash;2 messages per
+        sign-in for verification purposes.
+      </p>
+
+      <h3>8.4 Message and Data Rates</h3>
+      <p>
+        <strong>Message and data rates may apply.</strong> Standard carrier
+        rates from your mobile carrier apply to every message sent or
+        received. untilThen does not charge a separate fee for SMS.
+      </p>
+
+      <h3>8.5 STOP and HELP</h3>
+      <p>
+        Reply <strong>STOP</strong> to any untilThen SMS to opt out of
+        further messages. You will receive a single confirmation and no
+        further SMS unless you opt back in. Recognised opt-out keywords:{" "}
+        <em>STOP, OPTOUT, CANCEL, END, QUIT, UNSUBSCRIBE, REVOKE,
+        STOPALL</em>.
+      </p>
+      <p>
+        Reply <strong>HELP</strong> (or <em>INFO</em>) to receive support
+        information. For account or messaging help, contact{" "}
+        <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>.
+      </p>
+
+      <h3>8.6 Number Handling</h3>
+      <p>
+        We do not sell, rent, or share mobile numbers with third parties
+        for marketing purposes. Numbers are shared only with the service
+        providers strictly necessary to send the message (Twilio for SMS
+        delivery; Clerk for verification codes).
+      </p>
+
+      <h3>8.7 Geographic Scope and Carriers</h3>
+      <p>
+        SMS is delivered to U.S. mobile numbers via Twilio over major
+        wireless carriers (AT&amp;T, T-Mobile, Verizon, and most regional
+        carriers). Carriers are not liable for delayed or undelivered
+        messages.
+      </p>
+
+      <hr />
+
+      <h2>9. Service Availability</h2>
+
+      <h3>9.1 Uptime</h3>
       <p>
         We aim to provide reliable service but do not guarantee 100% uptime.
         We will notify you of planned maintenance where possible.
       </p>
 
-      <h3>8.2 Changes to the Service</h3>
+      <h3>9.2 Changes to the Service</h3>
       <p>
         We may modify, update, or discontinue features of untilThen. We will
         give you reasonable notice of any significant changes.
       </p>
 
-      <h3>8.3 Discontinuation</h3>
+      <h3>9.3 Discontinuation</h3>
       <p>
         If we discontinue untilThen entirely, we will give you at least 6
         months notice and provide a full data export of all your content.
@@ -451,15 +523,15 @@ export default function TermsPage() {
 
       <hr />
 
-      <h2>9. Termination</h2>
+      <h2>10. Termination</h2>
 
-      <h3>9.1 By You</h3>
+      <h3>10.1 By You</h3>
       <p>
         You may delete your account at any time from your account settings.
         Account deletion is processed within 30 days.
       </p>
 
-      <h3>9.2 By Us</h3>
+      <h3>10.2 By Us</h3>
       <p>
         We may suspend or terminate your account immediately if you:
       </p>
@@ -477,7 +549,7 @@ export default function TermsPage() {
         will terminate without warning and report to law enforcement.
       </p>
 
-      <h3>9.3 Effect of Termination</h3>
+      <h3>10.3 Effect of Termination</h3>
       <p>
         Upon termination your access to the service ends. Your content is
         retained for 30 days before deletion, during which time you may
@@ -486,23 +558,23 @@ export default function TermsPage() {
 
       <hr />
 
-      <h2>10. Disclaimers and Limitation of Liability</h2>
+      <h2>11. Disclaimers and Limitation of Liability</h2>
 
-      <h3>10.1 Service Provided As-Is</h3>
+      <h3>11.1 Service Provided As-Is</h3>
       <p>
         untilThen is provided &ldquo;as is&rdquo; without warranties of any
         kind, express or implied. We do not warrant that the service will be
         uninterrupted, error-free, or completely secure.
       </p>
 
-      <h3>10.2 Limitation of Liability</h3>
+      <h3>11.2 Limitation of Liability</h3>
       <p>
         To the maximum extent permitted by law, untilThen&rsquo;s liability to
         you for any claim arising from your use of the service is limited to
         the amount you paid us in the 12 months preceding the claim.
       </p>
 
-      <h3>10.3 No Liability for User Content</h3>
+      <h3>11.3 No Liability for User Content</h3>
       <p>
         We are not responsible for content uploaded by users. We are not
         liable for any harm arising from content that violates these Terms,
@@ -511,7 +583,7 @@ export default function TermsPage() {
 
       <hr />
 
-      <h2>11. Indemnification</h2>
+      <h2>12. Indemnification</h2>
       <p>
         You agree to indemnify and hold untilThen harmless from any claims,
         damages, or expenses (including legal fees) arising from your use of
@@ -520,7 +592,7 @@ export default function TermsPage() {
 
       <hr />
 
-      <h2>12. Governing Law</h2>
+      <h2>13. Governing Law</h2>
       <p>
         These Terms are governed by the laws of the State of Louisiana, United
         States, without regard to conflict of law provisions. Any disputes
@@ -529,7 +601,7 @@ export default function TermsPage() {
 
       <hr />
 
-      <h2>13. Changes to These Terms</h2>
+      <h2>14. Changes to These Terms</h2>
       <p>
         We will notify you of material changes to these Terms by email at
         least 14 days before they take effect. Your continued use of untilThen
@@ -538,7 +610,7 @@ export default function TermsPage() {
 
       <hr />
 
-      <h2>14. Contact</h2>
+      <h2>15. Contact</h2>
       <p>
         <strong>General support:</strong>{" "}
         <a href="mailto:hello@untilthenapp.io">hello@untilthenapp.io</a>
