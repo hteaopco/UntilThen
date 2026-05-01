@@ -850,7 +850,10 @@ export function CapsuleCreationFlow({
                           />
                         </Field>
                       </div>
-                      {recipients.length > 1 && (
+                      {/* Wedding flow is fixed at two recipients
+                          (the couple) so the trash + "Add another
+                          person" controls are hidden there. */}
+                      {!isWedding && recipients.length > 1 && (
                         <button
                           type="button"
                           onClick={() => removeRecipient(r.key)}
@@ -863,14 +866,20 @@ export function CapsuleCreationFlow({
                     </div>
                   ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={addRecipient}
-                  className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-dashed border-amber/40 bg-amber-tint/30 px-4 py-3 text-[13px] font-semibold text-amber-dark hover:bg-amber-tint/50 transition-colors"
-                >
-                  <PlusCircle size={16} strokeWidth={1.75} aria-hidden="true" />
-                  Add another person
-                </button>
+                {/* Wedding capsules are always exactly the couple
+                    -- bride + groom seeded as the two starting
+                    rows -- so the "Add another person" affordance
+                    only shows on non-wedding flows. */}
+                {!isWedding && (
+                  <button
+                    type="button"
+                    onClick={addRecipient}
+                    className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-dashed border-amber/40 bg-amber-tint/30 px-4 py-3 text-[13px] font-semibold text-amber-dark hover:bg-amber-tint/50 transition-colors"
+                  >
+                    <PlusCircle size={16} strokeWidth={1.75} aria-hidden="true" />
+                    Add another person
+                  </button>
+                )}
               </div>
 
               {/* Date picker — moved here from step 0 once that
