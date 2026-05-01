@@ -95,14 +95,14 @@ function ReceivedPlaceholder({ seed }: { seed: string }) {
       aria-hidden="true"
     >
       <Heart
-        size={32}
-        strokeWidth={1.5}
+        size={16}
+        strokeWidth={1.75}
         className="text-amber-dark/70"
       />
       <Sparkles
-        size={16}
+        size={10}
         strokeWidth={1.75}
-        className="absolute top-2 right-2.5 text-amber/90"
+        className="absolute top-1.5 right-2 text-amber/90"
       />
     </div>
   );
