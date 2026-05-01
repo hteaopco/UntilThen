@@ -204,12 +204,12 @@ export function CapsuleCreationFlow({
   // Wedding flow skips Step 0 (tone — locked to LOVE) entirely.
   // The user picked WEDDING from the /weddings landing, so the
   // tone interstitial is just friction. Counter + back button
-  // both clamp to firstStep below. After consolidating tone +
-  // occasion + date onto step 0, the wedding flow needs to start
-  // there too (the wedding date input lives on step 0). Tone and
-  // occasion are auto-set + hidden for wedding so the visible
-  // step 0 only renders the date input.
-  const firstStep = 0;
+  // Wedding flow auto-locks tone (LOVE) + occasion (WEDDING),
+  // so step 0's only purpose for non-wedding capsules — picking
+  // those two — is empty for weddings. Skip it: weddings start
+  // at step 1 (title + recipients + date), and the progress
+  // bar shrinks accordingly via visibleStepCount.
+  const firstStep = isWedding ? 1 : 0;
   const visibleStepCount = TOTAL_STEPS - firstStep;
 
   const [step, setStep] = useState(firstStep);
