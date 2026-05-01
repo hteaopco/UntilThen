@@ -698,7 +698,7 @@ export function CapsuleCreationFlow({
                           {active && (
                             <span
                               aria-hidden="true"
-                              className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber text-white"
+                              className="shrink-0 ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber text-white"
                             >
                               <Check size={12} strokeWidth={2.5} />
                             </span>
