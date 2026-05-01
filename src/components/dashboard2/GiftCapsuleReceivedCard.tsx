@@ -37,7 +37,7 @@ export function GiftCapsuleReceivedCard({ capsule }: { capsule: GiftCapsuleRecei
       prefetch={false}
       className="flex items-center gap-4 rounded-2xl bg-white border border-navy/[0.06] shadow-[0_4px_14px_-6px_rgba(15,31,61,0.08)] p-3 sm:p-4 hover:border-amber/30 transition-colors"
     >
-      <div className="shrink-0 w-[96px] h-[72px] sm:w-[112px] sm:h-[84px] rounded-xl overflow-hidden bg-gradient-to-br from-amber/25 via-cream to-sage/20 border border-navy/[0.05]">
+      <div className="shrink-0 w-[72px] h-[72px] sm:w-[80px] sm:h-[80px] rounded-xl overflow-hidden bg-gradient-to-br from-amber/25 via-cream to-sage/20 border border-navy/[0.05]">
         {capsule.coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={capsule.coverUrl} alt="" className="w-full h-full object-cover" />
@@ -95,14 +95,14 @@ function ReceivedPlaceholder({ seed }: { seed: string }) {
       aria-hidden="true"
     >
       <Heart
-        size={16}
-        strokeWidth={1.75}
+        size={32}
+        strokeWidth={1.5}
         className="text-amber-dark/70"
       />
       <Sparkles
-        size={10}
+        size={16}
         strokeWidth={1.75}
-        className="absolute top-1.5 right-2 text-amber/90"
+        className="absolute top-2 right-2.5 text-amber/90"
       />
     </div>
   );
