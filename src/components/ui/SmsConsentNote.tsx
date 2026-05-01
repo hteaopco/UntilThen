@@ -35,7 +35,7 @@ export function SmsConsentNote({
     <p
       className={
         className ??
-        "mt-1.5 text-[11px] leading-[1.55] text-ink-light/85"
+        "mt-1.5 text-[12px] leading-[1.55] text-ink-mid"
       }
     >
       {lead} &mdash; account verification codes, capsule reveal alerts,

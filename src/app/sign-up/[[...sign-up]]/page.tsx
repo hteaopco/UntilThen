@@ -48,6 +48,20 @@ export default async function SignUpPage({
           <LogoSvg variant="dark" width={140} height={28} />
         </Link>
 
+        {/* SMS consent disclosure — surfaced ABOVE the Clerk
+            widget so an A2P 10DLC reviewer (and end users) see
+            the consent language before submitting any field.
+            Clerk's <SignUp> renders as an opaque component, so
+            we can't physically insert this between its email
+            and phone inputs; pinning it above the widget keeps
+            the disclosure on the page at the consent point. */}
+        <div className="mb-5 max-w-[440px] w-full rounded-xl border border-amber/30 bg-amber-tint/40 px-4 py-3">
+          <p className="text-[11px] uppercase tracking-[0.12em] font-bold text-amber-dark mb-1">
+            Phone number & SMS notifications
+          </p>
+          <SmsConsentNote className="text-[12px] leading-[1.55] text-navy/80" />
+        </div>
+
         <SignUp
           appearance={{
             elements: {
@@ -71,16 +85,6 @@ export default async function SignUpPage({
           forceRedirectUrl={onboardingTarget}
           fallbackRedirectUrl={onboardingTarget}
         />
-
-        {/* SMS consent disclosure — visible at the consent point
-            so Twilio reviewers can verify the opt-in flow without
-            signing in. Sign-up may collect a phone number for
-            verification + transactional notifications; the note
-            covers frequency, rates, STOP/HELP, and links to the
-            policies. */}
-        <div className="mt-6 max-w-[420px] w-full px-1">
-          <SmsConsentNote />
-        </div>
       </main>
       <Footer />
     </>
