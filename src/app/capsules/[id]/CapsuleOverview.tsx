@@ -892,10 +892,22 @@ function PendingApprovalCard({
   onReject: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  // Detect whether the 3-line clamp is actually trimming the
+  // body. The earlier character-count threshold was unreliable
+  // because line-clamp truncates by rendered lines, not chars,
+  // and viewport width changes the wrap point. Comparing the
+  // paragraph's scrollHeight to its clientHeight when collapsed
+  // catches every clipped case regardless of length.
+  const [clipped, setClipped] = useState(false);
+  const bodyRef = useRef<HTMLParagraphElement | null>(null);
   const plain = (contribution.body ?? "").replace(/<[^>]+>/g, " ").trim();
-  // Show the toggle only if there's actually more text to reveal
-  // — short bodies don't need a fake "Show more" affordance.
-  const isLong = plain.length > 240;
+  useEffect(() => {
+    if (expanded) return;
+    const el = bodyRef.current;
+    if (!el) return;
+    // Allow a 1px slop to avoid jitter from sub-pixel rounding.
+    setClipped(el.scrollHeight - el.clientHeight > 1);
+  }, [plain, expanded]);
 
   return (
     <li className="rounded-xl bg-white border border-gold/20 px-4 py-3">
@@ -912,13 +924,14 @@ function PendingApprovalCard({
       {plain && (
         <>
           <p
+            ref={bodyRef}
             className={`mt-1.5 text-sm text-ink-mid leading-[1.55] whitespace-pre-wrap break-words${
               expanded ? "" : " line-clamp-3"
             }`}
           >
             {plain}
           </p>
-          {isLong && (
+          {(clipped || expanded) && (
             <button
               type="button"
               onClick={() => setExpanded((v) => !v)}
