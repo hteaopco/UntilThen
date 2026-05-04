@@ -111,7 +111,7 @@ const EXTENDED_GROUPS: {
     occasions: [
       { value: "ENGAGEMENT", label: "Engagement", icon: <Gem size={20} strokeWidth={1.6} /> },
       { value: "BAPTISM", label: "Baptism / Christening", icon: <Cross size={20} strokeWidth={1.6} /> },
-      { value: "CONGRATULATIONS", label: "Congratulations", icon: <Sparkles size={20} strokeWidth={1.6} /> },
+      { value: "CONGRATULATIONS", label: "Congrats", icon: <Sparkles size={20} strokeWidth={1.6} /> },
     ],
   },
   {
@@ -768,7 +768,7 @@ export function CapsuleCreationFlow({
                           {active && (
                             <span
                               aria-hidden="true"
-                              className="absolute top-1.5 right-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber text-white shadow-[0_2px_6px_rgba(196,122,58,0.25)]"
+                              className="absolute -top-2.5 -right-2.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber text-white shadow-[0_2px_6px_rgba(196,122,58,0.25)]"
                             >
                               <Check size={12} strokeWidth={2.5} />
                             </span>
@@ -778,18 +778,18 @@ export function CapsuleCreationFlow({
                     })}
                   </div>
 
-                  {/* More occasions expander — collapsible card
-                      revealing extended occasions grouped by
-                      Celebrations / Appreciation & Care / Support.
-                      Selecting from here writes to the same
-                      occasionType state as the primary grid; the
-                      tick badge flows wherever the selection is. */}
-                  <div>
+                  {/* More occasions expander — single tinted
+                      container that hosts both the toggle button
+                      and the expanded category groups. When open
+                      the toggle stays at the top and an inner
+                      divider separates it from the grid below;
+                      when collapsed only the toggle row paints. */}
+                  <div className="rounded-2xl border border-amber/40 bg-amber-tint/30 overflow-hidden">
                     <button
                       type="button"
                       onClick={() => setMoreOccasionsOpen((v) => !v)}
                       aria-expanded={moreOccasionsOpen}
-                      className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-amber/40 bg-amber-tint/30 px-4 py-3 text-[13px] font-bold text-amber-dark hover:bg-amber-tint/50 transition-colors"
+                      className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-[13px] font-bold text-amber-dark hover:bg-amber-tint/50 transition-colors"
                     >
                       <span
                         aria-hidden="true"
@@ -810,7 +810,7 @@ export function CapsuleCreationFlow({
                       />
                     </button>
                     {moreOccasionsOpen && (
-                      <div className="mt-3 rounded-2xl border border-amber/30 bg-amber-tint/30 px-4 py-5 space-y-5">
+                      <div className="border-t border-amber/30 px-4 py-5 space-y-5">
                         {EXTENDED_GROUPS.map((group) => (
                           <div key={group.label}>
                             <h3 className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-mid mb-2">
@@ -845,7 +845,7 @@ export function CapsuleCreationFlow({
                                     {active && (
                                       <span
                                         aria-hidden="true"
-                                        className="absolute top-1.5 right-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber text-white shadow-[0_2px_6px_rgba(196,122,58,0.25)]"
+                                        className="absolute -top-2.5 -right-2.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber text-white shadow-[0_2px_6px_rgba(196,122,58,0.25)]"
                                       >
                                         <Check size={12} strokeWidth={2.5} />
                                       </span>
