@@ -348,24 +348,22 @@ export function CapsuleCreationFlow({
   const [pickerOpen, setPickerOpen] = useState(false);
 
   function applyPickedEmployee(picks: PickedEmployee[]) {
-    const p = picks[0];
-    if (!p) return;
-    // Replaces the first row with the picked employee. Multi-
-    // recipient picking is left for a future iteration; for now
-    // the database picker stays single-select and just seeds the
-    // primary recipient so the rest of the flow can carry on.
+    if (picks.length === 0) return;
+    // Replace the recipient list with one row per picked
+    // employee. The picker runs in multi-select mode, so an
+    // org admin can stage a 5-person Boss's-Day capsule (or
+    // similar) in a single pass instead of opening it five
+    // times. We replace rather than append so re-opening the
+    // picker re-states the recipient list -- otherwise an
+    // edit pass would balloon the row count.
     setRecipients((rs) => {
-      const head = rs[0];
-      const rest = rs.slice(1);
-      return [
-        {
-          key: head?.key ?? newRecipientKey(),
-          firstName: p.firstName,
-          lastName: p.lastName,
-          email: p.email,
-        },
-        ...rest,
-      ];
+      const headKey = rs[0]?.key ?? newRecipientKey();
+      return picks.map((p, i) => ({
+        key: i === 0 ? headKey : newRecipientKey(),
+        firstName: p.firstName,
+        lastName: p.lastName,
+        email: p.email,
+      }));
     });
     setStepError(null);
     setPickerOpen(false);
@@ -946,7 +944,7 @@ export function CapsuleCreationFlow({
                 />
               </Field>
 
-              {organizationId && recipients.length === 1 && (
+              {organizationId && (
                 <button
                   type="button"
                   onClick={() => setPickerOpen(true)}
@@ -1284,7 +1282,7 @@ export function CapsuleCreationFlow({
       {pickerOpen && organizationId && (
         <EmployeePickerModal
           orgId={organizationId}
-          mode="single"
+          mode="multi"
           onClose={() => setPickerOpen(false)}
           onConfirm={applyPickedEmployee}
         />
