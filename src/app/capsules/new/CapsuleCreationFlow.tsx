@@ -4,8 +4,12 @@ import { useAuth } from "@clerk/nextjs";
 import {
   Cake,
   Check,
+  ChevronDown,
+  Cross,
   Feather,
   Flame,
+  Flower2,
+  Gem,
   Gift,
   GraduationCap,
   HandHeart,
@@ -13,10 +17,12 @@ import {
   HeartHandshake,
   Palmtree,
   PartyPopper,
+  Plus,
   PlusCircle,
   Sparkles,
   Trash2,
   User as UserIcon,
+  Users,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -48,6 +54,13 @@ type OccasionType =
   | "GRADUATION"
   | "WEDDING"
   | "JUST_BECAUSE"
+  | "ENGAGEMENT"
+  | "BAPTISM"
+  | "CONGRATULATIONS"
+  | "THANK_YOU"
+  | "FRIENDSHIP"
+  | "GET_WELL"
+  | "SYMPATHY"
   | "OTHER";
 
 
@@ -77,6 +90,53 @@ const OCCASIONS: {
   { value: "WEDDING", label: "Wedding", icon: <HeartHandshake size={20} strokeWidth={1.6} /> },
   { value: "JUST_BECAUSE", label: "Just because", icon: <Gift size={20} strokeWidth={1.6} /> },
 ];
+
+// Additional occasions revealed by the "More occasions" expander
+// on step 1. Grouped into the three sections from the design
+// mock (Celebrations / Appreciation & Care / Support). The
+// expander is collapsed by default; selecting any option still
+// writes to the same `occasionType` state as the primary grid,
+// so the API + email tone-routing don't need to know whether the
+// pick came from the visible six or the extended set.
+const EXTENDED_GROUPS: {
+  label: string;
+  occasions: {
+    value: OccasionType;
+    label: string;
+    icon: React.ReactNode;
+  }[];
+}[] = [
+  {
+    label: "Celebrations",
+    occasions: [
+      { value: "ENGAGEMENT", label: "Engagement", icon: <Gem size={20} strokeWidth={1.6} /> },
+      { value: "BAPTISM", label: "Baptism / Christening", icon: <Cross size={20} strokeWidth={1.6} /> },
+      { value: "CONGRATULATIONS", label: "Congratulations", icon: <Sparkles size={20} strokeWidth={1.6} /> },
+    ],
+  },
+  {
+    label: "Appreciation & Care",
+    occasions: [
+      { value: "THANK_YOU", label: "Thank you", icon: <HandHeart size={20} strokeWidth={1.6} /> },
+      { value: "FRIENDSHIP", label: "Friendship", icon: <Users size={20} strokeWidth={1.6} /> },
+    ],
+  },
+  {
+    label: "Support",
+    occasions: [
+      { value: "GET_WELL", label: "Get well", icon: <Plus size={20} strokeWidth={1.6} /> },
+      { value: "SYMPATHY", label: "Sympathy", icon: <Flower2 size={20} strokeWidth={1.6} /> },
+    ],
+  },
+];
+
+// Flat lookup of every extended occasion value so the wizard
+// can decide whether the currently-selected occasion lives in
+// the expander (in which case open it on mount) or in the
+// primary grid.
+const EXTENDED_VALUES = new Set<OccasionType>(
+  EXTENDED_GROUPS.flatMap((g) => g.occasions.map((o) => o.value)),
+);
 
 const TIME_PRESETS = [
   { value: "09:00", label: "Morning (9:00 AM)" },
@@ -264,6 +324,12 @@ export function CapsuleCreationFlow({
   const isCouple = recipients.length === 2;
   const [occasionType, setOccasionType] = useState<OccasionType | null>(
     initialOccasion ?? null,
+  );
+  // "More occasions" expander on step 1. Open on mount when the
+  // already-selected occasion lives in the extended set so the
+  // organiser sees what they picked when they navigate back.
+  const [moreOccasionsOpen, setMoreOccasionsOpen] = useState<boolean>(
+    () => occasionType !== null && EXTENDED_VALUES.has(occasionType),
   );
   const [otherOccasion, setOtherOccasion] = useState("");
   const [revealDate, setRevealDate] = useState("");
@@ -710,6 +776,88 @@ export function CapsuleCreationFlow({
                         </button>
                       );
                     })}
+                  </div>
+
+                  {/* More occasions expander — collapsible card
+                      revealing extended occasions grouped by
+                      Celebrations / Appreciation & Care / Support.
+                      Selecting from here writes to the same
+                      occasionType state as the primary grid; the
+                      tick badge flows wherever the selection is. */}
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => setMoreOccasionsOpen((v) => !v)}
+                      aria-expanded={moreOccasionsOpen}
+                      className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-amber/40 bg-amber-tint/30 px-4 py-3 text-[13px] font-bold text-amber-dark hover:bg-amber-tint/50 transition-colors"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-amber/50 text-amber"
+                      >
+                        {moreOccasionsOpen ? (
+                          <span className="block h-[2px] w-[10px] bg-amber" />
+                        ) : (
+                          <Plus size={12} strokeWidth={2.5} />
+                        )}
+                      </span>
+                      More occasions
+                      <ChevronDown
+                        size={14}
+                        strokeWidth={2.25}
+                        aria-hidden="true"
+                        className={`transition-transform ${moreOccasionsOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    {moreOccasionsOpen && (
+                      <div className="mt-3 rounded-2xl border border-amber/30 bg-amber-tint/30 px-4 py-5 space-y-5">
+                        {EXTENDED_GROUPS.map((group) => (
+                          <div key={group.label}>
+                            <h3 className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-mid mb-2">
+                              {group.label}
+                            </h3>
+                            <div className="grid grid-cols-2 gap-3">
+                              {group.occasions.map((o) => {
+                                const active = occasionType === o.value;
+                                return (
+                                  <button
+                                    key={o.value}
+                                    type="button"
+                                    onClick={() => {
+                                      setOccasionType(o.value);
+                                      setStepError(null);
+                                    }}
+                                    className={`relative flex items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-colors ${
+                                      active
+                                        ? "border-amber bg-amber-tint/60 shadow-[0_2px_8px_rgba(196,122,58,0.10)]"
+                                        : "border-navy/10 bg-white hover:border-amber/40"
+                                    }`}
+                                  >
+                                    <span
+                                      className={`shrink-0 ${active ? "text-amber" : "text-navy"}`}
+                                      aria-hidden="true"
+                                    >
+                                      {o.icon}
+                                    </span>
+                                    <span className="text-[14px] font-bold text-navy leading-tight">
+                                      {o.label}
+                                    </span>
+                                    {active && (
+                                      <span
+                                        aria-hidden="true"
+                                        className="absolute top-1.5 right-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber text-white shadow-[0_2px_6px_rgba(196,122,58,0.25)]"
+                                      >
+                                        <Check size={12} strokeWidth={2.5} />
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Tone — optional, with a "Recommended" badge

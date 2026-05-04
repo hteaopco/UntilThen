@@ -262,6 +262,13 @@ export const OCCASION_LABELS: Record<
   | "GRADUATION"
   | "WEDDING"
   | "JUST_BECAUSE"
+  | "ENGAGEMENT"
+  | "BAPTISM"
+  | "CONGRATULATIONS"
+  | "THANK_YOU"
+  | "FRIENDSHIP"
+  | "GET_WELL"
+  | "SYMPATHY"
   | "OTHER",
   string
 > = {
@@ -271,5 +278,12 @@ export const OCCASION_LABELS: Record<
   GRADUATION: "Graduation",
   WEDDING: "Wedding",
   JUST_BECAUSE: "Just Because",
+  ENGAGEMENT: "Engagement",
+  BAPTISM: "Baptism / Christening",
+  CONGRATULATIONS: "Congratulations",
+  THANK_YOU: "Thank you",
+  FRIENDSHIP: "Friendship",
+  GET_WELL: "Get well",
+  SYMPATHY: "Sympathy",
   OTHER: "Other",
 };
