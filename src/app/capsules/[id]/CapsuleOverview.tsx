@@ -539,46 +539,13 @@ export function CapsuleOverview({
             </h2>
             <ul className="space-y-3">
               {pending.map((c) => (
-                <li
+                <PendingApprovalCard
                   key={c.id}
-                  className="rounded-xl bg-white border border-gold/20 px-4 py-3"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <ContributorAvatar
-                      name={c.authorName}
-                      imageUrl={c.authorAvatarUrl}
-                      size={28}
-                    />
-                    <div className="text-xs text-ink-light uppercase tracking-[0.1em] font-bold">
-                      {c.type.toLowerCase()} · {c.authorName}
-                    </div>
-                  </div>
-                  {c.body && (
-                    <p className="mt-1.5 text-sm text-ink-mid line-clamp-3">
-                      {c.body.replace(/<[^>]+>/g, " ").slice(0, 240)}
-                    </p>
-                  )}
-                  <div className="mt-3 flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => approve(c.id)}
-                      disabled={busy === c.id}
-                      className="inline-flex items-center gap-1.5 bg-amber text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-amber-dark transition-colors disabled:opacity-50"
-                    >
-                      <Check size={12} strokeWidth={2} aria-hidden="true" />
-                      Approve
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => reject(c.id)}
-                      disabled={busy === c.id}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-mid hover:text-red-600 transition-colors disabled:opacity-50 px-2 py-1.5"
-                    >
-                      <X size={12} strokeWidth={2} aria-hidden="true" />
-                      Reject
-                    </button>
-                  </div>
-                </li>
+                  contribution={c}
+                  busy={busy === c.id}
+                  onApprove={() => approve(c.id)}
+                  onReject={() => reject(c.id)}
+                />
               ))}
             </ul>
           </div>
@@ -897,6 +864,99 @@ export function CapsuleOverview({
         />
       )}
     </main>
+  );
+}
+
+// ── Pending approval card ──────────────────────────────────
+
+/**
+ * Single pending-approval row in the gold-tinted moderation
+ * card. Owns its own expand state so the organiser can read the
+ * full body before deciding without leaving the page; collapsed
+ * shows a 3-line clamp + "Show more" link, expanded renders the
+ * complete body with a "Show less" link to collapse again.
+ *
+ * Body is HTML-stripped before render — the editor stores rich
+ * text but the moderation surface intentionally reads as plain
+ * text so the organiser can scan a long contribution quickly.
+ */
+function PendingApprovalCard({
+  contribution,
+  busy,
+  onApprove,
+  onReject,
+}: {
+  contribution: ContributionRow;
+  busy: boolean;
+  onApprove: () => void;
+  onReject: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const plain = (contribution.body ?? "").replace(/<[^>]+>/g, " ").trim();
+  // Show the toggle only if there's actually more text to reveal
+  // — short bodies don't need a fake "Show more" affordance.
+  const isLong = plain.length > 240;
+
+  return (
+    <li className="rounded-xl bg-white border border-gold/20 px-4 py-3">
+      <div className="flex items-center gap-2.5">
+        <ContributorAvatar
+          name={contribution.authorName}
+          imageUrl={contribution.authorAvatarUrl}
+          size={28}
+        />
+        <div className="text-xs text-ink-light uppercase tracking-[0.1em] font-bold">
+          {contribution.type.toLowerCase()} · {contribution.authorName}
+        </div>
+      </div>
+      {plain && (
+        <>
+          <p
+            className={`mt-1.5 text-sm text-ink-mid leading-[1.55] whitespace-pre-wrap break-words${
+              expanded ? "" : " line-clamp-3"
+            }`}
+          >
+            {plain}
+          </p>
+          {isLong && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="mt-1 text-xs font-bold text-amber hover:text-amber-dark transition-colors"
+            >
+              {expanded ? "Show less" : "Show more"}
+            </button>
+          )}
+        </>
+      )}
+      {contribution.attachmentCount > 0 && (
+        <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] italic text-ink-light">
+          <Paperclip size={11} strokeWidth={1.75} aria-hidden="true" />
+          {contribution.attachmentCount}{" "}
+          {contribution.attachmentCount === 1 ? "attachment" : "attachments"}
+        </p>
+      )}
+      <div className="mt-3 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onApprove}
+          disabled={busy}
+          className="inline-flex items-center gap-1.5 bg-amber text-white px-3 py-1.5 rounded text-xs font-bold hover:bg-amber-dark transition-colors disabled:opacity-50"
+        >
+          <Check size={12} strokeWidth={2} aria-hidden="true" />
+          Approve
+        </button>
+        <button
+          type="button"
+          onClick={onReject}
+          disabled={busy}
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-ink-mid hover:text-red-600 transition-colors disabled:opacity-50 px-2 py-1.5"
+        >
+          <X size={12} strokeWidth={2} aria-hidden="true" />
+          Reject
+        </button>
+      </div>
+    </li>
   );
 }
 
