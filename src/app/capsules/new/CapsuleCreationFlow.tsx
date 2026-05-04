@@ -126,14 +126,17 @@ const TOTAL_STEPS = 5;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Visible tone picker — the four common ones the screenshot
-// shows. THINKING_OF_YOU + OTHER stay valid CapsuleTone values
-// for legacy capsules created before this picker shrank, but
-// new capsules pick from this short list.
+// shows. Order chosen so the row wraps cleanly: a long word
+// ("Encouraging") at the very end, with a shorter "Loving"
+// pill ahead of it so row 2 starts with the shorter label.
+// THINKING_OF_YOU + OTHER stay valid CapsuleTone values for
+// legacy capsules created before this picker shrank, but new
+// capsules pick from this short list.
 const TONE_OPTIONS: CapsuleTone[] = [
   "CELEBRATION",
   "GRATITUDE",
-  "ENCOURAGEMENT",
   "LOVE",
+  "ENCOURAGEMENT",
 ];
 
 function yyyymmdd(d: Date): string {
@@ -411,12 +414,13 @@ export function CapsuleCreationFlow({
             : `Recipient ${i + 1} first name is required`;
         }
       }
-      // Date moved from the original "Occasion + date" step onto
-      // this one once step 0 became the occasion + tone screen.
-      if (!revealDate) return "Please select a reveal date";
       return null;
     }
     if (step === 2) {
+      // Date moved here from the recipients step so the
+      // "When should we deliver?" screen owns both the date
+      // and the time-of-day choice in one place.
+      if (!revealDate) return "Please select a reveal date";
       if (!deliveryTime) return "Please select a delivery time";
       // Mirror the API's same-day buffer so a manually-typed
       // custom time can't slip past the picker. Wedding flow's
@@ -698,7 +702,7 @@ export function CapsuleCreationFlow({
                           {active && (
                             <span
                               aria-hidden="true"
-                              className="absolute -top-2.5 -right-2.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber text-white shadow-[0_2px_6px_rgba(196,122,58,0.25)]"
+                              className="absolute -top-3 -right-3 inline-flex h-5 w-5 items-center justify-center rounded-full bg-amber text-white shadow-[0_2px_6px_rgba(196,122,58,0.25)]"
                             >
                               <Check size={12} strokeWidth={2.5} />
                             </span>
@@ -881,11 +885,23 @@ export function CapsuleCreationFlow({
                   </button>
                 )}
               </div>
+            </div>
+          )}
 
-              {/* Date picker — moved here from step 0 once that
-                  screen narrowed to occasion + tone. Wedding date
-                  copy is preserved (input collects the wedding
-                  day; the actual reveal lands +1 year later). */}
+          {/* ── Step 2: Date + delivery time ───────────── */}
+          {step === 2 && (
+            <div className="space-y-5">
+              <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
+                When should we deliver?
+              </h1>
+              <p className="text-[15px] text-ink-mid leading-[1.6]">
+                Choose the date and time {recipientFirstName.trim() || "they"} receives the capsule.
+              </p>
+
+              {/* Date picker — sits above the time presets so the
+                  organiser picks the day first, then the slot.
+                  Same wedding +1y copy + horizon validation that
+                  was previously on the recipients step. */}
               <div>
                 <Label>{isWedding ? "Wedding Date" : "Reveal date"}</Label>
                 <input
@@ -921,18 +937,6 @@ export function CapsuleCreationFlow({
                     : "They’ll open everything at once on this day."}
                 </p>
               </div>
-            </div>
-          )}
-
-          {/* ── Step 2: Delivery time ──────────────────── */}
-          {step === 2 && (
-            <div className="space-y-5">
-              <h1 className="text-[28px] lg:text-[34px] font-extrabold text-navy tracking-[-0.5px] leading-tight">
-                When should we deliver?
-              </h1>
-              <p className="text-[15px] text-ink-mid leading-[1.6]">
-                Choose the time {recipientFirstName.trim() || "they"} receives the capsule.
-              </p>
 
               <div>
                 <Label>Delivery time</Label>
