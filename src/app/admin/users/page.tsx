@@ -108,7 +108,7 @@ export default async function AdminUsersPage() {
   if (!data.ok) {
     return (
       <main className="min-h-screen bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-10">
+        <div className="mx-auto max-w-5xl px-6 py-10">
           <AdminHeader />
           <div className="rounded-lg border border-red-200 bg-red-50 p-5">
             <p className="text-sm font-bold text-red-700 mb-1">
@@ -126,7 +126,7 @@ export default async function AdminUsersPage() {
 
   return (
     <main className="min-h-screen bg-white">
-      <div className="mx-auto max-w-6xl px-6 py-10">
+      <div className="mx-auto max-w-5xl px-6 py-10">
         <AdminHeader />
         <UsersClient initialUsers={data.users} />
       </div>

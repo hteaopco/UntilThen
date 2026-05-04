@@ -164,7 +164,7 @@ export default async function AdminAnalyticsPage() {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <main className="min-h-screen bg-white">
-      <div className="mx-auto max-w-6xl px-6 py-10">
+      <div className="mx-auto max-w-5xl px-6 py-10">
         <AdminHeader />
         {children}
       </div>

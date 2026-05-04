@@ -50,7 +50,7 @@ export default async function CapsuleLandingPage({
     <main className="min-h-screen bg-cream pb-16 overflow-x-clip">
       <TopNav />
 
-      <div className="mx-auto max-w-[1020px] px-5 sm:px-6 lg:px-10 pt-6 space-y-8 sm:space-y-10">
+      <div className="mx-auto max-w-[900px] px-5 sm:px-6 lg:px-10 pt-6 space-y-8 sm:space-y-10">
         <CapsuleHero
           vaultId={vault.id}
           childFirstName={child.firstName}

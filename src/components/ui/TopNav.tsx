@@ -47,7 +47,7 @@ export async function TopNav() {
 
   return (
     <header className="border-b border-navy/[0.06] bg-cream">
-      <div className="mx-auto max-w-[1020px] px-6 lg:px-10 py-4 flex items-center justify-between gap-4">
+      <div className="mx-auto max-w-[900px] px-6 lg:px-10 py-4 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <HomeBackNav
             homeHref={homeHref}

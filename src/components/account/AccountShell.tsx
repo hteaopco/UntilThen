@@ -34,7 +34,7 @@ export function AccountShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <section className="mx-auto max-w-[1020px] px-6 lg:px-10 pt-8 lg:pt-10 pb-24 lg:pb-12">
+    <section className="mx-auto max-w-[900px] px-6 lg:px-10 pt-8 lg:pt-10 pb-24 lg:pb-12">
       <h1 className="text-[32px] lg:text-[40px] font-extrabold text-navy tracking-[-0.8px] leading-[1.05] mb-8">
         Account
       </h1>

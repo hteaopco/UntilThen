@@ -34,7 +34,7 @@ export function EnterpriseShell({
   const isAdmin = role === "OWNER" || role === "ADMIN";
 
   return (
-    <div className="mx-auto max-w-[1200px] px-5 sm:px-6 lg:px-10 pt-6 pb-12">
+    <div className="mx-auto max-w-[1024px] px-5 sm:px-6 lg:px-10 pt-6 pb-12">
       <header className="mb-6">
         <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber">
           Enterprise

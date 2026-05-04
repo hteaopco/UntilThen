@@ -367,7 +367,7 @@ export function CapsuleOverview({
 
   return (
     <main className="min-h-screen bg-cream">
-      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10 pb-2">
+      <section className="mx-auto max-w-[720px] px-6 lg:px-10 pt-10 pb-2">
         <div className="flex items-center gap-2 mb-3 flex-wrap">
           <span className="inline-flex items-center gap-2 text-[11px] font-bold tracking-[0.14em] uppercase text-amber">
             <Sparkles size={14} strokeWidth={1.75} aria-hidden="true" />
@@ -455,7 +455,7 @@ export function CapsuleOverview({
       {capsule.occasionType !== "WEDDING" && (
         <section
           id="your-message"
-          className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8"
+          className="mx-auto max-w-[720px] px-6 lg:px-10 pt-8"
         >
           <OwnContribution
             capsuleId={capsule.id}
@@ -481,7 +481,7 @@ export function CapsuleOverview({
       {capsule.occasionType !== "WEDDING" && (
         <section
           id="invite-people"
-          className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8"
+          className="mx-auto max-w-[720px] px-6 lg:px-10 pt-8"
         >
           <button
             type="button"
@@ -532,7 +532,7 @@ export function CapsuleOverview({
       )}
 
       {pending.length > 0 && (
-        <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-8">
+        <section className="mx-auto max-w-[720px] px-6 lg:px-10 pt-8">
           <div className="rounded-2xl border border-gold/25 bg-gold-tint/40 px-5 py-5">
             <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-gold mb-3">
               Pending approval · {pending.length}
@@ -600,7 +600,7 @@ export function CapsuleOverview({
       {!(isOrgAttributed && isDraft) && (
       <section
         id="activate"
-        className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10"
+        className="mx-auto max-w-[720px] px-6 lg:px-10 pt-10"
       >
         <div className="rounded-2xl border border-amber/25 bg-amber-tint/40 px-6 py-6 space-y-3">
           <h2 className="text-xl font-extrabold text-navy tracking-[-0.3px] text-balance break-words">
@@ -779,7 +779,7 @@ export function CapsuleOverview({
       {/* Live capsule summary (post-activation): contributions
           land here. Replaces the activate panel once isPaid. */}
       {!isDraft && (
-        <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10 pb-6">
+        <section className="mx-auto max-w-[720px] px-6 lg:px-10 pt-10 pb-6">
           <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-mid mb-3">
             Contributions ·{" "}
             {redactContributions ? contributionCount : live.length}
@@ -841,7 +841,7 @@ export function CapsuleOverview({
         </section>
       )}
 
-      <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-12 pb-20 text-center opacity-60">
+      <section className="mx-auto max-w-[720px] px-6 lg:px-10 pt-12 pb-20 text-center opacity-60">
         <button
           type="button"
           onClick={() => setDeleteOpen(true)}
@@ -2341,7 +2341,7 @@ function WeddingGuestSharePanel({
   }
 
   return (
-    <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-10">
+    <section className="mx-auto max-w-[720px] px-6 lg:px-10 pt-10">
       <div className="rounded-2xl border border-amber/25 bg-white px-6 py-6 grid sm:grid-cols-[1fr_auto] gap-6 items-center shadow-[0_4px_18px_rgba(196,122,58,0.08)]">
         <div className="min-w-0">
           <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber inline-flex items-center gap-1.5">
@@ -2445,7 +2445,7 @@ function MarketingCollateralPanel({ capsuleId }: { capsuleId: string }) {
   const [active, setActive] = useState<CollateralCard | null>(null);
 
   return (
-    <section className="mx-auto max-w-[840px] px-6 lg:px-10 pt-6">
+    <section className="mx-auto max-w-[720px] px-6 lg:px-10 pt-6">
       <div className="rounded-2xl border border-amber/25 bg-white shadow-[0_4px_18px_rgba(196,122,58,0.08)]">
         <button
           type="button"

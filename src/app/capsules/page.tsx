@@ -132,7 +132,7 @@ export default async function CapsulesIndexPage({
   return (
     <>
       <TopNav />
-      <main className="mx-auto max-w-[840px] px-6 lg:px-10 pt-6 pb-12">
+      <main className="mx-auto max-w-[720px] px-6 lg:px-10 pt-6 pb-12">
         <Link
           href="/dashboard"
           prefetch={false}

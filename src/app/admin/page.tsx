@@ -11,7 +11,7 @@ export default async function AdminDashboard() {
   if (!process.env.DATABASE_URL) {
     return (
       <main className="min-h-screen bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-10">
+        <div className="mx-auto max-w-5xl px-6 py-10">
           <AdminHeader />
           <p className="text-sm text-red-600">DATABASE_URL is not set.</p>
         </div>
@@ -152,7 +152,7 @@ export default async function AdminDashboard() {
 
   return (
     <main className="min-h-screen bg-white">
-      <div className="mx-auto max-w-6xl px-6 py-10">
+      <div className="mx-auto max-w-5xl px-6 py-10">
         <AdminHeader />
 
         {/* Key Metrics */}
