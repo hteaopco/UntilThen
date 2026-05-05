@@ -76,7 +76,40 @@ export function CapsuleContributeForm({
   const [contributionId, setContributionId] = useState<string | null>(existingContribution?.id ?? null);
   const [showCta, setShowCta] = useState(false);
   const [inviteLine2, setInviteLine2] = useState(false);
+  // Drives the invite-phase heading's slide-in. Starts off-screen
+  // right; flipped on after the first paint so the CSS transition
+  // runs cleanly (setting it true synchronously would skip the
+  // "from" frame on some browsers).
+  const [inviteHeadingIn, setInviteHeadingIn] = useState(false);
   const [extraHeight, setExtraHeight] = useState(0);
+
+  // Invite-phase animation choreography: slide the heading in
+  // from the right when phase first lands on "invite", then fade
+  // line 2 + CTA in once the slide settles. Replaces the prior
+  // typewriter so the flow reads quicker. Reset flags on any
+  // exit so coming back (re-entering the phase) re-runs the
+  // animation cleanly.
+  useEffect(() => {
+    if (phase !== "invite") {
+      setInviteHeadingIn(false);
+      setInviteLine2(false);
+      return;
+    }
+    // Two RAFs gives the browser a chance to paint the off-
+    // screen "from" frame before flipping to the in-place
+    // "to" frame, so the CSS transition actually runs.
+    let f1 = 0;
+    let f2 = 0;
+    f1 = requestAnimationFrame(() => {
+      f2 = requestAnimationFrame(() => setInviteHeadingIn(true));
+    });
+    const t = window.setTimeout(() => setInviteLine2(true), 900);
+    return () => {
+      cancelAnimationFrame(f1);
+      cancelAnimationFrame(f2);
+      window.clearTimeout(t);
+    };
+  }, [phase]);
   const mediaKeysRef = useRef<string[]>([]);
   const mediaTypesRef = useRef<string[]>([]);
   const stateRef = useRef({ name, title, body, contributionId });
@@ -192,16 +225,20 @@ export function CapsuleContributeForm({
           <LogoSvg variant="dark" width={100} height={20} />
         </div>
         <div className="max-w-[440px] text-center">
-          <h1 className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3]">
-            <Typewriter
-              text={`${TONE_INVITE_LINE1[capsuleTone]} ${r.displayName}.`}
-              speed={61}
-              startDelay={500}
-              cursorBlinks={1}
-              onComplete={() => {
-                setTimeout(() => setInviteLine2(true), 1100);
-              }}
-            />
+          {/* Heading slides in from the right of the viewport
+              and lands in place. overflow-hidden on the wrapper
+              keeps the off-screen text from scrollbar-bumping
+              the page during the transition. */}
+          <h1 className="text-[20px] lg:text-[26px] font-extrabold text-navy tracking-[-0.5px] leading-[1.3] overflow-hidden">
+            <span
+              className={`block transition-all duration-700 ease-out will-change-transform ${
+                inviteHeadingIn
+                  ? "translate-x-0 opacity-100"
+                  : "translate-x-[110%] opacity-0"
+              }`}
+            >
+              {`${TONE_INVITE_LINE1[capsuleTone]} ${r.displayName}.`}
+            </span>
           </h1>
           <p
             className="mt-4 text-[15px] text-ink-mid leading-[1.5] transition-opacity duration-700 ease-out"
