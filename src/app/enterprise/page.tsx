@@ -2,6 +2,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { ArrowRight, Gift, Plus, Sparkles, Users } from "lucide-react";
 
+import { OrgUpdatesPanel } from "@/components/enterprise/OrgUpdatesPanel";
 import { effectiveStatus } from "@/lib/capsules";
 import { getOrgContextByClerkId } from "@/lib/orgs";
 
@@ -112,6 +113,14 @@ export default async function EnterprisePage() {
             </div>
           </Link>
         </div>
+      )}
+
+      {/* OWNER + ADMIN can post org-wide updates that surface on
+          every member's /dashboard/updates page. Hidden for
+          plain MEMBERs since they're read-only consumers of the
+          announcement feed. */}
+      {isAdmin && ctx?.organizationId && (
+        <OrgUpdatesPanel orgId={ctx.organizationId} />
       )}
     </div>
   );

@@ -3,8 +3,10 @@ import { redirect } from "next/navigation";
 
 import type { MediaItem } from "@/components/editor/MediaDisplay";
 import { TopNav } from "@/components/ui/TopNav";
+import { getOrgContextByClerkId } from "@/lib/orgs";
 import { r2IsConfigured, signGetUrl } from "@/lib/r2";
 
+import { OrgUpdatesFeed, type OrgUpdateRow } from "./OrgUpdatesFeed";
 import { UpdatesList, type PendingUpdate } from "./UpdatesList";
 
 export const metadata = {
@@ -32,6 +34,31 @@ export default async function UpdatesPage() {
     select: { id: true },
   });
   if (!user) redirect("/onboarding");
+
+  // Org updates the user belongs to. Pulled in parallel with the
+  // contribution inbox below — doesn't gate page render. Empty
+  // when the user isn't an org member, which is the common case.
+  const orgCtx = await getOrgContextByClerkId(userId);
+  let orgUpdates: OrgUpdateRow[] = [];
+  if (orgCtx) {
+    const rows = await prisma.organizationUpdate.findMany({
+      where: { organizationId: orgCtx.organizationId },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: {
+        id: true,
+        title: true,
+        body: true,
+        authorName: true,
+        createdAt: true,
+      },
+    });
+    orgUpdates = rows.map((u) => ({
+      ...u,
+      createdAt: u.createdAt.toISOString(),
+      organizationName: orgCtx.organizationName,
+    }));
+  }
 
   const pending = await prisma.capsuleContribution.findMany({
     where: {
@@ -133,13 +160,33 @@ export default async function UpdatesPage() {
             Updates
           </h1>
           <p className="mt-1 text-[13px] sm:text-[14px] text-ink-mid">
-            {rows.length === 0
-              ? "Nothing waiting for you — new contributions will show up here."
-              : `${rows.length} ${rows.length === 1 ? "contribution is" : "contributions are"} waiting for your review.`}
+            {rows.length === 0 && orgUpdates.length === 0
+              ? "Nothing waiting for you — new contributions and team announcements will show up here."
+              : rows.length === 0
+                ? "No contributions waiting for review."
+                : `${rows.length} ${rows.length === 1 ? "contribution is" : "contributions are"} waiting for your review.`}
           </p>
         </div>
 
-        <UpdatesList rows={rows} />
+        {orgUpdates.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber mb-3">
+              From {orgUpdates[0]?.organizationName ?? "your team"}
+            </h2>
+            <OrgUpdatesFeed rows={orgUpdates} />
+          </section>
+        )}
+
+        {(rows.length > 0 || orgUpdates.length === 0) && (
+          <>
+            {orgUpdates.length > 0 && (
+              <h2 className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-mid mb-3">
+                Pending contributions
+              </h2>
+            )}
+            <UpdatesList rows={rows} />
+          </>
+        )}
       </section>
     </main>
   );

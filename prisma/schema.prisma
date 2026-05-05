@@ -138,6 +138,7 @@ model User {
   notificationPreferences NotificationPreferences?
   subscription            Subscription?
   organizationMemberships OrganizationMember[]
+  organizationUpdates     OrganizationUpdate[]
 }
 
 model Child {
@@ -790,6 +791,34 @@ model Organization {
   invites   OrganizationInvite[]
   capsules  MemoryCapsule[]
   employees OrganizationEmployee[]
+  updates   OrganizationUpdate[]
+}
+
+/// Free-text announcement an org OWNER/ADMIN posts that surfaces
+/// on every member's /dashboard/updates page. Used for things like
+/// "We've added 50 new contributor seats" or "Reminder: end-of-year
+/// capsule submission deadline is Dec 15". Authored by the
+/// posting admin via OrganizationMember (so deletion of the User
+/// row leaves the update intact); the update keeps a copy of the
+/// authorName at write time so a deleted membership doesn't blank
+/// the byline.
+model OrganizationUpdate {
+  id             String   @id @default(cuid())
+  organizationId String
+  /// User id of the OWNER/ADMIN who posted the update. Nullable
+  /// so an admin who later leaves the org doesn't take the post
+  /// with them; we fall back to authorName on render.
+  authorUserId   String?
+  authorName     String
+  title          String
+  body           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  author       User?        @relation(fields: [authorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
 }
 
 model OrganizationMember {
