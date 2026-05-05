@@ -76,11 +76,11 @@ export function ImportModal({
     deleted: number;
   } | null>(null);
 
-  async function runPreview(rows: CsvRow[]) {
+  async function runPreview(rows: CsvRow[]): Promise<PreviewResp> {
     setError(null);
     if (rows.length === 0) {
       setError("No rows left to import.");
-      return;
+      throw new Error("No rows left to import.");
     }
     const res = await fetch(
       `/api/orgs/${orgId}/employees/import/preview`,
@@ -100,6 +100,7 @@ export function ImportModal({
     setParsedRows(rows);
     setPreview(body);
     setDeleteSelection(new Set(body.toDelete.map((r) => r.id)));
+    return body;
   }
 
   async function handleFile(file: File) {
@@ -123,7 +124,19 @@ export function ImportModal({
       return;
     }
     try {
-      await runPreview(rows);
+      let result = await runPreview(rows);
+      // In ADD_NEW mode, silently drop invalid rows (bad email,
+      // missing fields, intra-upload duplicates) so the user never
+      // hits a "fix errors first" wall — we just import the clean ones.
+      if (mode === "ADD_NEW" && result.errors.length > 0) {
+        const badIndices = new Set(result.errors.map((e) => e.row - 1));
+        const clean = rows.filter((_, i) => !badIndices.has(i));
+        if (clean.length === 0) {
+          setError("No valid rows to import after skipping problem rows.");
+          return;
+        }
+        result = await runPreview(clean);
+      }
       setPhase("preview");
     } catch (err) {
       setError((err as Error).message);
