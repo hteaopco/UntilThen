@@ -42,6 +42,10 @@ interface PatchBody {
    *  archivedAt. Used as the "soft delete" replacement for
    *  capsules that have already been SENT/REVEALED. */
   archived?: boolean;
+  /** Free-text note from the organiser to all contributors. Empty
+   *  string clears it; null also clears. Soft-capped at 500 chars
+   *  on the API; the inline editor enforces the same limit. */
+  organiserNote?: string | null;
 }
 
 export async function GET(
@@ -201,6 +205,16 @@ export async function PATCH(
   }
   if (typeof body.archived === "boolean") {
     data.archivedAt = body.archived ? new Date() : null;
+  }
+  if ("organiserNote" in body) {
+    // Trim + soft cap at 500 chars. Empty string or null both
+    // clear the note (the contributor invite phase falls back to
+    // the templated tone copy when null).
+    const raw =
+      typeof body.organiserNote === "string"
+        ? body.organiserNote.trim()
+        : "";
+    data.organiserNote = raw ? raw.slice(0, 500) : null;
   }
 
   try {

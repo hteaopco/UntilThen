@@ -57,6 +57,10 @@ export function CapsuleContributeForm({
     tone?: CapsuleTone;
     revealDate: string;
     contributorDeadline: string | null;
+    /** Optional free-text note from the organiser shown on the
+     *  invite phase under the templated tone copy. Null = no
+     *  note set. */
+    organiserNote?: string | null;
   };
   invite: { name: string };
   existingContribution?: { id: string; title: string | null; body: string | null } | null;
@@ -246,6 +250,19 @@ export function CapsuleContributeForm({
           >
             {TONE_INVITE_LINE2[capsuleTone](r.subjectContraction)}
           </p>
+          {capsule.organiserNote && (
+            <div
+              className="mt-5 mx-auto max-w-[400px] rounded-2xl border border-amber/25 bg-amber-tint/40 px-4 py-3 text-left transition-opacity duration-700 ease-out"
+              style={{ opacity: inviteLine2 ? 1 : 0 }}
+            >
+              <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber-dark mb-1.5">
+                A note from the organiser
+              </p>
+              <p className="text-[14px] text-navy/85 leading-[1.55] italic whitespace-pre-wrap break-words">
+                &ldquo;{capsule.organiserNote}&rdquo;
+              </p>
+            </div>
+          )}
           <div
             className="mt-6 transition-opacity duration-700 ease-out"
             style={{ opacity: inviteLine2 ? 1 : 0 }}

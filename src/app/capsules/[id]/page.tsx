@@ -184,6 +184,7 @@ export default async function CapsulePage({
         hideUntilReveal: capsule.hideUntilReveal,
         organizationId: capsule.organizationId,
         coverUrl: coverSignedUrl,
+        organiserNote: capsule.organiserNote,
       }}
       currentUserClerkId={userId}
       requiresPayment={requiresPayment}

@@ -12,6 +12,7 @@ import {
   Mail,
   Paperclip,
   Pencil,
+  Plus,
   QrCode,
   Send,
   Sparkles,
@@ -90,6 +91,10 @@ type CapsuleSummary = {
    *  bubble next to the title falls back to a gradient + initials
    *  placeholder. */
   coverUrl: string | null;
+  /** Optional free-text note from the organiser to every
+   *  contributor. When set, the contributor invite phase shows
+   *  it as quoted, signed copy under the templated tone line. */
+  organiserNote: string | null;
 };
 
 type ContributionRow = {
@@ -468,6 +473,20 @@ export function CapsuleOverview({
             contribution={ownContribution ?? null}
             initialAttachments={ownAttachments}
             editable={!isSealed}
+          />
+        </section>
+      )}
+
+      {/* Optional note from the organiser to every contributor
+          — appears on the invite phase as quoted, signed copy.
+          Editable until the capsule is sealed. Hidden for
+          weddings since they have no named contributors to
+          address. */}
+      {capsule.occasionType !== "WEDDING" && !isSealed && (
+        <section className="mx-auto max-w-[720px] px-6 lg:px-10 pt-8">
+          <OrganiserNoteEditor
+            capsuleId={capsule.id}
+            initial={capsule.organiserNote}
           />
         </section>
       )}
@@ -864,6 +883,128 @@ export function CapsuleOverview({
         />
       )}
     </main>
+  );
+}
+
+// ── Organiser note editor ──────────────────────────────────
+
+/**
+ * Inline editor for the organiser's free-text note to every
+ * contributor. Renders as a tinted card next to the recipients
+ * panel; collapsed by default when there's no note yet, opens
+ * to a textarea + Save/Cancel pair on tap. Soft-cap at 500
+ * chars matches the API. Saves via PATCH /api/capsules/[id]
+ * with `organiserNote`; clears with an empty submission.
+ */
+function OrganiserNoteEditor({
+  capsuleId,
+  initial,
+}: {
+  capsuleId: string;
+  initial: string | null;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState<boolean>(Boolean(initial));
+  const [text, setText] = useState(initial ?? "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function save() {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/capsules/${capsuleId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ organiserNote: text.trim() }),
+      });
+      if (!res.ok) {
+        const b = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(b.error ?? "Couldn't save the note.");
+      }
+      router.refresh();
+      // Stay open if the note has content; collapse if cleared.
+      if (!text.trim()) setOpen(false);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border border-amber/25 bg-white px-5 py-4 shadow-[0_4px_18px_rgba(196,122,58,0.06)]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber inline-flex items-center gap-1.5">
+            <Pencil size={12} strokeWidth={2.25} aria-hidden="true" />
+            A note for your contributors
+          </p>
+          <p className="mt-1 text-[13px] text-ink-mid leading-[1.5]">
+            Optional &mdash; shown to every contributor when they open the
+            invite. Skip if the templated copy already covers it.
+          </p>
+        </div>
+        {!open && (
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-bold border border-amber/40 text-amber-dark hover:bg-amber/10 transition-colors"
+          >
+            <Plus size={12} strokeWidth={2.25} aria-hidden="true" />
+            Add note
+          </button>
+        )}
+      </div>
+
+      {open ? (
+        <div className="mt-3">
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value.slice(0, 500))}
+            placeholder="Hey friends — please share a favourite memory before April 29. It would mean the world to her."
+            rows={3}
+            className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[14px] text-navy placeholder-ink-light/50 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 leading-[1.5] resize-y"
+          />
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <span className="text-[11px] text-ink-light tabular-nums">
+              {text.length} / 500
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setText(initial ?? "");
+                  setError(null);
+                  if (!initial) setOpen(false);
+                }}
+                disabled={saving}
+                className="text-[12px] font-semibold text-ink-mid hover:text-navy transition-colors disabled:opacity-50"
+              >
+                {initial ? "Cancel" : "Close"}
+              </button>
+              <button
+                type="button"
+                onClick={save}
+                disabled={saving || text.trim() === (initial ?? "").trim()}
+                className="inline-flex items-center gap-1.5 bg-amber text-white px-3.5 py-1.5 rounded-lg text-[12px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-50"
+              >
+                {saving ? "Saving…" : initial ? "Save changes" : "Save note"}
+              </button>
+            </div>
+          </div>
+          {error && (
+            <p role="alert" className="mt-2 text-[12px] text-red-600">
+              {error}
+            </p>
+          )}
+        </div>
+      ) : initial ? (
+        <p className="mt-3 text-[14px] text-navy/85 leading-[1.55] whitespace-pre-wrap break-words italic">
+          &ldquo;{initial}&rdquo;
+        </p>
+      ) : null}
+    </div>
   );
 }
 

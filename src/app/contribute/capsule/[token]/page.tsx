@@ -35,6 +35,7 @@ export default async function CapsuleContributePage({
           contributionsClosed: true,
           deliveryTime: true,
           timezone: true,
+          organiserNote: true,
         },
       },
     },
@@ -124,6 +125,7 @@ export default async function CapsuleContributePage({
         occasionType: c.occasionType,
         revealDate: c.revealDate.toISOString(),
         contributorDeadline: c.contributorDeadline?.toISOString() ?? null,
+        organiserNote: c.organiserNote,
       }}
       invite={{ name: invite.name ?? "" }}
     />

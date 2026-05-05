@@ -414,6 +414,12 @@ model MemoryCapsule {
   /// signed GET URL. Null = use the gradient + initials
   /// placeholder.
   coverUrl            String?
+  /// Optional free-text note from the organiser to every
+  /// contributor — shown on the contributor invite phase as
+  /// quoted, signed copy. Soft-capped at 500 chars on the API
+  /// + the inline editor; null = invite phase shows only the
+  /// templated tone copy. Editable until the capsule is sealed.
+  organiserNote       String?
   /// Wedding-specific: when the bride/groom buys the capsule
   /// themselves but doesn't want to read messages early. With
   /// this true, the organiser's own dashboard redacts every
