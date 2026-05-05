@@ -1887,6 +1887,19 @@ function ContributorsPanel({
               Preview their reveal
             </Link>
           )}
+          {/* Available on every gift-capsule flow (not just
+              enterprise) so any organiser can sanity-check the
+              contributor experience before sending invites.
+              Mounts the contributor form against the
+              "preview-mode" sentinel token so submits stay
+              in-memory. */}
+          <Link
+            href={`/capsules/${capsuleId}/preview-invite`}
+            className="inline-flex items-center justify-center gap-1.5 basis-full sm:basis-auto bg-white border border-amber/40 text-amber-dark px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-amber/10 transition-colors"
+          >
+            <Eye size={14} strokeWidth={2} aria-hidden="true" />
+            Preview Contributor Invites
+          </Link>
         </div>
 
         {error && (
