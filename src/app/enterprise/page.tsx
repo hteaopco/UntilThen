@@ -290,7 +290,20 @@ async function loadEnterpriseCapsules(
       firstOpenedAt: true,
       deliveryTime: true,
       timezone: true,
-      _count: { select: { contributions: true } },
+      // NET contribution count — only items the recipient will
+      // actually see. Excludes REJECTED (organiser denied),
+      // FLAGGED (sitting in admin moderation), and SCANNING
+      // (still mid-Hive scan; the cleanup cron may reclaim).
+      _count: {
+        select: {
+          contributions: {
+            where: {
+              approvalStatus: { in: ["AUTO_APPROVED", "APPROVED", "PENDING_REVIEW"] },
+              moderationState: { notIn: ["FLAGGED", "SCANNING"] },
+            },
+          },
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });

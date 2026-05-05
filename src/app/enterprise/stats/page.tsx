@@ -77,7 +77,19 @@ export default async function StatBoardPage() {
           firstOpenedAt: true,
           deliveryTime: true,
           timezone: true,
-          _count: { select: { contributions: true } },
+          // NET contribution count — see /enterprise/page.tsx
+          // for the same filter; excludes rejected + items
+          // sitting in admin moderation.
+          _count: {
+            select: {
+              contributions: {
+                where: {
+                  approvalStatus: { in: ["AUTO_APPROVED", "APPROVED", "PENDING_REVIEW"] },
+                  moderationState: { notIn: ["FLAGGED", "SCANNING"] },
+                },
+              },
+            },
+          },
         },
         orderBy: { revealDate: "desc" },
       }),
