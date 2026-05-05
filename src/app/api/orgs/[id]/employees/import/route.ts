@@ -88,34 +88,44 @@ export async function POST(
     : [];
 
   const { prisma } = await import("@/lib/prisma");
+  // Fetch all statuses — DELETED/ARCHIVED records still own their
+  // (organizationId, email) unique slot, so a plain createMany would
+  // silently skip them via skipDuplicates instead of restoring them.
   const existing = await prisma.organizationEmployee.findMany({
-    where: { organizationId, status: "ACTIVE" },
-    select: { id: true, email: true },
+    where: { organizationId },
+    select: { id: true, email: true, status: true },
   });
-  const existingByEmail = new Map(existing.map((e) => [e.email, e.id]));
+  const existingByEmail = new Map(
+    existing.map((e) => [e.email, { id: e.id, status: e.status }]),
+  );
+  // OVERWRITE delete-safety check needs only the ACTIVE pool.
+  const activeIds = new Set(
+    existing.filter((e) => e.status === "ACTIVE").map((e) => e.id),
+  );
 
   const inserts: typeof rows = [];
+  // Records that exist but are DELETED/ARCHIVED — restore + update fields.
+  const restores: { id: string; data: (typeof rows)[number] }[] = [];
   const updates: { id: string; data: (typeof rows)[number] }[] = [];
+
   for (const r of rows) {
-    const existingId = existingByEmail.get(r.email);
-    if (existingId) {
-      if (body.mode === "OVERWRITE") {
-        updates.push({ id: existingId, data: r });
+    const match = existingByEmail.get(r.email);
+    if (match) {
+      if (match.status === "ACTIVE") {
+        if (body.mode === "OVERWRITE") updates.push({ id: match.id, data: r });
+        // ADD_NEW: active duplicate — skip silently.
+      } else {
+        // DELETED or ARCHIVED — restore to ACTIVE regardless of mode.
+        restores.push({ id: match.id, data: r });
       }
-      // ADD_NEW: skip duplicates silently.
     } else {
       inserts.push(r);
     }
   }
 
-  // Verify deleteIds all belong to this org's ACTIVE pool. Anything
-  // that doesn't is silently dropped — possible if the user's
-  // preview is stale (someone else mutated the roster between the
-  // preview and the commit). Better to drop than to delete the
-  // wrong rows.
-  const safeDeleteIds = existing
-    .filter((e) => deleteIds.includes(e.id))
-    .map((e) => e.id);
+  const safeDeleteIds = Array.from(activeIds).filter((id) =>
+    deleteIds.includes(id),
+  );
 
   const now = new Date();
   const result = await prisma.$transaction(async (tx) => {
@@ -134,13 +144,25 @@ export async function POST(
           department: r.department,
           subTeam: r.subTeam,
         })),
-        // skipDuplicates protects against a race where another
-        // import landed between our existing-pool read and the
-        // insert — Postgres unique violation would otherwise
-        // abort the whole transaction.
         skipDuplicates: true,
       });
-      inserted = created.count;
+      inserted += created.count;
+    }
+
+    for (const r of restores) {
+      await tx.organizationEmployee.update({
+        where: { id: r.id },
+        data: {
+          status: "ACTIVE",
+          inactivatedAt: null,
+          firstName: r.data.firstName,
+          lastName: r.data.lastName,
+          phone: r.data.phone,
+          department: r.data.department,
+          subTeam: r.data.subTeam,
+        },
+      });
+      inserted++;
     }
 
     for (const u of updates) {
@@ -152,9 +174,6 @@ export async function POST(
           phone: u.data.phone,
           department: u.data.department,
           subTeam: u.data.subTeam,
-          // Email is the natural key — leave it alone on update
-          // even though the row in the upload uses the same
-          // address (case can differ, but we lowercased earlier).
         },
       });
       updated++;
