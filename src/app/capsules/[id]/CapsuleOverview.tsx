@@ -597,8 +597,8 @@ export function CapsuleOverview({
                 : isSent
                   ? `${recipientDisplayName}\u2019s capsule was sent`
                   : isSealed
-                    ? `${recipientDisplayName}\u2019s capsule is sealed`
-                    : `${recipientDisplayName}\u2019s capsule is live`}
+                    ? `${recipientDisplayName}\u2019s capsule is sealed \u2014 Delivery set for ${formatLong(capsule.revealDate)}`
+                    : `${recipientDisplayName}\u2019s capsule is live \u2014 Delivery set for ${formatLong(capsule.revealDate)}`}
           </h2>
           {/* Active-state body copy. Hidden for weddings — there
               are no contributors to invite, and the QR share
