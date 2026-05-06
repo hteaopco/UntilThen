@@ -256,7 +256,7 @@ export function CapsuleContributeForm({
               style={{ opacity: inviteLine2 ? 1 : 0 }}
             >
               <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-amber-dark mb-1.5">
-                A note from the organiser
+                A note from the organizer
               </p>
               <p className="text-[14px] text-navy/85 leading-[1.55] italic whitespace-pre-wrap break-words">
                 &ldquo;{capsule.organiserNote}&rdquo;
