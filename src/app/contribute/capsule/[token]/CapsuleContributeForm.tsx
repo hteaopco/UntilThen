@@ -272,7 +272,7 @@ export function CapsuleContributeForm({
               onClick={() => setPhase("editor")}
               className="px-5 py-2.5 rounded-lg text-[13px] font-semibold border border-amber/30 text-amber/70 hover:text-amber hover:border-amber transition-colors"
             >
-              Start writing
+              Start writing, leave a voice memo or a video
             </button>
           </div>
         </div>
