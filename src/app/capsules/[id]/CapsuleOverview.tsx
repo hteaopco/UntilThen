@@ -365,9 +365,15 @@ export function CapsuleOverview({
         }
       }
       // Org-attributed capsules belong to the enterprise surface,
-      // so deletes return there. Personal capsules go back to the
-      // consumer dashboard as before.
-      router.push(isOrgAttributed ? "/enterprise" : "/dashboard");
+      // so deletes return there. Wedding capsules go to the wedding
+      // dashboard. Personal capsules go back to the consumer dashboard.
+      const dest =
+        capsule.occasionType === "WEDDING"
+          ? "/weddings/dashboard"
+          : isOrgAttributed
+          ? "/enterprise"
+          : "/dashboard";
+      router.push(dest);
       router.refresh();
     } catch (err) {
       setError((err as Error).message);
