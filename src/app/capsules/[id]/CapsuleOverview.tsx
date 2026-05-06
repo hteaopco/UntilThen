@@ -114,6 +114,7 @@ type ContributionRow = {
   attachmentCount: number;
   approvalStatus: "PENDING_REVIEW" | "AUTO_APPROVED" | "APPROVED" | "REJECTED";
   createdAt: string;
+  media: { kind: "photo" | "voice" | "video"; url: string }[];
 };
 
 type InviteRow = {
@@ -1327,12 +1328,38 @@ function PendingApprovalCard({
           )}
         </>
       )}
-      {contribution.attachmentCount > 0 && (
-        <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] italic text-ink-light">
-          <Paperclip size={11} strokeWidth={1.75} aria-hidden="true" />
-          {contribution.attachmentCount}{" "}
-          {contribution.attachmentCount === 1 ? "attachment" : "attachments"}
-        </p>
+      {contribution.media.length > 0 && (
+        <div className="mt-3 flex flex-col gap-2">
+          {contribution.media.map((m, i) =>
+            m.kind === "voice" ? (
+              // eslint-disable-next-line jsx-a11y/media-has-caption
+              <audio
+                key={i}
+                controls
+                src={m.url}
+                className="w-full h-9 rounded"
+                style={{ accentColor: "#c47a3a" }}
+              />
+            ) : m.kind === "video" ? (
+              // eslint-disable-next-line jsx-a11y/media-has-caption
+              <video
+                key={i}
+                controls
+                src={m.url}
+                className="w-full rounded-lg max-h-48 object-contain bg-black"
+              />
+            ) : (
+              // photo
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={m.url}
+                alt=""
+                className="rounded-lg max-h-48 object-cover w-full"
+              />
+            ),
+          )}
+        </div>
       )}
       <div className="mt-3 flex items-center gap-2">
         <button

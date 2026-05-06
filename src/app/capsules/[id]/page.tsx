@@ -198,20 +198,39 @@ export default async function CapsulePage({
       contributions={
         redactContributions
           ? []
-          : capsule.contributions.map((c) => ({
-              id: c.id,
-              authorName: c.authorName,
-              authorAvatarUrl: c.clerkUserId
-                ? avatarUrlByClerkId.get(c.clerkUserId) ?? null
-                : null,
-              clerkUserId: c.clerkUserId,
-              type: c.type,
-              title: c.title,
-              body: c.body,
-              attachmentCount: c.mediaUrls.length,
-              approvalStatus: c.approvalStatus,
-              createdAt: c.createdAt.toISOString(),
-            }))
+          : await Promise.all(
+              capsule.contributions.map(async (c) => {
+                const media: { kind: "photo" | "voice" | "video"; url: string }[] = [];
+                if (c.mediaUrls.length > 0 && r2IsConfigured()) {
+                  await Promise.all(
+                    c.mediaUrls.map(async (key, i) => {
+                      const kind = (c.mediaTypes[i] ?? "photo") as "photo" | "voice" | "video";
+                      try {
+                        const url = await signGetUrl(key);
+                        media.push({ kind, url });
+                      } catch {
+                        /* skip — render without this attachment */
+                      }
+                    }),
+                  );
+                }
+                return {
+                  id: c.id,
+                  authorName: c.authorName,
+                  authorAvatarUrl: c.clerkUserId
+                    ? avatarUrlByClerkId.get(c.clerkUserId) ?? null
+                    : null,
+                  clerkUserId: c.clerkUserId,
+                  type: c.type,
+                  title: c.title,
+                  body: c.body,
+                  attachmentCount: c.mediaUrls.length,
+                  approvalStatus: c.approvalStatus,
+                  createdAt: c.createdAt.toISOString(),
+                  media,
+                };
+              }),
+            )
       }
       ownAttachments={ownAttachments}
       invites={capsule.invites.map((i) => ({
