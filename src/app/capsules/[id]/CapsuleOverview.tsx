@@ -95,6 +95,10 @@ type CapsuleSummary = {
    *  contributor. When set, the contributor invite phase shows
    *  it as quoted, signed copy under the templated tone line. */
   organiserNote: string | null;
+  contributorEmailSubject: string | null;
+  contributorEmailBody: string | null;
+  revealEmailSubject: string | null;
+  revealEmailBody: string | null;
 };
 
 type ContributionRow = {
@@ -483,12 +487,25 @@ export function CapsuleOverview({
           weddings since they have no named contributors to
           address. */}
       {capsule.occasionType !== "WEDDING" && !isSealed && (
-        <section className="mx-auto max-w-[720px] px-6 lg:px-10 pt-8">
-          <OrganiserNoteEditor
-            capsuleId={capsule.id}
-            initial={capsule.organiserNote}
-          />
-        </section>
+        <>
+          <section className="mx-auto max-w-[720px] px-6 lg:px-10 pt-8">
+            <OrganiserNoteEditor
+              capsuleId={capsule.id}
+              initial={capsule.organiserNote}
+            />
+          </section>
+
+          <section className="mx-auto max-w-[720px] px-6 lg:px-10 pt-6">
+            <EmailCustomizerPanel
+              capsuleId={capsule.id}
+              recipientName={capsule.recipientName}
+              initialContributorSubject={capsule.contributorEmailSubject}
+              initialContributorBody={capsule.contributorEmailBody}
+              initialRevealSubject={capsule.revealEmailSubject}
+              initialRevealBody={capsule.revealEmailBody}
+            />
+          </section>
+        </>
       )}
 
       {/* Invite people — expanded by default so a brand-new
@@ -883,6 +900,223 @@ export function CapsuleOverview({
         />
       )}
     </main>
+  );
+}
+
+// ── Email customizer ──────────────────────────────────────────
+
+function EmailCustomizerPanel({
+  capsuleId,
+  recipientName,
+  initialContributorSubject,
+  initialContributorBody,
+  initialRevealSubject,
+  initialRevealBody,
+}: {
+  capsuleId: string;
+  recipientName: string;
+  initialContributorSubject: string | null;
+  initialContributorBody: string | null;
+  initialRevealSubject: string | null;
+  initialRevealBody: string | null;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+
+  const [cSubject, setCSubject] = useState(initialContributorSubject ?? "");
+  const [cBody, setCBody] = useState(initialContributorBody ?? "");
+  const [cSaving, setCSaving] = useState(false);
+  const [cSaved, setCSaved] = useState(false);
+  const [cError, setCError] = useState<string | null>(null);
+
+  const [rSubject, setRSubject] = useState(initialRevealSubject ?? "");
+  const [rBody, setRBody] = useState(initialRevealBody ?? "");
+  const [rSaving, setRSaving] = useState(false);
+  const [rSaved, setRSaved] = useState(false);
+  const [rError, setRError] = useState<string | null>(null);
+
+  const recipientFirst = recipientName.split("&")[0]?.trim().split(" ")[0] ?? recipientName;
+
+  async function saveContributor() {
+    setCSaving(true);
+    setCError(null);
+    setCSaved(false);
+    try {
+      const res = await fetch(`/api/capsules/${capsuleId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contributorEmailSubject: cSubject.trim() || null,
+          contributorEmailBody: cBody.trim() || null,
+        }),
+      });
+      if (!res.ok) {
+        const b = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(b.error ?? "Couldn't save.");
+      }
+      router.refresh();
+      setCSaved(true);
+      window.setTimeout(() => setCSaved(false), 3000);
+    } catch (err) {
+      setCError((err as Error).message);
+    } finally {
+      setCSaving(false);
+    }
+  }
+
+  async function saveReveal() {
+    setRSaving(true);
+    setRError(null);
+    setRSaved(false);
+    try {
+      const res = await fetch(`/api/capsules/${capsuleId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          revealEmailSubject: rSubject.trim() || null,
+          revealEmailBody: rBody.trim() || null,
+        }),
+      });
+      if (!res.ok) {
+        const b = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(b.error ?? "Couldn't save.");
+      }
+      router.refresh();
+      setRSaved(true);
+      window.setTimeout(() => setRSaved(false), 3000);
+    } catch (err) {
+      setRError((err as Error).message);
+    } finally {
+      setRSaving(false);
+    }
+  }
+
+  const cChanged =
+    cSubject.trim() !== (initialContributorSubject ?? "") ||
+    cBody.trim() !== (initialContributorBody ?? "");
+  const rChanged =
+    rSubject.trim() !== (initialRevealSubject ?? "") ||
+    rBody.trim() !== (initialRevealBody ?? "");
+
+  return (
+    <div className="rounded-2xl border border-navy/10 bg-white px-5 py-4 shadow-[0_4px_18px_rgba(15,31,61,0.04)]">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between gap-3 text-left"
+        aria-expanded={open}
+      >
+        <div>
+          <p className="text-[11px] uppercase tracking-[0.14em] font-bold text-ink-mid inline-flex items-center gap-1.5">
+            <Mail size={12} strokeWidth={2.25} aria-hidden="true" />
+            Customize emails
+          </p>
+          <p className="mt-0.5 text-[13px] text-ink-mid leading-[1.5]">
+            Override the subject line or body of the contributor invite and reveal emails.
+          </p>
+        </div>
+        <ChevronDown
+          size={16}
+          strokeWidth={2}
+          className={`shrink-0 text-ink-mid transition-transform ${open ? "rotate-180" : ""}`}
+          aria-hidden="true"
+        />
+      </button>
+
+      {open && (
+        <div className="mt-5 space-y-6">
+          {/* Contributor invite email */}
+          <div>
+            <p className="text-[12px] font-bold text-navy mb-3">Contributor invite email</p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-[11px] uppercase tracking-[0.1em] font-bold text-ink-mid mb-1">Subject</label>
+                <input
+                  type="text"
+                  value={cSubject}
+                  onChange={(e) => setCSubject(e.target.value.slice(0, 200))}
+                  placeholder={`Add your message for ${recipientFirst}.`}
+                  className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[13px] text-navy placeholder-ink-light/50 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+                />
+                <p className="mt-1 text-[11px] text-ink-light tabular-nums text-right">{cSubject.length} / 200</p>
+              </div>
+              <div>
+                <label className="block text-[11px] uppercase tracking-[0.1em] font-bold text-ink-mid mb-1">Message body</label>
+                <textarea
+                  value={cBody}
+                  onChange={(e) => setCBody(e.target.value.slice(0, 1000))}
+                  placeholder={`Hey team — please share a memory or note for ${recipientFirst} before the deadline. It only takes a minute and will mean the world.`}
+                  rows={4}
+                  className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[13px] text-navy placeholder-ink-light/50 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 leading-[1.5] resize-y"
+                />
+                <div className="mt-1 flex items-start justify-between gap-2">
+                  <p className="text-[11px] text-ink-light leading-[1.5]">Replaces the standard body. Greeting and button stay locked. Leave blank for the default.</p>
+                  <p className="text-[11px] text-ink-light tabular-nums shrink-0">{cBody.length} / 1000</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3">
+                {cError && <p className="text-[12px] text-red-600 mr-auto">{cError}</p>}
+                {cSaved && <p className="text-[12px] text-sage font-semibold mr-auto">Saved</p>}
+                <button
+                  type="button"
+                  onClick={saveContributor}
+                  disabled={cSaving || !cChanged}
+                  className="inline-flex items-center gap-1.5 bg-amber text-white px-3.5 py-1.5 rounded-lg text-[12px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-50"
+                >
+                  {cSaving ? "Saving…" : "Save"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-navy/[0.06]" />
+
+          {/* Reveal day email */}
+          <div>
+            <p className="text-[12px] font-bold text-navy mb-3">Reveal day email</p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-[11px] uppercase tracking-[0.1em] font-bold text-ink-mid mb-1">Subject</label>
+                <input
+                  type="text"
+                  value={rSubject}
+                  onChange={(e) => setRSubject(e.target.value.slice(0, 200))}
+                  placeholder="Leave blank to use the tone-matched default"
+                  className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[13px] text-navy placeholder-ink-light/50 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
+                />
+                <p className="mt-1 text-[11px] text-ink-light tabular-nums text-right">{rSubject.length} / 200</p>
+              </div>
+              <div>
+                <label className="block text-[11px] uppercase tracking-[0.1em] font-bold text-ink-mid mb-1">Personal note to {recipientFirst}</label>
+                <textarea
+                  value={rBody}
+                  onChange={(e) => setRBody(e.target.value.slice(0, 1000))}
+                  placeholder={`We all love you, ${recipientFirst}. Enjoy every message inside.`}
+                  rows={4}
+                  className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[13px] text-navy placeholder-ink-light/50 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 leading-[1.5] resize-y"
+                />
+                <div className="mt-1 flex items-start justify-between gap-2">
+                  <p className="text-[11px] text-ink-light leading-[1.5]">Inserted between the reveal greeting and the &ldquo;Open your capsule&rdquo; button. Leave blank for the standard template.</p>
+                  <p className="text-[11px] text-ink-light tabular-nums shrink-0">{rBody.length} / 1000</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3">
+                {rError && <p className="text-[12px] text-red-600 mr-auto">{rError}</p>}
+                {rSaved && <p className="text-[12px] text-sage font-semibold mr-auto">Saved</p>}
+                <button
+                  type="button"
+                  onClick={saveReveal}
+                  disabled={rSaving || !rChanged}
+                  className="inline-flex items-center gap-1.5 bg-amber text-white px-3.5 py-1.5 rounded-lg text-[12px] font-bold hover:bg-amber-dark transition-colors disabled:opacity-50"
+                >
+                  {rSaving ? "Saving…" : "Save"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

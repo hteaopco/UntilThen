@@ -137,6 +137,8 @@ export async function POST(
           recipientName: capsule.recipientName,
           revealDate: capsule.revealDate,
           inviteToken: invite.inviteToken,
+          customSubject: capsule.contributorEmailSubject,
+          customBody: capsule.contributorEmailBody,
         });
       }
     }

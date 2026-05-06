@@ -435,6 +435,22 @@ model MemoryCapsule {
   /// not archived; a timestamp records when it was archived for
   /// audit purposes.
   archivedAt          DateTime?
+  /// Subject line override for the contributor invite email.
+  /// When null the default template subject is used.
+  /// Soft-capped at 200 chars on the API.
+  contributorEmailSubject String?
+  /// Body override for the contributor invite email. When set,
+  /// replaces the standard template paragraphs (heading and
+  /// CTA stay locked for brand consistency).
+  /// Soft-capped at 1000 chars.
+  contributorEmailBody    String?
+  /// Subject line override for the reveal-day email to the recipient.
+  /// When null the tone-derived hero subject is used.
+  revealEmailSubject      String?
+  /// Personal note from the organiser inserted into the reveal email
+  /// between the standard greeting and the "Open your capsule" CTA.
+  /// When null the standard template is sent as-is.
+  revealEmailBody         String?
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
 

@@ -46,6 +46,10 @@ interface PatchBody {
    *  string clears it; null also clears. Soft-capped at 500 chars
    *  on the API; the inline editor enforces the same limit. */
   organiserNote?: string | null;
+  contributorEmailSubject?: string | null;
+  contributorEmailBody?: string | null;
+  revealEmailSubject?: string | null;
+  revealEmailBody?: string | null;
 }
 
 export async function GET(
@@ -207,14 +211,27 @@ export async function PATCH(
     data.archivedAt = body.archived ? new Date() : null;
   }
   if ("organiserNote" in body) {
-    // Trim + soft cap at 500 chars. Empty string or null both
-    // clear the note (the contributor invite phase falls back to
-    // the templated tone copy when null).
     const raw =
       typeof body.organiserNote === "string"
         ? body.organiserNote.trim()
         : "";
     data.organiserNote = raw ? raw.slice(0, 500) : null;
+  }
+  if ("contributorEmailSubject" in body) {
+    const raw = typeof body.contributorEmailSubject === "string" ? body.contributorEmailSubject.trim() : "";
+    data.contributorEmailSubject = raw ? raw.slice(0, 200) : null;
+  }
+  if ("contributorEmailBody" in body) {
+    const raw = typeof body.contributorEmailBody === "string" ? body.contributorEmailBody.trim() : "";
+    data.contributorEmailBody = raw ? raw.slice(0, 1000) : null;
+  }
+  if ("revealEmailSubject" in body) {
+    const raw = typeof body.revealEmailSubject === "string" ? body.revealEmailSubject.trim() : "";
+    data.revealEmailSubject = raw ? raw.slice(0, 200) : null;
+  }
+  if ("revealEmailBody" in body) {
+    const raw = typeof body.revealEmailBody === "string" ? body.revealEmailBody.trim() : "";
+    data.revealEmailBody = raw ? raw.slice(0, 1000) : null;
   }
 
   try {

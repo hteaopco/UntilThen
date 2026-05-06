@@ -30,7 +30,7 @@ const TEMPLATES: EmailTemplate[] = [
     name: "#1 Invite Contributor",
     subject: "Add your message for Margaret.",
     bodyPreview:
-      "You've been invited by Sarah to create something for Margaret. A message. A memory. Something they'll open and feel for years.",
+      "You've been invited by Sarah to create something for Margaret. Subject and body overridable by the organiser via Customize emails on the capsule detail page.",
     trigger: "Contributor added to Gift Capsule",
     frequency: "On event",
     funnel: "Acquisition",
@@ -66,7 +66,7 @@ const TEMPLATES: EmailTemplate[] = [
     id: "reveal-day",
     name: "#6 Reveal Day",
     subject: (t) => TONE_HERO[t],
-    bodyPreview: (t) => `${TONE_UNLOCK_LINE[t]} ${toneClosingLine(t)}`,
+    bodyPreview: (t) => `${TONE_UNLOCK_LINE[t]} ${toneClosingLine(t)} Subject and body overridable by the organiser via Customize emails on the capsule detail page.`,
     trigger: "Reveal date arrives",
     frequency: "Cron (every 15 min)",
     funnel: "Anticipation",

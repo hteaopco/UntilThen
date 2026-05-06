@@ -131,16 +131,28 @@ export async function sendCapsuleInvite(params: {
   recipientName: string;
   revealDate: Date;
   inviteToken: string;
+  /** When set, replaces the default subject line. */
+  customSubject?: string | null;
+  /** When set, replaces the standard template body paragraphs.
+   *  Newlines become separate paragraphs. Heading + CTA stay locked. */
+  customBody?: string | null;
 }): Promise<void> {
   const url = `${baseUrl()}/contribute/capsule/${params.inviteToken}`;
+  const subject = params.customSubject?.trim() ||
+    `Add your message for ${displayNamePlain(params.recipientName)}.`;
+  const bodyContent = params.customBody?.trim()
+    ? params.customBody.trim().split(/\n+/).map((l) => body(escapeHtml(l.trim()))).filter(Boolean).join("")
+    : [
+        body("<strong>A message. A memory.</strong> Something " + pronoun(params.recipientName, "contraction") + " open and feel for years."),
+        body("You can write a note, record a voice message, or share a photo or video."),
+        body("It only takes a minute &mdash; and it&rsquo;s something " + pronoun(params.recipientName, "contraction") + " keep forever."),
+      ].join("");
   await send({
     to: params.to,
-    subject: `Add your message for ${displayNamePlain(params.recipientName)}.`,
+    subject,
     html: wrap(`
       ${heading("You&rsquo;ve been invited by " + escapeHtml(params.organiserName) + " to create something for " + displayName(params.recipientName) + ".")}
-      ${body("<strong>A message. A memory.</strong> Something " + pronoun(params.recipientName, "contraction") + " open and feel for years.")}
-      ${body("You can write a note, record a voice message, or share a photo or video.")}
-      ${body("It only takes a minute &mdash; and it&rsquo;s something " + pronoun(params.recipientName, "contraction") + " keep forever.")}
+      ${bodyContent}
       ${cta(url, "Leave your message")}
     `),
   });
@@ -213,26 +225,29 @@ export async function sendCapsuleRevealDay(params: {
    *  line. Falls back to OTHER (the existing generic copy) when
    *  unknown / missing so older callers keep working. */
   tone?: CapsuleTone | null;
+  /** When set, replaces the default tone-derived subject line. */
+  customSubject?: string | null;
+  /** When set, inserted between the standard greeting and the CTA
+   *  as a personal note from the organiser to the recipient. */
+  customBody?: string | null;
 }): Promise<void> {
-  // New token-only URL. Legacy /capsule/[id]/open?t={token} still
-  // redirects here so magic-link emails already in inboxes keep
-  // working.
   const url = `${baseUrl()}/reveal/${params.accessToken}`;
   const tone: CapsuleTone = params.tone ?? "OTHER";
   const emoji = TONE_EMOJI[tone];
   const hero = TONE_HERO[tone];
   const unlock = TONE_UNLOCK_LINE[tone];
   const closing = toneClosingLine(tone);
+  const subject = params.customSubject?.trim() || hero;
+  const organiserNote = params.customBody?.trim()
+    ? params.customBody.trim().split(/\n+/).map((l) => body(escapeHtml(l.trim()))).filter(Boolean).join("")
+    : "";
   await send({
     to: params.to,
-    // Subject left as text-only (no emoji) — most spam filters
-    // are forgiving about emoji in subject lines now, but the
-    // tone-flavoured hero copy is already evocative enough on
-    // its own. Keep the body emoji for warmth.
-    subject: hero,
+    subject,
     html: wrap(`
       ${heading(emoji + " " + hero)}
       ${body(unlock)}
+      ${organiserNote}
       ${muted(closing)}
       ${cta(url, "Open your capsule")}
     `),

@@ -185,6 +185,10 @@ export default async function CapsulePage({
         organizationId: capsule.organizationId,
         coverUrl: coverSignedUrl,
         organiserNote: capsule.organiserNote,
+        contributorEmailSubject: capsule.contributorEmailSubject,
+        contributorEmailBody: capsule.contributorEmailBody,
+        revealEmailSubject: capsule.revealEmailSubject,
+        revealEmailBody: capsule.revealEmailBody,
       }}
       currentUserClerkId={userId}
       requiresPayment={requiresPayment}

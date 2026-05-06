@@ -74,6 +74,8 @@ export const POST = cronRoute("reveal", async (): Promise<NextResponse> => {
           capsuleId: capsule.id,
           accessToken: capsule.accessToken,
           tone: capsule.tone,
+          customSubject: capsule.revealEmailSubject,
+          customBody: capsule.revealEmailBody,
         });
       }
 
