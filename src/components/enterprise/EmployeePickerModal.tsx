@@ -58,7 +58,10 @@ export function EmployeePickerModal({
   const [subTeams, setSubTeams] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  // Map of id → full employee data so confirm() works even when
+  // the user selected across multiple searches / sort changes and
+  // the current `rows` no longer contains all selected employees.
+  const [selectedMap, setSelectedMap] = useState<Map<string, PickedEmployee>>(new Map());
   // Department / sub-team filter pills. Empty sets = no filter on
   // that dimension. Multi-select within each dimension; the two
   // dimensions intersect when both are populated, so "Yukon" +
@@ -117,20 +120,21 @@ export function EmployeePickerModal({
     };
   }, [orgId, debouncedQ, sort]);
 
-  function pick(id: string) {
+  function pick(employee: PickedEmployee) {
     if (mode === "single") {
-      setSelected(new Set([id]));
+      setSelectedMap(new Map([[employee.id, employee]]));
     } else {
-      const next = new Set(selected);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      setSelected(next);
+      setSelectedMap((prev) => {
+        const next = new Map(prev);
+        if (next.has(employee.id)) next.delete(employee.id);
+        else next.set(employee.id, employee);
+        return next;
+      });
     }
   }
 
   function confirm() {
-    const picks = rows.filter((r) => selected.has(r.id));
-    onConfirm(picks);
+    onConfirm(Array.from(selectedMap.values()));
   }
 
   function toggleDept(name: string) {
@@ -174,14 +178,13 @@ export function EmployeePickerModal({
 
   function checkAllVisible() {
     if (mode === "single") return;
-    const visibleIds = filteredRows.map((r) => r.id);
-    const allChecked = visibleIds.every((id) => selected.has(id));
-    setSelected((prev) => {
-      const next = new Set(prev);
+    const allChecked = filteredRows.every((r) => selectedMap.has(r.id));
+    setSelectedMap((prev) => {
+      const next = new Map(prev);
       if (allChecked) {
-        for (const id of visibleIds) next.delete(id);
+        for (const r of filteredRows) next.delete(r.id);
       } else {
-        for (const id of visibleIds) next.add(id);
+        for (const r of filteredRows) next.set(r.id, r);
       }
       return next;
     });
@@ -189,9 +192,10 @@ export function EmployeePickerModal({
 
   const allVisibleChecked =
     filteredRows.length > 0 &&
-    filteredRows.every((r) => selected.has(r.id));
+    filteredRows.every((r) => selectedMap.has(r.id));
 
   const filterCount = deptFilter.size + subTeamFilter.size;
+  const selectedSize = selectedMap.size;
 
   // Group rows by the chosen key. For "none" the group is a
   // single bucket and rendered as a flat list.
@@ -376,12 +380,12 @@ export function EmployeePickerModal({
                 )}
                 <ul className="border border-navy/[0.08] rounded-lg divide-y divide-navy/[0.04] overflow-hidden">
                   {g.rows.map((r) => {
-                    const isPicked = selected.has(r.id);
+                    const isPicked = selectedMap.has(r.id);
                     return (
                       <li key={r.id}>
                         <button
                           type="button"
-                          onClick={() => pick(r.id)}
+                          onClick={() => pick(r)}
                           className={`w-full text-left px-3 py-2 flex items-center gap-3 hover:bg-cream transition-colors ${
                             isPicked ? "bg-amber-tint/40" : ""
                           }`}
@@ -390,7 +394,7 @@ export function EmployeePickerModal({
                             <input
                               type="checkbox"
                               checked={isPicked}
-                              onChange={() => pick(r.id)}
+                              onChange={() => pick(r)}
                               onClick={(e) => e.stopPropagation()}
                               aria-label={`Select ${r.firstName} ${r.lastName}`}
                             />
@@ -431,7 +435,7 @@ export function EmployeePickerModal({
         {/* Footer */}
         <div className="px-6 py-4 border-t border-navy/[0.06] flex items-center justify-between gap-3">
           <span className="text-[12px] text-ink-mid">
-            {selected.size} selected
+            {selectedSize} selected
           </span>
           <div className="flex items-center gap-2">
             <button
@@ -444,14 +448,14 @@ export function EmployeePickerModal({
             <button
               type="button"
               onClick={confirm}
-              disabled={selected.size === 0}
+              disabled={selectedSize === 0}
               className="px-4 py-2 rounded-lg text-[13px] font-bold bg-amber text-white hover:bg-amber-dark transition-colors disabled:opacity-60"
             >
               {mode === "single"
                 ? "Use as recipient"
-                : selected.size === 1
+                : selectedSize === 1
                   ? "Add 1 contributor"
-                  : `Add ${selected.size} contributors`}
+                  : `Add ${selectedSize} contributors`}
             </button>
           </div>
         </div>
