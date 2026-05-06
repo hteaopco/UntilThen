@@ -155,8 +155,9 @@ export function StoryCards({
       </div>
 
       {/* Card body — behind chrome, fills viewport. Cards render
-          their own backgrounds. */}
-      <div className="relative w-full h-full flex items-stretch justify-center">
+          their own backgrounds. On desktop the card is capped at
+          720px and centred; on mobile it fills the screen. */}
+      <div className="relative mx-auto w-full sm:max-w-[720px] h-full flex items-stretch justify-center">
         {current.view === "PHOTO" || current.view === "VIDEO" ? (
           <PhotoCard
             contribution={photoOrVideoVariant(current.contribution, current.view)}

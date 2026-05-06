@@ -237,7 +237,7 @@ function ExpandedLetter({
       )}
 
       <div
-        className="flex-1 overflow-y-auto px-7 pt-7 pb-24"
+        className="flex-1 overflow-y-auto px-7 pt-7 pb-24 sm:max-w-[720px] sm:mx-auto sm:w-full"
         style={{
           WebkitOverflowScrolling: "touch",
           paddingBottom: "max(env(safe-area-inset-bottom), 96px)",

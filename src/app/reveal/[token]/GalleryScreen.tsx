@@ -287,7 +287,7 @@ export function GalleryScreen({
           </div>
         </div>
       )}
-      <div className="mx-auto max-w-[720px]">
+      <div className="sm:mx-auto sm:max-w-[720px]">
       <header
         className="relative px-5"
         style={{
