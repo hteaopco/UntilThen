@@ -1,5 +1,10 @@
 "use client";
 
+function toFirstNames(name: string): string {
+  if (!name.includes("&")) return name.trim().split(" ")[0] ?? name;
+  return name.split("&").map((p) => p.trim().split(" ")[0] ?? p.trim()).join(" & ");
+}
+
 import {
   ArrowLeft,
   Image as ImageIcon,
@@ -282,6 +287,7 @@ export function GalleryScreen({
           </div>
         </div>
       )}
+      <div className="mx-auto max-w-[720px]">
       <header
         className="relative px-5"
         style={{
@@ -316,7 +322,7 @@ export function GalleryScreen({
           </div>
         )}
         <h1 className="font-brush text-warm-slate text-[34px] leading-[1.1]">
-          {recipientName ? `${recipientName}'s Capsule` : "Your Capsule"}
+          {recipientName ? `${toFirstNames(recipientName)}'s Capsule` : "Your Capsule"}
         </h1>
         <p className="mt-1 text-[13px] text-ink-mid">
           {variant === "vault"
@@ -579,6 +585,7 @@ export function GalleryScreen({
           onClose={() => setOpenId(null)}
         />
       )}
+      </div>
 
       {/* Hide native scrollbars on the horizontal-scrolling pill
           strips without losing touch-scroll. */}

@@ -5,6 +5,13 @@ import { useEffect } from "react";
 
 import { useRevealAnalytics } from "./analytics";
 
+// "Brooke Sander" → "Brooke"
+// "John Smith & Lucy Jones" → "John & Lucy"
+function toFirstNames(name: string): string {
+  if (!name.includes("&")) return name.trim().split(" ")[0] ?? name;
+  return name.split("&").map((p) => p.trim().split(" ")[0] ?? p.trim()).join(" & ");
+}
+
 /**
  * Phase 1 — Entry Screen.
  *
@@ -72,7 +79,7 @@ export function EntryScreen({
           className="font-serif text-navy leading-[1.12] tracking-[-0.4px] max-w-[18ch]"
           style={{ fontSize: "clamp(34px, 8.5vw, 44px)" }}
         >
-          {recipientName ? `${recipientName},` : "This"}
+          {recipientName ? `${toFirstNames(recipientName)},` : "This"}
           <br />
           this was made
           <br />

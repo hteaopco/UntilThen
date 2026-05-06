@@ -2,6 +2,11 @@
 
 import { Lock } from "lucide-react";
 
+function toFirstNames(name: string): string {
+  if (!name.includes("&")) return name.trim().split(" ")[0] ?? name;
+  return name.split("&").map((p) => p.trim().split(" ")[0] ?? p.trim()).join(" & ");
+}
+
 import { LogoSvg } from "@/components/ui/LogoSvg";
 
 /**
@@ -73,7 +78,7 @@ export function NotYetOpenScreen({
         <Lock size={28} strokeWidth={1.5} aria-hidden="true" />
       </span>
       <h1 className="font-serif text-navy text-[28px] leading-[1.2] tracking-[-0.3px] max-w-[18ch]">
-        {recipientName ? `${recipientName}, this` : "This"} capsule opens on
+        {recipientName ? `${toFirstNames(recipientName)}, this` : "This"} capsule opens on
       </h1>
       <p className="mt-3 font-sans text-amber font-semibold text-[13px] tracking-[0.24em] uppercase">
         {dateLabel}
