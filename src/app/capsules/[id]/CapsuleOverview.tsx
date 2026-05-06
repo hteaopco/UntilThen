@@ -49,7 +49,7 @@ import {
   formatCapsulePrice,
   recipientPronounOf,
 } from "@/lib/capsules";
-import { TONE_EDITOR_HINT, type CapsuleTone } from "@/lib/tone";
+import { TONE_EDITOR_HINT, TONE_HERO, TONE_UNLOCK_LINE, toneClosingLine, type CapsuleTone } from "@/lib/tone";
 
 type CapsuleSummary = {
   id: string;
@@ -499,6 +499,7 @@ export function CapsuleOverview({
             <EmailCustomizerPanel
               capsuleId={capsule.id}
               recipientName={capsule.recipientName}
+              tone={capsule.tone}
               initialContributorSubject={capsule.contributorEmailSubject}
               initialContributorBody={capsule.contributorEmailBody}
               initialRevealSubject={capsule.revealEmailSubject}
@@ -908,6 +909,7 @@ export function CapsuleOverview({
 function EmailCustomizerPanel({
   capsuleId,
   recipientName,
+  tone,
   initialContributorSubject,
   initialContributorBody,
   initialRevealSubject,
@@ -915,6 +917,7 @@ function EmailCustomizerPanel({
 }: {
   capsuleId: string;
   recipientName: string;
+  tone: CapsuleTone;
   initialContributorSubject: string | null;
   initialContributorBody: string | null;
   initialRevealSubject: string | null;
@@ -936,6 +939,13 @@ function EmailCustomizerPanel({
   const [rError, setRError] = useState<string | null>(null);
 
   const recipientFirst = recipientName.split("&")[0]?.trim().split(" ")[0] ?? recipientName;
+
+  // Default copy shown as placeholders so the organiser sees exactly
+  // what will be sent if they leave the fields blank.
+  const defaultContributorSubject = `Add your message for ${recipientFirst}.`;
+  const defaultContributorBody = `A message. A memory. Something they'll open and feel for years.\n\nYou can write a note, record a voice message, or share a photo or video.\n\nIt only takes a minute — and it's something they'll keep forever.`;
+  const defaultRevealSubject = TONE_HERO[tone];
+  const defaultRevealBody = `${TONE_UNLOCK_LINE[tone]}\n\n${toneClosingLine(tone)}`;
 
   async function saveContributor() {
     setCSaving(true);
@@ -1035,7 +1045,7 @@ function EmailCustomizerPanel({
                   type="text"
                   value={cSubject}
                   onChange={(e) => setCSubject(e.target.value.slice(0, 200))}
-                  placeholder={`Add your message for ${recipientFirst}.`}
+                  placeholder={defaultContributorSubject}
                   className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[13px] text-navy placeholder-ink-light/50 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
                 />
                 <p className="mt-1 text-[11px] text-ink-light tabular-nums text-right">{cSubject.length} / 200</p>
@@ -1045,7 +1055,7 @@ function EmailCustomizerPanel({
                 <textarea
                   value={cBody}
                   onChange={(e) => setCBody(e.target.value.slice(0, 1000))}
-                  placeholder={`Hey team — please share a memory or note for ${recipientFirst} before the deadline. It only takes a minute and will mean the world.`}
+                  placeholder={defaultContributorBody}
                   rows={4}
                   className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[13px] text-navy placeholder-ink-light/50 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 leading-[1.5] resize-y"
                 />
@@ -1081,7 +1091,7 @@ function EmailCustomizerPanel({
                   type="text"
                   value={rSubject}
                   onChange={(e) => setRSubject(e.target.value.slice(0, 200))}
-                  placeholder="Leave blank to use the tone-matched default"
+                  placeholder={defaultRevealSubject}
                   className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[13px] text-navy placeholder-ink-light/50 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20"
                 />
                 <p className="mt-1 text-[11px] text-ink-light tabular-nums text-right">{rSubject.length} / 200</p>
@@ -1091,7 +1101,7 @@ function EmailCustomizerPanel({
                 <textarea
                   value={rBody}
                   onChange={(e) => setRBody(e.target.value.slice(0, 1000))}
-                  placeholder={`We all love you, ${recipientFirst}. Enjoy every message inside.`}
+                  placeholder={defaultRevealBody}
                   rows={4}
                   className="w-full px-3 py-2 rounded-lg border border-navy/15 bg-white text-[13px] text-navy placeholder-ink-light/50 outline-none focus:border-amber focus:ring-2 focus:ring-amber/20 leading-[1.5] resize-y"
                 />
